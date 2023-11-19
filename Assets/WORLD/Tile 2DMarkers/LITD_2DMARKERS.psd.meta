@@ -1,0 +1,703 @@
+fileFormatVersion: 2
+guid: 17e96d65e9a5cd64b9c14b3fcae784f5
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 12
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 64
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Windows Store Apps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Server
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_0
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 1538
+        width: 288
+        height: 289
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f8da50bfcdd997d448f4b81017b93cf4
+      internalID: 2113950042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_1
+      rect:
+        serializedVersion: 2
+        x: 481
+        y: 1536
+        width: 293
+        height: 291
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 82c1df2eb160754428b7613ad998f797
+      internalID: -2120729492
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_2
+      rect:
+        serializedVersion: 2
+        x: 863
+        y: 1535
+        width: 295
+        height: 293
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ac559c5621b80ba43a0ae4f77c4e6821
+      internalID: -999141808
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_3
+      rect:
+        serializedVersion: 2
+        x: 1251
+        y: 1535
+        width: 292
+        height: 292
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b281486edfcf4fb4bb88e0554f6d35ad
+      internalID: -754010327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_4
+      rect:
+        serializedVersion: 2
+        x: 1639
+        y: 1550
+        width: 273
+        height: 270
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 561b6fc32749b48419084623a3073f43
+      internalID: 1875951956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_5
+      rect:
+        serializedVersion: 2
+        x: 115
+        y: 1211
+        width: 259
+        height: 250
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f250a92a2a3957247a7ced8b9a77e8d5
+      internalID: 1092359883
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_6
+      rect:
+        serializedVersion: 2
+        x: 499
+        y: 1212
+        width: 258
+        height: 244
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9064ec9323c34c14eac38f4660ad255d
+      internalID: 852300599
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_7
+      rect:
+        serializedVersion: 2
+        x: 881
+        y: 1212
+        width: 260
+        height: 243
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 42d80e8c772749c42bd9cc70247a2387
+      internalID: -876326093
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_8
+      rect:
+        serializedVersion: 2
+        x: 1269
+        y: 1212
+        width: 252
+        height: 242
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 74bf2840858c2964ba926cc0b5c4f2be
+      internalID: -912462201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_9
+      rect:
+        serializedVersion: 2
+        x: 1640
+        y: 1200
+        width: 272
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5493d8b9f44dfa0488cb1063a6f98aef
+      internalID: -1250292724
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_10
+      rect:
+        serializedVersion: 2
+        x: 115
+        y: 942
+        width: 259
+        height: 154
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e4a522a88dccc8c4287d57fa38f7b5dd
+      internalID: -2087609017
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_11
+      rect:
+        serializedVersion: 2
+        x: 495
+        y: 927
+        width: 263
+        height: 190
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7c5fea97aa5eff84d99027c471da39d7
+      internalID: 957613047
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_12
+      rect:
+        serializedVersion: 2
+        x: 888
+        y: 927
+        width: 245
+        height: 220
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c4ff71d5ae9d194408a8ac6f14c955a4
+      internalID: -391188889
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_13
+      rect:
+        serializedVersion: 2
+        x: 1258
+        y: 929
+        width: 275
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ff861d5bb60589e489b79648d3ba5c82
+      internalID: -1979914211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_14
+      rect:
+        serializedVersion: 2
+        x: 1649
+        y: 920
+        width: 253
+        height: 227
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fe47d2d1f103c6e42be4afb4a8749fdf
+      internalID: 1635660972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_15
+      rect:
+        serializedVersion: 2
+        x: 107
+        y: 562
+        width: 278
+        height: 284
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 846cce9aee4ea804dbfd8c3b890b4172
+      internalID: 65820047
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_16
+      rect:
+        serializedVersion: 2
+        x: 483
+        y: 562
+        width: 290
+        height: 285
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 304a7e7a9485c204db3299a35e685c73
+      internalID: 1179301322
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_17
+      rect:
+        serializedVersion: 2
+        x: 870
+        y: 532
+        width: 282
+        height: 326
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9608c43e1c429354794808aef858fa5a
+      internalID: 1864809848
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_18
+      rect:
+        serializedVersion: 2
+        x: 1258
+        y: 538
+        width: 276
+        height: 318
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4fffedaff1f6c8b4f8beb5e86c5e9429
+      internalID: 1974273206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_19
+      rect:
+        serializedVersion: 2
+        x: 1640
+        y: 534
+        width: 272
+        height: 319
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0b53cdea35dddcb449388381f72ed8d9
+      internalID: -1323856440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_20
+      rect:
+        serializedVersion: 2
+        x: 115
+        y: 179
+        width: 258
+        height: 292
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c79a0f311c84dd04ca105619270074b0
+      internalID: 1787441587
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_21
+      rect:
+        serializedVersion: 2
+        x: 487
+        y: 167
+        width: 280
+        height: 314
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bc90a923590c1ad4181fcf0c39dbe546
+      internalID: 679628260
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_22
+      rect:
+        serializedVersion: 2
+        x: 882
+        y: 171
+        width: 259
+        height: 305
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d97f65b1ef7e0e746b84bd856e05b4f4
+      internalID: 611575151
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_23
+      rect:
+        serializedVersion: 2
+        x: 1256
+        y: 158
+        width: 278
+        height: 328
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 25fe46b952816be49825425d6c93978b
+      internalID: 43803012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LITD_2DMARKERS_24
+      rect:
+        serializedVersion: 2
+        x: 1639
+        y: 158
+        width: 273
+        height: 324
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b39aa3be6768fdb47be5549569c7a719
+      internalID: -853947444
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 465599403c4a4084db12d2f86321187b
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      LITD_2DMARKERS_0: 2113950042
+      LITD_2DMARKERS_1: -2120729492
+      LITD_2DMARKERS_10: -2087609017
+      LITD_2DMARKERS_11: 957613047
+      LITD_2DMARKERS_12: -391188889
+      LITD_2DMARKERS_13: -1979914211
+      LITD_2DMARKERS_14: 1635660972
+      LITD_2DMARKERS_15: 65820047
+      LITD_2DMARKERS_16: 1179301322
+      LITD_2DMARKERS_17: 1864809848
+      LITD_2DMARKERS_18: 1974273206
+      LITD_2DMARKERS_19: -1323856440
+      LITD_2DMARKERS_2: -999141808
+      LITD_2DMARKERS_20: 1787441587
+      LITD_2DMARKERS_21: 679628260
+      LITD_2DMARKERS_22: 611575151
+      LITD_2DMARKERS_23: 43803012
+      LITD_2DMARKERS_24: -853947444
+      LITD_2DMARKERS_3: -754010327
+      LITD_2DMARKERS_4: 1875951956
+      LITD_2DMARKERS_5: 1092359883
+      LITD_2DMARKERS_6: 852300599
+      LITD_2DMARKERS_7: -876326093
+      LITD_2DMARKERS_8: -912462201
+      LITD_2DMARKERS_9: -1250292724
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
