@@ -158,9 +158,11 @@ public class WorldGeneration : MonoBehaviour
         List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
 
-        // Size of each subdivision
-        float size = 4.0f;
-
+        // Size of each subdivision cell
+        int cellSize = 4;
+        // Default Chunk Dimensions [ in CellsSize Units! as set above ^^ ]
+        Vector3Int chunkDimensions = new Vector3Int(3, 2, 3);
+        Vector3 fullsized_chunkDimensions = chunkDimensions * cellSize;
 
         // Helper method to add vertices for a face
         // 'start' is the starting point of the face, 'u' and 'v' are the directions of the grid
@@ -168,7 +170,6 @@ public class WorldGeneration : MonoBehaviour
         {
             string vertices_debug = "new face vertices ";
 
-            
             // Loop over each subdivision in the vertical direction
             for (int i = 0; i <= vDivisions; i++)
             {
@@ -184,28 +185,47 @@ public class WorldGeneration : MonoBehaviour
                     // Add the vertex at the current position (vPos + uPos)
                     // This represents a point on the face grid
                     vertices.Add(vPos + uPos);
-                    vertices_debug += vPos + " + " + uPos + " = " + (vPos + uPos) + "\n";
+                    vertices_debug += (vPos + uPos) + "\n";
                 }
             }
-            
 
             print(vertices_debug);
         }
 
-        int uDivisions_sideface = 1;
-        int vDivisions_sideface = 1;
+        Vector3 MultiplyVectors(Vector3 a, Vector3 b)
+        {
+            return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
+        }
 
-        // Forward face (z is constant, x and y vary)
-        AddFace(new Vector3(-6, -4, 6), Vector3.right, Vector3.up, uDivisions_sideface, vDivisions_sideface, size);
+        // << SIDEFACES >>
+        // note** :: starts the face at -fullsized_chunkDimensions so that top of chunk is at 0
+                // -- the chunks will be treated as a 'Generated Ground' to build upon
+        Vector3 newFaceStartOffset = new Vector3(fullsized_chunkDimensions.x * 0.5f, -fullsized_chunkDimensions.y, fullsized_chunkDimensions.z * 0.5f);
 
-        // Back face (z is constant, x and y vary)
-        //AddFace(new Vector3(6, -4, -6), Vector3.left, Vector3.up, uDivisions_sideface, vDivisions_sideface, size);
+        // Forward face
+        Vector3 forwardFaceStartVertex = MultiplyVectors(newFaceStartOffset, new Vector3(-1, 1, 1));
+        AddFace(forwardFaceStartVertex, Vector3.right, Vector3.up, chunkDimensions.x, chunkDimensions.y, cellSize);
 
-        // Left face (x is constant, y and z vary)
-        //AddFace(new Vector3(-6, -4, -6), Vector3.forward, Vector3.up, uDivisions_sideface, vDivisions_sideface, size);
+        // Back face
+        Vector3 backFaceStartVertex = MultiplyVectors(newFaceStartOffset, new Vector3(1, 1, -1));
+        AddFace(backFaceStartVertex, Vector3.left, Vector3.up, chunkDimensions.x, chunkDimensions.y, cellSize);
 
-        // Right face (x is constant, y and z vary)
-        //AddFace(new Vector3(6, -4, 6), Vector3.back, Vector3.up, uDivisions_sideface, vDivisions_sideface, size);
+        // Right face
+        Vector3 rightFaceStartVertex = MultiplyVectors(newFaceStartOffset, new Vector3(-1, 1, -1));
+        AddFace(rightFaceStartVertex, Vector3.forward, Vector3.up, chunkDimensions.z, chunkDimensions.y, cellSize);
+
+        // Left face
+        Vector3 leftFaceStartVertex = MultiplyVectors(newFaceStartOffset, new Vector3(1, 1, 1));
+        AddFace(leftFaceStartVertex, Vector3.back, Vector3.up, chunkDimensions.z, chunkDimensions.y, cellSize);
+
+        // << VERTICAL FACES >> 
+        // Top face
+        Vector3 topFaceStartVertex = MultiplyVectors(newFaceStartOffset, new Vector3(1, 0, -1));
+        AddFace(topFaceStartVertex, Vector3.left, Vector3.forward, chunkDimensions.x, chunkDimensions.z, cellSize);
+
+        // Bottom face
+        Vector3 bottomFaceStartVertex = MultiplyVectors(newFaceStartOffset, new Vector3(-1, 1, -1));
+        AddFace(bottomFaceStartVertex, Vector3.right, Vector3.forward, chunkDimensions.x, chunkDimensions.z, cellSize);
 
         // Helper method to dynamically generate triangles for a face
         void AddFaceTriangles(int faceStartIndex, int uDivisions, int vDivisions)
@@ -217,13 +237,13 @@ public class WorldGeneration : MonoBehaviour
                     int rowStart = faceStartIndex + i * (uDivisions + 1);
                     int nextRowStart = faceStartIndex + (i + 1) * (uDivisions + 1);
 
-                    int bottomLeft = rowStart + j;
+                    int bottomLeft = rowStart + j; 
                     int bottomRight = bottomLeft + 1;
                     int topLeft = nextRowStart + j;
                     int topRight = topLeft + 1;
 
                     // Add two triangles for each square
-                    List<int> newSquareMesh = new List<int>() { bottomLeft, bottomRight, topLeft, bottomRight, topLeft, topRight };
+                    List<int> newSquareMesh = new List<int>() { bottomLeft, topRight, topLeft, topRight, bottomLeft, bottomRight };
                     triangles.AddRange(newSquareMesh);
 
                     string debug = "newsquare : ";
@@ -236,12 +256,29 @@ public class WorldGeneration : MonoBehaviour
             }
         }
 
-        // Generate triangles for each SIDEFACE
-        int vertexCountPerFace = (uDivisions_sideface + 1) * (vDivisions_sideface + 1); // (uDivisions + 1) * (vDivisions + 1)
-        for (int faceIndex = 0; faceIndex < 1; faceIndex++) // For each of the 4 faces
+        // >> SIDEFACE FACE TRIANGLES [ XY plane ]
+        int side_vertexCountPerFace = (chunkDimensions.x + 1) * (chunkDimensions.y + 1);
+
+        // >> VERTICAL FACE TRIANGLES [ XZ plane ]
+        int vert_vertexCountPerFace = (chunkDimensions.x + 1) * (chunkDimensions.z + 1);
+
+        // ITERATE through 6 faces
+        // Triangles generation
+        int vertexCount = 0;
+        for (int faceIndex = 0; faceIndex < 6; faceIndex++)
         {
-            AddFaceTriangles(faceIndex * vertexCountPerFace, uDivisions_sideface, vDivisions_sideface);
+            if (faceIndex < 4) // Side faces (XY plane)
+            {
+                AddFaceTriangles(vertexCount, chunkDimensions.x, chunkDimensions.y);
+                vertexCount += (chunkDimensions.x + 1) * (chunkDimensions.y + 1);
+            }
+            else // Vertical faces (XZ plane)
+            {
+                AddFaceTriangles(vertexCount, chunkDimensions.x, chunkDimensions.z);
+                vertexCount += (chunkDimensions.x + 1) * (chunkDimensions.z + 1);
+            }
         }
+
 
         // Apply the vertices and triangles to the mesh
         mesh.vertices = vertices.ToArray();
