@@ -632,7 +632,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chunkMaterial: {fileID: 2100000, guid: dfc08c90188302847afb04f628582097, type: 2}
-  steps: 20
+  steps: 2
   chunkSize: 12
 --- !u!23 &1082910643
 MeshRenderer:

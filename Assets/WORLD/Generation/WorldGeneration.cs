@@ -10,17 +10,20 @@ public class WorldGeneration : MonoBehaviour
     void Start()
     {
         List<Mesh> meshes = new List<Mesh>();
-        List<Vector3> positions = GenerateRandomWalkPositions(steps);
+        //List<Vector3> positions = GenerateRandomWalkPositions(steps);
+        List<Vector3> positions = new List<Vector3> { Vector3.zero };
 
         foreach (Vector3 position in positions)
         {
             Mesh chunkMesh = CreateChunkMesh();
             chunkMesh = OffsetMesh(chunkMesh, position);
             meshes.Add(chunkMesh);
+            CreateCombinedMeshObject(chunkMesh);
+
         }
 
-        Mesh combinedMesh = CombineMeshes(meshes);
-        CreateCombinedMeshObject(combinedMesh);
+        //Mesh combinedMesh = CombineMeshes(meshes);
+        //CreateCombinedMeshObject(combinedMesh);
     }
 
     Mesh OffsetMesh(Mesh mesh, Vector3 position)
@@ -102,7 +105,6 @@ public class WorldGeneration : MonoBehaviour
         return combinedMesh;
     }
 
-
     void CreateCombinedMeshObject(Mesh combinedMesh)
     {
         GameObject combinedObject = new GameObject("CombinedChunk");
@@ -153,67 +155,104 @@ public class WorldGeneration : MonoBehaviour
     {
         Mesh mesh = new Mesh();
 
-        // Vertices of the cuboid
-        Vector3[] vertices = new Vector3[]
+        List<Vector3> vertices = new List<Vector3>();
+        List<int> triangles = new List<int>();
+
+        // Size of each subdivision
+        float size = 4.0f;
+
+
+        // Helper method to add vertices for a face
+        // 'start' is the starting point of the face, 'u' and 'v' are the directions of the grid
+        void AddFace(Vector3 start, Vector3 u, Vector3 v, int uDivisions, int vDivisions, float size)
         {
-        // Bottom vertices
-        new Vector3(-6, -4, -6),
-        new Vector3(6, -4, -6),
-        new Vector3(6, -4, 6),
-        new Vector3(-6, -4, 6),
+            string vertices_debug = "new face vertices ";
 
-        // Top vertices
-        new Vector3(-6, 4, -6),
-        new Vector3(6, 4, -6),
-        new Vector3(6, 4, 6),
-        new Vector3(-6, 4, 6)
-        };
+            
+            // Loop over each subdivision in the vertical direction
+            for (int i = 0; i <= vDivisions; i++)
+            {
+                // Calculate the current position along the vertical direction 'v'
+                Vector3 vPos = start + (i * size * v);
 
-        // Triangles (two triangles per face, six faces total) with inverted winding order
-        int[] triangles = new int[]
+                // Loop over each subdivision in the horizontal direction
+                for (int j = 0; j <= uDivisions; j++)
+                {
+                    // Calculate the current position along the horizontal direction 'u'
+                    Vector3 uPos = j * size * u;
+
+                    // Add the vertex at the current position (vPos + uPos)
+                    // This represents a point on the face grid
+                    vertices.Add(vPos + uPos);
+                    vertices_debug += vPos + " + " + uPos + " = " + (vPos + uPos) + "\n";
+                }
+            }
+            
+
+            print(vertices_debug);
+        }
+
+        int uDivisions_sideface = 1;
+        int vDivisions_sideface = 1;
+
+        // Forward face (z is constant, x and y vary)
+        AddFace(new Vector3(-6, -4, 6), Vector3.right, Vector3.up, uDivisions_sideface, vDivisions_sideface, size);
+
+        // Back face (z is constant, x and y vary)
+        //AddFace(new Vector3(6, -4, -6), Vector3.left, Vector3.up, uDivisions_sideface, vDivisions_sideface, size);
+
+        // Left face (x is constant, y and z vary)
+        //AddFace(new Vector3(-6, -4, -6), Vector3.forward, Vector3.up, uDivisions_sideface, vDivisions_sideface, size);
+
+        // Right face (x is constant, y and z vary)
+        //AddFace(new Vector3(6, -4, 6), Vector3.back, Vector3.up, uDivisions_sideface, vDivisions_sideface, size);
+
+        // Helper method to dynamically generate triangles for a face
+        void AddFaceTriangles(int faceStartIndex, int uDivisions, int vDivisions)
         {
-        // Bottom (inverted)
-        0, 1, 2, 0, 2, 3,
-        // Top (inverted)
-        4, 6, 5, 4, 7, 6,
-        // Front (inverted)
-        4, 1, 0, 4, 5, 1,
-        // Back (inverted)
-        3, 6, 7, 3, 2, 6,
-        // Left (inverted)
-        4, 3, 7, 4, 0, 3,
-        // Right (inverted)
-        1, 5, 6, 1, 6, 2
-        };
+            for (int i = 0; i < vDivisions; i++)
+            {
+                for (int j = 0; j < uDivisions; j++)
+                {
+                    int rowStart = faceStartIndex + i * (uDivisions + 1);
+                    int nextRowStart = faceStartIndex + (i + 1) * (uDivisions + 1);
 
-        mesh.vertices = vertices;
-        mesh.triangles = triangles;
-        mesh.RecalculateNormals(); // Recalculate normals for proper lighting
+                    int bottomLeft = rowStart + j;
+                    int bottomRight = bottomLeft + 1;
+                    int topLeft = nextRowStart + j;
+                    int topRight = topLeft + 1;
 
-        // UVs
-        Vector2[] uvs = new Vector2[vertices.Length];
+                    // Add two triangles for each square
+                    List<int> newSquareMesh = new List<int>() { bottomLeft, bottomRight, topLeft, bottomRight, topLeft, topRight };
+                    triangles.AddRange(newSquareMesh);
 
-        // Bottom UVs
-        uvs[0] = new Vector2(0, 0);
-        uvs[1] = new Vector2(1, 0);
-        uvs[2] = new Vector2(1, 1);
-        uvs[3] = new Vector2(0, 1);
+                    string debug = "newsquare : ";
+                    for (int k = 0; k < newSquareMesh.Count; k++)
+                    {
+                        debug += newSquareMesh[k];
+                    }
+                    print(debug);
+                }
+            }
+        }
 
-        // Top UVs
-        uvs[4] = new Vector2(0, 0);
-        uvs[5] = new Vector2(1, 0);
-        uvs[6] = new Vector2(1, 1);
-        uvs[7] = new Vector2(0, 1);
+        // Generate triangles for each SIDEFACE
+        int vertexCountPerFace = (uDivisions_sideface + 1) * (vDivisions_sideface + 1); // (uDivisions + 1) * (vDivisions + 1)
+        for (int faceIndex = 0; faceIndex < 1; faceIndex++) // For each of the 4 faces
+        {
+            AddFaceTriangles(faceIndex * vertexCountPerFace, uDivisions_sideface, vDivisions_sideface);
+        }
 
-        // Apply the vertices, triangles, and UVs to the mesh
-        mesh.vertices = vertices;
-        mesh.triangles = triangles;
-        mesh.uv = uvs;
+        // Apply the vertices and triangles to the mesh
+        mesh.vertices = vertices.ToArray();
+        mesh.triangles = triangles.ToArray();
 
-        mesh.RecalculateNormals(); // Recalculate normals for proper lighting
+        // Recalculate normals for proper lighting
+        mesh.RecalculateNormals();
+
+        // UV mapping can be updated as required
 
         return mesh;
     }
-
 }
 
