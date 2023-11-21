@@ -5,25 +5,42 @@ public class WorldGeneration : MonoBehaviour
 {
     public Material chunkMaterial; // Assign a material in the inspector
     public int steps = 10; // Number of steps in the random walk
-    public int chunkSize = 12; // Distance between each chunk
+
+
+    int cellSize = 4; // Size of each subdivision cell
+    int chunkWidthCellCount = 3; // Length of width in cells
+    int chunkHeightCellCount = 3; // Length of height in cells
+
+    Vector3Int chunkDimensions; // default Chunk Dimensions [ size units == cellSize ]
+    Vector3 fullsized_chunkDimensions; // fullsize Chunk Dimensions [ size units == meters ] >> calculated by chunkDimensions * cellSize
+    int fullSized_chunkWidth;
+    int fullSized_chunkHeight;
+
+
+    private void Awake()
+    {
+        chunkDimensions = new Vector3Int(chunkWidthCellCount, chunkHeightCellCount, chunkWidthCellCount);
+        fullsized_chunkDimensions = chunkDimensions * cellSize;
+        fullSized_chunkWidth = chunkWidthCellCount * cellSize;
+        fullSized_chunkHeight = chunkHeightCellCount * cellSize;
+
+    }
+
 
     void Start()
     {
         List<Mesh> meshes = new List<Mesh>();
-        //List<Vector3> positions = GenerateRandomWalkPositions(steps);
-        List<Vector3> positions = new List<Vector3> { Vector3.zero };
+        List<Vector3> positions = GenerateRandomWalkPositions(steps);
 
         foreach (Vector3 position in positions)
         {
             Mesh chunkMesh = CreateChunkMesh();
             chunkMesh = OffsetMesh(chunkMesh, position);
             meshes.Add(chunkMesh);
-            CreateCombinedMeshObject(chunkMesh);
-
         }
 
-        //Mesh combinedMesh = CombineMeshes(meshes);
-        //CreateCombinedMeshObject(combinedMesh);
+        Mesh combinedMesh = CombineMeshes(meshes);
+        CreateCombinedMeshObject(combinedMesh);
     }
 
     Mesh OffsetMesh(Mesh mesh, Vector3 position)
@@ -119,7 +136,7 @@ public class WorldGeneration : MonoBehaviour
 
         for (int i = 0; i < steps; i++)
         {
-            currentPos += RandomDirectionOnXZ() * chunkSize;
+            currentPos += RandomDirectionOnXZ() * fullSized_chunkWidth;
             positions.Add(currentPos);
         }
 
@@ -139,18 +156,6 @@ public class WorldGeneration : MonoBehaviour
         }
     }
 
-    void GenerateChunkAtPosition(Vector3 position)
-    {
-        Mesh chunkMesh = CreateChunkMesh();
-
-        GameObject chunk = new GameObject("Chunk", typeof(MeshFilter), typeof(MeshRenderer));
-        chunk.GetComponent<MeshFilter>().mesh = chunkMesh;
-        chunk.GetComponent<MeshRenderer>().material = chunkMaterial;
-
-        // Position the chunk at the specified location
-        chunk.transform.position = new Vector3(position.x, position.y + 4, position.z); // Adjust y to be half of the height
-    }
-
     Mesh CreateChunkMesh()
     {
         Mesh mesh = new Mesh();
@@ -158,18 +163,10 @@ public class WorldGeneration : MonoBehaviour
         List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
 
-        // Size of each subdivision cell
-        int cellSize = 4;
-        // Default Chunk Dimensions [ in CellsSize Units! as set above ^^ ]
-        Vector3Int chunkDimensions = new Vector3Int(3, 2, 3);
-        Vector3 fullsized_chunkDimensions = chunkDimensions * cellSize;
-
         // Helper method to add vertices for a face
         // 'start' is the starting point of the face, 'u' and 'v' are the directions of the grid
         void AddFace(Vector3 start, Vector3 u, Vector3 v, int uDivisions, int vDivisions, float size)
         {
-            string vertices_debug = "new face vertices ";
-
             // Loop over each subdivision in the vertical direction
             for (int i = 0; i <= vDivisions; i++)
             {
@@ -185,11 +182,8 @@ public class WorldGeneration : MonoBehaviour
                     // Add the vertex at the current position (vPos + uPos)
                     // This represents a point on the face grid
                     vertices.Add(vPos + uPos);
-                    vertices_debug += (vPos + uPos) + "\n";
                 }
             }
-
-            print(vertices_debug);
         }
 
         Vector3 MultiplyVectors(Vector3 a, Vector3 b)
@@ -197,9 +191,11 @@ public class WorldGeneration : MonoBehaviour
             return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
         }
 
+
+
         // << SIDEFACES >>
         // note** :: starts the face at -fullsized_chunkDimensions so that top of chunk is at 0
-                // -- the chunks will be treated as a 'Generated Ground' to build upon
+        // -- the chunks will be treated as a 'Generated Ground' to build upon
         Vector3 newFaceStartOffset = new Vector3(fullsized_chunkDimensions.x * 0.5f, -fullsized_chunkDimensions.y, fullsized_chunkDimensions.z * 0.5f);
 
         // Forward face
@@ -278,7 +274,6 @@ public class WorldGeneration : MonoBehaviour
                 vertexCount += (chunkDimensions.x + 1) * (chunkDimensions.z + 1);
             }
         }
-
 
         // Apply the vertices and triangles to the mesh
         mesh.vertices = vertices.ToArray();
