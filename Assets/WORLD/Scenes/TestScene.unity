@@ -132,8 +132,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9356479}
+  - component: {fileID: 9356480}
   m_Layer: 0
-  m_Name: Cell Map
+  m_Name: World Cell Map
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -147,13 +148,25 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9356478}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1082910641}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9356480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9356478}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9703bbe44710b6e409bbe24a1955aaca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -502,7 +515,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 9356479}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1082910642
@@ -517,11 +531,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 620745325a50846479f301ec54b3a337, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  generation_finished: 0
+  combinedMeshObject: {fileID: 0}
   chunkMaterial: {fileID: 2100000, guid: dfc08c90188302847afb04f628582097, type: 2}
   steps: 100
   cellSize: 4
-  chunkWidthCellCount: 3
-  chunkHeightCellCount: 6
+  chunkWidthCellCount: 5
+  chunkHeightCellCount: 3
 --- !u!23 &1082910643
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -580,4 +596,3 @@ SceneRoots:
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 1082910641}
-  - {fileID: 9356479}

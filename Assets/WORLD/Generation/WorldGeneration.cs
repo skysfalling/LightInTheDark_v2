@@ -8,34 +8,32 @@ using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
 public class WorldGeneration : MonoBehaviour
 {
-    class Cell
+    public class Cell
     {
+        public enum Type { EMPTY , EDGE , CORNER }
+        public Type type;
+
         Chunk chunkParent;
         int chunkIndex;
         public Vector3[] vertices; // Corners of the cell
-        public Vector3 center;     // Center of the cell
-        // Add other cell properties here
+        public Vector3 position;     // Center position of the cell
+
 
         public Cell(Chunk chunkParent, int index, Vector3[] vertices)
         {
             this.vertices = vertices;
             this.chunkIndex = index;
             this.chunkParent = chunkParent;
-            center = (vertices[0] + vertices[1] + vertices[2] + vertices[3]) / 4;
+            position = (vertices[0] + vertices[1] + vertices[2] + vertices[3]) / 4;
+        }
 
-
-            /*            
-            string output = "NEW CELL " + chunkIndex + " :: ";
-            foreach (Vector3 vector in vertices)
-            {
-                output += vector.ToString() + "\n"; // Adding a newline for readability
-            }
-            Debug.Log(output);
-            */
+        public void SetCellType(Type type)
+        {
+            this.type = type;
         }
     }
 
-    class Chunk
+    public class Chunk
     {
         public Mesh mesh;
         public Vector3 position;
@@ -120,7 +118,14 @@ public class WorldGeneration : MonoBehaviour
 
     }
 
-    GameObject combinedMeshObject;
+
+    // =====================================================================>>
+    // WORLD GENERATION
+    // ==================================================================================>>
+
+
+    public bool generation_finished = false;
+    public GameObject combinedMeshObject;
     public Material chunkMaterial; // Assign a material in the inspector
     public int steps = 10; // Number of steps in the random walk
 
@@ -144,6 +149,8 @@ public class WorldGeneration : MonoBehaviour
     [EasyButtons.Button]
     void Generate()
     {
+        generation_finished = false;
+
         if (combinedMeshObject != null) { 
             Destroy(combinedMeshObject); 
             chunks.Clear();
@@ -165,8 +172,39 @@ public class WorldGeneration : MonoBehaviour
         // Create Combined Mesh
         Mesh combinedMesh = CombineChunks(chunks);
         CreateCombinedMeshObject(combinedMesh);
+        
+        generation_finished = true;
+
+
     }
 
+    public List<Chunk> GetChunks()
+    {
+        if (chunks.Count == 0 || chunks == null)
+        {
+            return null;
+        }
+
+        return chunks;
+    }
+
+    public List<Cell> GetCells()
+    {
+        List<Cell> cells = new List<Cell>();
+
+        foreach (Chunk chunk in chunks)
+        {
+            foreach (Cell cell in chunk.cells)
+            {
+                cells.Add(cell);
+            }
+        }
+
+        return cells;
+    }
+
+    // =========================================== FUNCTIONS ==============================================
+    
     /// <summary>
     /// Creates a chunk mesh with specified dimensions, vertices, triangles, and UVs. 
     /// Constructs faces of the chunk and computes triangles for each face.
@@ -216,7 +254,6 @@ public class WorldGeneration : MonoBehaviour
         // -- the chunks will be treated as a 'Generated Ground' to build upon
 
         Vector3Int fullsize_chunkDimensions = chunkDimensions * cellSize;
-
         Vector3 newFaceStartOffset = new Vector3((fullsize_chunkDimensions.x) * 0.5f, -(fullsize_chunkDimensions.y), (fullsize_chunkDimensions.z) * 0.5f);
 
         // Forward face
@@ -248,8 +285,6 @@ public class WorldGeneration : MonoBehaviour
         Vector3 topFaceStartVertex = MultiplyVectors(newFaceStartOffset, new Vector3(1, 0, -1));
         Vector3 topFaceNormal = Vector3.up; // Normal for top face
         List<Vector3> topfacevertices = AddFace(topFaceStartVertex, Vector3.left, Vector3.forward, chunkDimensions.x, chunkDimensions.z, topFaceNormal);
-
-
 
         // Helper method to dynamically generate triangles for a face
         void AddFaceTriangles(int faceStartIndex, int uDivisions, int vDivisions)
@@ -401,23 +436,6 @@ public class WorldGeneration : MonoBehaviour
             case 2: return Vector3.left;
             case 3: return Vector3.right;
             default: return Vector3.forward;
-        }
-    }
-
-
-    private void OnDrawGizmos()
-    {
-        if (chunks.Count > 0)
-        {
-            foreach (Chunk chunk in chunks)
-            {
-                foreach (Cell cell in chunk.cells)
-                {
-                    Gizmos.color = Color.blue;
-                    Gizmos.DrawCube(cell.center, Vector3.one);
-                }
-
-            }
         }
     }
 }
