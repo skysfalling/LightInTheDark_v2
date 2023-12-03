@@ -122,10 +122,10 @@ public class WorldGeneration : MonoBehaviour
     // =====================================================================>>
     // WORLD GENERATION
     // ==================================================================================>>
-
+    [HideInInspector] public GameObject worldGenerationObject;
+    List<Chunk> _chunks = new List<Chunk>();
 
     public bool generation_finished = false;
-    public GameObject combinedMeshObject;
     public Material chunkMaterial; // Assign a material in the inspector
     public int steps = 10; // Number of steps in the random walk
 
@@ -139,7 +139,6 @@ public class WorldGeneration : MonoBehaviour
     [Range(0, 21)]
     public int chunkHeightCellCount = 3; // Length of height in cells
     Vector3Int chunkDimensions; // default Chunk Dimensions [ size units == cellSize ]
-    List<Chunk> chunks = new List<Chunk>();
 
     private void Start()
     {
@@ -151,9 +150,9 @@ public class WorldGeneration : MonoBehaviour
     {
         generation_finished = false;
 
-        if (combinedMeshObject != null) { 
-            Destroy(combinedMeshObject); 
-            chunks.Clear();
+        if (worldGenerationObject != null) { 
+            Destroy(worldGenerationObject); 
+            _chunks.Clear();
         }
 
         // Chunk Dimensions
@@ -166,33 +165,34 @@ public class WorldGeneration : MonoBehaviour
         foreach (Vector3 position in positions)
         {
             Chunk newChunk = CreateChunkMesh(position);
-            chunks.Add(newChunk);
+            _chunks.Add(newChunk);
         }
 
         // Create Combined Mesh
-        Mesh combinedMesh = CombineChunks(chunks);
+        Mesh combinedMesh = CombineChunks(_chunks);
         CreateCombinedMeshObject(combinedMesh);
         
         generation_finished = true;
 
+        GetComponentInChildren<WorldCellMap>().InitializeCellMap();
 
     }
 
     public List<Chunk> GetChunks()
     {
-        if (chunks.Count == 0 || chunks == null)
+        if (_chunks.Count == 0 || _chunks == null)
         {
             return null;
         }
 
-        return chunks;
+        return _chunks;
     }
 
     public List<Cell> GetCells()
     {
         List<Cell> cells = new List<Cell>();
 
-        foreach (Chunk chunk in chunks)
+        foreach (Chunk chunk in _chunks)
         {
             foreach (Cell cell in chunk.cells)
             {
@@ -394,11 +394,11 @@ public class WorldGeneration : MonoBehaviour
     /// <param name="combinedMesh">The combined Mesh to be represented.</param>
     void CreateCombinedMeshObject(Mesh combinedMesh)
     {
-        if (combinedMeshObject != null) { Destroy(combinedMeshObject); }
+        if (worldGenerationObject != null) { Destroy(worldGenerationObject); }
 
-        combinedMeshObject = new GameObject("CombinedChunk");
-        combinedMeshObject.AddComponent<MeshFilter>().mesh = combinedMesh;
-        combinedMeshObject.AddComponent<MeshRenderer>().material = chunkMaterial;
+        worldGenerationObject = new GameObject("CombinedChunk");
+        worldGenerationObject.AddComponent<MeshFilter>().mesh = combinedMesh;
+        worldGenerationObject.AddComponent<MeshRenderer>().material = chunkMaterial;
     }
 
     /// <summary>

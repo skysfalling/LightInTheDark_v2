@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class WorldCellMap : MonoBehaviour
 {
-    bool cellMapInit = false;
-
+    
     WorldGeneration worldGeneration;
     List<WorldGeneration.Chunk> worldChunks = new List<WorldGeneration.Chunk>();
     List<WorldGeneration.Cell> worldCells = new List<WorldGeneration.Cell>();
     Dictionary<WorldGeneration.Cell, List<WorldGeneration.Cell>> worldCellMap = new Dictionary<WorldGeneration.Cell, List<WorldGeneration.Cell>>();
 
+    List<GameObject> generatedWallPrefabs = new List<GameObject>();
+    public GameObject wallPrefab;
 
     // Start is called before the first frame update
     void Start()
@@ -18,24 +19,11 @@ public class WorldCellMap : MonoBehaviour
         worldGeneration = GetComponentInParent<WorldGeneration>();
     }
 
-    public void Update()
-    {
-        if (worldGeneration != null && worldGeneration.generation_finished && !cellMapInit) 
-        { 
-            InitializeCellMap();
-            cellMapInit = true;
-        }
-        else if (!worldGeneration.generation_finished && cellMapInit)
-        {
-            cellMapInit = false;
-        }
-    }
-
-    private void InitializeCellMap()
+    public void InitializeCellMap()
     {
         worldChunks = worldGeneration.GetChunks();
         worldCells = worldGeneration.GetCells();
-
+        worldCellMap.Clear();
 
         // SET CELL NEIGHBORS
         foreach (WorldGeneration.Cell cell in worldCells)
@@ -48,6 +36,16 @@ public class WorldCellMap : MonoBehaviour
         foreach (WorldGeneration.Cell cell in worldCells)
         {
             SetCellType(cell);
+        }
+
+        // SPAWN ASSETS
+        foreach (WorldGeneration.Cell cell in worldCells)
+        {
+            if (cell.type != WorldGeneration.Cell.Type.EMPTY)
+            {
+                GameObject newAsset = Instantiate(wallPrefab, cell.position, Quaternion.identity);
+                newAsset.transform.parent = worldGeneration.worldGenerationObject.transform;
+            }
         }
     }
 
