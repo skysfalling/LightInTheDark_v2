@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(WorldChunkDebug))]
 public class WorldChunkMap : MonoBehaviour
 {
     WorldGeneration _worldGeneration;
@@ -50,10 +51,29 @@ public class WorldChunkMap : MonoBehaviour
         return neighbors;
     }
 
-    private void OnDrawGizmosSelected()
+    public WorldChunk FindClosestChunk(Vector3 position)
     {
-        if (_worldChunks.Count == 0) { return; }
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawCube(_worldChunks[0].position, _worldGeneration.fullsize_chunkDimensions);
+        float minDistance = float.MaxValue;
+        WorldChunk closestChunk = null;
+
+        // Iterate over each cell in WorldGeneration
+        foreach (WorldChunk chunk in _worldGeneration.GetChunks())
+        {
+            float distance = Vector3.Distance(position, chunk.position);
+
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                closestChunk = chunk;
+            }
+        }
+
+        if (closestChunk != null)
+        {
+            Debug.Log("Closest cell found at: " + closestChunk.position);
+            return closestChunk;
+        }
+
+        return null;
     }
 }

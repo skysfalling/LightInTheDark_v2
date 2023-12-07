@@ -7,11 +7,17 @@ public class InputManager : MonoBehaviour
     WorldGeneration worldGeneration;
     WorldCellMap cellMap;
 
+    WorldChunkMap chunkMap;
+    WorldChunkDebug chunkDebug;
+
     // Start is called before the first frame update
     void Start()
     {
         worldGeneration = FindObjectOfType<WorldGeneration>();
         cellMap = FindObjectOfType<WorldCellMap>();
+
+        chunkMap = FindObjectOfType<WorldChunkMap>();
+        chunkDebug = FindObjectOfType<WorldChunkDebug>();
     }
 
     // Update is called once per frame
@@ -25,9 +31,8 @@ public class InputManager : MonoBehaviour
 
             if (Physics.Raycast(ray, out hit))
             {
-                WorldCell closestCell = cellMap.FindClosestCell(hit.point);      
-                // Add your logic here for what to do with the closest cell
-                Debug.Log("Closest cell found at position: " + closestCell.position);
+                WorldChunk closestChunk = chunkMap.FindClosestChunk(hit.point);
+                chunkDebug.SelectWorldChunk(closestChunk);
             }
         }
     }
