@@ -1,4 +1,4 @@
-using System.Collections;
+ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,9 +6,8 @@ public class WorldCellMap : MonoBehaviour
 {
     
     WorldGeneration worldGeneration;
-    List<WorldGeneration.Chunk> worldChunks = new List<WorldGeneration.Chunk>();
-    List<WorldGeneration.Cell> worldCells = new List<WorldGeneration.Cell>();
-    Dictionary<WorldGeneration.Cell, List<WorldGeneration.Cell>> worldCellMap = new Dictionary<WorldGeneration.Cell, List<WorldGeneration.Cell>>();
+    List<WorldCell> worldCells = new List<WorldCell>();
+    Dictionary<WorldCell, List<WorldCell>> worldCellMap = new Dictionary<WorldCell, List<WorldCell>>();
 
     List<GameObject> generatedWallPrefabs = new List<GameObject>();
     public GameObject wallPrefab;
@@ -21,27 +20,26 @@ public class WorldCellMap : MonoBehaviour
 
     public void InitializeCellMap()
     {
-        worldChunks = worldGeneration.GetChunks();
         worldCells = worldGeneration.GetCells();
         worldCellMap.Clear();
 
         // SET CELL NEIGHBORS
-        foreach (WorldGeneration.Cell cell in worldCells)
+        foreach (WorldCell cell in worldCells)
         {
-            List<WorldGeneration.Cell> neighbors = GetCellNeighbors(cell);
+            List<WorldCell> neighbors = GetCellNeighbors(cell);
             worldCellMap[cell] = neighbors;
         }
 
         // SET CELL TYPES
-        foreach (WorldGeneration.Cell cell in worldCells)
+        foreach (WorldCell cell in worldCells)
         {
             SetCellType(cell);
         }
 
         // SPAWN ASSETS
-        foreach (WorldGeneration.Cell cell in worldCells)
+        foreach (WorldCell cell in worldCells)
         {
-            if (cell.type != WorldGeneration.Cell.Type.EMPTY)
+            if (cell.type != WorldCell.Type.EMPTY)
             {
                 GameObject newAsset = Instantiate(wallPrefab, cell.position, Quaternion.identity);
                 newAsset.transform.parent = worldGeneration._worldGenerationObject.transform;
@@ -49,9 +47,9 @@ public class WorldCellMap : MonoBehaviour
         }
     }
 
-    private List<WorldGeneration.Cell> GetCellNeighbors(WorldGeneration.Cell cell)
+    private List<WorldCell> GetCellNeighbors(WorldCell cell)
     {
-        List<WorldGeneration.Cell> neighbors = new List<WorldGeneration.Cell>(new WorldGeneration.Cell[4]);
+        List<WorldCell> neighbors = new List<WorldCell>(new WorldCell[4]);
         float cellSize = worldGeneration.cellSize; // Assuming 'cellSize' is a public field in WorldGeneration
 
         // Calculate neighbor positions
@@ -72,21 +70,21 @@ public class WorldCellMap : MonoBehaviour
         return neighbors;
     }
 
-    private WorldGeneration.Cell.Type SetCellType(WorldGeneration.Cell cell)
+    private WorldCell.Type SetCellType(WorldCell cell)
     {
-        WorldGeneration.Cell.Type cellType = WorldGeneration.Cell.Type.EMPTY;
+        WorldCell.Type cellType = WorldCell.Type.EMPTY;
 
         // CHECK FOR EDGE
         if (worldCellMap[cell].Count < 4)
         {
-            cellType = WorldGeneration.Cell.Type.EDGE;
+            cellType = WorldCell.Type.EDGE;
         }
         // EDGE CORNERS
         else if (worldCellMap[cell].Count == 4)
         {
             // Count how many neighbors are also edges
             int edgeNeighborCount = 0;
-            foreach (WorldGeneration.Cell neighbor in worldCellMap[cell])
+            foreach (WorldCell neighbor in worldCellMap[cell])
             {
                 if (worldCellMap[neighbor].Count < 4)
                 {
@@ -97,7 +95,7 @@ public class WorldCellMap : MonoBehaviour
             // If at least two neighbors are edges, it's an edge corner
             if (edgeNeighborCount >= 2)
             {
-                cellType = WorldGeneration.Cell.Type.CORNER;
+                cellType = WorldCell.Type.CORNER;
             }
         }
 
@@ -107,13 +105,13 @@ public class WorldCellMap : MonoBehaviour
         return cellType;
     }
 
-    public WorldGeneration.Cell FindClosestCell(Vector3 position)
+    public WorldCell FindClosestCell(Vector3 position)
     {
         float minDistance = float.MaxValue;
-        WorldGeneration.Cell closestCell = null;
+        WorldCell closestCell = null;
 
         // Iterate over each cell in WorldGeneration
-        foreach (WorldGeneration.Cell cell in worldGeneration.GetCells())
+        foreach (WorldCell cell in worldGeneration.GetCells())
         {
             float distance = Vector3.Distance(position, cell.position);
 
@@ -133,18 +131,19 @@ public class WorldCellMap : MonoBehaviour
         return null;
     }
 
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
-        foreach (WorldGeneration.Cell cell in worldCells)
+        foreach (WorldCell cell in worldCells)
         {
             Gizmos.color = Color.white;
 
-            if (cell.type == WorldGeneration.Cell.Type.EDGE) { Gizmos.color = Color.red; }
-            if (cell.type == WorldGeneration.Cell.Type.CORNER) { Gizmos.color = Color.yellow; }
+            if (cell.type == WorldCell.Type.EDGE) { Gizmos.color = Color.red; }
+            if (cell.type == WorldCell.Type.CORNER) { Gizmos.color = Color.yellow; }
 
 
 
             Gizmos.DrawCube(cell.position, Vector3.one);
         }
     }
+
 }

@@ -5,125 +5,13 @@ using UnityEngine;
 using UnityEngine.XR;
 using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
-
 public class WorldGeneration : MonoBehaviour
 {
-    public class Cell
-    {
-        public enum Type { EMPTY , EDGE , CORNER }
-        public Type type;
-
-        Chunk chunkParent;
-        int chunkIndex;
-        public Vector3[] vertices; // Corners of the cell
-        public Vector3 position;     // Center position of the cell
-
-
-        public Cell(Chunk chunkParent, int index, Vector3[] vertices)
-        {
-            this.vertices = vertices;
-            this.chunkIndex = index;
-            this.chunkParent = chunkParent;
-            position = (vertices[0] + vertices[1] + vertices[2] + vertices[3]) / 4;
-        }
-
-        public void SetCellType(Type type)
-        {
-            this.type = type;
-        }
-    }
-
-    public class Chunk
-    {
-        public Mesh mesh;
-        public Vector3 position;
-
-        public List<Cell> cells = new List<Cell>();
-        int cellSize = 4; // Size of each subdivision cell
-        int width_in_cells = 3; // Length of width in cells
-        int height_in_cells = 3; // Length of height in cells
-
-        public Chunk(Mesh mesh, Vector3 position, int width = 3, int height = 3, int cellSize = 4)
-        {
-            this.mesh = mesh;
-            this.position = position;
-            this.cellSize = cellSize;
-            this.width_in_cells = width;
-            this.height_in_cells = height;
-
-
-            OffsetMesh(position);
-            CreateCells();
-        }
-
-        void OffsetMesh(Vector3 position)
-        {
-            Vector3[] vertices = mesh.vertices;
-            for (int i = 0; i < vertices.Length; i++)
-            {
-                vertices[i] += position;
-            }
-            mesh.vertices = vertices;
-        }
-
-        public void CreateCells()
-        {
-            int cell_index = 0;
-
-            // Get topface vertices
-            List<Vector3> topfacevertices = new List<Vector3>();
-            foreach (Vector3 vertice in mesh.vertices)
-            {
-                if (vertice.y >= 0)
-                {
-                    topfacevertices.Add(vertice);
-                }
-            }
-
-            // Sort topface vertices
-            List<Vector3> uniquevertices = topfacevertices.Distinct().ToList();
-            List<Vector3> sortedVertices = uniquevertices.OrderBy(v => v.z).ThenBy(v => v.x).ToList();
-
-            // Determine the number of vertices per row
-            int verticesPerRow = 1;
-            for (int i = 1; i < sortedVertices.Count; i++)
-            {
-                if (sortedVertices[i].z != sortedVertices[0].z)
-                {
-                    break;
-                }
-                verticesPerRow++;
-            }
-
-            // Group sorted vertices into squares
-            for (int rowStartIndex = 0; rowStartIndex < sortedVertices.Count - verticesPerRow; rowStartIndex += verticesPerRow)
-            {
-                for (int colIndex = rowStartIndex; colIndex < rowStartIndex + verticesPerRow - 1; colIndex++)
-                {
-                    // Check for invalid indexes
-                    if (colIndex + verticesPerRow < sortedVertices.Count)
-                    {
-                        Vector3 bottomLeft = sortedVertices[colIndex];
-                        Vector3 bottomRight = sortedVertices[colIndex + 1];
-                        Vector3 topLeft = sortedVertices[colIndex + verticesPerRow];
-                        Vector3 topRight = sortedVertices[colIndex + verticesPerRow + 1];
-
-                        // Create a square (as a cube) at each set of vertices
-                        cells.Add(new Cell(this, cell_index, new Vector3[] { bottomLeft, bottomRight, topLeft, topRight }));
-                        cell_index++;
-                    }
-                }
-            }
-        }
-
-    }
-
-
     // =====================================================================>>
     // WORLD GENERATION
     // ==================================================================================>>
     [HideInInspector] public GameObject _worldGenerationObject;
-    List<Chunk> _chunks = new List<Chunk>();
+    List<WorldChunk> _chunks = new List<WorldChunk>();
 
     public Vector2 worldBorderSize = new Vector2(100, 100);
 
@@ -140,7 +28,8 @@ public class WorldGeneration : MonoBehaviour
     public int chunkWidthCellCount = 3; // Length of width in cells
     [Range(0, 21)]
     public int chunkHeightCellCount = 3; // Length of height in cells
-    Vector3Int chunkDimensions; // default Chunk Dimensions [ in cellSize units ]
+    [HideInInspector] public Vector3Int chunkDimensions; // default Chunk Dimensions [ in cellSize units ]
+    [HideInInspector] public Vector3Int fullsize_chunkDimensions; // default Chunk Dimensions [ in cellSize units ]
 
     [Header("Spawn Objects")]
     public GameObject playerPrefab;
@@ -150,21 +39,23 @@ public class WorldGeneration : MonoBehaviour
 
         Generate();
 
-        Instantiate(playerPrefab, _chunks[0].cells[0].position, Quaternion.identity);
+        Instantiate(playerPrefab, _chunks[0].position + (Vector3.up * 10), Quaternion.identity);
     }
 
     [EasyButtons.Button]
     void Generate()
     {
         generation_finished = false;
-
-        if (_worldGenerationObject != null) { 
-            Destroy(_worldGenerationObject); 
+        if (_worldGenerationObject != null)
+        {
+            Destroy(_worldGenerationObject);
             _chunks.Clear();
         }
 
+
         // Chunk Dimensions
         chunkDimensions = new Vector3Int(chunkWidthCellCount, chunkHeightCellCount, chunkWidthCellCount);
+        fullsize_chunkDimensions = chunkDimensions * cellSize;
 
         // Generate Random Path
         List<Vector3> positions = GenerateRandomWalkPositions(steps);
@@ -172,25 +63,28 @@ public class WorldGeneration : MonoBehaviour
         // Create Chunks for each position
         foreach (Vector3 position in positions)
         {
-            Chunk newChunk = CreateChunkMesh(position);
+            WorldChunk newChunk = CreateChunkMesh(position);
             _chunks.Add(newChunk);
         }
 
         // Create Combined Mesh
         Mesh combinedMesh = CombineChunks(_chunks);
         _worldGenerationObject = CreateCombinedMeshObject(combinedMesh);
+        _worldGenerationObject.transform.parent = transform;
+        _worldGenerationObject.name = "(GEN) Ground Layout";
 
         // Add collider
-        BoxCollider collider = _worldGenerationObject.AddComponent<BoxCollider>();
-        collider.size = new Vector3(cellSize, cellSize, cellSize);
+        MeshCollider collider = _worldGenerationObject.AddComponent<MeshCollider>();
+        collider.sharedMesh = combinedMesh;
 
         // Initialize Cell Map
-        GetComponentInChildren<WorldCellMap>().InitializeCellMap();
+        FindObjectOfType<WorldCellMap>().InitializeCellMap();
+        FindObjectOfType<WorldChunkMap>().InitializeChunkMap();
 
         generation_finished = true;
     }
 
-    public List<Chunk> GetChunks()
+    public List<WorldChunk> GetChunks()
     {
         if (_chunks.Count == 0 || _chunks == null)
         {
@@ -200,13 +94,13 @@ public class WorldGeneration : MonoBehaviour
         return _chunks;
     }
 
-    public List<Cell> GetCells()
+    public List<WorldCell> GetCells()
     {
-        List<Cell> cells = new List<Cell>();
+        List<WorldCell> cells = new List<WorldCell>();
 
-        foreach (Chunk chunk in _chunks)
+        foreach (WorldChunk chunk in _chunks)
         {
-            foreach (Cell cell in chunk.cells)
+            foreach (WorldCell cell in chunk.cells)
             {
                 cells.Add(cell);
             }
@@ -215,14 +109,14 @@ public class WorldGeneration : MonoBehaviour
         return cells;
     }
 
-    // =========================================== FUNCTIONS ==============================================
+    // =========================================== CREATE CHUNK MESH ==============================================
     
     /// <summary>
     /// Creates a chunk mesh with specified dimensions, vertices, triangles, and UVs. 
     /// Constructs faces of the chunk and computes triangles for each face.
     /// </summary>
     /// <returns>A Mesh object representing a chunk of terrain or object.</returns>
-    Chunk CreateChunkMesh(Vector3 position)
+    WorldChunk CreateChunkMesh(Vector3 position)
     {
         Mesh mesh = new Mesh();
 
@@ -348,7 +242,7 @@ public class WorldGeneration : MonoBehaviour
         mesh.RecalculateBounds();
 
         // << CREATE CHUNK >>
-        Chunk chunk = new Chunk(mesh, position);
+        WorldChunk chunk = new WorldChunk(mesh, position);
         return chunk;
     }
 
@@ -357,11 +251,11 @@ public class WorldGeneration : MonoBehaviour
     /// </summary>
     /// <param name="meshes">A List of Mesh objects to be combined.</param>
     /// <returns>A single combined Mesh object.</returns>
-    Mesh CombineChunks(List<Chunk> chunks)
+    Mesh CombineChunks(List<WorldChunk> chunks)
     {
         // Get Meshes from chunks
         List<Mesh> meshes = new List<Mesh>();
-        foreach (Chunk chunk in chunks)
+        foreach (WorldChunk chunk in chunks)
         {
             meshes.Add(chunk.mesh);
         }
@@ -412,6 +306,9 @@ public class WorldGeneration : MonoBehaviour
 
         return worldObject;
     }
+
+
+    // =========================================== GENERATION HANDLER ==============================================
 
     /// <summary>
     /// Generates a list of Vector3 positions based on a random walk algorithm.

@@ -25,7 +25,7 @@ public class InputManager : MonoBehaviour
 
             if (Physics.Raycast(ray, out hit))
             {
-                WorldGeneration.Cell closestCell = cellMap.FindClosestCell(hit.point);
+                WorldCell closestCell = cellMap.FindClosestCell(hit.point);      
                 // Add your logic here for what to do with the closest cell
                 Debug.Log("Closest cell found at position: " + closestCell.position);
             }

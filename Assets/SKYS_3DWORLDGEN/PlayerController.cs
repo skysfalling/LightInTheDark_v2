@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     WorldGeneration worldGeneration;
-    public WorldGeneration.Cell currentCell;
+    public WorldCell currentCell;
 
     // Start is called before the first frame update
     void Start()
@@ -21,7 +21,7 @@ public class PlayerController : MonoBehaviour
         
     }
 
-    public void SetCell(WorldGeneration.Cell cell)
+    public void SetCell(WorldCell cell)
     {
         currentCell = cell;
         transform.position = cell.position;
