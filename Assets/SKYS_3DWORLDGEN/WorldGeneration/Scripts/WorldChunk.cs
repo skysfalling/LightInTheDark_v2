@@ -15,6 +15,9 @@ public class WorldChunk
      * CLOSED : 4 walls
      */
     public enum TYPE { EMPTY , WALL, HALLWAY, CORNER, DEADEND, CLOSED }
+    public TYPE type;
+
+    // EDGES
     public bool NorthEdgeActive { get; private set; }
     public bool SouthEdgeActive { get; private set; }
     public bool EastEdgeActive { get; private set; }
@@ -107,8 +110,7 @@ public class WorldChunk
     }
     #endregion
 
-
-    public void DetermineChunkType()
+    void DetermineChunkEdges()
     {
         // Initialize all edges as active
         NorthEdgeActive = true;
@@ -143,15 +145,41 @@ public class WorldChunk
             }
         }
 
+        /*
         // Log the active edges
         Debug.Log($"North Edge Active: {NorthEdgeActive}\n " +
                   $"South Edge Active: {SouthEdgeActive}\n " +
                   $"East Edge Active: {EastEdgeActive}\n " +
                   $"West Edge Active: {WestEdgeActive}\n ");
+        */
     }
 
+    public void SetChunkType()
+    {
+        DetermineChunkEdges();
 
+        // Get Edge Count
+        int activeEdgeCount = 0;
+        if (NorthEdgeActive) { activeEdgeCount++; }
+        if (SouthEdgeActive) { activeEdgeCount++; }
+        if (EastEdgeActive) { activeEdgeCount++; }
+        if (WestEdgeActive) { activeEdgeCount++; }
 
+        // Set Type
+        if (activeEdgeCount == 4) { type = TYPE.CLOSED; return; }
+        if (activeEdgeCount == 3) { type = TYPE.DEADEND; return; }
+        if (activeEdgeCount == 2)
+        {
+            // Check for parallel edges
+            if (NorthEdgeActive && SouthEdgeActive) { type = TYPE.HALLWAY; return; }
+            if (EastEdgeActive && WestEdgeActive) { type = TYPE.HALLWAY; return; }
+            type = TYPE.CORNER;
+        }
+        if (activeEdgeCount == 1) { type = TYPE.WALL; return; }
+        if (activeEdgeCount == 0) { type = TYPE.EMPTY; return; }
+
+        Debug.Log($"Chunk {position} is TYPE : {type}");
+    }
 }
 
 
