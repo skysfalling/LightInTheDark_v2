@@ -122,8 +122,10 @@ public class WorldGeneration : MonoBehaviour
     // =====================================================================>>
     // WORLD GENERATION
     // ==================================================================================>>
-    [HideInInspector] public GameObject worldGenerationObject;
+    [HideInInspector] public GameObject _worldGenerationObject;
     List<Chunk> _chunks = new List<Chunk>();
+
+    public Vector2 worldBorderSize = new Vector2(100, 100);
 
     public bool generation_finished = false;
     public Material chunkMaterial; // Assign a material in the inspector
@@ -138,11 +140,17 @@ public class WorldGeneration : MonoBehaviour
     public int chunkWidthCellCount = 3; // Length of width in cells
     [Range(0, 21)]
     public int chunkHeightCellCount = 3; // Length of height in cells
-    Vector3Int chunkDimensions; // default Chunk Dimensions [ size units == cellSize ]
+    Vector3Int chunkDimensions; // default Chunk Dimensions [ in cellSize units ]
+
+    [Header("Spawn Objects")]
+    public GameObject playerPrefab;
 
     private void Start()
     {
+
         Generate();
+
+        Instantiate(playerPrefab, _chunks[0].cells[0].position, Quaternion.identity);
     }
 
     [EasyButtons.Button]
@@ -150,8 +158,8 @@ public class WorldGeneration : MonoBehaviour
     {
         generation_finished = false;
 
-        if (worldGenerationObject != null) { 
-            Destroy(worldGenerationObject); 
+        if (_worldGenerationObject != null) { 
+            Destroy(_worldGenerationObject); 
             _chunks.Clear();
         }
 
@@ -170,12 +178,16 @@ public class WorldGeneration : MonoBehaviour
 
         // Create Combined Mesh
         Mesh combinedMesh = CombineChunks(_chunks);
-        CreateCombinedMeshObject(combinedMesh);
-        
-        generation_finished = true;
+        _worldGenerationObject = CreateCombinedMeshObject(combinedMesh);
 
+        // Add collider
+        BoxCollider collider = _worldGenerationObject.AddComponent<BoxCollider>();
+        collider.size = new Vector3(cellSize, cellSize, cellSize);
+
+        // Initialize Cell Map
         GetComponentInChildren<WorldCellMap>().InitializeCellMap();
 
+        generation_finished = true;
     }
 
     public List<Chunk> GetChunks()
@@ -392,13 +404,13 @@ public class WorldGeneration : MonoBehaviour
     /// Creates a GameObject to represent the combined mesh in the scene, attaching necessary components like MeshFilter and MeshRenderer.
     /// </summary>
     /// <param name="combinedMesh">The combined Mesh to be represented.</param>
-    void CreateCombinedMeshObject(Mesh combinedMesh)
+    GameObject CreateCombinedMeshObject(Mesh combinedMesh)
     {
-        if (worldGenerationObject != null) { Destroy(worldGenerationObject); }
+        GameObject worldObject = new GameObject("CombinedChunk");
+        worldObject.AddComponent<MeshFilter>().mesh = combinedMesh;
+        worldObject.AddComponent<MeshRenderer>().material = chunkMaterial;
 
-        worldGenerationObject = new GameObject("CombinedChunk");
-        worldGenerationObject.AddComponent<MeshFilter>().mesh = combinedMesh;
-        worldGenerationObject.AddComponent<MeshRenderer>().material = chunkMaterial;
+        return worldObject;
     }
 
     /// <summary>
@@ -413,14 +425,51 @@ public class WorldGeneration : MonoBehaviour
         positions.Add(currentPos); // always have starter position
 
         if (steps <= 1) { return positions; }
+
+        Vector2 halfBorder = worldBorderSize * 0.5f; // Half of the world border size
+
         for (int i = 0; i < steps; i++)
         {
-            currentPos += RandomDirectionOnXZ() * (cellSize * chunkDimensions.x);
-            positions.Add(currentPos);
+            List<Vector3> potentialDirections = new List<Vector3>
+            {
+                Vector3.forward,
+                Vector3.back,
+                Vector3.left,
+                Vector3.right
+            };
+
+            bool validPositionFound = false;
+            while (potentialDirections.Count > 0 && !validPositionFound)
+            {
+                int randomIndex = UnityEngine.Random.Range(0, potentialDirections.Count);
+                Vector3 direction = potentialDirections[randomIndex] * (cellSize * chunkWidthCellCount);
+                Vector3 proposedPos = currentPos + direction;
+
+                // Clamping the position within the world border
+                if (proposedPos.x >= -halfBorder.x && proposedPos.x <= halfBorder.x &&
+                    proposedPos.z >= -halfBorder.y && proposedPos.z <= halfBorder.y)
+                {
+                    validPositionFound = true;
+                    currentPos = proposedPos;
+                    positions.Add(currentPos);
+                }
+                else
+                {
+                    // Remove the direction and try another one
+                    potentialDirections.RemoveAt(randomIndex);
+                }
+            }
+
+            // If no valid position is found, end the path
+            if (!validPositionFound)
+            {
+                break;
+            }
         }
 
         return positions;
     }
+
 
     /// <summary>
     /// Generates a random direction on the XZ plane.
@@ -437,6 +486,12 @@ public class WorldGeneration : MonoBehaviour
             case 3: return Vector3.right;
             default: return Vector3.forward;
         }
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(Vector3.zero, new Vector3(worldBorderSize.x, 1, worldBorderSize.y));
     }
 }
 

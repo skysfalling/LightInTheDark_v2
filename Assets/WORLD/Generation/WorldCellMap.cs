@@ -44,7 +44,7 @@ public class WorldCellMap : MonoBehaviour
             if (cell.type != WorldGeneration.Cell.Type.EMPTY)
             {
                 GameObject newAsset = Instantiate(wallPrefab, cell.position, Quaternion.identity);
-                newAsset.transform.parent = worldGeneration.worldGenerationObject.transform;
+                newAsset.transform.parent = worldGeneration._worldGenerationObject.transform;
             }
         }
     }
@@ -107,6 +107,31 @@ public class WorldCellMap : MonoBehaviour
         return cellType;
     }
 
+    public WorldGeneration.Cell FindClosestCell(Vector3 position)
+    {
+        float minDistance = float.MaxValue;
+        WorldGeneration.Cell closestCell = null;
+
+        // Iterate over each cell in WorldGeneration
+        foreach (WorldGeneration.Cell cell in worldGeneration.GetCells())
+        {
+            float distance = Vector3.Distance(position, cell.position);
+
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                closestCell = cell;
+            }
+        }
+
+        if (closestCell != null)
+        {
+            Debug.Log("Closest cell found at: " + closestCell.position);
+            return closestCell;
+        }
+
+        return null;
+    }
 
     private void OnDrawGizmos()
     {
