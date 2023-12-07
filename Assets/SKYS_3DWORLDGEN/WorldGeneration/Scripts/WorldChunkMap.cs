@@ -7,7 +7,7 @@ public class WorldChunkMap : MonoBehaviour
 {
     WorldGeneration _worldGeneration;
     List<WorldChunk> _worldChunks = new List<WorldChunk>();
-    Dictionary<WorldChunk, List<WorldChunk>> worldChunkMap = new Dictionary<WorldChunk, List<WorldChunk>>();
+    public Dictionary<WorldChunk, List<WorldChunk>> neighborMap = new Dictionary<WorldChunk, List<WorldChunk>>();
 
     // Start is called before the first frame update
     void Awake()
@@ -18,26 +18,26 @@ public class WorldChunkMap : MonoBehaviour
     public void InitializeChunkMap()
     {
         _worldChunks = _worldGeneration.GetChunks();
-        worldChunkMap.Clear();
+        neighborMap.Clear();
 
         // SET CHUNK NEIGHBORS
         foreach (WorldChunk chunk in _worldChunks)
         {
             List<WorldChunk> neighbors = GetChunkNeighbors(chunk);
-            worldChunkMap[chunk] = neighbors;
+            neighborMap[chunk] = neighbors;
         }
     }
 
     private List<WorldChunk> GetChunkNeighbors(WorldChunk chunk)
     {
         List<WorldChunk> neighbors = new List<WorldChunk>(new WorldChunk[4]);
-        float cellSize = _worldGeneration.cellSize; // Assuming 'cellSize' is a public field in WorldGeneration
+        float chunkSize = _worldGeneration.fullsize_chunkDimensions.x;
 
         // Calculate neighbor positions
-        Vector3 leftPosition = chunk.position + new Vector3(-cellSize, 0, 0);
-        Vector3 rightPosition = chunk.position + new Vector3(cellSize, 0, 0);
-        Vector3 forwardPosition = chunk.position + new Vector3(0, 0, cellSize);
-        Vector3 backwardPosition = chunk.position + new Vector3(0, 0, -cellSize);
+        Vector3 leftPosition = chunk.position + new Vector3(-chunkSize, 0, 0);
+        Vector3 rightPosition = chunk.position + new Vector3(chunkSize, 0, 0);
+        Vector3 forwardPosition = chunk.position + new Vector3(0, 0, chunkSize);
+        Vector3 backwardPosition = chunk.position + new Vector3(0, 0, -chunkSize);
 
         // Find and assign neighbors in the specific order [Left, Right, Forward, Backward]
         neighbors[0] = _worldChunks.Find(c => c.position == leftPosition);     // Left
@@ -70,7 +70,6 @@ public class WorldChunkMap : MonoBehaviour
 
         if (closestChunk != null)
         {
-            Debug.Log("Closest cell found at: " + closestChunk.position);
             return closestChunk;
         }
 

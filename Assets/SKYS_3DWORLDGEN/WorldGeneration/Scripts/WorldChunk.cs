@@ -3,10 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.XR;
-using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
 public class WorldChunk
 {
+    /*
+     * EMPTY : 0 walls
+     * WALL : 1 sidewall
+     * HALLWAY : 2 parallel walls
+     * CORNER : 2 perpendicular walls
+     * DEADEND : 3 walls
+     * CLOSED : 4 walls
+     */
+    public enum TYPE { EMPTY , WALL, HALLWAY, CORNER, DEADEND, CLOSED }
+    public bool NorthEdgeActive { get; private set; }
+    public bool SouthEdgeActive { get; private set; }
+    public bool EastEdgeActive { get; private set; }
+    public bool WestEdgeActive { get; private set; }
+
     public Mesh mesh;
     public Vector3 position;
 
@@ -42,8 +55,9 @@ public class WorldChunk
         mesh.vertices = vertices;
     }
 
-    public void CreateCells()
+    void CreateCells()
     {
+        cells.Clear();
         int cell_index = 0;
 
         // Get topface vertices
@@ -94,6 +108,47 @@ public class WorldChunk
     #endregion
 
 
+    public void DetermineChunkType()
+    {
+        // Initialize all edges as active
+        NorthEdgeActive = true;
+        SouthEdgeActive = true;
+        EastEdgeActive = true;
+        WestEdgeActive = true;
+
+        // Define the edge positions
+        float northEdgeZ = float.MinValue;
+        float southEdgeZ = float.MaxValue;
+        float eastEdgeX = float.MinValue;
+        float westEdgeX = float.MaxValue;
+
+        // Find the edge positions
+        foreach (WorldCell cell in cells)
+        {
+            if (cell.position.z > northEdgeZ) northEdgeZ = cell.position.z;
+            if (cell.position.z < southEdgeZ) southEdgeZ = cell.position.z;
+            if (cell.position.x > eastEdgeX) eastEdgeX = cell.position.x;
+            if (cell.position.x < westEdgeX) westEdgeX = cell.position.x;
+        }
+
+        // Check each cell
+        foreach (WorldCell cell in cells)
+        {
+            if (cell.type == WorldCell.Type.EMPTY)
+            {
+                if (cell.position.z == northEdgeZ) NorthEdgeActive = false;
+                if (cell.position.z == southEdgeZ) SouthEdgeActive = false;
+                if (cell.position.x == eastEdgeX) EastEdgeActive = false;
+                if (cell.position.x == westEdgeX) WestEdgeActive = false;
+            }
+        }
+
+        // Log the active edges
+        Debug.Log($"North Edge Active: {NorthEdgeActive}\n " +
+                  $"South Edge Active: {SouthEdgeActive}\n " +
+                  $"East Edge Active: {EastEdgeActive}\n " +
+                  $"West Edge Active: {WestEdgeActive}\n ");
+    }
 
 
 
