@@ -4,20 +4,19 @@ using UnityEngine;
 
 public class InputManager : MonoBehaviour
 {
-    WorldGeneration worldGeneration;
-    WorldCellMap cellMap;
-
-    WorldChunkMap chunkMap;
-    WorldChunkDebug chunkDebug;
+    WorldGeneration _worldGeneration;
+    WorldCellMap _cellMap;
+    WorldChunkMap _chunkMap;
+    WorldChunkDebug _chunkDebug;
 
     // Start is called before the first frame update
     void Start()
     {
-        worldGeneration = FindObjectOfType<WorldGeneration>();
-        cellMap = FindObjectOfType<WorldCellMap>();
+        _worldGeneration = FindObjectOfType<WorldGeneration>();
+        _cellMap = FindObjectOfType<WorldCellMap>();
 
-        chunkMap = FindObjectOfType<WorldChunkMap>();
-        chunkDebug = FindObjectOfType<WorldChunkDebug>();
+        _chunkMap = FindObjectOfType<WorldChunkMap>();
+        _chunkDebug = FindObjectOfType<WorldChunkDebug>();
     }
 
     // Update is called once per frame
@@ -26,13 +25,15 @@ public class InputManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0)) // 0 for left mouse button
         {
+            if (_worldGeneration == null || _cellMap == null || _chunkMap == null) return;
+
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
             if (Physics.Raycast(ray, out hit))
             {
-                WorldChunk closestChunk = chunkMap.FindClosestChunk(hit.point);
-                chunkDebug.SelectWorldChunk(closestChunk);
+                WorldChunk closestChunk = _chunkMap.FindClosestChunk(hit.point);
+                _chunkDebug.SelectWorldChunk(closestChunk);
             }
         }
     }

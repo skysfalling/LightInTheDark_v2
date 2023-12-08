@@ -1,38 +1,30 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 
-public class WorldChunkDebug : MonoBehaviour
+public class WorldSpawnDebug : MonoBehaviour
 {
     WorldGeneration _worldGeneration;
     WorldChunkMap _worldChunkMap;
-    public WorldChunk selected_worldChunk;
+    WorldSpawnMap _worldSpawnMap;
 
-    // Start is called before the first frame update
-    void Start()
+    public WorldChunk.TYPE gizmoType;
+    public List<WorldChunk> gizmoSelectedTypeChunks;
+
+    public void OnDrawGizmosSelected()
     {
         _worldGeneration = FindObjectOfType<WorldGeneration>();
         _worldChunkMap = FindObjectOfType<WorldChunkMap>();
-    }
+        _worldSpawnMap = FindObjectOfType<WorldSpawnMap>();
 
-    public void SelectWorldChunk(WorldChunk chunk)
-    {
-        selected_worldChunk = chunk;
-        selected_worldChunk.SetChunkType();
-
-        Debug.Log($"Selected Chunk {chunk.position} is TYPE : {chunk.type}");
-    }
-
-    private void OnDrawGizmosSelected()
-    {
         if (_worldGeneration == null) return;
         if (_worldGeneration.generation_finished == false) return;
-        if (selected_worldChunk == null) return;
-
-        if (_worldGeneration.GetChunks().Count > 0)
+        if (_worldSpawnMap.initialized)
         {
-            switch (selected_worldChunk.type)
+            gizmoSelectedTypeChunks = _worldSpawnMap.GetAllChunksOfType(gizmoType);
+
+            // << CHOOSE COLOR >>
+            switch (gizmoType)
             {
                 case WorldChunk.TYPE.CLOSED:
                     Gizmos.color = Color.black;
@@ -53,16 +45,16 @@ public class WorldChunkDebug : MonoBehaviour
                 default:
                     Gizmos.color = Color.grey;
                     break;
+
             }
 
-            Gizmos.DrawCube(selected_worldChunk.position, _worldGeneration.fullsize_chunkDimensions);
-
-            Gizmos.color = Color.grey;
-            foreach (WorldChunk chunk in _worldChunkMap.GetChunkNeighbors(selected_worldChunk))
+            foreach (WorldChunk chunk in gizmoSelectedTypeChunks)
             {
                 Gizmos.DrawCube(chunk.position, _worldGeneration.fullsize_chunkDimensions);
             }
 
+
         }
     }
+
 }

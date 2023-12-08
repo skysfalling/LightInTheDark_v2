@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.XR;
 
+[System.Serializable]
 public class WorldChunk
 {
     /*
@@ -23,26 +24,15 @@ public class WorldChunk
     public bool EastEdgeActive { get; private set; }
     public bool WestEdgeActive { get; private set; }
 
-    public Mesh mesh;
+    [HideInInspector] public Mesh mesh;
     public Vector3 position;
 
     public List<WorldCell> cells = new List<WorldCell>();
-    int cellSize = 4; // Size of each subdivision cell
-    public int width_in_cells = 3; // Length of width in cells
-    public int height_in_cells = 3; // Length of height in cells
 
-
-
-    //*** CREATION ============================================================================== >>>>>
-    #region
     public WorldChunk(Mesh mesh, Vector3 position, int width = 3, int height = 3, int cellSize = 4)
     {
         this.mesh = mesh;
         this.position = position;
-        this.cellSize = cellSize;
-        this.width_in_cells = width;
-        this.height_in_cells = height;
-
 
         OffsetMesh(position);
         CreateCells();
@@ -108,7 +98,6 @@ public class WorldChunk
             }
         }
     }
-    #endregion
 
     void DetermineChunkEdges()
     {
@@ -177,8 +166,6 @@ public class WorldChunk
         }
         if (activeEdgeCount == 1) { type = TYPE.WALL; return; }
         if (activeEdgeCount == 0) { type = TYPE.EMPTY; return; }
-
-        Debug.Log($"Chunk {position} is TYPE : {type}");
     }
 }
 

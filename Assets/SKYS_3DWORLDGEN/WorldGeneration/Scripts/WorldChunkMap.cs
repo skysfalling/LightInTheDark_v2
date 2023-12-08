@@ -5,30 +5,44 @@ using UnityEngine;
 [RequireComponent(typeof(WorldChunkDebug))]
 public class WorldChunkMap : MonoBehaviour
 {
+    public bool initialized = false;
     WorldGeneration _worldGeneration;
     List<WorldChunk> _worldChunks = new List<WorldChunk>();
-    public Dictionary<WorldChunk, List<WorldChunk>> neighborMap = new Dictionary<WorldChunk, List<WorldChunk>>();
-
-    // Start is called before the first frame update
-    void Awake()
-    {
-        _worldGeneration = GetComponentInParent<WorldGeneration>();
-    }
+    Dictionary<WorldChunk, List<WorldChunk>> _chunkNeighborMap = new Dictionary<WorldChunk, List<WorldChunk>>();
 
     public void InitializeChunkMap()
     {
-        _worldChunks = _worldGeneration.GetChunks();
-        neighborMap.Clear();
+        initialized = false;
 
-        // SET CHUNK NEIGHBORS
+        _worldGeneration = GetComponentInParent<WorldGeneration>();
+        _worldChunks = _worldGeneration.GetChunks();
+        _chunkNeighborMap.Clear();
+
+        // << SET CHUNK NEIGHBORS >>
         foreach (WorldChunk chunk in _worldChunks)
         {
-            List<WorldChunk> neighbors = GetChunkNeighbors(chunk);
-            neighborMap[chunk] = neighbors;
+            List<WorldChunk> neighbors = SetChunkNeighbors(chunk);
+            _chunkNeighborMap[chunk] = neighbors;
         }
+
+        foreach (WorldChunk chunk in _worldChunks)
+        {
+            chunk.SetChunkType();
+        }
+
+        initialized = true;
     }
 
-    private List<WorldChunk> GetChunkNeighbors(WorldChunk chunk)
+
+    public void Reset()
+    {
+        _worldChunks.Clear();
+        _chunkNeighborMap.Clear();
+        initialized = false;
+    }
+
+    // =========================================================================================
+    private List<WorldChunk> SetChunkNeighbors(WorldChunk chunk)
     {
         List<WorldChunk> neighbors = new List<WorldChunk>(new WorldChunk[4]);
         float chunkSize = _worldGeneration.fullsize_chunkDimensions.x;
@@ -49,6 +63,11 @@ public class WorldChunkMap : MonoBehaviour
         neighbors.RemoveAll(item => item == null);
 
         return neighbors;
+    }
+
+    public List<WorldChunk> GetChunkNeighbors(WorldChunk chunk) 
+    {
+        return _chunkNeighborMap[chunk];
     }
 
     public WorldChunk FindClosestChunk(Vector3 position)

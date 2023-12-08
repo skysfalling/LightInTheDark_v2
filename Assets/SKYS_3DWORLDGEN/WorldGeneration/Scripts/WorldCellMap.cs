@@ -4,53 +4,55 @@ using UnityEngine;
 
 public class WorldCellMap : MonoBehaviour
 {
-    
-    WorldGeneration worldGeneration;
-    List<WorldCell> worldCells = new List<WorldCell>();
-    Dictionary<WorldCell, List<WorldCell>> worldCellMap = new Dictionary<WorldCell, List<WorldCell>>();
+    public bool initialized = false;
+    WorldGeneration _worldGeneration;
+    List<WorldCell> _worldCells = new List<WorldCell>();
+    Dictionary<WorldCell, List<WorldCell>> _cellNeighborMap = new Dictionary<WorldCell, List<WorldCell>>();
 
     List<GameObject> generatedWallPrefabs = new List<GameObject>();
     public GameObject wallPrefab;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        worldGeneration = GetComponentInParent<WorldGeneration>();
-    }
-
     public void InitializeCellMap()
     {
-        worldCells = worldGeneration.GetCells();
-        worldCellMap.Clear();
+        _worldGeneration = GetComponentInParent<WorldGeneration>();
+        _worldCells = _worldGeneration.GetCells();
+        _cellNeighborMap.Clear();
 
         // SET CELL NEIGHBORS
-        foreach (WorldCell cell in worldCells)
+        foreach (WorldCell cell in _worldCells)
         {
             List<WorldCell> neighbors = GetCellNeighbors(cell);
-            worldCellMap[cell] = neighbors;
+            _cellNeighborMap[cell] = neighbors;
         }
 
         // SET CELL TYPES
-        foreach (WorldCell cell in worldCells)
+        foreach (WorldCell cell in _worldCells)
         {
             SetCellType(cell);
         }
 
         // SPAWN ASSETS
-        foreach (WorldCell cell in worldCells)
+        foreach (WorldCell cell in _worldCells)
         {
             if (cell.type != WorldCell.Type.EMPTY)
             {
                 GameObject newAsset = Instantiate(wallPrefab, cell.position, Quaternion.identity);
-                newAsset.transform.parent = worldGeneration._worldGenerationObject.transform;
+                newAsset.transform.parent = _worldGeneration._worldGenerationObject.transform;
             }
         }
+    }
+
+    public void Reset()
+    {
+        _worldCells.Clear();
+        _cellNeighborMap.Clear();
+        initialized = false;
     }
 
     private List<WorldCell> GetCellNeighbors(WorldCell cell)
     {
         List<WorldCell> neighbors = new List<WorldCell>(new WorldCell[4]);
-        float cellSize = worldGeneration.cellSize; // Assuming 'cellSize' is a public field in WorldGeneration
+        float cellSize = _worldGeneration.cellSize; // Assuming 'cellSize' is a public field in WorldGeneration
 
         // Calculate neighbor positions
         Vector3 leftPosition = cell.position + new Vector3(-cellSize, 0, 0);
@@ -59,10 +61,10 @@ public class WorldCellMap : MonoBehaviour
         Vector3 backwardPosition = cell.position + new Vector3(0, 0, -cellSize);
 
         // Find and assign neighbors in the specific order [Left, Right, Forward, Backward]
-        neighbors[0] = worldCells.Find(c => c.position == leftPosition);     // Left
-        neighbors[1] = worldCells.Find(c => c.position == rightPosition);    // Right
-        neighbors[2] = worldCells.Find(c => c.position == forwardPosition);  // Forward
-        neighbors[3] = worldCells.Find(c => c.position == backwardPosition); // Backward
+        neighbors[0] = _worldCells.Find(c => c.position == leftPosition);     // Left
+        neighbors[1] = _worldCells.Find(c => c.position == rightPosition);    // Right
+        neighbors[2] = _worldCells.Find(c => c.position == forwardPosition);  // Forward
+        neighbors[3] = _worldCells.Find(c => c.position == backwardPosition); // Backward
 
         // Remove null entries if a neighbor is not found
         neighbors.RemoveAll(item => item == null);
@@ -75,18 +77,18 @@ public class WorldCellMap : MonoBehaviour
         WorldCell.Type cellType = WorldCell.Type.EMPTY;
 
         // CHECK FOR EDGE
-        if (worldCellMap[cell].Count < 4)
+        if (_cellNeighborMap[cell].Count < 4)
         {
             cellType = WorldCell.Type.EDGE;
         }
         // EDGE CORNERS
-        else if (worldCellMap[cell].Count == 4)
+        else if (_cellNeighborMap[cell].Count == 4)
         {
             // Count how many neighbors are also edges
             int edgeNeighborCount = 0;
-            foreach (WorldCell neighbor in worldCellMap[cell])
+            foreach (WorldCell neighbor in _cellNeighborMap[cell])
             {
-                if (worldCellMap[neighbor].Count < 4)
+                if (_cellNeighborMap[neighbor].Count < 4)
                 {
                     edgeNeighborCount++;
                 }
@@ -111,7 +113,7 @@ public class WorldCellMap : MonoBehaviour
         WorldCell closestCell = null;
 
         // Iterate over each cell in WorldGeneration
-        foreach (WorldCell cell in worldGeneration.GetCells())
+        foreach (WorldCell cell in _worldGeneration.GetCells())
         {
             float distance = Vector3.Distance(position, cell.position);
 
@@ -133,7 +135,7 @@ public class WorldCellMap : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        foreach (WorldCell cell in worldCells)
+        foreach (WorldCell cell in _worldCells)
         {
             Gizmos.color = Color.white;
 

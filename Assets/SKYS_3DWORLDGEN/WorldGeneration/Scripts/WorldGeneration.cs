@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -11,6 +12,8 @@ public class WorldGeneration : MonoBehaviour
     // WORLD GENERATION
     // ==================================================================================>>
     [HideInInspector] public GameObject _worldGenerationObject;
+    private Coroutine _worldGenerationRoutine;
+
     List<WorldChunk> _chunks = new List<WorldChunk>();
 
     public Vector2 worldBorderSize = new Vector2(100, 100);
@@ -36,14 +39,24 @@ public class WorldGeneration : MonoBehaviour
 
     private void Start()
     {
-
-        Generate();
+        StartGeneration();
 
         Instantiate(playerPrefab, _chunks[0].position + (Vector3.up * 10), Quaternion.identity);
     }
 
-    [EasyButtons.Button]
-    void Generate()
+    public void StartGeneration()
+    {
+        FindObjectOfType<WorldChunkMap>().Reset();
+        FindObjectOfType<WorldCellMap>().Reset();
+        FindObjectOfType<WorldSpawnMap>().Reset();
+
+
+        if (_worldGenerationRoutine != null) { StopCoroutine(_worldGenerationRoutine); }
+        _worldGenerationRoutine = StartCoroutine(Generate());
+
+    }
+
+    IEnumerator Generate(float delay = 0.25f)
     {
         generation_finished = false;
         if (_worldGenerationObject != null)
@@ -52,12 +65,11 @@ public class WorldGeneration : MonoBehaviour
             _chunks.Clear();
         }
 
-
-        // Chunk Dimensions
+        // << Set Chunk Dimensions >>
         chunkDimensions = new Vector3Int(chunkWidthCellCount, chunkHeightCellCount, chunkWidthCellCount);
         fullsize_chunkDimensions = chunkDimensions * cellSize;
 
-        // Generate Random Path
+        // << Generate Random Path >>
         List<Vector3> positions = GenerateRandomWalkPositions(steps);
 
         // Create Chunks for each position
@@ -79,9 +91,18 @@ public class WorldGeneration : MonoBehaviour
 
         // Initialize Cell Map
         FindObjectOfType<WorldCellMap>().InitializeCellMap();
+        yield return new WaitForSeconds(delay);
+
+        // Initialize Chunk Map
         FindObjectOfType<WorldChunkMap>().InitializeChunkMap();
+        yield return new WaitForSeconds(delay);
+
+        // Initialize Spawn Map
+        FindObjectOfType<WorldSpawnMap>().InitializeSpawnMap();
+        yield return new WaitForSeconds(delay);
 
         generation_finished = true;
+
     }
 
     public List<WorldChunk> GetChunks()
@@ -387,6 +408,7 @@ public class WorldGeneration : MonoBehaviour
 
     void OnDrawGizmos()
     {
+        // Draw World Border
         Gizmos.color = Color.green;
         Gizmos.DrawWireCube(Vector3.zero, new Vector3(worldBorderSize.x, 1, worldBorderSize.y));
     }
