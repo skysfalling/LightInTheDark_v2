@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.XR;
 using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
+[RequireComponent(typeof(WorldGenerationStats))]
 public class WorldGeneration : MonoBehaviour
 {
     string _prefix = "[ WORLD GENERATION ] ";
@@ -24,20 +25,15 @@ public class WorldGeneration : MonoBehaviour
 
     [Header("Chunks")]
     [Range(0, 21)]
-    public int chunkWidthCellCount = 3; // Length of width in cells
+    public int chunk_width_in_cells = 5; // Length of width in cells
     [Range(0, 21)]
-    public int chunkHeightCellCount = 3; // Length of height in cells
+    public int chunk_height_in_cells = 3; // Length of height in cells
     [HideInInspector] public Vector3Int chunkDimensions; // default Chunk Dimensions [ in cellSize units ]
     [HideInInspector] public Vector3Int fullsize_chunkDimensions; // default Chunk Dimensions [ in cellSize units ]
-
-    [Header("Spawn Objects")]
-    public GameObject playerPrefab;
 
     private void Start()
     {
         StartGeneration();
-
-        Instantiate(playerPrefab, _chunks[0].position + (Vector3.up * 10), Quaternion.identity);
     }
 
     public void StartGeneration()
@@ -46,6 +42,7 @@ public class WorldGeneration : MonoBehaviour
         FindObjectOfType<WorldCellMap>().Reset();
         FindObjectOfType<WorldSpawnMap>().Reset();
         FindObjectOfType<WorldEnvironment>().Reset();
+        FindObjectOfType<WorldGenerationStats>().UpdateStats();
 
 
         if (_worldGenerationRoutine != null) { StopCoroutine(_worldGenerationRoutine); }
@@ -65,7 +62,7 @@ public class WorldGeneration : MonoBehaviour
         }
 
         // << Set Chunk Dimensions >>
-        chunkDimensions = new Vector3Int(chunkWidthCellCount, chunkHeightCellCount, chunkWidthCellCount);
+        chunkDimensions = new Vector3Int(chunk_width_in_cells, chunk_height_in_cells, chunk_width_in_cells);
         fullsize_chunkDimensions = chunkDimensions * cellSize;
 
         // << Generate Random Path >>
@@ -374,7 +371,7 @@ public class WorldGeneration : MonoBehaviour
             while (potentialDirections.Count > 0 && !validPositionFound)
             {
                 int randomIndex = UnityEngine.Random.Range(0, potentialDirections.Count);
-                Vector3 direction = potentialDirections[randomIndex] * (cellSize * chunkWidthCellCount);
+                Vector3 direction = potentialDirections[randomIndex] * fullsize_chunkDimensions.x;
                 Vector3 proposedPos = currentPos + direction;
 
                 // Clamping the position within the world border
