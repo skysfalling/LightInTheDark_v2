@@ -27,6 +27,7 @@ public class WorldEnvironment : MonoBehaviour
 
     [Header("PLAYER")]
     public GameObject playerPrefab;
+    [HideInInspector] public GameObject instantiatedPlayer;
 
     [Header("WALLS")]
     public GameObject wall_0;
@@ -42,9 +43,9 @@ public class WorldEnvironment : MonoBehaviour
         _worldChunkMap = FindObjectOfType<WorldChunkMap>();
         _worldSpawnMap = FindObjectOfType<WorldSpawnMap>();
 
+        Destroy(instantiatedPlayer);
+        instantiatedPlayer = null;
         _worldChunkEnvParentMap.Clear();
-
-
 
         // << CREATE ENV PARENTS >>
         if (environmentObjects.Count == 0 ) { return; }
@@ -58,7 +59,7 @@ public class WorldEnvironment : MonoBehaviour
 
         // Set Player Spawn Point
         WorldCell playerSpawnCell = _worldGeneration.GetChunks()[0].GetRandomCellOfType(WorldCell.TYPE.EMPTY);
-        SpawnPrefab(playerPrefab, playerSpawnCell);
+        instantiatedPlayer = SpawnPrefab(playerPrefab, playerSpawnCell);
         playerSpawnCell.SetCellType(WorldCell.TYPE.SPAWN_POINT);
 
         // Create Chunk Environment for each Chunk

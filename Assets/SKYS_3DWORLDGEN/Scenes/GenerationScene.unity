@@ -178,7 +178,6 @@ GameObject:
   m_Component:
   - component: {fileID: 330585546}
   - component: {fileID: 330585545}
-  - component: {fileID: 330585544}
   - component: {fileID: 330585547}
   m_Layer: 0
   m_Name: Main Camera
@@ -187,14 +186,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &330585544
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 330585543}
-  m_Enabled: 1
 --- !u!20 &330585545
 Camera:
   m_ObjectHideFlags: 0
@@ -538,6 +529,7 @@ MonoBehaviour:
   generation_finished: 0
   playerPrefab: {fileID: 7174322603541102714, guid: 75e31aadaf670b74a88bea728e1f041d,
     type: 3}
+  instantiatedPlayer: {fileID: 0}
   wall_0: {fileID: 2986166503023539567, guid: 96c08d2e01fd52540a29788d18bd682d, type: 3}
   environmentObjects:
   - prefab: {fileID: 1102661899630277483, guid: c53589fd05733bf4daa37677a3e6a829,
@@ -551,7 +543,7 @@ MonoBehaviour:
     space: {x: 1, y: 1}
     spawnCellTypeRequirements: 00000000
     cellTypeConversion: 4
-    spawnChance: 0.2
+    spawnChance: 0.05
 --- !u!1 &751692126
 GameObject:
   m_ObjectHideFlags: 0
@@ -1458,6 +1450,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2104073130}
   - component: {fileID: 2104073131}
+  - component: {fileID: 2104073132}
   m_Layer: 0
   m_Name: '[ GAME MANAGER ]'
   m_TagString: Untagged
@@ -1494,6 +1487,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fbd0119bf6dbb604c923d0d902931c83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2104073132
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2104073129}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5366ffe0eefd3444dbbc4a3feea8ec57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807

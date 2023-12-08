@@ -2,26 +2,45 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(CharacterController), typeof(Rigidbody))]
+[RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
 {
     public float speed = 5.0f;
     public float rotationSpeed = 700.0f;
+    public float maxVelocity = 100f;
 
     public GameObject snowballPrefab;
     public Transform throwPoint;
     public float throwForce = 100f;
 
-    private CharacterController _characterController;
     private Rigidbody _rigidbody;
+
+    private bool _fireInput;
+    private float _autoFireRate = 0.25f;
 
     void Start()
     {
-        _characterController = GetComponent<CharacterController>();
         _rigidbody = GetComponent<Rigidbody>();
+
+        InvokeRepeating("AutoFireRoutine", 0, _autoFireRate);
     }
 
     void Update()
+    {
+        // Interaction
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Interact();
+        }
+
+        if (Input.GetKey(KeyCode.Space) )
+        {
+            _fireInput = true;
+        }
+        else { _fireInput = false; }
+    }
+
+    void FixedUpdate()
     {
         // Movement
         float horizontal = Input.GetAxis("Horizontal");
@@ -30,25 +49,58 @@ public class PlayerController : MonoBehaviour
         movementDirection = transform.TransformDirection(movementDirection);
         movementDirection *= speed;
 
-        _characterController.Move(movementDirection * Time.deltaTime);
-
-        // Rotation
-        if (movementDirection != Vector3.zero)
+        if (Mathf.Abs(vertical) > 0.1f)
         {
-            Quaternion toRotation = Quaternion.LookRotation(movementDirection, Vector3.up);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotation, rotationSpeed * Time.deltaTime);
+            MovePlayer(movementDirection);
+        }
+        
+        if (Mathf.Abs(horizontal) > 0.01f) // horz input deadzone
+        {
+            RotatePlayer(movementDirection);
         }
 
-        // Interaction
-        if (Input.GetKeyDown(KeyCode.Space))
+        ClampVelocity();
+    }
+
+    void MovePlayer(Vector3 movementDirection)
+    {
+        // Apply a force to move the player
+        _rigidbody.AddForce(movementDirection.normalized * speed, ForceMode.Acceleration);
+    }
+
+    void RotatePlayer(Vector3 movementDirection)
+    {
+        if (movementDirection != Vector3.zero)
         {
-            Interact();
+            float angle = Mathf.Atan2(movementDirection.x, movementDirection.z) * Mathf.Rad2Deg;
+            Quaternion toRotation = Quaternion.Euler(0, angle, 0);
+            _rigidbody.rotation = Quaternion.RotateTowards(_rigidbody.rotation, toRotation, rotationSpeed * Time.fixedDeltaTime);
+        }
+    }
+
+    void ClampVelocity()
+    {
+        Vector3 velocity = _rigidbody.velocity;
+
+        // Clamp the velocity if it exceeds the maximum allowed velocity
+        if (velocity.magnitude > maxVelocity)
+        {
+            velocity = velocity.normalized * maxVelocity;
+            _rigidbody.velocity = velocity;
         }
     }
 
     void Interact()
     {
-        ThrowSnowball();
+        Debug.Log("Interact");
+    }
+
+    void AutoFireRoutine()
+    {
+        if (_fireInput)
+        {
+            ThrowSnowball();
+        }
     }
 
     void ThrowSnowball()
@@ -65,7 +117,7 @@ public class PlayerController : MonoBehaviour
                 rb.AddForce(throwPoint.forward * throwForce, ForceMode.Impulse);
             }
 
-            Destroy(snowball, 5);
+            Destroy(snowball, 1);
         }
         else
         {
