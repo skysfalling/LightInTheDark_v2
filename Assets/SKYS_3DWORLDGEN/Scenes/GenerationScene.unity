@@ -540,7 +540,9 @@ MonoBehaviour:
   environmentObjects:
   - prefab: {fileID: 1102661899630277483, guid: c53589fd05733bf4daa37677a3e6a829,
       type: 3}
-    spawnRadius: 0
+    space: {x: 3, y: 2}
+    spawnCellTypeRequirements: 00000000
+    cellTypeConversion: 3
 --- !u!1 &751692126
 GameObject:
   m_ObjectHideFlags: 0
@@ -1433,6 +1435,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   selected_worldChunk:
+    initialized: 0
     type: 0
     mesh: {fileID: 0}
     position: {x: 0, y: 0, z: 0}

@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class WorldCell
 {
-    public enum TYPE { EMPTY, EDGE, CORNER }
-    public TYPE type;
+    public enum TYPE { EMPTY, EDGE, CORNER, OBSTACLE, SPAWN_POINT}
+    public TYPE type = WorldCell.TYPE.EMPTY;
 
     WorldChunk _chunkParent;
     int _chunkCellIndex;

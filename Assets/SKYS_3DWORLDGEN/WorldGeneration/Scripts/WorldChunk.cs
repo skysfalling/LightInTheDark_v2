@@ -7,9 +7,9 @@ using UnityEngine.XR;
 [System.Serializable]
 public class WorldChunk
 {
-
+    string prefix = " [[ WORLD CHUNK ]]";
     public bool initialized = false;
-
+    WorldGeneration _worldGeneration;
 
     /*
      * EMPTY : 0 walls
@@ -48,6 +48,8 @@ public class WorldChunk
     public void Initialize()
     {
         initialized = false;
+
+        _worldGeneration = GameObject.FindObjectOfType<WorldGeneration>();
 
         DetermineChunkEdges();
         SetChunkType();
@@ -146,7 +148,6 @@ public class WorldChunk
         }
         mesh.vertices = vertices;
     }
-
     void CreateCells()
     {
         localCells.Clear();
@@ -198,6 +199,90 @@ public class WorldChunk
         }
     }
 
+    // ================== SPAWN OBJECTS ================================================================ >>
+    public List<WorldCell> FindSpace(EnvironmentObject envObj)
+    {
+        foreach (WorldCell startCell in localCells)
+        {
+            if (IsSpaceAvailable(startCell, envObj))
+            {
+                return GetCellsInArea(startCell, envObj.space);
+            }
+        }
+
+        return new List<WorldCell>();
+    }
+
+    public bool IsSpaceAvailable(WorldCell startCell, EnvironmentObject envObj)
+    {
+        List<WorldCell> cellsInArea = GetCellsInArea(startCell, envObj.space);
+        List<WorldCell.TYPE> requiredTypes = envObj.spawnCellTypeRequirements;
+
+        // Check Cell Count ( Also Area Size )
+        int spawnAreaSize = envObj.space.x * envObj.space.y;
+        if (cellsInArea.Count != spawnAreaSize) { return false; }
+
+        // Check Validity of Cell Types
+        foreach (WorldCell cell in cellsInArea)
+        {
+            if (!requiredTypes.Contains(cell.type)) { return false; }
+        }
+
+        string cellAreaList = "";
+        foreach (WorldCell cell in cellsInArea)
+        {
+            cellAreaList += $"{cell.position} {cell.type}\n";
+        }
+
+
+        Debug.Log($"{prefix} SpaceAvailableAt {startCell.position}\n" +
+            $"\tEnvObj Prefab : {envObj.prefab.name}\n" +
+            $"\tSpace Needed : {envObj.space} {spawnAreaSize}\n" +
+            $"\tFound Space Count : {cellsInArea.Count}\n" +
+            $"\tRequired Type : {requiredTypes[0]}\n" +
+            $"\tCell Area : {cellAreaList}");
+
+
+        return true;
+    }
+
+    // NOTE :: This is specifically starting with the top left cell.
+    private List<WorldCell> GetCellsInArea(WorldCell startCell, Vector2Int space)
+    {
+        List<WorldCell> areaCells = new List<WorldCell> ();
+        int cellSize = _worldGeneration.cellSize;
+
+        for (int x = 0; x < space.x; x++)
+        {
+            for (int z = 0; z < space.y; z++)
+            {
+                WorldCell cell = GetCellAt(startCell.position.x + (x * cellSize), startCell.position.z + (z * cellSize));
+                if (cell != null && !areaCells.Contains(cell))
+                {
+                    areaCells.Add(cell);
+                }
+            }
+        }
+
+        return areaCells;
+    }
+
+    private WorldCell GetCellAt(float x, float z)
+    {
+        //Debug.Log($"{prefix} GetCellAt {x} {z}\n");
+
+        foreach (WorldCell cell in localCells)
+        {
+            if (cell.position.x == x && cell.position.z == z) { return cell; }
+        }
+
+        return null;
+    }
+
+    public void MarkArea(List<WorldCell> area, WorldCell.TYPE markType)
+    {
+        foreach (WorldCell cell in area) { cell.SetCellType(markType); }
+    }
 
 
     // ================= HELPER FUNCTIONS ==============================>>

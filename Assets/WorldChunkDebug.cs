@@ -55,7 +55,6 @@ public class WorldChunkDebug : MonoBehaviour
             {
                 Gizmos.DrawCube(chunk.position, _worldGeneration.fullsize_chunkDimensions);
             }
-
         }
     }
 

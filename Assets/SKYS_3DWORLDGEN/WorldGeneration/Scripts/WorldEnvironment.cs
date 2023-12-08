@@ -1,16 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [System.Serializable]
 public class EnvironmentObject
 {
     public GameObject prefab;
-    public int spawnRadius = 1;
+    public Vector2Int space = new Vector2Int(1, 1);
+    public List<WorldCell.TYPE> spawnCellTypeRequirements = new List<WorldCell.TYPE>();
+    public WorldCell.TYPE cellTypeConversion;
 }
-
 public class WorldEnvironment : MonoBehaviour
 {
+    string prefix = "{ WORLD ENVIRONMENT } ";
     public bool generation_finished = false;
     WorldGeneration _worldGeneration;
     WorldChunkMap _worldChunkMap;
@@ -36,6 +39,7 @@ public class WorldEnvironment : MonoBehaviour
         _worldChunkEnvParentMap.Clear();
 
         // << CREATE ENV PARENTS >>
+        if (environmentObjects.Count == 0 ) { return; }
         foreach (WorldChunk chunk in _worldGeneration.GetChunks())
         {
             GameObject newParent = new GameObject(parentObjectPrefix + "chunk" + chunk.position);
@@ -44,8 +48,6 @@ public class WorldEnvironment : MonoBehaviour
 
             CreateChunkEnvironment(chunk, environmentObjects);
         }
-
-
 
         generation_finished = true;
     }
@@ -61,38 +63,53 @@ public class WorldEnvironment : MonoBehaviour
     }
 
     // ======================= CREATE CHUNK ENVIRONMENT =========================================
-
-    private void CreateChunkEnvironment(WorldChunk chunk, List<EnvironmentObject> prefabs)
+    private void CreateChunkEnvironment(WorldChunk chunk, List<EnvironmentObject> envObjects)
     {
-        foreach (WorldCell cell in chunk.localCells)
+        if (envObjects.Count == 0) {  return; }
+        EnvironmentObject envObj = envObjects[0];
+
+
+        for (int i = 0; i < chunk.localCells.Count; i++)
         {
-            switch (cell.type)
+            int req_spaceArea = envObj.space.x * envObj.space.y;
+            List<WorldCell> foundSpace = chunk.FindSpace(envObj);
+
+            if (foundSpace == null) { continue; }
+            if (foundSpace.Count == req_spaceArea)
             {
-                case WorldCell.TYPE.EMPTY:
-                    if (environmentObjects == null || environmentObjects.Count == 0) return;
-                    SpawnObjectAtCell(environmentObjects[0].prefab, cell);
-                    break;
-                case WorldCell.TYPE.EDGE:
-                case WorldCell.TYPE.CORNER:
-                    SpawnObjectAtCell(wall_0, cell);
-                    break;
-                default:
-                    break;
+                SpawnEnvObject(envObj, foundSpace);
             }
+
         }
+
+
     }
-
-    // ======================= SPAWN OBJECTS =========================================
-
-    private GameObject SpawnObjectAtCell(GameObject prefab, WorldCell cell)
+    private GameObject SpawnEnvObject(EnvironmentObject envObj, List<WorldCell> spawnArea)
     {
-        GameObject newEnvObject = Instantiate(prefab, cell.position, Quaternion.identity);
-        newEnvObject.transform.parent = _worldChunkEnvParentMap[cell.GetChunk()];
-        newEnvObject.transform.position = cell.position;
+        WorldCell startCell = spawnArea[0]; // start cell ( top left )
 
-        return newEnvObject;
+        // spawn object in center of area
+        GameObject newObject = Instantiate(envObj.prefab, startCell.position, Quaternion.identity);
+        newObject.transform.parent = _worldChunkEnvParentMap[startCell.GetChunk()];
+        newObject.transform.position = startCell.position;
+
+        Debug.Log($"{prefix} SpawnEnvObject{envObj.prefab.name}\n" +
+            $"\tStart Cell : {startCell.position}\n");
+        // Mark Cell Area
+        startCell.GetChunk().MarkArea(spawnArea, envObj.cellTypeConversion);
+
+        return newObject;
     }
+    private GameObject SpawnObstacle(GameObject prefab, WorldCell cell)
+    {
+        GameObject newObject = Instantiate(prefab, cell.position, Quaternion.identity);
+        newObject.transform.parent = _worldChunkEnvParentMap[cell.GetChunk()];
+        newObject.transform.position = cell.position;
 
+        cell.SetCellType(WorldCell.TYPE.OBSTACLE);
+
+        return newObject;
+    }
 
 
 }

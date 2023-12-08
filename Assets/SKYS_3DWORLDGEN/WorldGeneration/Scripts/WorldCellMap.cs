@@ -134,11 +134,11 @@ public class WorldCellMap : MonoBehaviour
         foreach (WorldCell cell in _worldCells)
         {
             Gizmos.color = Color.white;
-
+            if (cell.type == WorldCell.TYPE.EMPTY) { Gizmos.color = Color.grey; }
             if (cell.type == WorldCell.TYPE.EDGE) { Gizmos.color = Color.red; }
-            if (cell.type == WorldCell.TYPE.CORNER) { Gizmos.color = Color.yellow; }
-
-
+            if (cell.type == WorldCell.TYPE.CORNER) { Gizmos.color = Color.magenta; }
+            if (cell.type == WorldCell.TYPE.OBSTACLE) { Gizmos.color = Color.black; }
+            if (cell.type == WorldCell.TYPE.SPAWN_POINT) { Gizmos.color = Color.yellow; }
 
             Gizmos.DrawCube(cell.position, Vector3.one);
         }

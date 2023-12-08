@@ -11,8 +11,6 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         worldGeneration = GameObject.FindObjectOfType<WorldGeneration>();
-        SetCell(worldGeneration.GetChunks()[0].localCells[3]);
-
     }
 
     // Update is called once per frame
