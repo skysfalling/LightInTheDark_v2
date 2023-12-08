@@ -11,7 +11,7 @@ public class EnvironmentObject
 
 public class WorldEnvironment : MonoBehaviour
 {
-    public bool initialized = false;
+    public bool generation_finished = false;
     WorldGeneration _worldGeneration;
     WorldChunkMap _worldChunkMap;
     WorldSpawnMap _worldSpawnMap;
@@ -23,11 +23,11 @@ public class WorldEnvironment : MonoBehaviour
     public GameObject wall_0;
 
     [Header("ENVIRONMENT")]
-    public GameObject env_0;
+    public List<EnvironmentObject> environmentObjects = new List<EnvironmentObject>();
 
     public void StartEnvironmentGeneration()
     {
-        initialized = false;
+        generation_finished = false;
 
         _worldGeneration = FindObjectOfType<WorldGeneration>();
         _worldChunkMap = FindObjectOfType<WorldChunkMap>();
@@ -35,43 +35,54 @@ public class WorldEnvironment : MonoBehaviour
 
         _worldChunkEnvParentMap.Clear();
 
-        // << SPAWN BY CHUNK >>
+        // << CREATE ENV PARENTS >>
         foreach (WorldChunk chunk in _worldGeneration.GetChunks())
         {
             GameObject newParent = new GameObject(parentObjectPrefix + "chunk" + chunk.position);
             newParent.transform.parent = transform;
             _worldChunkEnvParentMap[chunk] = newParent.transform;
 
-            // << SPAWN WALLS >>
-            foreach (WorldCell cell in chunk.localCells)
-            {
-                if (cell.type != WorldCell.TYPE.EMPTY)
-                {
-                    SpawnObjectAtCell(wall_0, cell);
-
-                }
-            }
-
-            // << SPAWN IN EMPTY CELLS >>
-            if (chunk.type == WorldChunk.TYPE.EMPTY)
-            {
-                SpawnObjectAtCell(env_0, chunk.GetRandomCellOfType(WorldCell.TYPE.EMPTY));
-            }
+            CreateChunkEnvironment(chunk, environmentObjects);
         }
 
-        initialized = true;
+
+
+        generation_finished = true;
     }
 
     public void Reset()
     {
-        initialized = false;
-        foreach (WorldChunk chunk in _worldChunkEnvParentMap.Keys)
+        generation_finished = false;
+        foreach (Transform parent in _worldChunkEnvParentMap.Values)
         {
-            Destroy(_worldChunkEnvParentMap[chunk].gameObject);
-            _worldChunkEnvParentMap[chunk] = null;
+            Destroy(parent.gameObject);
         }
         _worldChunkEnvParentMap.Clear();
     }
+
+    // ======================= CREATE CHUNK ENVIRONMENT =========================================
+
+    private void CreateChunkEnvironment(WorldChunk chunk, List<EnvironmentObject> prefabs)
+    {
+        foreach (WorldCell cell in chunk.localCells)
+        {
+            switch (cell.type)
+            {
+                case WorldCell.TYPE.EMPTY:
+                    if (environmentObjects == null || environmentObjects.Count == 0) return;
+                    SpawnObjectAtCell(environmentObjects[0].prefab, cell);
+                    break;
+                case WorldCell.TYPE.EDGE:
+                case WorldCell.TYPE.CORNER:
+                    SpawnObjectAtCell(wall_0, cell);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    // ======================= SPAWN OBJECTS =========================================
 
     private GameObject SpawnObjectAtCell(GameObject prefab, WorldCell cell)
     {
@@ -81,4 +92,7 @@ public class WorldEnvironment : MonoBehaviour
 
         return newEnvObject;
     }
+
+
+
 }

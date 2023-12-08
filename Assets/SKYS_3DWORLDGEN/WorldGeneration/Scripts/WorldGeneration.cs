@@ -8,18 +8,14 @@ using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
 public class WorldGeneration : MonoBehaviour
 {
-    // =====================================================================>>
-    // WORLD GENERATION
-    // ==================================================================================>>
-    [HideInInspector] public GameObject _worldGenerationObject;
-    private Coroutine _worldGenerationRoutine;
-
+    string _prefix = "[ WORLD GENERATION ] ";
+    GameObject _worldGenerationObject;
+    Coroutine _worldGenerationRoutine;
     List<WorldChunk> _chunks = new List<WorldChunk>();
-
-    public Vector2 worldBorderSize = new Vector2(100, 100);
 
     public bool generation_finished = false;
     public Material chunkMaterial; // Assign a material in the inspector
+    public Vector2 worldBorderSize = new Vector2(100, 100);
     public int steps = 10; // Number of steps in the random walk
 
     [Header("Cells")]
@@ -60,6 +56,8 @@ public class WorldGeneration : MonoBehaviour
     IEnumerator Generate(float delay = 0.25f)
     {
         generation_finished = false;
+        Debug.Log(_prefix + "Start Generation");
+
         if (_worldGenerationObject != null)
         {
             Destroy(_worldGenerationObject);
@@ -90,21 +88,32 @@ public class WorldGeneration : MonoBehaviour
         MeshCollider collider = _worldGenerationObject.AddComponent<MeshCollider>();
         collider.sharedMesh = combinedMesh;
 
+        Debug.Log(_prefix + "COMPLETE : CombinedMesh Layout");
+
         // Initialize Cell Map
-        FindObjectOfType<WorldCellMap>().InitializeCellMap();
-        yield return new WaitForSeconds(delay);
+        WorldCellMap worldCellMap = FindObjectOfType<WorldCellMap>();
+        worldCellMap.InitializeCellMap();
+        yield return new WaitUntil(() => worldCellMap.initialized);
+        Debug.Log(_prefix + "COMPLETE : Initialized World Cell Map");
 
         // Initialize Chunk Map
+        WorldChunkMap worldChunkMap = FindObjectOfType<WorldChunkMap>();
         FindObjectOfType<WorldChunkMap>().InitializeChunkMap();
-        yield return new WaitForSeconds(delay);
+        yield return new WaitUntil(() => worldChunkMap.initialized);
+        Debug.Log(_prefix + "COMPLETE : Initialized World Chunk Map");
 
         // Initialize Spawn Map
+        WorldSpawnMap worldSpawnMap = FindObjectOfType<WorldSpawnMap>();
         FindObjectOfType<WorldSpawnMap>().InitializeSpawnMap();
-        yield return new WaitForSeconds(delay);
+        yield return new WaitUntil(() => worldCellMap.initialized);
+        Debug.Log(_prefix + "COMPLETE : Initialized World Spawn Map");
 
-        // [[ ENVIRONMENT GENERATION ]]
-        FindObjectOfType<WorldEnvironment>().StartEnvironmentGeneration();
-        yield return new WaitForSeconds(delay);
+        // [[ ENVIRONMENT GENERATION ]] ===================================
+        WorldEnvironment worldEnvironment = FindObjectOfType<WorldEnvironment>();
+        worldEnvironment.StartEnvironmentGeneration();
+        yield return new WaitUntil(() => worldEnvironment.generation_finished);
+        Debug.Log(_prefix + "COMPLETE : Finished Environment Generation");
+
 
         generation_finished = true;
 

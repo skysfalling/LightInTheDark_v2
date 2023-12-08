@@ -32,6 +32,7 @@ public class InputManager : MonoBehaviour
 
             if (Physics.Raycast(ray, out hit))
             {
+                if (_chunkMap == null) return;
                 WorldChunk closestChunk = _chunkMap.FindClosestChunk(hit.point);
                 _chunkDebug.SelectWorldChunk(closestChunk);
             }
