@@ -67,6 +67,8 @@ public class WorldChunkMap : MonoBehaviour
 
     public List<WorldChunk> GetChunkNeighbors(WorldChunk chunk) 
     {
+        if (!_chunkNeighborMap.ContainsKey(chunk)) { return new List<WorldChunk>(); }
+
         return _chunkNeighborMap[chunk];
     }
 

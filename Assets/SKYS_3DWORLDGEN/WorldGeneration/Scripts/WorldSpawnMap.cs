@@ -2,20 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class WorldSpawnObject
-{
-    public int spawnRadius;
-}
-
 [RequireComponent(typeof(WorldSpawnDebug))]
 public class WorldSpawnMap : MonoBehaviour
 {
     public bool initialized = false;
-
     WorldGeneration _worldGeneration;
     WorldChunkMap _worldChunkMap;
-
     Dictionary<WorldChunk.TYPE, List<WorldChunk>> _chunkTypeMap = new Dictionary<WorldChunk.TYPE, List<WorldChunk>>();
 
     public void InitializeSpawnMap()
@@ -49,6 +41,8 @@ public class WorldSpawnMap : MonoBehaviour
         initialized = false;
         _chunkTypeMap.Clear();
     }
+
+    // ======================================= HELPER FUNCTIONS ===================================================================
 
     public List<WorldChunk> GetAllChunksOfType(WorldChunk.TYPE chunkType)
     {

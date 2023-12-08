@@ -31,15 +31,7 @@ public class WorldCellMap : MonoBehaviour
             SetCellType(cell);
         }
 
-        // SPAWN ASSETS
-        foreach (WorldCell cell in _worldCells)
-        {
-            if (cell.type != WorldCell.Type.EMPTY)
-            {
-                GameObject newAsset = Instantiate(wallPrefab, cell.position, Quaternion.identity);
-                newAsset.transform.parent = _worldGeneration._worldGenerationObject.transform;
-            }
-        }
+
     }
 
     public void Reset()

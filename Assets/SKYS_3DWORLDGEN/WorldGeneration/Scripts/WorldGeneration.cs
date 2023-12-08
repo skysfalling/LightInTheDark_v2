@@ -49,6 +49,7 @@ public class WorldGeneration : MonoBehaviour
         FindObjectOfType<WorldChunkMap>().Reset();
         FindObjectOfType<WorldCellMap>().Reset();
         FindObjectOfType<WorldSpawnMap>().Reset();
+        FindObjectOfType<WorldEnvironment>().Reset();
 
 
         if (_worldGenerationRoutine != null) { StopCoroutine(_worldGenerationRoutine); }
@@ -99,6 +100,10 @@ public class WorldGeneration : MonoBehaviour
 
         // Initialize Spawn Map
         FindObjectOfType<WorldSpawnMap>().InitializeSpawnMap();
+        yield return new WaitForSeconds(delay);
+
+        // [[ ENVIRONMENT GENERATION ]]
+        FindObjectOfType<WorldEnvironment>().StartEnvironmentGeneration();
         yield return new WaitForSeconds(delay);
 
         generation_finished = true;
