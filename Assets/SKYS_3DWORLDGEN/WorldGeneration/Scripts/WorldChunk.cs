@@ -202,14 +202,25 @@ public class WorldChunk
     // ================== SPAWN OBJECTS ================================================================ >>
     public List<WorldCell> FindSpace(EnvironmentObject envObj)
     {
+        Dictionary<int, List<WorldCell>> availableSpace = new Dictionary<int, List<WorldCell>>();
+        int spaceIndex = 0;
+
         foreach (WorldCell startCell in localCells)
         {
             if (IsSpaceAvailable(startCell, envObj))
             {
-                return GetCellsInArea(startCell, envObj.space);
+                availableSpace[spaceIndex] = GetCellsInArea(startCell, envObj.space);
+                spaceIndex++;
             }
         }
 
+        // Get Random Available Space
+        if (availableSpace.Count > 0)
+        {
+            return availableSpace[UnityEngine.Random.Range(0, availableSpace.Keys.Count)];
+        }
+
+        // Return Empty
         return new List<WorldCell>();
     }
 

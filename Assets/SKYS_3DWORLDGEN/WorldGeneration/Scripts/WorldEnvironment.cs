@@ -10,6 +10,9 @@ public class EnvironmentObject
     public Vector2Int space = new Vector2Int(1, 1);
     public List<WorldCell.TYPE> spawnCellTypeRequirements = new List<WorldCell.TYPE>();
     public WorldCell.TYPE cellTypeConversion;
+
+    [Range(0, 1)]
+    public float spawnChance = 0.5f;
 }
 public class WorldEnvironment : MonoBehaviour
 {
@@ -93,6 +96,10 @@ public class WorldEnvironment : MonoBehaviour
             // TRY TO SPAWN ENV OBJECT
             else
             {
+                // Random Spawn Chance
+                if (Random.Range(0f, 1f) > envObj.spawnChance) { continue; }
+
+                // Get Required Space Area
                 int req_spaceArea = envObj.space.x * envObj.space.y;
                 List<WorldCell> foundSpace = chunk.FindSpace(envObj);
 
