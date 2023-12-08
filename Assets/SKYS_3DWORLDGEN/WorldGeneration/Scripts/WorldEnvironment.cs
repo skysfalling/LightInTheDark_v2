@@ -17,10 +17,13 @@ public class WorldEnvironment : MonoBehaviour
     WorldSpawnMap _worldSpawnMap;
 
     string parentObjectPrefix = "env_parent :: ";
-    List<GameObject> _envParents = new List<GameObject>();
+    Dictionary<WorldChunk, Transform> _worldChunkEnvParentMap = new Dictionary<WorldChunk, Transform>();
 
     [Header("WALLS")]
-    public EnvironmentObject wall_0;
+    public GameObject wall_0;
+
+    [Header("ENVIRONMENT")]
+    public GameObject env_0;
 
     public void StartEnvironmentGeneration()
     {
@@ -30,21 +33,29 @@ public class WorldEnvironment : MonoBehaviour
         _worldChunkMap = FindObjectOfType<WorldChunkMap>();
         _worldSpawnMap = FindObjectOfType<WorldSpawnMap>();
 
-        // << SPAWN WALLS >>
+        _worldChunkEnvParentMap.Clear();
+
+        // << SPAWN BY CHUNK >>
         foreach (WorldChunk chunk in _worldGeneration.GetChunks())
         {
             GameObject newParent = new GameObject(parentObjectPrefix + "chunk" + chunk.position);
             newParent.transform.parent = transform;
-            _envParents.Add(newParent);
+            _worldChunkEnvParentMap[chunk] = newParent.transform;
 
-            // SPAWN ASSETS
-            foreach (WorldCell cell in chunk.cells)
+            // << SPAWN WALLS >>
+            foreach (WorldCell cell in chunk.localCells)
             {
-                if (cell.type != WorldCell.Type.EMPTY)
+                if (cell.type != WorldCell.TYPE.EMPTY)
                 {
-                    GameObject newAsset = Instantiate(wall_0.prefab, cell.position, Quaternion.identity);
-                    newAsset.transform.parent = newParent.transform;
+                    SpawnObjectAtCell(wall_0, cell);
+
                 }
+            }
+
+            // << SPAWN IN EMPTY CELLS >>
+            if (chunk.type == WorldChunk.TYPE.EMPTY)
+            {
+                SpawnObjectAtCell(env_0, chunk.GetRandomCellOfType(WorldCell.TYPE.EMPTY));
             }
         }
 
@@ -54,11 +65,20 @@ public class WorldEnvironment : MonoBehaviour
     public void Reset()
     {
         initialized = false;
-
-        foreach (GameObject parent in _envParents)
+        foreach (WorldChunk chunk in _worldChunkEnvParentMap.Keys)
         {
-            Destroy(parent);
+            Destroy(_worldChunkEnvParentMap[chunk].gameObject);
+            _worldChunkEnvParentMap[chunk] = null;
         }
-        _envParents.Clear();
+        _worldChunkEnvParentMap.Clear();
+    }
+
+    private GameObject SpawnObjectAtCell(GameObject prefab, WorldCell cell)
+    {
+        GameObject newEnvObject = Instantiate(prefab, cell.position, Quaternion.identity);
+        newEnvObject.transform.parent = _worldChunkEnvParentMap[cell.GetChunk()];
+        newEnvObject.transform.position = cell.position;
+
+        return newEnvObject;
     }
 }

@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class WorldCell
 {
-    public enum Type { EMPTY, EDGE, CORNER }
-    public Type type;
+    public enum TYPE { EMPTY, EDGE, CORNER }
+    public TYPE type;
 
     WorldChunk _chunkParent;
     int _chunkCellIndex;
@@ -22,9 +22,14 @@ public class WorldCell
         position = (vertices[0] + vertices[1] + vertices[2] + vertices[3]) / 4;
     }
 
-    public void SetCellType(Type type)
+    public void SetCellType(TYPE type)
     {
         this.type = type;
+    }
+
+    public WorldChunk GetChunk()
+    {
+        return this._chunkParent;
     }
 }
 

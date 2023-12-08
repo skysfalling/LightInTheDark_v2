@@ -27,7 +27,10 @@ public class WorldChunk
     [HideInInspector] public Mesh mesh;
     public Vector3 position;
 
-    public List<WorldCell> cells = new List<WorldCell>();
+    public List<WorldCell> localCells = new List<WorldCell>();
+
+    bool initialized_cellTypeMap = false;
+    Dictionary<WorldCell.TYPE, List<WorldCell>> _cellTypeMap = new Dictionary<WorldCell.TYPE, List<WorldCell>>();
 
     public WorldChunk(Mesh mesh, Vector3 position, int width = 3, int height = 3, int cellSize = 4)
     {
@@ -50,7 +53,7 @@ public class WorldChunk
 
     void CreateCells()
     {
-        cells.Clear();
+        localCells.Clear();
         int cell_index = 0;
 
         // Get topface vertices
@@ -92,7 +95,7 @@ public class WorldChunk
                     Vector3 topRight = sortedVertices[colIndex + verticesPerRow + 1];
 
                     // Create a square (as a cube) at each set of vertices
-                    cells.Add(new WorldCell(this, cell_index, new Vector3[] { bottomLeft, bottomRight, topLeft, topRight }));
+                    localCells.Add(new WorldCell(this, cell_index, new Vector3[] { bottomLeft, bottomRight, topLeft, topRight }));
                     cell_index++;
                 }
             }
@@ -114,7 +117,7 @@ public class WorldChunk
         float westEdgeX = float.MaxValue;
 
         // Find the edge positions
-        foreach (WorldCell cell in cells)
+        foreach (WorldCell cell in localCells)
         {
             if (cell.position.z > northEdgeZ) northEdgeZ = cell.position.z;
             if (cell.position.z < southEdgeZ) southEdgeZ = cell.position.z;
@@ -123,9 +126,9 @@ public class WorldChunk
         }
 
         // Check each cell
-        foreach (WorldCell cell in cells)
+        foreach (WorldCell cell in localCells)
         {
-            if (cell.type == WorldCell.Type.EMPTY)
+            if (cell.type == WorldCell.TYPE.EMPTY)
             {
                 if (cell.position.z == northEdgeZ) NorthEdgeActive = false;
                 if (cell.position.z == southEdgeZ) SouthEdgeActive = false;
@@ -166,6 +169,44 @@ public class WorldChunk
         }
         if (activeEdgeCount == 1) { type = TYPE.WALL; return; }
         if (activeEdgeCount == 0) { type = TYPE.EMPTY; return; }
+    }
+
+    // ================ CELL TYPE MAP =============================
+
+    private void InitializeCellTypeMap()
+    {
+        initialized_cellTypeMap = false;
+
+        _cellTypeMap.Clear();
+        foreach (WorldCell cell in localCells)
+        {
+            // Create new List for new key
+            if (!_cellTypeMap.ContainsKey(cell.type))
+            {
+                _cellTypeMap[cell.type] = new List<WorldCell>();
+            }
+
+            _cellTypeMap[cell.type].Add(cell);
+        }
+
+        initialized_cellTypeMap = true;
+    }
+
+    public List<WorldCell> GetCellsOfType(WorldCell.TYPE cellType)
+    {
+        if (!initialized_cellTypeMap)
+        {
+            InitializeCellTypeMap();
+        }
+
+        return _cellTypeMap[cellType];
+    }
+
+    public WorldCell GetRandomCellOfType(WorldCell.TYPE cellType)
+    {
+        List<WorldCell> cells = GetCellsOfType(cellType);
+        return cells[UnityEngine.Random.Range(0, cells.Count)];
+
     }
 }
 

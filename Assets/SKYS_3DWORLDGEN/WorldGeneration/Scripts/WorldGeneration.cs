@@ -114,7 +114,7 @@ public class WorldGeneration : MonoBehaviour
     {
         if (_chunks.Count == 0 || _chunks == null)
         {
-            return null;
+            return new List<WorldChunk>();
         }
 
         return _chunks;
@@ -126,7 +126,7 @@ public class WorldGeneration : MonoBehaviour
 
         foreach (WorldChunk chunk in _chunks)
         {
-            foreach (WorldCell cell in chunk.cells)
+            foreach (WorldCell cell in chunk.localCells)
             {
                 cells.Add(cell);
             }
@@ -369,7 +369,8 @@ public class WorldGeneration : MonoBehaviour
                 Vector3 proposedPos = currentPos + direction;
 
                 // Clamping the position within the world border
-                if (proposedPos.x >= -halfBorder.x && proposedPos.x <= halfBorder.x &&
+                if (!positions.Contains(proposedPos) &&
+                    proposedPos.x >= -halfBorder.x && proposedPos.x <= halfBorder.x &&
                     proposedPos.z >= -halfBorder.y && proposedPos.z <= halfBorder.y)
                 {
                     validPositionFound = true;

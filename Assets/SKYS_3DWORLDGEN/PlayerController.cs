@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         worldGeneration = GameObject.FindObjectOfType<WorldGeneration>();
-        SetCell(worldGeneration.GetChunks()[0].cells[3]);
+        SetCell(worldGeneration.GetChunks()[0].localCells[3]);
 
     }
 

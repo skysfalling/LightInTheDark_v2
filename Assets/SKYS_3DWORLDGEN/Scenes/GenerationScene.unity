@@ -168,8 +168,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   initialized: 0
-  wallPrefab: {fileID: 2986166503023539567, guid: 96c08d2e01fd52540a29788d18bd682d,
-    type: 3}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -538,10 +536,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   initialized: 0
-  wall_0:
-    prefab: {fileID: 2986166503023539567, guid: 96c08d2e01fd52540a29788d18bd682d,
-      type: 3}
-    spawnRadius: 1
+  wall_0: {fileID: 2986166503023539567, guid: 96c08d2e01fd52540a29788d18bd682d, type: 3}
+  env_0: {fileID: 2986166503023539567, guid: 96c08d2e01fd52540a29788d18bd682d, type: 3}
 --- !u!1 &762757157
 GameObject:
   m_ObjectHideFlags: 0

@@ -8,10 +8,6 @@ public class WorldCellMap : MonoBehaviour
     WorldGeneration _worldGeneration;
     List<WorldCell> _worldCells = new List<WorldCell>();
     Dictionary<WorldCell, List<WorldCell>> _cellNeighborMap = new Dictionary<WorldCell, List<WorldCell>>();
-
-    List<GameObject> generatedWallPrefabs = new List<GameObject>();
-    public GameObject wallPrefab;
-
     public void InitializeCellMap()
     {
         _worldGeneration = GetComponentInParent<WorldGeneration>();
@@ -30,8 +26,6 @@ public class WorldCellMap : MonoBehaviour
         {
             SetCellType(cell);
         }
-
-
     }
 
     public void Reset()
@@ -64,14 +58,14 @@ public class WorldCellMap : MonoBehaviour
         return neighbors;
     }
 
-    private WorldCell.Type SetCellType(WorldCell cell)
+    private WorldCell.TYPE SetCellType(WorldCell cell)
     {
-        WorldCell.Type cellType = WorldCell.Type.EMPTY;
+        WorldCell.TYPE cellType = WorldCell.TYPE.EMPTY;
 
         // CHECK FOR EDGE
         if (_cellNeighborMap[cell].Count < 4)
         {
-            cellType = WorldCell.Type.EDGE;
+            cellType = WorldCell.TYPE.EDGE;
         }
         // EDGE CORNERS
         else if (_cellNeighborMap[cell].Count == 4)
@@ -89,12 +83,12 @@ public class WorldCellMap : MonoBehaviour
             // If at least two neighbors are edges, it's an edge corner
             if (edgeNeighborCount >= 2)
             {
-                cellType = WorldCell.Type.CORNER;
+                cellType = WorldCell.TYPE.CORNER;
             }
         }
 
         // SET TYPE
-        cell.type = cellType;
+        cell.SetCellType(cellType);
 
         return cellType;
     }
@@ -131,8 +125,8 @@ public class WorldCellMap : MonoBehaviour
         {
             Gizmos.color = Color.white;
 
-            if (cell.type == WorldCell.Type.EDGE) { Gizmos.color = Color.red; }
-            if (cell.type == WorldCell.Type.CORNER) { Gizmos.color = Color.yellow; }
+            if (cell.type == WorldCell.TYPE.EDGE) { Gizmos.color = Color.red; }
+            if (cell.type == WorldCell.TYPE.CORNER) { Gizmos.color = Color.yellow; }
 
 
 
