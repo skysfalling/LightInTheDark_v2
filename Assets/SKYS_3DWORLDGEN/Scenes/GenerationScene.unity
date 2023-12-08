@@ -536,13 +536,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   generation_finished: 0
+  playerPrefab: {fileID: 7174322603541102714, guid: 75e31aadaf670b74a88bea728e1f041d,
+    type: 3}
   wall_0: {fileID: 2986166503023539567, guid: 96c08d2e01fd52540a29788d18bd682d, type: 3}
   environmentObjects:
   - prefab: {fileID: 1102661899630277483, guid: c53589fd05733bf4daa37677a3e6a829,
       type: 3}
-    space: {x: 3, y: 2}
+    space: {x: 1, y: 1}
     spawnCellTypeRequirements: 00000000
     cellTypeConversion: 3
+  - prefab: {fileID: 2580976793282413399, guid: 18a4d9b94da34704586bb3ce19752f33,
+      type: 3}
+    space: {x: 1, y: 1}
+    spawnCellTypeRequirements: 00000000
+    cellTypeConversion: 4
 --- !u!1 &751692126
 GameObject:
   m_ObjectHideFlags: 0
