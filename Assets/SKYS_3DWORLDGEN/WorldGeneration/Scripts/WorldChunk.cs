@@ -7,6 +7,10 @@ using UnityEngine.XR;
 [System.Serializable]
 public class WorldChunk
 {
+
+    public bool initialized = false;
+
+
     /*
      * EMPTY : 0 walls
      * WALL : 1 sidewall
@@ -28,8 +32,6 @@ public class WorldChunk
     public Vector3 position;
 
     public List<WorldCell> localCells = new List<WorldCell>();
-
-    bool initialized_cellTypeMap = false;
     Dictionary<WorldCell.TYPE, List<WorldCell>> _cellTypeMap = new Dictionary<WorldCell.TYPE, List<WorldCell>>();
 
     public WorldChunk(Mesh mesh, Vector3 position, int width = 3, int height = 3, int cellSize = 4)
@@ -41,6 +43,100 @@ public class WorldChunk
         CreateCells();
     }
 
+    // ================ INITIALIZE =============================>>
+    #region
+    public void Initialize()
+    {
+        initialized = false;
+
+        DetermineChunkEdges();
+        SetChunkType();
+        CreateCellTypeMap();
+
+        initialized = true;
+    }
+    void DetermineChunkEdges()
+    {
+        // Initialize all edges as active
+        NorthEdgeActive = true;
+        SouthEdgeActive = true;
+        EastEdgeActive = true;
+        WestEdgeActive = true;
+
+        // Define the edge positions
+        float northEdgeZ = float.MinValue;
+        float southEdgeZ = float.MaxValue;
+        float eastEdgeX = float.MinValue;
+        float westEdgeX = float.MaxValue;
+
+        // Find the edge positions
+        foreach (WorldCell cell in localCells)
+        {
+            if (cell.position.z > northEdgeZ) northEdgeZ = cell.position.z;
+            if (cell.position.z < southEdgeZ) southEdgeZ = cell.position.z;
+            if (cell.position.x > eastEdgeX) eastEdgeX = cell.position.x;
+            if (cell.position.x < westEdgeX) westEdgeX = cell.position.x;
+        }
+
+        // Check each cell
+        foreach (WorldCell cell in localCells)
+        {
+            if (cell.type == WorldCell.TYPE.EMPTY)
+            {
+                if (cell.position.z == northEdgeZ) NorthEdgeActive = false;
+                if (cell.position.z == southEdgeZ) SouthEdgeActive = false;
+                if (cell.position.x == eastEdgeX) EastEdgeActive = false;
+                if (cell.position.x == westEdgeX) WestEdgeActive = false;
+            }
+        }
+
+        /*
+        // Log the active edges
+        Debug.Log($"North Edge Active: {NorthEdgeActive}\n " +
+                  $"South Edge Active: {SouthEdgeActive}\n " +
+                  $"East Edge Active: {EastEdgeActive}\n " +
+                  $"West Edge Active: {WestEdgeActive}\n ");
+        */
+    }
+    void SetChunkType()
+    {
+        // Get Edge Count
+        int activeEdgeCount = 0;
+        if (NorthEdgeActive) { activeEdgeCount++; }
+        if (SouthEdgeActive) { activeEdgeCount++; }
+        if (EastEdgeActive) { activeEdgeCount++; }
+        if (WestEdgeActive) { activeEdgeCount++; }
+
+        // Set Type
+        if (activeEdgeCount == 4) { type = TYPE.CLOSED; return; }
+        if (activeEdgeCount == 3) { type = TYPE.DEADEND; return; }
+        if (activeEdgeCount == 2)
+        {
+            // Check for parallel edges
+            if (NorthEdgeActive && SouthEdgeActive) { type = TYPE.HALLWAY; return; }
+            if (EastEdgeActive && WestEdgeActive) { type = TYPE.HALLWAY; return; }
+            type = TYPE.CORNER;
+        }
+        if (activeEdgeCount == 1) { type = TYPE.WALL; return; }
+        if (activeEdgeCount == 0) { type = TYPE.EMPTY; return; }
+    }
+    void CreateCellTypeMap()
+    {
+        _cellTypeMap.Clear();
+        foreach (WorldCell cell in localCells)
+        {
+            // Create new List for new key
+            if (!_cellTypeMap.ContainsKey(cell.type))
+            {
+                _cellTypeMap[cell.type] = new List<WorldCell>();
+            }
+
+            _cellTypeMap[cell.type].Add(cell);
+        }
+    }
+    #endregion
+
+    // ================ CREATE WORLD CELLS ==============================>>
     void OffsetMesh(Vector3 position)
     {
         Vector3[] vertices = mesh.vertices;
@@ -102,111 +198,21 @@ public class WorldChunk
         }
     }
 
-    void DetermineChunkEdges()
-    {
-        // Initialize all edges as active
-        NorthEdgeActive = true;
-        SouthEdgeActive = true;
-        EastEdgeActive = true;
-        WestEdgeActive = true;
 
-        // Define the edge positions
-        float northEdgeZ = float.MinValue;
-        float southEdgeZ = float.MaxValue;
-        float eastEdgeX = float.MinValue;
-        float westEdgeX = float.MaxValue;
 
-        // Find the edge positions
-        foreach (WorldCell cell in localCells)
-        {
-            if (cell.position.z > northEdgeZ) northEdgeZ = cell.position.z;
-            if (cell.position.z < southEdgeZ) southEdgeZ = cell.position.z;
-            if (cell.position.x > eastEdgeX) eastEdgeX = cell.position.x;
-            if (cell.position.x < westEdgeX) westEdgeX = cell.position.x;
-        }
-
-        // Check each cell
-        foreach (WorldCell cell in localCells)
-        {
-            if (cell.type == WorldCell.TYPE.EMPTY)
-            {
-                if (cell.position.z == northEdgeZ) NorthEdgeActive = false;
-                if (cell.position.z == southEdgeZ) SouthEdgeActive = false;
-                if (cell.position.x == eastEdgeX) EastEdgeActive = false;
-                if (cell.position.x == westEdgeX) WestEdgeActive = false;
-            }
-        }
-
-        /*
-        // Log the active edges
-        Debug.Log($"North Edge Active: {NorthEdgeActive}\n " +
-                  $"South Edge Active: {SouthEdgeActive}\n " +
-                  $"East Edge Active: {EastEdgeActive}\n " +
-                  $"West Edge Active: {WestEdgeActive}\n ");
-        */
-    }
-
-    public void SetChunkType()
-    {
-        DetermineChunkEdges();
-
-        // Get Edge Count
-        int activeEdgeCount = 0;
-        if (NorthEdgeActive) { activeEdgeCount++; }
-        if (SouthEdgeActive) { activeEdgeCount++; }
-        if (EastEdgeActive) { activeEdgeCount++; }
-        if (WestEdgeActive) { activeEdgeCount++; }
-
-        // Set Type
-        if (activeEdgeCount == 4) { type = TYPE.CLOSED; return; }
-        if (activeEdgeCount == 3) { type = TYPE.DEADEND; return; }
-        if (activeEdgeCount == 2)
-        {
-            // Check for parallel edges
-            if (NorthEdgeActive && SouthEdgeActive) { type = TYPE.HALLWAY; return; }
-            if (EastEdgeActive && WestEdgeActive) { type = TYPE.HALLWAY; return; }
-            type = TYPE.CORNER;
-        }
-        if (activeEdgeCount == 1) { type = TYPE.WALL; return; }
-        if (activeEdgeCount == 0) { type = TYPE.EMPTY; return; }
-    }
-
-    // ================ CELL TYPE MAP =============================
-
-    private void InitializeCellTypeMap()
-    {
-        initialized_cellTypeMap = false;
-
-        _cellTypeMap.Clear();
-        foreach (WorldCell cell in localCells)
-        {
-            // Create new List for new key
-            if (!_cellTypeMap.ContainsKey(cell.type))
-            {
-                _cellTypeMap[cell.type] = new List<WorldCell>();
-            }
-
-            _cellTypeMap[cell.type].Add(cell);
-        }
-
-        initialized_cellTypeMap = true;
-    }
-
+    // ================= HELPER FUNCTIONS ==============================>>
     public List<WorldCell> GetCellsOfType(WorldCell.TYPE cellType)
     {
-        if (!initialized_cellTypeMap)
-        {
-            InitializeCellTypeMap();
-        }
-
+        if (!initialized) { return new List<WorldCell>(); }
+        if (!_cellTypeMap.ContainsKey(cellType)) { _cellTypeMap[cellType] = new List<WorldCell>(); }
         return _cellTypeMap[cellType];
     }
 
     public WorldCell GetRandomCellOfType(WorldCell.TYPE cellType)
     {
+        if (!initialized) { return null; }
         List<WorldCell> cells = GetCellsOfType(cellType);
         return cells[UnityEngine.Random.Range(0, cells.Count)];
-
     }
 }
 

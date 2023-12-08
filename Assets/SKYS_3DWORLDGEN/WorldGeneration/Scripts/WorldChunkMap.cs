@@ -18,21 +18,19 @@ public class WorldChunkMap : MonoBehaviour
         _worldChunks = _worldGeneration.GetChunks();
         _chunkNeighborMap.Clear();
 
-        // << SET CHUNK NEIGHBORS >>
+        // << Initialize Chunks >>
         foreach (WorldChunk chunk in _worldChunks)
         {
-            List<WorldChunk> neighbors = SetChunkNeighbors(chunk);
+            // Set Neighbors
+            List<WorldChunk> neighbors = MapChunkNeighbors(chunk);
             _chunkNeighborMap[chunk] = neighbors;
-        }
 
-        foreach (WorldChunk chunk in _worldChunks)
-        {
-            chunk.SetChunkType();
+            // Initialize
+            chunk.Initialize();
         }
 
         initialized = true;
     }
-
 
     public void Reset()
     {
@@ -41,8 +39,8 @@ public class WorldChunkMap : MonoBehaviour
         initialized = false;
     }
 
-    // =========================================================================================
-    private List<WorldChunk> SetChunkNeighbors(WorldChunk chunk)
+    // =========================================================================================>>
+    private List<WorldChunk> MapChunkNeighbors(WorldChunk chunk)
     {
         List<WorldChunk> neighbors = new List<WorldChunk>(new WorldChunk[4]);
         float chunkSize = _worldGeneration.fullsize_chunkDimensions.x;
