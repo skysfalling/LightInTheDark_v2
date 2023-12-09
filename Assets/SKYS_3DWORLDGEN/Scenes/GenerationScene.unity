@@ -692,7 +692,7 @@ GameObject:
   - component: {fileID: 762757159}
   - component: {fileID: 762757158}
   m_Layer: 5
-  m_Name: '[CANVAS] CameraOverlayUI'
+  m_Name: '[CANVAS] MainCameraOverlayUI'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -776,7 +776,7 @@ RectTransform:
   - {fileID: 911371078}
   - {fileID: 818355950}
   - {fileID: 751692127}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 2104073130}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -1475,6 +1475,7 @@ Transform:
   - {fileID: 832575519}
   - {fileID: 410087041}
   - {fileID: 393666130}
+  - {fileID: 762757161}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2104073131
@@ -1507,4 +1508,3 @@ SceneRoots:
   m_Roots:
   - {fileID: 1082910641}
   - {fileID: 2104073130}
-  - {fileID: 762757161}

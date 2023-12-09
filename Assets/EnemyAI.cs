@@ -144,6 +144,8 @@ public class EnemyAI : MonoBehaviour
         Debug.Log("Hit Enemy", this.gameObject);
         image.sprite = hitImage;
 
+        _playerController.ConfirmHit();
+
         Destroy(gameObject, 1);
     }
 }

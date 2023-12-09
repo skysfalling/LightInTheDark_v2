@@ -18,6 +18,8 @@ public class PlayerController : MonoBehaviour
     private bool _fireInput;
     private float _autoFireRate = 0.25f;
 
+    public int hitCount = 0;
+
     void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
@@ -129,6 +131,11 @@ public class PlayerController : MonoBehaviour
     public void Hit()
     {
         Debug.Log("Hit Player");
+    }
+
+    public void ConfirmHit()
+    {
+        hitCount++;
     }
 }
 
