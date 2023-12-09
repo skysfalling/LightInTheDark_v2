@@ -9,7 +9,9 @@ public class EnemyAI : MonoBehaviour
     public Transform target; // Assign the player or target object in the inspector
     public GameObject snowballPrefab; // Assign this in the inspector
     public float throwForce = 10f;
-    public float lerpSpeed = 0.05f;
+    public float move_lerpSpeed = 0.05f;
+    public float rotation_lerpSpeed = 1f;
+
     public float throwRange = 10f; // Range within which the AI will start throwing snowballs
     public Transform throwPoint;
 
@@ -26,12 +28,9 @@ public class EnemyAI : MonoBehaviour
 
     void Update()
     {
+        RotateTowardsTarget();
 
-        if (IsInThrowRange)
-        {
-            RotateTowardsTarget();
-        }
-        else if (IsInFollowRange) {
+        if (IsInFollowRange) {
             MoveTowardsTarget();
         }
     }
@@ -39,7 +38,7 @@ public class EnemyAI : MonoBehaviour
     void MoveTowardsTarget()
     {
         Vector3 targetPosition = new Vector3(target.position.x, transform.position.y, target.position.z);
-        transform.position = Vector3.Lerp(transform.position, targetPosition, lerpSpeed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, targetPosition, move_lerpSpeed * Time.deltaTime);
     }
 
     void RotateTowardsTarget()
@@ -47,7 +46,7 @@ public class EnemyAI : MonoBehaviour
         Vector3 directionToTarget = target.position - transform.position;
         directionToTarget.y = 0; // Keep the rotation only on the Y-axis
         Quaternion rotationToTarget = Quaternion.LookRotation(directionToTarget);
-        transform.rotation = Quaternion.Slerp(transform.rotation, rotationToTarget, lerpSpeed * Time.deltaTime);
+        transform.rotation = Quaternion.Slerp(transform.rotation, rotationToTarget, rotation_lerpSpeed * Time.deltaTime);
     }
 
     void ThrowSnowball()
@@ -56,6 +55,7 @@ public class EnemyAI : MonoBehaviour
 
         // Instantiate the snowball
         GameObject snowball = Instantiate(snowballPrefab, throwPoint.position, transform.rotation);
+        snowball.GetComponent<ThrowableObject>().parentEntity = this.gameObject;
 
         // Apply a force to the snowball
         Rigidbody rb = snowball.GetComponent<Rigidbody>();
@@ -63,5 +63,11 @@ public class EnemyAI : MonoBehaviour
         {
             rb.AddForce(transform.forward * throwForce, ForceMode.Impulse);
         }
+    }
+
+    public void Hit()
+    {
+        Debug.Log("Hit Enemy", this.gameObject);
+        Destroy(gameObject);
     }
 }

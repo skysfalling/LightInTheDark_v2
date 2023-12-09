@@ -109,6 +109,7 @@ public class PlayerController : MonoBehaviour
         {
             // Instantiate the snowball at the throw point
             GameObject snowball = Instantiate(snowballPrefab, throwPoint.position, throwPoint.rotation);
+            snowball.GetComponent<ThrowableObject>().parentEntity = this.gameObject;
 
             // Apply a force to the snowball
             Rigidbody rb = snowball.GetComponent<Rigidbody>();
@@ -123,6 +124,11 @@ public class PlayerController : MonoBehaviour
         {
             Debug.LogError("Snowball prefab or throw point not assigned!");
         }
+    }
+
+    public void Hit()
+    {
+        Debug.Log("Hit Player");
     }
 }
 
