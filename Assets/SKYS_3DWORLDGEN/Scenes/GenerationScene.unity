@@ -540,7 +540,7 @@ MonoBehaviour:
     spawnChance: 0.5
   - prefab: {fileID: 2580976793282413399, guid: 18a4d9b94da34704586bb3ce19752f33,
       type: 3}
-    space: {x: 1, y: 1}
+    space: {x: 2, y: 2}
     spawnCellTypeRequirements: 00000000
     cellTypeConversion: 4
     spawnChance: 0.05
