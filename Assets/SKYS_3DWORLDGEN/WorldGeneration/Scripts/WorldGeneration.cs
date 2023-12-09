@@ -13,10 +13,15 @@ public class WorldGeneration : MonoBehaviour
     GameObject _worldGenerationObject;
     Coroutine _worldGenerationRoutine;
     List<WorldChunk> _chunks = new List<WorldChunk>();
+    List<WorldChunk> _borderChunks = new List<WorldChunk>();
 
     public bool generation_finished = false;
     public Material chunkMaterial; // Assign a material in the inspector
-    public Vector2 worldBorderSize = new Vector2(100, 100);
+    public Material borderChunkMaterial; // Assign a material in the inspector
+
+    public Vector2 maxChunkCount = new Vector2(10, 10);
+    Vector2 _fullWorldSize;
+
     public int steps = 10; // Number of steps in the random walk
 
     [Header("Cells")]
@@ -64,8 +69,28 @@ public class WorldGeneration : MonoBehaviour
         // << Set Chunk Dimensions >>
         chunkDimensions = new Vector3Int(chunk_width_in_cells, chunk_height_in_cells, chunk_width_in_cells);
         fullsize_chunkDimensions = chunkDimensions * cellSize;
+        _fullWorldSize = maxChunkCount * new Vector2(fullsize_chunkDimensions.x, fullsize_chunkDimensions.z);
+        Debug.Log(_prefix + "_fullWorldSize " + _fullWorldSize);
 
-        // << Generate Random Path >>
+
+
+        // Get All Possible Chunk Positions
+        List<Vector3> allPossibleChunkPositions = new List<Vector3>();
+
+        // Calculate all possible chunk positions
+        Vector2 halfBorderPos = _fullWorldSize * 0.5f;
+        for (float x = -halfBorderPos.x; x <= halfBorderPos.x; x += fullsize_chunkDimensions.x)
+        {
+            for (float z = -halfBorderPos.y; z <= halfBorderPos.y; z += fullsize_chunkDimensions.z)
+            {
+                allPossibleChunkPositions.Add(new Vector3(x, 0, z));
+            }
+        }
+
+        // Copy Positions to Border Positions
+        List<Vector3> borderPositions = new List<Vector3>(allPossibleChunkPositions);
+
+        // [[ GENERATE RANDOM PATH ]] ========================================== >>
         List<Vector3> positions = GenerateRandomWalkPositions(steps);
 
         // Create Chunks for each position
@@ -73,19 +98,51 @@ public class WorldGeneration : MonoBehaviour
         {
             WorldChunk newChunk = CreateChunkMesh(position);
             _chunks.Add(newChunk);
+
+            // Remove chunk from border positions
+            if (borderPositions.Contains(position)) { borderPositions.Remove(position); }
+
+
+            for (int i =  0; i < 4; i++)
+            {
+                Debug.Log($"Border Chunk position {borderPositions[i]}\n" +
+                    $"Chunk position {positions[i]}");
+            }
+
         }
 
         // Create Combined Mesh
         Mesh combinedMesh = CombineChunks(_chunks);
-        _worldGenerationObject = CreateCombinedMeshObject(combinedMesh);
+        _worldGenerationObject = CreateCombinedMeshObject(combinedMesh, chunkMaterial);
         _worldGenerationObject.transform.parent = transform;
         _worldGenerationObject.name = "(GEN) Ground Layout";
+
+        Debug.Log($"{_prefix} chunk Count : {positions.Count()} / {allPossibleChunkPositions.Count()}");
+        Debug.Log($"{_prefix} borderChunk Count : {borderPositions.Count()} / {allPossibleChunkPositions.Count()}");
+
 
         // Add collider
         MeshCollider collider = _worldGenerationObject.AddComponent<MeshCollider>();
         collider.sharedMesh = combinedMesh;
 
         Debug.Log(_prefix + "COMPLETE : CombinedMesh Layout");
+
+        // [[ GENERATE BORDER CHUNKS ]] ========================================== >>
+        foreach (Vector3 pos in borderPositions)
+        {
+            WorldChunk newChunk = CreateChunkMesh(pos);
+            _borderChunks.Add(newChunk);
+        }
+
+        // Create Combined Mesh
+        Mesh combinedBorderMesh = CombineChunks(_borderChunks);
+        GameObject combinedBorderObject = CreateCombinedMeshObject(combinedBorderMesh, chunkMaterial);
+        combinedBorderObject.transform.parent = transform;
+        combinedBorderObject.name = "(GEN) Ground Border";
+
+
+
+        // [[ INITIALIZE MAPS ]] ============================================= >>
 
         // Initialize Cell Map
         WorldCellMap worldCellMap = FindObjectOfType<WorldCellMap>();
@@ -124,6 +181,25 @@ public class WorldGeneration : MonoBehaviour
         }
 
         return _chunks;
+    }
+
+    public WorldChunk GetChunkAt(Vector3 position)
+    {
+        foreach (WorldChunk chunk in _chunks)
+        {
+            if (chunk.position == position) { return chunk; }
+        }
+        return null;
+    }
+
+    public List<WorldChunk> GetBorderChunks()
+    {
+        if (_borderChunks.Count == 0 || _borderChunks == null)
+        {
+            return new List<WorldChunk>();
+        }
+
+        return _borderChunks;
     }
 
     public List<WorldCell> GetCells()
@@ -330,11 +406,11 @@ public class WorldGeneration : MonoBehaviour
     /// Creates a GameObject to represent the combined mesh in the scene, attaching necessary components like MeshFilter and MeshRenderer.
     /// </summary>
     /// <param name="combinedMesh">The combined Mesh to be represented.</param>
-    GameObject CreateCombinedMeshObject(Mesh combinedMesh)
+    GameObject CreateCombinedMeshObject(Mesh combinedMesh, Material material)
     {
         GameObject worldObject = new GameObject("CombinedChunk");
         worldObject.AddComponent<MeshFilter>().mesh = combinedMesh;
-        worldObject.AddComponent<MeshRenderer>().material = chunkMaterial;
+        worldObject.AddComponent<MeshRenderer>().material = material;
 
         return worldObject;
     }
@@ -355,7 +431,7 @@ public class WorldGeneration : MonoBehaviour
 
         if (steps <= 1) { return positions; }
 
-        Vector2 halfBorder = worldBorderSize * 0.5f; // Half of the world border size
+        Vector2 halfBorder = _fullWorldSize * 0.5f; // Half of the world border size
 
         for (int i = 0; i < steps; i++)
         {
@@ -422,7 +498,7 @@ public class WorldGeneration : MonoBehaviour
     {
         // Draw World Border
         Gizmos.color = Color.green;
-        Gizmos.DrawWireCube(Vector3.zero, new Vector3(worldBorderSize.x, 1, worldBorderSize.y));
+        Gizmos.DrawWireCube(Vector3.zero, new Vector3(_fullWorldSize.x, 1, _fullWorldSize.y));
     }
 }
 

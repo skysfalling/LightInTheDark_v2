@@ -534,16 +534,29 @@ MonoBehaviour:
   environmentObjects:
   - prefab: {fileID: 1102661899630277483, guid: c53589fd05733bf4daa37677a3e6a829,
       type: 3}
-    space: {x: 1, y: 1}
+    space: {x: 2, y: 2}
     spawnCellTypeRequirements: 00000000
     cellTypeConversion: 3
+    minScale: 5
+    maxScale: 10
     spawnChance: 0.5
   - prefab: {fileID: 2580976793282413399, guid: 18a4d9b94da34704586bb3ce19752f33,
       type: 3}
     space: {x: 2, y: 2}
     spawnCellTypeRequirements: 00000000
     cellTypeConversion: 4
+    minScale: 1
+    maxScale: 1
     spawnChance: 0.05
+  borderObjects:
+  - prefab: {fileID: 2698692137920139619, guid: 1435bc0c1eb87e34cbf37004bcb5f371,
+      type: 3}
+    space: {x: 1, y: 1}
+    spawnCellTypeRequirements: 00000000
+    cellTypeConversion: 3
+    minScale: 10
+    maxScale: 30
+    spawnChance: 0.2
 --- !u!1 &751692126
 GameObject:
   m_ObjectHideFlags: 0
@@ -980,6 +993,98 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2104073130}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &857742587
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 857742590}
+  - component: {fileID: 857742589}
+  - component: {fileID: 857742588}
+  m_Layer: 0
+  m_Name: Terrain
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 4294967295
+  m_IsActive: 0
+--- !u!154 &857742588
+TerrainCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 857742587}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_TerrainData: {fileID: 15600000, guid: 31acfad584ab17443aec4027f2fd10e0, type: 2}
+  m_EnableTreeColliders: 1
+--- !u!218 &857742589
+Terrain:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 857742587}
+  m_Enabled: 1
+  serializedVersion: 6
+  m_TerrainData: {fileID: 15600000, guid: 31acfad584ab17443aec4027f2fd10e0, type: 2}
+  m_TreeDistance: 150
+  m_TreeBillboardDistance: 50
+  m_TreeCrossFadeLength: 5
+  m_TreeMaximumFullLODCount: 50
+  m_DetailObjectDistance: 21
+  m_DetailObjectDensity: 1
+  m_HeightmapPixelError: 5
+  m_SplatMapDistance: 200
+  m_HeightmapMaximumLOD: 0
+  m_ShadowCastingMode: 2
+  m_DrawHeightmap: 1
+  m_DrawInstanced: 0
+  m_DrawTreesAndFoliage: 1
+  m_StaticShadowCaster: 0
+  m_IgnoreQualitySettings: 0
+  m_ReflectionProbeUsage: 1
+  m_MaterialTemplate: {fileID: 2100000, guid: 594ea882c5a793440b60ff72d896021e, type: 2}
+  m_BakeLightProbesForTrees: 1
+  m_PreserveTreePrototypeLayers: 0
+  m_DeringLightProbesForTrees: 1
+  m_ReceiveGI: 1
+  m_ScaleInLightmap: 0.03
+  m_LightmapParameters: {fileID: 15203, guid: 0000000000000000f000000000000000, type: 0}
+  m_GroupingID: 0
+  m_RenderingLayerMask: 1
+  m_AllowAutoConnect: 1
+  m_EnableHeightmapRayTracing: 1
+  m_EnableTreesAndDetailsRayTracing: 0
+  m_TreeMotionVectorModeOverride: 3
+--- !u!4 &857742590
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 857742587}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &911371077
 GameObject:
   m_ObjectHideFlags: 0
@@ -1166,8 +1271,8 @@ MonoBehaviour:
   chunkMaterial: {fileID: 2100000, guid: 731f37af0da5d4d44af236d47aa5a4e0, type: 2}
   worldBorderSize: {x: 500, y: 500}
   steps: 200
-  cellSize: 4
-  chunk_width_in_cells: 5
+  cellSize: 10
+  chunk_width_in_cells: 7
   chunk_height_in_cells: 3
   chunkDimensions: {x: 0, y: 0, z: 0}
   fullsize_chunkDimensions: {x: 0, y: 0, z: 0}
@@ -1508,3 +1613,4 @@ SceneRoots:
   m_Roots:
   - {fileID: 1082910641}
   - {fileID: 2104073130}
+  - {fileID: 857742590}

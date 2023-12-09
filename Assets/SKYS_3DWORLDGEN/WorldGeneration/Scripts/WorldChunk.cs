@@ -245,14 +245,14 @@ public class WorldChunk
             cellAreaList += $"{cell.position} {cell.type}\n";
         }
 
-
+        /*
         Debug.Log($"{prefix} SpaceAvailableAt {startCell.position}\n" +
             $"\tEnvObj Prefab : {envObj.prefab.name}\n" +
             $"\tSpace Needed : {envObj.space} {spawnAreaSize}\n" +
             $"\tFound Space Count : {cellsInArea.Count}\n" +
             $"\tRequired Type : {requiredTypes[0]}\n" +
             $"\tCell Area : {cellAreaList}");
-
+        */
 
         return true;
     }
