@@ -532,14 +532,6 @@ MonoBehaviour:
   instantiatedPlayer: {fileID: 0}
   wall_0: {fileID: 2986166503023539567, guid: 96c08d2e01fd52540a29788d18bd682d, type: 3}
   environmentObjects:
-  - prefab: {fileID: 1102661899630277483, guid: c53589fd05733bf4daa37677a3e6a829,
-      type: 3}
-    space: {x: 2, y: 2}
-    spawnCellTypeRequirements: 00000000
-    cellTypeConversion: 3
-    minScale: 5
-    maxScale: 10
-    spawnChance: 0.5
   - prefab: {fileID: 2580976793282413399, guid: 18a4d9b94da34704586bb3ce19752f33,
       type: 3}
     space: {x: 2, y: 2}
@@ -548,6 +540,30 @@ MonoBehaviour:
     minScale: 1
     maxScale: 1
     spawnChance: 0.05
+  - prefab: {fileID: 1102661899630277483, guid: c53589fd05733bf4daa37677a3e6a829,
+      type: 3}
+    space: {x: 3, y: 2}
+    spawnCellTypeRequirements: 00000000
+    cellTypeConversion: 3
+    minScale: 5
+    maxScale: 30
+    spawnChance: 0.5
+  - prefab: {fileID: 3758798834431871148, guid: 7f1e2ae58c5972e4085a61b1acdedaff,
+      type: 3}
+    space: {x: 1, y: 1}
+    spawnCellTypeRequirements: 00000000
+    cellTypeConversion: 3
+    minScale: 1
+    maxScale: 10
+    spawnChance: 0.05
+  - prefab: {fileID: 3865382735814379724, guid: 2f3e88a796323a24397f5548e432b93a,
+      type: 3}
+    space: {x: 1, y: 1}
+    spawnCellTypeRequirements: 0000000003000000
+    cellTypeConversion: 3
+    minScale: 1
+    maxScale: 5
+    spawnChance: 0.5
   borderObjects:
   - prefab: {fileID: 2698692137920139619, guid: 1435bc0c1eb87e34cbf37004bcb5f371,
       type: 3}
@@ -1269,7 +1285,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   generation_finished: 0
   chunkMaterial: {fileID: 2100000, guid: 731f37af0da5d4d44af236d47aa5a4e0, type: 2}
-  worldBorderSize: {x: 500, y: 500}
+  borderChunkMaterial: {fileID: 0}
+  maxChunkCount: {x: 10, y: 10}
   steps: 200
   cellSize: 10
   chunk_width_in_cells: 7

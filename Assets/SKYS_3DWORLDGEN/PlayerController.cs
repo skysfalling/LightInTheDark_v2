@@ -58,7 +58,14 @@ public class PlayerController : MonoBehaviour
         
         if (Mathf.Abs(horizontal) > 0.01f) // horz input deadzone
         {
-            RotatePlayer(movementDirection);
+            if (_fireInput)
+            {
+                RotatePlayer(movementDirection, rotationSpeed * 0.25f);
+            }
+            else
+            {
+                RotatePlayer(movementDirection, rotationSpeed);
+            }
         }
 
         ClampVelocity();
@@ -70,13 +77,13 @@ public class PlayerController : MonoBehaviour
         _rigidbody.AddForce(movementDirection.normalized * speed, ForceMode.Acceleration);
     }
 
-    void RotatePlayer(Vector3 movementDirection)
+    void RotatePlayer(Vector3 movementDirection, float speed)
     {
         if (movementDirection != Vector3.zero)
         {
             float angle = Mathf.Atan2(movementDirection.x, movementDirection.z) * Mathf.Rad2Deg;
             Quaternion toRotation = Quaternion.Euler(0, angle, 0);
-            _rigidbody.rotation = Quaternion.RotateTowards(_rigidbody.rotation, toRotation, rotationSpeed * Time.fixedDeltaTime);
+            _rigidbody.rotation = Quaternion.RotateTowards(_rigidbody.rotation, toRotation, speed * Time.fixedDeltaTime);
         }
     }
 
@@ -120,7 +127,7 @@ public class PlayerController : MonoBehaviour
                 rb.AddForce(throwPoint.forward * throwForce, ForceMode.Impulse);
             }
 
-            Destroy(snowball, 1);
+            Destroy(snowball, 5);
         }
         else
         {

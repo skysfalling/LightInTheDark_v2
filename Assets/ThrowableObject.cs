@@ -30,6 +30,8 @@ public class ThrowableObject : MonoBehaviour
             enemy.Hit();
         }
 
+        GameObject particles = Instantiate(hitParticles, this.transform.position, Quaternion.identity);
+        Destroy(particles, 2);
         Destroy(gameObject);
     }
 }

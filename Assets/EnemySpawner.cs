@@ -7,15 +7,16 @@ public class EnemySpawner : MonoBehaviour
 {
     string _prefix = "<< SPAWNER >> ";
     PlayerController _playerController;
-    public GameObject enemyPrefab;
+    public List<GameObject> enemyPrefabs;
 
     public Vector2 activateRange = new Vector2(10, 20);
+    public float activateDelay = 10f;
     public float spawnDelay = 10f;
 
     // Start is called before the first frame update
     void Start()
     {
-        InvokeRepeating("SpawnerRoutine", 0, spawnDelay);
+        InvokeRepeating("SpawnerRoutine", activateDelay, spawnDelay);
     }
 
     public void SpawnerRoutine()
@@ -26,8 +27,9 @@ public class EnemySpawner : MonoBehaviour
         if (IsPlayerInActivateRange())
         {
             //Debug.Log($"{_prefix} Player is in range {activateRange}", this.gameObject);
-            GameObject enemy = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
+            GameObject enemy = Instantiate(GetRandomEnemy(), transform.position, Quaternion.identity);
             enemy.GetComponent<EnemyAI>().target = _playerController.transform;
+            enemy.transform.parent = null;
         }
     }
 
@@ -40,5 +42,10 @@ public class EnemySpawner : MonoBehaviour
         }
         return false;
 
+    }
+
+    public GameObject GetRandomEnemy()
+    {
+        return enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
     }
 }

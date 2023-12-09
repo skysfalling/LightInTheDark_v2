@@ -48,6 +48,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 527703877afeeed44837949a68645753, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hitParticles: {fileID: 1626824305886321427, guid: 7e93c318ff5d11b42af7233d571680d1,
+    type: 3}
+  parentEntity: {fileID: 0}
 --- !u!33 &2836256998186295673
 MeshFilter:
   m_ObjectHideFlags: 0

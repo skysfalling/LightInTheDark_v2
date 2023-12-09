@@ -147,8 +147,10 @@ public class WorldEnvironment : MonoBehaviour
         // spawn object in center of area
         GameObject newObject = SpawnPrefab(envObj.prefab, startCell, envParent, 10);
 
+        /*
         Debug.Log($"{prefix} SpawnEnvObject{envObj.prefab.name}\n" +
             $"\tStart Cell : {startCell.position}\n");
+        */
 
         // Mark Cell Area
         startCell.GetChunk().MarkArea(spawnArea, envObj.cellTypeConversion);

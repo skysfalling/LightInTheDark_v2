@@ -39,12 +39,7 @@ public class EnemyAI : MonoBehaviour
 
         target.position = _playerController.transform.position;
 
-        InvokeRepeating("ThrowSnowball", 0, 2);
-    }
-
-    void SlowUpdate()
-    {
-
+        InvokeRepeating("ThrowSnowball", 0, 1);
     }
 
     void Update()
@@ -57,7 +52,12 @@ public class EnemyAI : MonoBehaviour
 
             MoveTowardsTarget();
         }
+        else if (IsInThrowRange)
+        {
+            _rigidbody.velocity = Vector3.Lerp(_rigidbody.velocity, Vector2.zero, 2 * Time.fixedDeltaTime);
+        }
 
+        ClampVelocity();
     }
 
     public void SetState(STATE state)
