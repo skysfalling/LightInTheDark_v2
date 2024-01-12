@@ -10,6 +10,8 @@ public class WorldSpawnMap : MonoBehaviour
     WorldChunkMap _worldChunkMap;
     Dictionary<WorldChunk.TYPE, List<WorldChunk>> _chunkTypeMap = new Dictionary<WorldChunk.TYPE, List<WorldChunk>>();
 
+    List<EnemyAI> _activeEnemyAI = new List<EnemyAI>();
+
     public void InitializeSpawnMap()
     {
         initialized = false;
@@ -40,6 +42,27 @@ public class WorldSpawnMap : MonoBehaviour
     {
         initialized = false;
         _chunkTypeMap.Clear();
+
+        List<EnemyAI> ref_activeEnemyAi = new List<EnemyAI>(_activeEnemyAI);
+        for (int i = 0; i < ref_activeEnemyAi.Count; i++)
+        {
+            DestroyAi(ref_activeEnemyAi[i], 0);
+        }
+
+        _activeEnemyAI.Clear();
+    }
+
+    // =========================== REGISTER AI ===================== //
+
+    public void RegisterAI(EnemyAI ai)
+    {
+        _activeEnemyAI.Add(ai);
+    }
+
+    public void DestroyAi(EnemyAI ai, float delay = 0)
+    {
+        _activeEnemyAI.Remove(ai);
+        Destroy(ai.gameObject, delay);
     }
 
     // ======================================= HELPER FUNCTIONS ===================================================================

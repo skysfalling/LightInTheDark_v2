@@ -11,6 +11,7 @@ public class WorldGeneration : MonoBehaviour
 {
     string _prefix = "[ WORLD GENERATION ] ";
     GameObject _worldGenerationObject;
+    GameObject _worldBorderObject;
     Coroutine _worldGenerationRoutine;
     List<WorldChunk> _chunks = new List<WorldChunk>();
     List<WorldChunk> _borderChunks = new List<WorldChunk>();
@@ -43,16 +44,26 @@ public class WorldGeneration : MonoBehaviour
 
     public void StartGeneration()
     {
+        Reset();
+
+        if (_worldGenerationRoutine != null) { StopCoroutine(_worldGenerationRoutine); }
+        _worldGenerationRoutine = StartCoroutine(Generate());
+
+    }
+
+    public void Reset()
+    {
+        Destroy(_worldGenerationObject);
+        Destroy(_worldBorderObject);
+
         FindObjectOfType<WorldChunkMap>().Reset();
         FindObjectOfType<WorldCellMap>().Reset();
         FindObjectOfType<WorldSpawnMap>().Reset();
         FindObjectOfType<WorldEnvironment>().Reset();
         FindObjectOfType<WorldGenerationStats>().UpdateStats();
 
-
-        if (_worldGenerationRoutine != null) { StopCoroutine(_worldGenerationRoutine); }
-        _worldGenerationRoutine = StartCoroutine(Generate());
-
+        _chunks.Clear();
+        _borderChunks.Clear();
     }
 
     IEnumerator Generate(float delay = 0.25f)
@@ -71,8 +82,6 @@ public class WorldGeneration : MonoBehaviour
         fullsize_chunkDimensions = chunkDimensions * cellSize;
         _fullWorldSize = maxChunkCount * new Vector2(fullsize_chunkDimensions.x, fullsize_chunkDimensions.z);
         Debug.Log(_prefix + "_fullWorldSize " + _fullWorldSize);
-
-
 
         // Get All Possible Chunk Positions
         List<Vector3> allPossibleChunkPositions = new List<Vector3>();
@@ -136,14 +145,11 @@ public class WorldGeneration : MonoBehaviour
 
         // Create Combined Mesh
         Mesh combinedBorderMesh = CombineChunks(_borderChunks);
-        GameObject combinedBorderObject = CreateCombinedMeshObject(combinedBorderMesh, chunkMaterial);
-        combinedBorderObject.transform.parent = transform;
-        combinedBorderObject.name = "(GEN) Ground Border";
-
-
+        _worldBorderObject = CreateCombinedMeshObject(combinedBorderMesh, chunkMaterial);
+        _worldBorderObject.transform.parent = transform;
+        _worldBorderObject.name = "(GEN) Ground Border";
 
         // [[ INITIALIZE MAPS ]] ============================================= >>
-
         // Initialize Cell Map
         WorldCellMap worldCellMap = FindObjectOfType<WorldCellMap>();
         worldCellMap.InitializeCellMap();

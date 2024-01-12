@@ -106,6 +106,14 @@ public class WorldEnvironment : MonoBehaviour
             Destroy(parent.gameObject);
         }
         _worldChunkEnvParentMap.Clear();
+
+        foreach (Transform parent in _borderChunkEnvParentMap.Values)
+        {
+            Destroy(parent.gameObject);
+        }
+        _borderChunkEnvParentMap.Clear();
+
+        Destroy(instantiatedPlayer.gameObject);
     }
 
     // ======================= CREATE CHUNK ENVIRONMENT =========================================

@@ -137,7 +137,7 @@ public class PlayerController : MonoBehaviour
 
     public void Hit()
     {
-        Debug.Log("Hit Player");
+        //Debug.Log("Hit Player");
     }
 
     public void ConfirmHit()

@@ -1,0 +1,1253 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-9005809626324744162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Gremlins/gremlinAttacks
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Gremlins/gremlinAttacks
+  Guid:
+    Data1: 1542577978
+    Data2: 1334953497
+    Data3: -1600045932
+    Data4: -496542493
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 1
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &-8916247735259284501
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/lightPickup
+  m_EditorClassIdentifier: 
+  Path: event:/lightPickup
+  Guid:
+    Data1: 1700147259
+    Data2: 1259452491
+    Data3: 1966758575
+    Data4: 1382679850
+  Banks:
+  - {fileID: -979818502092992434}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 2000
+--- !u!114 &-8779846429276709708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/backgroundMusic/thatManProximity
+  m_EditorClassIdentifier: 
+  Name: thatManProximity
+  StudioPath: 
+  Min: -1
+  Max: 1
+  Default: -1
+  ID:
+    data1: 3856948508
+    data2: 876679754
+  Type: 0
+  IsGlobal: 0
+  Labels: []
+  Exists: 1
+--- !u!114 &-8659608050511307004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/backgroundMusic/lifeFlowerNearDeath
+  m_EditorClassIdentifier: 
+  Name: lifeFlowerNearDeath
+  StudioPath: 
+  Min: 0
+  Max: 1
+  Default: 1
+  ID:
+    data1: 2627657005
+    data2: 2881941972
+  Type: 2
+  IsGlobal: 0
+  Labels:
+  - True
+  - False
+  Exists: 1
+--- !u!114 &-8266215001810167196
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/yetToHaveAHome/The Witness/witnessMusicTheme
+  m_EditorClassIdentifier: 
+  Path: event:/yetToHaveAHome/The Witness/witnessMusicTheme
+  Guid:
+    Data1: -704057801
+    Data2: 1164708337
+    Data3: 849615263
+    Data4: 2144055573
+  Banks:
+  - {fileID: 531821864645680419}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 60000
+--- !u!114 &-7958282669167478767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/lifeFlowerSubmission/orbType
+  m_EditorClassIdentifier: 
+  Name: orbType
+  StudioPath: 
+  Min: 0
+  Max: 2
+  Default: 0
+  ID:
+    data1: 2351858520
+    data2: 924804511
+  Type: 2
+  IsGlobal: 0
+  Labels:
+  - LightOrb
+  - GoldOrb
+  - EtherealOrb
+  Exists: 1
+--- !u!114 &-7334177395627414248
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Flower (DO THESE!!!)/lifeFlowerDamage
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Flower (DO THESE!!!)/lifeFlowerDamage
+  Guid:
+    Data1: 1310222018
+    Data2: 1227587824
+    Data3: -1289533522
+    Data4: -486510067
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 1
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &-7216855089725820302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/stealOrb/orbType
+  m_EditorClassIdentifier: 
+  Name: orbType
+  StudioPath: 
+  Min: 0
+  Max: 2
+  Default: 0
+  ID:
+    data1: 2351858520
+    data2: 924804511
+  Type: 2
+  IsGlobal: 0
+  Labels:
+  - LightOrb
+  - GoldOrb
+  - EtherealOrb
+  Exists: 1
+--- !u!114 &-6710036842706748950
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Interactions/doorRumble
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Interactions/doorRumble
+  Guid:
+    Data1: 1632960049
+    Data2: 1146267069
+    Data3: -24873570
+    Data4: -556796133
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 11500
+--- !u!114 &-6267479180792109240
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Items/etherealOrbPickup
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Items/etherealOrbPickup
+  Guid:
+    Data1: 794470768
+    Data2: 1335203257
+    Data3: 1692826279
+    Data4: -493213638
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &-4467671894190254976
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Player/inventoryDrop
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Player/inventoryDrop
+  Guid:
+    Data1: 821465458
+    Data2: 1248517789
+    Data3: 1608277917
+    Data4: 1194503373
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &-4126417139225067979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Flower (DO THESE!!!)/moodLiftSynths
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Flower (DO THESE!!!)/moodLiftSynths
+  Guid:
+    Data1: -1655411867
+    Data2: 1319214319
+    Data3: -521224026
+    Data4: 1878195770
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 64000
+--- !u!114 &-4071278996312067172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Player/playerStruggle
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Player/playerStruggle
+  Guid:
+    Data1: -161929771
+    Data2: 1216865982
+    Data3: 1552029092
+    Data4: -1583382231
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &-3907765535082227199
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/totemInventory
+  m_EditorClassIdentifier: 
+  Name: totemInventory
+  StudioPath: parameter:/totemInventory
+  Min: 0
+  Max: 5
+  Default: 0
+  ID:
+    data1: 4022324794
+    data2: 604712740
+  Type: 1
+  IsGlobal: 1
+  Labels: []
+  Exists: 1
+--- !u!114 &-3147677101386910561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/Master.strings.bank
+  m_EditorClassIdentifier: 
+  Path: FMOD/Build/Desktop/Master.strings.bank
+  Name: Master.strings
+  StudioPath: bank:/Master.strings
+  lastModified: 638161631191169815
+  FileSizes:
+  - Name: Desktop
+    Value: 1126
+  Exists: 1
+--- !u!114 &-1858884510923198205
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Music/gremlinStun & Theme
+  m_EditorClassIdentifier: 
+  Path: event:/Music/gremlinStun & Theme
+  Guid:
+    Data1: -2108292986
+    Data2: 1086632366
+    Data3: 741199777
+    Data4: -1021553198
+  Banks:
+  - {fileID: 531821864645680419}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 64000
+--- !u!114 &-979818502092992434
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/SFX.bank
+  m_EditorClassIdentifier: 
+  Path: FMOD/Build/Desktop/SFX.bank
+  Name: SFX
+  StudioPath: bank:/SFX
+  lastModified: 638161631191279843
+  FileSizes:
+  - Name: Desktop
+    Value: 64512
+  Exists: 1
+--- !u!114 &-881858004827754426
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Items/goldOrbPickup
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Items/goldOrbPickup
+  Guid:
+    Data1: 1359706978
+    Data2: 1325955295
+    Data3: -1470193239
+    Data4: 1019671543
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &-689679221346946612
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Ambience/The Leviathan/leviathanWhale
+  m_EditorClassIdentifier: 
+  Path: event:/Ambience/The Leviathan/leviathanWhale
+  Guid:
+    Data1: -856897401
+    Data2: 1339905681
+    Data3: -556945531
+    Data4: 1843667218
+  Banks:
+  - {fileID: 5341165075845359277}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 44500
+--- !u!114 &-684821947811156604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Player/Throwing
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Player/Throwing
+  Guid:
+    Data1: -744296984
+    Data2: 1293978043
+    Data3: -1317321539
+    Data4: 1910193136
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d32cf7c32a3ed8347bac48ef5ed56d82, type: 3}
+  m_Name: FMODStudioCache
+  m_EditorClassIdentifier: 
+  EditorBanks:
+  - {fileID: 794624360086020346}
+  - {fileID: 552068335637672582}
+  - {fileID: 531821864645680419}
+  - {fileID: 2916829290942589873}
+  - {fileID: 5341165075845359277}
+  EditorEvents:
+  - {fileID: 4437829622037052162}
+  - {fileID: -689679221346946612}
+  - {fileID: 3607306536390429706}
+  - {fileID: 1929539801933711072}
+  - {fileID: 1418459417292021049}
+  - {fileID: -8266215001810167196}
+  - {fileID: 6355903442335785706}
+  - {fileID: 7285143702055113409}
+  - {fileID: -6710036842706748950}
+  - {fileID: -9005809626324744162}
+  - {fileID: 5629154016204155621}
+  - {fileID: 9058069747705313739}
+  - {fileID: 8577116495725794690}
+  - {fileID: -881858004827754426}
+  - {fileID: -4126417139225067979}
+  - {fileID: -6267479180792109240}
+  - {fileID: -4467671894190254976}
+  - {fileID: 1873598496475082605}
+  - {fileID: 249700672231409055}
+  - {fileID: -7334177395627414248}
+  - {fileID: -4071278996312067172}
+  - {fileID: 1931981220558692388}
+  - {fileID: -684821947811156604}
+  - {fileID: 2846757406112690960}
+  - {fileID: 7163296977768863439}
+  - {fileID: -1858884510923198205}
+  EditorParameters:
+  - {fileID: -3907765535082227199}
+  MasterBanks:
+  - {fileID: 552068335637672582}
+  StringsBanks:
+  - {fileID: 794624360086020346}
+  cacheTime: 638174593415917291
+  cacheVersion: 131601
+--- !u!114 &249700672231409055
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Gremlins/stealOrb
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Gremlins/stealOrb
+  Guid:
+    Data1: -527200347
+    Data2: 1206132025
+    Data3: 2089278878
+    Data4: -889489384
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 1
+  IsOneShot: 1
+  Parameters:
+  - {fileID: -7216855089725820302}
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &531821864645680419
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/Music.bank
+  m_EditorClassIdentifier: 
+  Path: FMOD/Build/Desktop/Music.bank
+  Name: Music
+  StudioPath: bank:/Music
+  lastModified: 638174593415467187
+  FileSizes:
+  - Name: Desktop
+    Value: 8877216
+  Exists: 1
+--- !u!114 &552068335637672582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/Master.bank
+  m_EditorClassIdentifier: 
+  Path: FMOD/Build/Desktop/Master.bank
+  Name: Master
+  StudioPath: bank:/Master
+  lastModified: 638174593414506972
+  FileSizes:
+  - Name: Desktop
+    Value: 1924
+  Exists: 1
+--- !u!114 &691882066807435813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/Master.bank
+  m_EditorClassIdentifier: 
+  Path: FMOD/Build/Desktop/Master.bank
+  Name: Master
+  StudioPath: bank:/Master
+  lastModified: 638143341370722003
+  FileSizes:
+  - Name: Desktop
+    Value: 1734
+  Exists: 1
+--- !u!114 &794624360086020346
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/Master.strings.bank
+  m_EditorClassIdentifier: 
+  Path: FMOD/Build/Desktop/Master.strings.bank
+  Name: Master.strings
+  StudioPath: bank:/Master.strings
+  lastModified: 638174593414536979
+  FileSizes:
+  - Name: Desktop
+    Value: 3170
+  Exists: 1
+--- !u!114 &1418459417292021049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Music/grabTheme
+  m_EditorClassIdentifier: 
+  Path: event:/Music/grabTheme
+  Guid:
+    Data1: -931800307
+    Data2: 1214267627
+    Data3: -1233705335
+    Data4: -668123861
+  Banks:
+  - {fileID: 531821864645680419}
+  IsStream: 1
+  Is3D: 0
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 32000
+--- !u!114 &1873598496475082605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Interactions/totemSubmit
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Interactions/totemSubmit
+  Guid:
+    Data1: 1215983738
+    Data2: 1218018165
+    Data3: 1292556468
+    Data4: 1438736677
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 1
+  IsOneShot: 1
+  Parameters:
+  - {fileID: 8653960231017109119}
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &1929539801933711072
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Music/innerChildThemes
+  m_EditorClassIdentifier: 
+  Path: event:/Music/innerChildThemes
+  Guid:
+    Data1: -1817380092
+    Data2: 1274014980
+    Data3: -1594261340
+    Data4: 861803503
+  Banks:
+  - {fileID: 531821864645680419}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 1
+  Parameters:
+  - {fileID: 4049207318300153160}
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &1931981220558692388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Gremlins/idleMumbling
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Gremlins/idleMumbling
+  Guid:
+    Data1: -347011864
+    Data2: 1144223506
+    Data3: -256779631
+    Data4: 1591052648
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 6000
+--- !u!114 &2680816898816808044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/backgroundMusic/musicIntensity
+  m_EditorClassIdentifier: 
+  Name: musicIntensity
+  StudioPath: 
+  Min: -1
+  Max: 4
+  Default: -1
+  ID:
+    data1: 2100222214
+    data2: 2151494353
+  Type: 1
+  IsGlobal: 0
+  Labels: []
+  Exists: 1
+--- !u!114 &2846757406112690960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Flower (DO THESE!!!)/flowerAmbience
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Flower (DO THESE!!!)/flowerAmbience
+  Guid:
+    Data1: 108253180
+    Data2: 1162452207
+    Data3: -605969756
+    Data4: 1231999758
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 23639
+--- !u!114 &2916829290942589873
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/SFX.bank
+  m_EditorClassIdentifier: 
+  Path: FMOD/Build/Desktop/SFX.bank
+  Name: SFX
+  StudioPath: bank:/SFX
+  lastModified: 638174593415917291
+  FileSizes:
+  - Name: Desktop
+    Value: 1470944
+  Exists: 1
+--- !u!114 &3607306536390429706
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Music/backgroundMusic
+  m_EditorClassIdentifier: 
+  Path: event:/Music/backgroundMusic
+  Guid:
+    Data1: -909266172
+    Data2: 1159987350
+    Data3: -1600029545
+    Data4: -1765030248
+  Banks:
+  - {fileID: 531821864645680419}
+  IsStream: 1
+  Is3D: 0
+  IsOneShot: 0
+  Parameters:
+  - {fileID: -8659608050511307004}
+  - {fileID: 2680816898816808044}
+  - {fileID: -8779846429276709708}
+  - {fileID: 4514555774246640541}
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 420000
+--- !u!114 &4049207318300153160
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/innerChildThemes/childName
+  m_EditorClassIdentifier: 
+  Name: childName
+  StudioPath: 
+  Min: 0
+  Max: 4
+  Default: 0
+  ID:
+    data1: 753916597
+    data2: 2323999919
+  Type: 2
+  IsGlobal: 0
+  Labels:
+  - Child 1
+  - Child 2
+  - Child 3
+  - Child 4
+  - Child 5
+  Exists: 1
+--- !u!114 &4437829622037052162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Ambience/cleansingRiftActive
+  m_EditorClassIdentifier: 
+  Path: event:/Ambience/cleansingRiftActive
+  Guid:
+    Data1: 1746482709
+    Data2: 1163912263
+    Data3: -868880980
+    Data4: 1445427096
+  Banks:
+  - {fileID: 5341165075845359277}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 16000
+--- !u!114 &4514555774246640541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/backgroundMusic/lifeFlowerProximity
+  m_EditorClassIdentifier: 
+  Name: lifeFlowerProximity
+  StudioPath: 
+  Min: 0
+  Max: 1
+  Default: 0
+  ID:
+    data1: 1146422156
+    data2: 182838050
+  Type: 0
+  IsGlobal: 0
+  Labels: []
+  Exists: 1
+--- !u!114 &4660915105570567432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/backgroundMusic
+  m_EditorClassIdentifier: 
+  Path: event:/backgroundMusic
+  Guid:
+    Data1: 1882599092
+    Data2: 1314803241
+    Data3: -1455926888
+    Data4: -924153032
+  Banks:
+  - {fileID: 7435388910301328505}
+  IsStream: 1
+  Is3D: 0
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 110000
+--- !u!114 &5341165075845359277
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/Ambience.bank
+  m_EditorClassIdentifier: 
+  Path: FMOD/Build/Desktop/Ambience.bank
+  Name: Ambience
+  StudioPath: bank:/Ambience
+  lastModified: 638174593414466966
+  FileSizes:
+  - Name: Desktop
+    Value: 560480
+  Exists: 1
+--- !u!114 &5629154016204155621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Items/lightOrbPickup
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Items/lightOrbPickup
+  Guid:
+    Data1: 1700147259
+    Data2: 1259452491
+    Data3: 1966758575
+    Data4: 1382679850
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &6355903442335785706
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Interactions/cleansingCrystalSubmit
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Interactions/cleansingCrystalSubmit
+  Guid:
+    Data1: 1687465231
+    Data2: 1123010420
+    Data3: -1636883528
+    Data4: 806911265
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 1
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &6430876720678460460
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/(old) thatManDrums/musicIntensity
+  m_EditorClassIdentifier: 
+  Name: musicIntensity
+  StudioPath: 
+  Min: -1
+  Max: 4
+  Default: -1
+  ID:
+    data1: 2100222214
+    data2: 2151494353
+  Type: 1
+  IsGlobal: 0
+  Labels: []
+  Exists: 1
+--- !u!114 &7163296977768863439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Music/(old) thatManDrums
+  m_EditorClassIdentifier: 
+  Path: event:/Music/(old) thatManDrums
+  Guid:
+    Data1: 2071006970
+    Data2: 1270630389
+    Data3: 1232247464
+    Data4: 1273129123
+  Banks:
+  - {fileID: 531821864645680419}
+  IsStream: 1
+  Is3D: 1
+  IsOneShot: 0
+  Parameters:
+  - {fileID: 6430876720678460460}
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 64000
+--- !u!114 &7285143702055113409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Gremlins/sayMeanThings
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Gremlins/sayMeanThings
+  Guid:
+    Data1: -2076873700
+    Data2: 1325255916
+    Data3: 289579444
+    Data4: -1878213315
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 1
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &7435388910301328505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/Music.bank
+  m_EditorClassIdentifier: 
+  Path: FMOD/Build/Desktop/Music.bank
+  Name: Music
+  StudioPath: bank:/Music
+  lastModified: 638161631191259841
+  FileSizes:
+  - Name: Desktop
+    Value: 1316448
+  Exists: 1
+--- !u!114 &8577116495725794690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Player/grabStab
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Player/grabStab
+  Guid:
+    Data1: 229734488
+    Data2: 1095927654
+    Data3: -2079636295
+    Data4: -1270106484
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &8653960231017109119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/totemSubmit/totemInventory
+  m_EditorClassIdentifier: 
+  Name: totemInventory
+  StudioPath: 
+  Min: 0
+  Max: 5
+  Default: 0
+  ID:
+    data1: 4022324794
+    data2: 604712740
+  Type: 1
+  IsGlobal: 1
+  Labels: []
+  Exists: 1
+--- !u!114 &9058069747705313739
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/SFX/Flower (DO THESE!!!)/lifeFlowerSubmission
+  m_EditorClassIdentifier: 
+  Path: event:/SFX/Flower (DO THESE!!!)/lifeFlowerSubmission
+  Guid:
+    Data1: -1449723053
+    Data2: 1230039475
+    Data3: -1063788403
+    Data4: 1504491990
+  Banks:
+  - {fileID: 2916829290942589873}
+  IsStream: 0
+  Is3D: 1
+  IsOneShot: 1
+  Parameters:
+  - {fileID: -7958282669167478767}
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0

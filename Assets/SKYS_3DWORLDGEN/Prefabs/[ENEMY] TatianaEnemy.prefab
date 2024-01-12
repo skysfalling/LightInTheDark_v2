@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 324469466473205300}
   - component: {fileID: 2514683784622541647}
-  - component: {fileID: 8771289283105561552}
   - component: {fileID: 6209967661361436749}
+  - component: {fileID: 2571948224603766273}
   m_Layer: 8
   m_Name: '[ENEMY] TatianaEnemy'
   m_TagString: Untagged
@@ -58,33 +58,11 @@ MonoBehaviour:
   rotation_lerpSpeed: 25
   maxVelocity: 100
   throwRange: 35
-  throwPoint: {fileID: 4219714354959006284, guid: e9e0accdcce4eb340845d9305157122c,
-    type: 3}
-  image: {fileID: 8931666424769845360, guid: e9e0accdcce4eb340845d9305157122c, type: 3}
+  throwPoint: {fileID: 4219714354959006284}
+  image: {fileID: 8931666424769845360}
   defaultImage: {fileID: 21300000, guid: 76449168aad7a3d458b468d68f0c945f, type: 3}
   throwImage: {fileID: 21300000, guid: 5a486f2688f64284c83f0fa0d7eb8a28, type: 3}
   hitImage: {fileID: 21300000, guid: 0078f5fbb76ebdf4e9138f7a0716f2f6, type: 3}
---- !u!65 &8771289283105561552
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 919566240933551960}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 2}
-  m_Center: {x: 0, y: 1, z: 0}
 --- !u!54 &6209967661361436749
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -110,8 +88,31 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 4
+  m_Constraints: 84
   m_CollisionDetection: 2
+--- !u!136 &2571948224603766273
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919566240933551960}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 2
+  m_Height: 5
+  m_Direction: 1
+  m_Center: {x: 0, y: 2.5, z: 0}
 --- !u!1 &2115468388583439759
 GameObject:
   m_ObjectHideFlags: 0
@@ -204,7 +205,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 6b38742730e330c488cc8d7964788813, type: 2}
+  - {fileID: 2100000, guid: 74117f645ca87544896e430b75e9a316, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
