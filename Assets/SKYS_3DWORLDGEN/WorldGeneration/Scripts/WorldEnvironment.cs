@@ -153,7 +153,7 @@ public class WorldEnvironment : MonoBehaviour
         WorldCell startCell = spawnArea[0]; // start cell ( top left )
 
         // spawn object in center of area
-        GameObject newObject = SpawnPrefab(envObj.prefab, startCell, envParent, 10);
+        GameObject newObject = SpawnPrefab(envObj.prefab, startCell, envParent, envObj.GetRandomScaleMultiplier());
 
         /*
         Debug.Log($"{prefix} SpawnEnvObject{envObj.prefab.name}\n" +

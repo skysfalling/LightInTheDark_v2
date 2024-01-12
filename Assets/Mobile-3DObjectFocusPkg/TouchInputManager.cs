@@ -55,7 +55,7 @@ public class TouchInputManager : MonoBehaviour
                     Vector2 touchMovement = touch.deltaPosition;
 
                     // Handle touch movement action
-                    CameraManager cameraManager = FindObjectOfType<CameraManager>();
+                    MobileCameraManager cameraManager = FindObjectOfType<MobileCameraManager>();
                     if (cameraManager != null)
                     {
                         cameraManager.HandleTouchMovement(touchMovement);
@@ -106,23 +106,6 @@ public class TouchInputManager : MonoBehaviour
             CancelInvoke(nameof(SingleTap));
             DoubleTap();
             tapCount = 0; // Reset tap count
-        }
-    }
-
-    void DetectSwipe()
-    {
-        if (Vector2.Distance(touchStart, touchEnd) >= minimumSwipeDistance && !swipeDetected)
-        {
-            Vector2 direction = touchEnd - touchStart;
-
-            // Handle swipe action
-            CameraManager cameraManager = FindObjectOfType<CameraManager>();
-            if (cameraManager != null)
-            {
-                cameraManager.HandleTouchMovement(direction);
-            }
-
-            swipeDetected = true;
         }
     }
 
