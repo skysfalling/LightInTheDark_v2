@@ -12,7 +12,7 @@ public class GameManager : MonoBehaviour
     private static GameManager instance = null;
 
     [HideInInspector]
-    public MobileInputManager inputManager;
+    public InputManager inputManager;
     [HideInInspector]
     public SoundManager soundManager;
     [HideInInspector]
@@ -61,7 +61,7 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
 
-        inputManager = GetComponent<MobileInputManager>();
+        inputManager = GetComponent<InputManager>();
         soundManager = GetComponent<SoundManager>();
         gameConsole = GetComponent<GameConsole>();
         dialogueManager = GetComponent<DialogueManager>();

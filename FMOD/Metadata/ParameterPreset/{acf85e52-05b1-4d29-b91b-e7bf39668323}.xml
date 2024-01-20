@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="ParameterPreset" id="{acf85e52-05b1-4d29-b91b-e7bf39668323}">
+		<property name="name">
+			<value>isGrabbed</value>
+		</property>
+		<relationship name="folder">
+			<destination>{ac17fd91-bc8b-4652-b30a-175f8b3c317c}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{a8fc376a-4887-4f89-9bce-187a1c6cb837}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{a8fc376a-4887-4f89-9bce-187a1c6cb837}">
+		<property name="parameterType">
+			<value>1</value>
+		</property>
+		<property name="maximum">
+			<value>2</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+	</object>
+</objects>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="ParameterPreset" id="{4af84fee-9a03-4fd2-b297-0fc020ec3484}">
+		<property name="name">
+			<value>totemInventory</value>
+		</property>
+		<relationship name="folder">
+			<destination>{ac17fd91-bc8b-4652-b30a-175f8b3c317c}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{68c7ed85-6b71-49b4-b089-7d8b828829ff}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{68c7ed85-6b71-49b4-b089-7d8b828829ff}">
+		<property name="parameterType">
+			<value>1</value>
+		</property>
+		<property name="maximum">
+			<value>6</value>
+		</property>
+		<property name="isGlobal">
+			<value>true</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+		<property name="isExposedRecursively">
+			<value>false</value>
+		</property>
+	</object>
+</objects>

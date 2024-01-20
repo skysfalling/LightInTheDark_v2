@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="ParameterPreset" id="{7afce100-f706-4b03-a2fe-fcffb79e0835}">
+		<property name="name">
+			<value>thatManProximity</value>
+		</property>
+		<relationship name="folder">
+			<destination>{ac17fd91-bc8b-4652-b30a-175f8b3c317c}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{e99156cd-f8c4-4ff1-8644-d8fbc147711d}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{e99156cd-f8c4-4ff1-8644-d8fbc147711d}">
+		<property name="minimum">
+			<value>-1</value>
+		</property>
+		<property name="initialValue">
+			<value>-1</value>
+		</property>
+	</object>
+</objects>

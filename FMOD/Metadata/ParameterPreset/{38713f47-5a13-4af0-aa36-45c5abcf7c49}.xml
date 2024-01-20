@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="ParameterPreset" id="{38713f47-5a13-4af0-aa36-45c5abcf7c49}">
+		<property name="name">
+			<value>lifeFlowerSubmission</value>
+		</property>
+		<relationship name="folder">
+			<destination>{ac17fd91-bc8b-4652-b30a-175f8b3c317c}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{45c7ed2d-4150-4644-8c44-e5420e753a02}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{45c7ed2d-4150-4644-8c44-e5420e753a02}">
+		<property name="parameterType">
+			<value>1</value>
+		</property>
+		<property name="maximum">
+			<value>2</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+	</object>
+</objects>

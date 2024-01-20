@@ -21,7 +21,7 @@ public class TouchInputManager : MonoBehaviour
     // Custom UnityEvent that uses TapEventData
     [System.Serializable]
     public class TapEvent : UnityEvent<TapEventData> { }
-    public Mobile3DOrbitCamera mobileCameraManager;
+    public OrbitCamera orbitCamera;
     public float minimumSwipeDistance = 10f; // Minimum distance for a swipe to be registered
     
     [Header("Single Touch Input")]
@@ -43,7 +43,7 @@ public class TouchInputManager : MonoBehaviour
 
     private void Start()
     {
-        mobileCameraManager = FindAnyObjectByType<Mobile3DOrbitCamera>();
+        orbitCamera = FindAnyObjectByType<OrbitCamera>();
     }
 
     void Update()
@@ -58,7 +58,7 @@ public class TouchInputManager : MonoBehaviour
         }
         else
         {
-            mobileCameraManager.DisableTouchMovement();
+            orbitCamera.DisableTouchMovement();
 
             // << DOUBLE TAP DELAY >>
             if (tapCount == 1)
@@ -97,9 +97,9 @@ public class TouchInputManager : MonoBehaviour
                 Vector2 touchMovement = touch.deltaPosition;
 
                 // Handle touch movement action
-                if (mobileCameraManager != null)
+                if (orbitCamera != null)
                 {
-                    mobileCameraManager.HandleTouchMovement(touchMovement);
+                    orbitCamera.HandleTouchMovement(touchMovement);
                 }
                 break;
 
@@ -166,7 +166,7 @@ public class TouchInputManager : MonoBehaviour
         float distanceDelta = currentDistance - prevDistance;
 
         // Pass the distanceDelta to the CameraManager's zoom handling method
-        mobileCameraManager.PinchToZoom(distanceDelta);
+        orbitCamera.PinchToZoom(distanceDelta);
 
         _wasPinching = true;
         _lastPinchDistance = currentDistance;

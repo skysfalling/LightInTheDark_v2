@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{ddc4e13b-cd14-462e-b3a8-9ad79aa77d10}">
+		<property name="assetPath">
+			<value>doorRumble - Trimmed - Trimmed (2).wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>9</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{781442bd-2b40-48e9-8d22-441b37061442}</destination>
+		</relationship>
+	</object>
+</objects>

@@ -570,7 +570,7 @@ MonoBehaviour:
   - {fileID: 552068335637672582}
   StringsBanks:
   - {fileID: 794624360086020346}
-  cacheTime: 638174593415917291
+  cacheTime: 638413049302685411
   cacheVersion: 131601
 --- !u!114 &249700672231409055
 MonoBehaviour:
@@ -615,10 +615,12 @@ MonoBehaviour:
   Path: FMOD/Build/Desktop/Music.bank
   Name: Music
   StudioPath: bank:/Music
-  lastModified: 638174593415467187
+  lastModified: 638413049301902720
   FileSizes:
   - Name: Desktop
     Value: 8877216
+  - Name: Mobile
+    Value: 18028672
   Exists: 1
 --- !u!114 &552068335637672582
 MonoBehaviour:
@@ -635,9 +637,11 @@ MonoBehaviour:
   Path: FMOD/Build/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 638174593414506972
+  lastModified: 638413049300554815
   FileSizes:
   - Name: Desktop
+    Value: 1924
+  - Name: Mobile
     Value: 1924
   Exists: 1
 --- !u!114 &691882066807435813
@@ -675,9 +679,11 @@ MonoBehaviour:
   Path: FMOD/Build/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 638174593414536979
+  lastModified: 638413049300604825
   FileSizes:
   - Name: Desktop
+    Value: 3170
+  - Name: Mobile
     Value: 3170
   Exists: 1
 --- !u!114 &1418459417292021049
@@ -856,10 +862,12 @@ MonoBehaviour:
   Path: FMOD/Build/Desktop/SFX.bank
   Name: SFX
   StudioPath: bank:/SFX
-  lastModified: 638174593415917291
+  lastModified: 638413049302685411
   FileSizes:
   - Name: Desktop
     Value: 1470944
+  - Name: Mobile
+    Value: 3165920
   Exists: 1
 --- !u!114 &3607306536390429706
 MonoBehaviour:
@@ -1014,10 +1022,12 @@ MonoBehaviour:
   Path: FMOD/Build/Desktop/Ambience.bank
   Name: Ambience
   StudioPath: bank:/Ambience
-  lastModified: 638174593414466966
+  lastModified: 638413049300489272
   FileSizes:
   - Name: Desktop
     Value: 560480
+  - Name: Mobile
+    Value: 1172352
   Exists: 1
 --- !u!114 &5629154016204155621
 MonoBehaviour:

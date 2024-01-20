@@ -55,7 +55,7 @@ public class Level1_1 : LevelManager
         gameConsole.NewMessage("use WASD to move");
 
         // wait until player moves
-        yield return new WaitUntil(() => gameManager.inputManager.moveDirection != Vector2.zero);
+        //yield return new WaitUntil(() => gameManager.inputManager.moveDirection != Vector2.zero);
         yield return new WaitForSeconds(4);
 
         // focus on new light orbs

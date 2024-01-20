@@ -13,7 +13,7 @@ public class PlayerMovement : MonoBehaviour
     Rigidbody2D rb;
     PlayerAnimator animator;
     PlayerInventory inventory;
-    MobileInputManager inputManager;
+    InputManager inputManager;
 
 
     public PlayerState state = PlayerState.IDLE;
@@ -78,7 +78,7 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<PlayerAnimator>();
         inventory = GetComponent<PlayerInventory>();
-        inputManager = gameManager.GetComponentInChildren<MobileInputManager>();
+        inputManager = gameManager.GetComponentInChildren<InputManager>();
 
 
         moveTarget = transform.position;
@@ -126,6 +126,7 @@ public class PlayerMovement : MonoBehaviour
             aimDirection = moveDirection.normalized;
         }
 
+        /*
         // << THROW ACTION DOWN >>
         inputManager.aAction.started += ctx =>
         {
@@ -173,7 +174,7 @@ public class PlayerMovement : MonoBehaviour
                     || state == PlayerState.THROWING ) { Dash(); }
             }
         };
-        
+        */
     }
 
     public void StateMachine()

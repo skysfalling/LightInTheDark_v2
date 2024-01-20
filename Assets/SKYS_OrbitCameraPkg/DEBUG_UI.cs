@@ -54,13 +54,13 @@ public class DEBUG_UI : MonoBehaviour
         }
     }
 
+    /*
     public void VisualizeTapData(TouchInputManager.TapEventData eventData)
     {
         // Use eventData here
-        /*
-        Debug.Log($"Tap received at screen position: {eventData.ScreenPosition}");
-        Debug.Log($"World position: {eventData.WorldPosition}");
-        */
+        //Debug.Log($"Tap received at screen position: {eventData.ScreenPosition}");
+        //Debug.Log($"World position: {eventData.WorldPosition}");
+        
 
         Debug.Log($"Tap Event Data : IsSingleTap {eventData.IsSingleTap} , ScreenPosition: {eventData.ScreenPosition}");
 
@@ -74,5 +74,6 @@ public class DEBUG_UI : MonoBehaviour
         if (eventData.IsSingleTap) { touchPointImage.color = Color.red; }
         else { touchPointImage.color = Color.blue; }
     }
+        */
 
 }

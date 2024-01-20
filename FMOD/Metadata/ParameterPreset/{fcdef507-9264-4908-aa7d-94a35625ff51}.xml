@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="ParameterPreset" id="{fcdef507-9264-4908-aa7d-94a35625ff51}">
+		<property name="name">
+			<value>leviathanProximity</value>
+		</property>
+		<relationship name="folder">
+			<destination>{ac17fd91-bc8b-4652-b30a-175f8b3c317c}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{38f2cf4a-7f0c-4686-a094-60a3d1caf027}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{38f2cf4a-7f0c-4686-a094-60a3d1caf027}">
+		<property name="parameterType">
+			<value>10</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+		<property name="isExposedRecursively">
+			<value>false</value>
+		</property>
+	</object>
+</objects>

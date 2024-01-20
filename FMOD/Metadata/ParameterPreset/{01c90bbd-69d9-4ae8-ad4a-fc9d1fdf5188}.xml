@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="ParameterPreset" id="{01c90bbd-69d9-4ae8-ad4a-fc9d1fdf5188}">
+		<property name="name">
+			<value>orbType</value>
+		</property>
+		<relationship name="folder">
+			<destination>{ac17fd91-bc8b-4652-b30a-175f8b3c317c}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{38e25146-8c72-46a6-b5a3-b2abc05f4737}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{38e25146-8c72-46a6-b5a3-b2abc05f4737}">
+		<property name="parameterType">
+			<value>2</value>
+		</property>
+		<property name="maximum">
+			<value>3</value>
+		</property>
+		<property name="enumerationLabels">
+			<value>LightOrb</value>
+			<value>GoldOrb</value>
+			<value>EtherealOrb</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+	</object>
+</objects>
