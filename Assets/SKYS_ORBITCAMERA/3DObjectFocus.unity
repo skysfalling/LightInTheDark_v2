@@ -186,6 +186,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5877630829068641122, guid: 6d19868873ba269438c23d46bda88093,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9177600797245099967, guid: 6d19868873ba269438c23d46bda88093,
         type: 3}
       propertyPath: m_Name
@@ -382,6 +387,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3844159667476140213, guid: c32abf3b0da50e94b94c9b2bba5651a7,
+        type: 3}
+      propertyPath: decelerationRate
+      value: 0.494
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -442,6 +452,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e43ab50308bd34141879c781bea8baea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  inputType: 0
   UniversalBasicInputActions: {fileID: -944628639613478452, guid: ad2c454727148ee46abd76728b783116,
     type: 3}
   pointerPosition:
@@ -587,7 +598,7 @@ PrefabInstance:
     - target: {fileID: 3048074976327827359, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5524800860251384978, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}

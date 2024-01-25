@@ -22,6 +22,33 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "PinchStart",
+                    "type": "Button",
+                    "id": "ac90368f-9e51-4e3c-8d2d-eacb87717e18",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Touch0Position",
+                    "type": "Value",
+                    "id": "9a692b04-48ae-421a-bb9a-02d6ddbbdd4c",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Touch1Position",
+                    "type": "Value",
+                    "id": "d4d695aa-4e57-4a8d-afe2-90c50f9007b3",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -29,7 +56,7 @@
                     "name": "",
                     "id": "c531087f-0437-4fa2-bb08-f742675a1754",
                     "path": "<Touchscreen>/Press",
-                    "interactions": "Hold",
+                    "interactions": "Hold(duration=0.2)",
                     "processors": "",
                     "groups": "",
                     "action": "StartDragOrbit",
@@ -44,6 +71,39 @@
                     "processors": "",
                     "groups": "",
                     "action": "DragOrbitDelta",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f49647d7-d0c1-45d7-b95b-47458fe9a7e4",
+                    "path": "<Touchscreen>/touch1/press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PinchStart",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7080fd88-0369-45c1-b48d-6b8bbd5962ce",
+                    "path": "<Touchscreen>/touch0/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Touch0Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "64ff9a77-ae06-4a4f-9295-04dda9d2c86d",
+                    "path": "<Touchscreen>/touch1/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Touch1Position",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -70,6 +130,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "ScrollZoom",
+                    "type": "Value",
+                    "id": "c3f72a18-092c-4a5f-ab8f-11ac4b35cd0b",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -88,10 +157,21 @@
                     "name": "",
                     "id": "8c185641-2077-485d-bc3d-2151be40256a",
                     "path": "<Mouse>/leftButton",
-                    "interactions": "Hold",
+                    "interactions": "Hold(duration=0.2)",
                     "processors": "",
                     "groups": "",
                     "action": "StartDragOrbit",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9004bf73-1b77-459e-996d-d206ecef01f9",
+                    "path": "<Mouse>/scroll",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ScrollZoom",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

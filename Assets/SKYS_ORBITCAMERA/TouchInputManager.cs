@@ -166,7 +166,7 @@ public class TouchInputManager : MonoBehaviour
         float distanceDelta = currentDistance - prevDistance;
 
         // Pass the distanceDelta to the CameraManager's zoom handling method
-        orbitCamera.PinchToZoom(distanceDelta);
+        orbitCamera.HandleCameraDolly(distanceDelta);
 
         _wasPinching = true;
         _lastPinchDistance = currentDistance;
