@@ -6,64 +6,44 @@
             "id": "afa7fd4a-132c-4375-8211-b191703ef151",
             "actions": [
                 {
-                    "name": "PrimaryFingerPosition",
-                    "type": "Value",
-                    "id": "dcbdcb0e-afa2-43e4-ae5c-df64358a2930",
-                    "expectedControlType": "Vector2",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "SecondaryFingerPosition",
-                    "type": "Value",
-                    "id": "94a38261-e4b7-48b2-b705-76712526cfca",
-                    "expectedControlType": "Vector2",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "SecondaryTouchContact",
+                    "name": "StartDragOrbit",
                     "type": "Button",
-                    "id": "1c712c75-a8b1-4285-aa79-9b0d9dac64ba",
+                    "id": "c9973385-3489-40f8-a65e-6ca4dcfcfa0f",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press",
+                    "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "DragOrbitDelta",
+                    "type": "Value",
+                    "id": "79418a0f-661f-4baf-838b-08ea1601e144",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
                 {
                     "name": "",
-                    "id": "62ad2916-87b2-482d-a874-9c4f17b6aa62",
-                    "path": "<Touchscreen>/touch0/position",
-                    "interactions": "",
+                    "id": "c531087f-0437-4fa2-bb08-f742675a1754",
+                    "path": "<Touchscreen>/Press",
+                    "interactions": "Hold",
                     "processors": "",
                     "groups": "",
-                    "action": "PrimaryFingerPosition",
+                    "action": "StartDragOrbit",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "75c8afd0-f556-46c4-89ae-77ae8a33fdb8",
-                    "path": "<Touchscreen>/touch1/position",
+                    "id": "9b4c2210-e952-4dcc-b7ca-be1cdc827fdd",
+                    "path": "<Touchscreen>/primaryTouch/delta",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "SecondaryFingerPosition",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "3943441f-6a84-492c-bb91-bc84147c6487",
-                    "path": "<Touchscreen>/touch1/press",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "SecondaryTouchContact",
+                    "action": "DragOrbitDelta",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -74,24 +54,44 @@
             "id": "55449d36-5ce0-49ba-801b-38893d8bb847",
             "actions": [
                 {
-                    "name": "New action",
+                    "name": "StartDragOrbit",
                     "type": "Button",
-                    "id": "018446ae-7d21-404e-a3c1-746d7eb64638",
+                    "id": "90441cd2-93c4-4407-b378-5aa36d63d9e5",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "DragOrbitDelta",
+                    "type": "Value",
+                    "id": "018446ae-7d21-404e-a3c1-746d7eb64638",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
                 {
                     "name": "",
                     "id": "d20df09d-40bb-4b3b-815a-6ebdb638ced0",
-                    "path": "",
+                    "path": "<Mouse>/delta",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "New action",
+                    "action": "DragOrbitDelta",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8c185641-2077-485d-bc3d-2151be40256a",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "Hold",
+                    "processors": "",
+                    "groups": "",
+                    "action": "StartDragOrbit",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -7,6 +7,8 @@ using UnityEngine.InputSystem;
 public class UniversalInputManager : MonoBehaviour
 {
     string prefix = ":: UNIVERSAL INPUT MANAGER >> ";
+    public enum InputType { NULL, TOUCH, MOUSE, CONTROLLER }
+    public InputType inputType = InputType.NULL;
 
     [Header("Input Actions")]
     public InputActionAsset UniversalBasicInputActions;
@@ -14,9 +16,9 @@ public class UniversalInputManager : MonoBehaviour
     InputActionMap BasicMouseActionMap;
     InputActionMap BasicControllerActionMap;
 
-    private InputAction pointerPosition;
-    private InputAction primaryInteract;
-    private InputAction secondaryInteract;
+    [HideInInspector] public InputAction pointerPosition;
+    [HideInInspector]public InputAction primaryInteract;
+    [HideInInspector] public InputAction secondaryInteract;
 
     private bool isAwaitingSecondTap = false;
     private float tapDelay = 0.3f; // Delay in seconds to wait for a second tap
@@ -69,6 +71,8 @@ public class UniversalInputManager : MonoBehaviour
             pointerPosition = BasicTouchActionMap.FindAction("PointerPosition");
             primaryInteract = BasicTouchActionMap.FindAction("PrimaryInteract");
             secondaryInteract = BasicTouchActionMap.FindAction("SecondaryInteract");
+
+            inputType = InputType.TOUCH;
             Debug.Log(prefix + $" BasicTouchActionMap Enabled");
 
         }
@@ -79,6 +83,7 @@ public class UniversalInputManager : MonoBehaviour
             primaryInteract = BasicMouseActionMap.FindAction("PrimaryInteract");
             secondaryInteract = BasicMouseActionMap.FindAction("SecondaryInteract");
 
+            inputType = InputType.MOUSE;
             Debug.Log(prefix + $" BasicMouseActionMap Enabled");
         }
         else if (Gamepad.current != null)
@@ -88,6 +93,7 @@ public class UniversalInputManager : MonoBehaviour
             primaryInteract = BasicControllerActionMap.FindAction("PrimaryInteract");
             secondaryInteract = BasicControllerActionMap.FindAction("SecondaryInteract");
 
+            inputType = InputType.CONTROLLER;
             Debug.Log(prefix + $" BasicControllerActionMap Enabled");
         }
         else

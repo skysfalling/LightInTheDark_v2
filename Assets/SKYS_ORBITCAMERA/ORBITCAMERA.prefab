@@ -173,7 +173,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e4dba3c2a8e4984a9485e4aa65bb03b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  interactionControls: {fileID: -944628639613478452, guid: 197eb5480c9fbae42bd3c3d42603a97d,
+  orbitCameraInteraction: {fileID: -944628639613478452, guid: 197eb5480c9fbae42bd3c3d42603a97d,
     type: 3}
   connectedCamera: {fileID: 7346464173573598448}
   targetOrbitRotation: {x: 0, y: 0, z: 0}

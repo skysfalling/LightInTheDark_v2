@@ -445,102 +445,28 @@ MonoBehaviour:
   UniversalBasicInputActions: {fileID: -944628639613478452, guid: ad2c454727148ee46abd76728b783116,
     type: 3}
   pointerPosition:
-    m_Name: Pointer Position
+    m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: c330021c-9aa8-47e7-9b6f-e4804b502ff9
+    m_Id: fb2a8649-fd0a-4dc3-b26c-467b3e1d01dc
     m_Processors: 
     m_Interactions: 
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: 565ba0e4-281c-4cde-bc04-c2531aab806f
-      m_Path: <Pointer>/position
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Pointer Position
-      m_Flags: 0
-    - m_Name: 
-      m_Id: 203ff2ca-8442-4672-a3fe-10c4d57af7b5
-      m_Path: <Touchscreen>/position
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Pointer Position
-      m_Flags: 0
+    m_SingletonActionBindings: []
     m_Flags: 0
-  primarySelect:
-    m_Name: Primary Select
+  primaryInteract:
+    m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: 4d9a558d-42d9-473f-81b3-b960d7693a95
-    m_Processors: 
-    m_Interactions: Tap
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: 00cf5391-e31a-4d41-a19b-9eb5755958e8
-      m_Path: <Mouse>/leftButton
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Primary Select
-      m_Flags: 0
-    - m_Name: 
-      m_Id: 5016c2fe-2edd-4be8-baa2-4d7d0a064107
-      m_Path: <Touchscreen>/primaryTouch
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Primary Select
-      m_Flags: 0
-    m_Flags: 0
-  secondarySelect:
-    m_Name: Secondary Select
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 51c737ab-be74-4d0e-84be-d1f2b3821db4
-    m_Processors: 
-    m_Interactions: MultiTap
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: 172dd932-3ea1-47ca-a7cc-02bb65738f5b
-      m_Path: <Mouse>/leftButton
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Secondary Select
-      m_Flags: 0
-    - m_Name: 
-      m_Id: 863919ab-0a80-49d9-aa5b-709200fb0f75
-      m_Path: <Touchscreen>/primaryTouch
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Secondary Select
-      m_Flags: 0
-    m_Flags: 0
-  cameraZoom:
-    m_Name: Camera Zoom
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 270b8584-6aa1-45f6-a573-cc0798c40884
+    m_Id: fc4c37ab-52c9-4558-a4da-4cd425ef791a
     m_Processors: 
     m_Interactions: 
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: b327a28a-66ef-42a0-b67e-2e9f03ea5c9d
-      m_Path: <Mouse>/scroll
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Camera Zoom
-      m_Flags: 0
+    m_SingletonActionBindings: []
     m_Flags: 0
-  cameraOrbit:
-    m_Name: Camera Orbit
+  secondaryInteract:
+    m_Name: 
     m_Type: 0
     m_ExpectedControlType: 
-    m_Id: 21ec2676-b483-4c6c-8560-0d436a603ba0
+    m_Id: 3a64a055-dc43-40db-8ae8-be0300a562c9
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []
