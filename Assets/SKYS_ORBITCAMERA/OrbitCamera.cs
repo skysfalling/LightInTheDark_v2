@@ -133,7 +133,6 @@ public class OrbitCamera : MonoBehaviour
     public void HandleOrbitInput(Vector2 delta)
     {
         _handleDragOrbit = true;
-        Debug.Log("DragOrbit");
 
         // Translate swipe direction to rotation
         float horizontalRotation = delta.x * orbitSensitivity;
@@ -152,7 +151,6 @@ public class OrbitCamera : MonoBehaviour
     public void DisableOrbitInput()
     {
         _handleDragOrbit = false;
-        Debug.Log("CancelDragOrbit");
     }
     #endregion
 
@@ -181,8 +179,6 @@ public class OrbitCamera : MonoBehaviour
         Vector3 camLocalPos = connectedCamera.transform.localPosition;
         float destinationZ = Mathf.Abs(camLocalPos.z) + (distanceDelta * -dollySensitivity);
         destinationZ = Mathf.Clamp(destinationZ, minZ_camDolly, maxZ_camDolly);
-
-        Debug.Log($"Handle Camera Zoom {destinationZ}");
 
         // Set negative Z local position
         _targetDollyPosition = new Vector3(camLocalPos.x, camLocalPos.y, -destinationZ);
