@@ -1,10 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using static UnityEngine.GraphicsBuffer;
 
 public class OrbitCamera : MonoBehaviour
 {
+    public InputActionAsset interactionControls;
+
     bool _handleTouchMovement;
     Vector3 _rotationVelocity = Vector3.zero; // Current rotational velocity
 
@@ -23,7 +26,11 @@ public class OrbitCamera : MonoBehaviour
     [Range(10, 100)]
     public float maxZoom = 60f;
 
+    private void Awake()
+    {
+        interactionControls.FindActionMap("Touch").Enable();
 
+    }
 
     private void Start()
     {

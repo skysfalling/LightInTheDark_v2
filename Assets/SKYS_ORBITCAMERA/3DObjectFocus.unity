@@ -442,6 +442,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e43ab50308bd34141879c781bea8baea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  UniversalBasicInputActions: {fileID: -944628639613478452, guid: ad2c454727148ee46abd76728b783116,
+    type: 3}
   pointerPosition:
     m_Name: Pointer Position
     m_Type: 0
