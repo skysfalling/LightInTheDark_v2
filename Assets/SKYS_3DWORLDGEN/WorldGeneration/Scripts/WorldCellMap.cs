@@ -122,7 +122,7 @@ public class WorldCellMap : MonoBehaviour
 
         if (closestCell != null)
         {
-            Debug.Log("Closest cell found at: " + closestCell.position);
+            //Debug.Log("Closest cell found at: " + closestCell.position);
             return closestCell;
         }
 
