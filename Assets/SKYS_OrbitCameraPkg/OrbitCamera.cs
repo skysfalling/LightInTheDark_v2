@@ -64,7 +64,7 @@ public class OrbitCamera : MonoBehaviour
         targetOrbitRotation = rotationTarget;
     }
 
-    public void HandleTouchMovement(Vector2 swipeDirection)
+    public void HandleOrbitInput(Vector2 swipeDirection)
     {
         _handleTouchMovement = true;
 
@@ -79,7 +79,7 @@ public class OrbitCamera : MonoBehaviour
         targetOrbitRotation += new Vector3(verticalRotation, horizontalRotation, 0);
     }
 
-    public void DisableTouchMovement()
+    public void DisableOrbitInput()
     {
         _handleTouchMovement = false;
     }

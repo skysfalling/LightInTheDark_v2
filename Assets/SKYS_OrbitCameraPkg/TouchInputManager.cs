@@ -21,25 +21,25 @@ public class TouchInputManager : MonoBehaviour
     // Custom UnityEvent that uses TapEventData
     [System.Serializable]
     public class TapEvent : UnityEvent<TapEventData> { }
+
+    [Header("Camera")]
     public OrbitCamera orbitCamera;
-    public float minimumSwipeDistance = 10f; // Minimum distance for a swipe to be registered
     
-    [Header("Single Touch Input")]
+    [Header("Tap Touch Input")]
     private Vector2 touchZeroStart;
     private Vector2 touchZeroEnd;
     private int tapCount; // Count the number of taps
     private float tapTimer; // Timer to measure time between taps
     public float doubleTapMaxDelay = 0.2f; // Time interval to consider for double tap
+    public float minimumSwipeDistance = 10f; // Minimum distance for a swipe to be registered
 
     // [Header("Double Touch Input")]
     private float _lastPinchDistance;
     private bool _wasPinching;
 
-    // Unity Events
+    [Header("Input Events")]
     public TapEvent onSingleTapInput;
     public TapEvent onDoubleTapInput;
-
-
 
     private void Start()
     {
@@ -58,7 +58,7 @@ public class TouchInputManager : MonoBehaviour
         }
         else
         {
-            orbitCamera.DisableTouchMovement();
+            orbitCamera.DisableOrbitInput();
 
             // << DOUBLE TAP DELAY >>
             if (tapCount == 1)
@@ -82,8 +82,8 @@ public class TouchInputManager : MonoBehaviour
             }
         }
     }
-    #region =========================== [[ UPDATE ==> SINGLE TOUCH TRACKING ]] ===========================================================
 
+    #region =========================== [[ UPDATE ==> SINGLE TOUCH TRACKING ]] ===========================================================
     void HandleSingleTouch(Touch touch)
     {
         switch (touch.phase)
@@ -99,7 +99,7 @@ public class TouchInputManager : MonoBehaviour
                 // Handle touch movement action
                 if (orbitCamera != null)
                 {
-                    orbitCamera.HandleTouchMovement(touchMovement);
+                    orbitCamera.HandleOrbitInput(touchMovement);
                 }
                 break;
 
