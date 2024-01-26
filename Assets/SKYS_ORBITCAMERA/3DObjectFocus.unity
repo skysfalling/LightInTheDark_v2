@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18018535, g: 0.22559482, b: 0.30677685, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -131,6 +131,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1640588767}
     m_Modifications:
+    - target: {fileID: 834232839776965023, guid: 6d19868873ba269438c23d46bda88093,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1996659573}
+    - target: {fileID: 834232839776965023, guid: 6d19868873ba269438c23d46bda88093,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: StartGeneration
+      objectReference: {fileID: 0}
+    - target: {fileID: 834232839776965023, guid: 6d19868873ba269438c23d46bda88093,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: WorldGeneration, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 834232839776965023, guid: 6d19868873ba269438c23d46bda88093,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 890821033650036016, guid: 6d19868873ba269438c23d46bda88093,
         type: 3}
       propertyPath: m_IsActive
@@ -196,6 +216,11 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1330048361}
+    - target: {fileID: 8469366987391718671, guid: 6d19868873ba269438c23d46bda88093,
+        type: 3}
+      propertyPath: m_text
+      value: Reset
+      objectReference: {fileID: 0}
     - target: {fileID: 9177600797245099967, guid: 6d19868873ba269438c23d46bda88093,
         type: 3}
       propertyPath: m_Name
@@ -505,6 +530,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3844159667476140213, guid: c32abf3b0da50e94b94c9b2bba5651a7,
         type: 3}
+      propertyPath: followSpeed
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3844159667476140213, guid: c32abf3b0da50e94b94c9b2bba5651a7,
+        type: 3}
+      propertyPath: followTarget
+      value: 
+      objectReference: {fileID: 785766333}
+    - target: {fileID: 3844159667476140213, guid: c32abf3b0da50e94b94c9b2bba5651a7,
+        type: 3}
       propertyPath: maxZ_camDolly
       value: 100
       objectReference: {fileID: 0}
@@ -517,6 +552,11 @@ PrefabInstance:
         type: 3}
       propertyPath: dollySensitivity
       value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 3844159667476140213, guid: c32abf3b0da50e94b94c9b2bba5651a7,
+        type: 3}
+      propertyPath: orbitSensitivity
+      value: 0.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -539,9 +579,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1640588767}
   - component: {fileID: 1640588768}
+  - component: {fileID: 1640588769}
   m_Layer: 0
   m_Name: '[ GAME MANAGER ]'
-  m_TagString: Untagged
+  m_TagString: GameManager
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -623,6 +664,44 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &1640588769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1640588766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd675a733f98e4fd5b4b89ab853906c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inputManager: {fileID: 0}
+  soundManager: {fileID: 0}
+  levelManager: {fileID: 0}
+  camManager: {fileID: 0}
+  gameConsole: {fileID: 0}
+  uiManager: {fileID: 0}
+  dialogueManager: {fileID: 0}
+  effectManager: {fileID: 0}
+  sceneReady: 0
+  levelSavePoint: 0
+  menuScene:
+    m_SceneName: 
+  introCutscene:
+    m_SceneName: 
+  level_1_1:
+    m_SceneName: 
+  level_1_2:
+    m_SceneName: 
+  level_1_3:
+    m_SceneName: 
+  level_2:
+    m_SceneName: 
+  level_3:
+    m_SceneName: 
+  witness:
+    m_SceneName: 
 --- !u!114 &1824458105 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3343729087284460913, guid: dad85dccd7fc00b49a2afeef84d99cca,
@@ -760,6 +839,12 @@ PrefabInstance:
       objectReference: {fileID: 785766333}
     - target: {fileID: 5524800860251384978, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
+      propertyPath: playerPrefab
+      value: 
+      objectReference: {fileID: 7522916275895387675, guid: ebd6313e4cfe5c44eaaab8ad51c495f7,
+        type: 3}
+    - target: {fileID: 5524800860251384978, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
       propertyPath: environmentObjects.Array.size
       value: 1
       objectReference: {fileID: 0}
@@ -767,7 +852,7 @@ PrefabInstance:
         type: 3}
       propertyPath: environmentObjects.Array.data[0].prefab
       value: 
-      objectReference: {fileID: 5938145988592319448, guid: f46b8032d681ce14fabc95e15c32a959,
+      objectReference: {fileID: 1170740901836127768, guid: bd3292034097e454a91893e8a7532f27,
         type: 3}
     - target: {fileID: 5524800860251384978, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
@@ -865,6 +950,18 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1996659570}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1996659573 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+    type: 3}
+  m_PrefabInstance: {fileID: 1996659570}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 620745325a50846479f301ec54b3a337, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

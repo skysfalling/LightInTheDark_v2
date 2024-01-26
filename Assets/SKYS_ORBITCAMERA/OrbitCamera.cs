@@ -32,6 +32,10 @@ public class OrbitCamera : MonoBehaviour
     public Camera connectedCamera;
 
     [Space(10)]
+    public Transform followTarget;
+    [Range(0.1f, 10f)] public float followSpeed;
+
+    [Space(10)]
     [Range(0.1f, 1f)]public float orbitSensitivity = 0.1f;
     [Range(0.1f, 10f)] public float orbitSpeed = 1;
 
@@ -96,6 +100,10 @@ public class OrbitCamera : MonoBehaviour
         {
 
         }
+
+        // Smoothly interpolate this parent to the target position
+        Vector3 followTargetPos = followTarget.position;
+        transform.position = Vector3.Slerp(transform.position, followTargetPos, followSpeed * Time.deltaTime);
 
         // Smoothly interpolate this parent to the target orbit rotation
         Quaternion targetQuaternion = Quaternion.Euler(_targetOrbitRotation);
