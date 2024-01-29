@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18018535, g: 0.22559482, b: 0.30677685, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -611,7 +611,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1640588767}
   - component: {fileID: 1640588768}
-  - component: {fileID: 1640588769}
   m_Layer: 0
   m_Name: '[ GAME MANAGER ]'
   m_TagString: GameManager
@@ -684,9 +683,9 @@ MonoBehaviour:
   primaryInteractionEvent:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1824458105}
-        m_TargetAssemblyTypeName: WorldInteractionManager, Assembly-CSharp
-        m_MethodName: SelectClosestCell
+      - m_Target: {fileID: 1996659572}
+        m_TargetAssemblyTypeName: WorldPathfinder, Assembly-CSharp
+        m_MethodName: SelectClosestCellAsStart
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -696,44 +695,21 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
---- !u!114 &1640588769
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1640588766}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd675a733f98e4fd5b4b89ab853906c0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  inputManager: {fileID: 0}
-  soundManager: {fileID: 0}
-  levelManager: {fileID: 0}
-  camManager: {fileID: 0}
-  gameConsole: {fileID: 0}
-  uiManager: {fileID: 0}
-  dialogueManager: {fileID: 0}
-  effectManager: {fileID: 0}
-  sceneReady: 0
-  levelSavePoint: 0
-  menuScene:
-    m_SceneName: 
-  introCutscene:
-    m_SceneName: 
-  level_1_1:
-    m_SceneName: 
-  level_1_2:
-    m_SceneName: 
-  level_1_3:
-    m_SceneName: 
-  level_2:
-    m_SceneName: 
-  level_3:
-    m_SceneName: 
-  witness:
-    m_SceneName: 
+  secondaryInteractionEvent:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1996659572}
+        m_TargetAssemblyTypeName: WorldPathfinder, Assembly-CSharp
+        m_MethodName: SelectClosestCellAsEnd
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1762913326
 GameObject:
   m_ObjectHideFlags: 0
@@ -765,18 +741,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1081253411}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1824458105 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3343729087284460913, guid: dad85dccd7fc00b49a2afeef84d99cca,
-    type: 3}
-  m_PrefabInstance: {fileID: 1996659570}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67f0a2e4bb6e73e4f91f9307e09526af, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1853645254
 GameObject:
   m_ObjectHideFlags: 0
@@ -1013,6 +977,18 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1996659570}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1996659572 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8701923849753727028, guid: dad85dccd7fc00b49a2afeef84d99cca,
+    type: 3}
+  m_PrefabInstance: {fileID: 1996659570}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa4b5f0099933435691cfd502fb2b0f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1996659573 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,

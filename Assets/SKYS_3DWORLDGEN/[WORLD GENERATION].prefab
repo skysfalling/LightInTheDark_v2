@@ -289,6 +289,7 @@ GameObject:
   - component: {fileID: 5845749257906015333}
   - component: {fileID: 1656387468885595367}
   - component: {fileID: 6199519495101546082}
+  - component: {fileID: 8701923849753727028}
   m_Layer: 0
   m_Name: '[WORLD GENERATION]'
   m_TagString: Untagged
@@ -349,6 +350,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62f12ffe10878984c9c2ea6f48d2cee5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &8701923849753727028
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3048074976327827359}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa4b5f0099933435691cfd502fb2b0f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &7430624325699551427

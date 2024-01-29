@@ -116,8 +116,8 @@
                 {
                     "name": "",
                     "id": "971bb2c7-4833-436f-b730-26c53679b4be",
-                    "path": "<Mouse>/leftButton",
-                    "interactions": "Hold",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "Tap",
                     "processors": "",
                     "groups": "",
                     "action": "SecondaryInteract",

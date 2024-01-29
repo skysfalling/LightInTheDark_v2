@@ -202,7 +202,7 @@ public class PlayerAnimator : MonoBehaviour
         else { 
 
             slowEffect.SetActive(false);
-            gameManager.effectManager.DisablePanicShader();
+            //gameManager.effectManager.DisablePanicShader();
 
         }
 
