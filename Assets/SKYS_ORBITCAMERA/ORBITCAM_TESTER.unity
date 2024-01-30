@@ -586,7 +586,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2003027212}
         m_TargetAssemblyTypeName: WorldInteractor, Assembly-CSharp
-        m_MethodName: SelectClosestCell
+        m_MethodName: PrimarySelectClosestCellTo
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

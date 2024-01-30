@@ -12,13 +12,15 @@ public class WorldCellMap : MonoBehaviour
 
     public bool initialized = false;
     WorldGeneration _worldGeneration;
+    WorldPathfinder _worldPathfinder;
     List<WorldCell> _worldCells = new List<WorldCell>();
     Dictionary<WorldCell, List<WorldCell>> _cellNeighborMap = new Dictionary<WorldCell, List<WorldCell>>();
     public void InitializeCellMap()
     {
         initialized = false;
 
-        _worldGeneration = GetComponentInParent<WorldGeneration>();
+        _worldGeneration = WorldGeneration.Instance;
+        _worldPathfinder = _worldGeneration.GetComponent<WorldPathfinder>();
         _worldCells = _worldGeneration.GetCells();
         _cellNeighborMap.Clear();
 
@@ -45,6 +47,8 @@ public class WorldCellMap : MonoBehaviour
         initialized = false;
     }
 
+
+    #region === INDIVIDUAL CELLS ======================================================..///
     private WorldCell.TYPE SetCellType(WorldCell cell)
     {
         WorldCell.TYPE cellType = WorldCell.TYPE.EMPTY;
@@ -109,7 +113,7 @@ public class WorldCellMap : MonoBehaviour
         return _cellNeighborMap[cell];
     }
 
-    public WorldCell FindClosestCell(Vector3 position)
+    public WorldCell FindClosestCellTo(Vector3 position)
     {
         float minDistance = float.MaxValue;
         WorldCell closestCell = null;
@@ -135,20 +139,33 @@ public class WorldCellMap : MonoBehaviour
         return null;
     }
 
-    private void OnDrawGizmosSelected()
+    public float GetDistance(WorldCell cellA, WorldCell cellB)
     {
-        /*
-        foreach (WorldCell cell in _worldCells)
-        {
-            Gizmos.color = Color.white;
-            if (cell.type == WorldCell.TYPE.EMPTY) { Gizmos.color = Color.grey; }
-            if (cell.type == WorldCell.TYPE.EDGE) { Gizmos.color = Color.red; }
-            if (cell.type == WorldCell.TYPE.CORNER) { Gizmos.color = Color.magenta; }
-            if (cell.type == WorldCell.TYPE.OBSTACLE) { Gizmos.color = Color.black; }
-            if (cell.type == WorldCell.TYPE.SPAWN_POINT) { Gizmos.color = Color.yellow; }
+        // Implement the heuristic. Here's an example using Euclidean distance
+        float distX = Mathf.Abs(cellA.position.x - cellB.position.x);
+        float distY = Mathf.Abs(cellA.position.y - cellB.position.y);
 
-            Gizmos.DrawCube(cell.position, Vector3.one);
-        }*/
+        if (distX > distY)
+            return 14 * distY + 10 * (distX - distY);
+        return 14 * distX + 10 * (distY - distX);
     }
+    #endregion
 
+
+    #region === CELL PATHS ==================================================..//
+    public void DrawPath(WorldCell cellStart,  WorldCell cellEnd)
+    {
+        List<WorldCell> newPath = _worldPathfinder.FindPath(cellStart, cellEnd);
+        foreach(WorldCell cell in newPath)
+        {
+            cell.ShowDebugCube();
+        }
+    }
+    #endregion
+
+
+    #region === CELL GROUPS ==================================================..//
+
+
+    #endregion
 }

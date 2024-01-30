@@ -25,6 +25,11 @@ public class EnvironmentObject
 }
 public class WorldEnvironment : MonoBehaviour
 {
+    public static WorldEnvironment Instance;
+    public void Awake()
+    {
+        if (Instance == null) { Instance = this; }
+    }
     string prefix = "{ WORLD ENVIRONMENT } ";
     public bool generation_finished = false;
     WorldGeneration _worldGeneration;
@@ -37,6 +42,7 @@ public class WorldEnvironment : MonoBehaviour
 
     [Header("PLAYER")]
     public GameObject playerPrefab;
+    [HideInInspector] public WorldCell playerSpawnCell;
     [HideInInspector] public GameObject instantiatedPlayer;
 
     [Header("WALLS")]
@@ -78,7 +84,7 @@ public class WorldEnvironment : MonoBehaviour
         }
 
         // Set Player Spawn Point
-        WorldCell playerSpawnCell = _worldGeneration.GetChunks()[0].GetRandomCellOfType(WorldCell.TYPE.EMPTY);
+        playerSpawnCell = _worldGeneration.GetChunks()[0].GetRandomCellOfType(WorldCell.TYPE.EMPTY);
         instantiatedPlayer = SpawnPrefab(playerPrefab, playerSpawnCell, _worldGeneration.transform);
         playerSpawnCell.SetCellType(WorldCell.TYPE.SPAWN_POINT);
 

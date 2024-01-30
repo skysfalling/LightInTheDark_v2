@@ -14,6 +14,8 @@ public class WorldInteractor : MonoBehaviour
     WorldGeneration _worldGeneration;
     WorldCellMap _worldCellMap;
     WorldChunkMap _worldChunkMap;
+    WorldSpawnMap _worldSpawnMap;
+    WorldEnvironment _worldEnvironment;
 
     [Header("World Cursor")]
     public Transform worldCursor; // related transform to the cursor
@@ -24,24 +26,20 @@ public class WorldInteractor : MonoBehaviour
         _worldGeneration = WorldGeneration.Instance;
         _worldCellMap = WorldCellMap.Instance;
         _worldChunkMap = WorldChunkMap.Instance;
+        _worldSpawnMap = WorldSpawnMap.Instance;
+        _worldEnvironment = WorldEnvironment.Instance;
     }
 
-    public void SelectClosestCell(Vector3 worldPos)
+    public void PrimarySelectClosestCellTo(Vector3 worldPos)
     {
-        // Hide previous chunk parent
-        if (currCursorCell != null)
-        {
-            _worldChunkMap.HideChunkCells(currCursorCell.GetChunk());
-        }
-
-        currCursorCell = _worldCellMap.FindClosestCell(worldPos);
+        currCursorCell = _worldCellMap.FindClosestCellTo(worldPos);
         currCursorCell.SetDebugRelativeScale(1);
-
-        _worldChunkMap.ShowChunkCells(currCursorCell.GetChunk());
-
         worldCursor.position = currCursorCell.position;
 
-        //Debug.Log("Selected cell " + currCursorCell.position);
+        _worldCellMap.DrawPath(_worldEnvironment.playerSpawnCell, currCursorCell);
 
+        //Debug.Log("Selected cell " + currCursorCell.position);
     }
+
+
 }

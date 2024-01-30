@@ -70,8 +70,9 @@ GameObject:
   m_Component:
   - component: {fileID: 2832013479746530852}
   - component: {fileID: 4922368716762689905}
+  - component: {fileID: 4652889822070907782}
   m_Layer: 0
-  m_Name: world_cell_map
+  m_Name: world_map
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -102,6 +103,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9703bbe44710b6e409bbe24a1955aaca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  initialized: 0
+--- !u!114 &4652889822070907782
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1220748305561793608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3677fe2dc3f6fda468e449286c891a6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   initialized: 0
@@ -374,7 +388,6 @@ Transform:
   m_Children:
   - {fileID: 1981935170520572513}
   - {fileID: 2832013479746530852}
-  - {fileID: 4887042910707436432}
   - {fileID: 2625624407440556941}
   - {fileID: 4240412395327542972}
   - {fileID: 7926454517991110185}
@@ -519,67 +532,3 @@ MonoBehaviour:
   wall_0: {fileID: 2986166503023539567, guid: 96c08d2e01fd52540a29788d18bd682d, type: 3}
   environmentObjects: []
   borderObjects: []
---- !u!1 &7892592886985119026
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4887042910707436432}
-  - component: {fileID: 6561992558512935778}
-  - component: {fileID: 6734304272670252155}
-  m_Layer: 0
-  m_Name: world_chunk_map
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &4887042910707436432
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7892592886985119026}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5845749257906015333}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6561992558512935778
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7892592886985119026}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3677fe2dc3f6fda468e449286c891a6b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  initialized: 0
---- !u!114 &6734304272670252155
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7892592886985119026}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5244df30d28f47ae91f6d4405fdc048, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  selected_worldChunk:
-    initialized: 0
-    type: 0
-    mesh: {fileID: 0}
-    position: {x: 0, y: 0, z: 0}
-    localCells: []

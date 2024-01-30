@@ -22,6 +22,11 @@ public class WorldCell
     int _chunkCellIndex;
     WorldMaterialLibrary _materialLibrary;
 
+    [HideInInspector] public float astar_fCost;
+    [HideInInspector] public float astar_gCost;
+    [HideInInspector] public float astar_hCost;
+    [HideInInspector] public WorldCell astar_parent;
+
     GameObject _debugCubeObject;
     float _debugCubeRelativeScale = 0.25f; // percentage of the WorldGeneration cellSize
     public Vector3[] vertices; // Corners of the cell

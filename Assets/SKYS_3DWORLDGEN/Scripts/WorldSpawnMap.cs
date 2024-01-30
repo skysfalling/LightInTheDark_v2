@@ -5,6 +5,11 @@ using UnityEngine;
 [RequireComponent(typeof(WorldSpawnDebug))]
 public class WorldSpawnMap : MonoBehaviour
 {
+    public static WorldSpawnMap Instance;
+    public void Awake()
+    {
+        if (Instance == null) { Instance = this; }
+    }
     public bool initialized = false;
     WorldGeneration _worldGeneration;
     WorldChunkMap _worldChunkMap;
