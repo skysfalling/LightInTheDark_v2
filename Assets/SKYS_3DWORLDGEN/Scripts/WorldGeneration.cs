@@ -25,8 +25,10 @@ public class WorldGeneration : MonoBehaviour
     public static WorldGeneration Instance;
     public void Awake()
     {
-        if (Instance == null) { Instance = this; }
+        if (Instance != null) { Destroy(Instance); }
+        Instance = this;
     }
+
 
     string _prefix = "[ WORLD GENERATION ] ";
     GameObject _worldGenerationObject;

@@ -2,9 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(WorldChunkDebug))]
 public class WorldChunkMap : MonoBehaviour
 {
+    public static WorldChunkMap Instance;
+    public void Awake()
+    {
+        if (Instance == null) { Instance = this; }
+    }
+
     public bool initialized = false;
     WorldGeneration _worldGeneration;
     List<WorldChunk> _worldChunks = new List<WorldChunk>();
@@ -39,7 +44,7 @@ public class WorldChunkMap : MonoBehaviour
         initialized = false;
     }
 
-    // =========================================================================================>>
+    // == MAP CHUNK NEIGHBORS ==============>>
     private List<WorldChunk> MapChunkNeighbors(WorldChunk chunk)
     {
         List<WorldChunk> neighbors = new List<WorldChunk>(new WorldChunk[4]);
@@ -70,6 +75,8 @@ public class WorldChunkMap : MonoBehaviour
         return _chunkNeighborMap[chunk];
     }
 
+
+    // == HELPER FUNCTIONS ==============>>
     public WorldChunk FindClosestChunk(Vector3 position)
     {
         float minDistance = float.MaxValue;
@@ -93,5 +100,44 @@ public class WorldChunkMap : MonoBehaviour
         }
 
         return null;
+    }
+
+
+    // == DEBUG FUNCTIONS ==============>>
+    public void ShowChunkCells(WorldChunk chunk)
+    {
+        if (chunk == null) { return; }
+        foreach (WorldCell cell in chunk.localCells)
+        {
+            cell.ShowDebugCube();
+        }
+    }
+
+    public void HideChunkCells(WorldChunk chunk)
+    {
+        if (chunk == null) { return; }
+        foreach (WorldCell cell in chunk.localCells)
+        {
+            //cell.HideDebugCube();
+            Destroy(cell.GetDebugCube()); // Destroy the debug cube for efficiency
+        }
+    }
+
+    public string GetChunkStats(WorldChunk chunk)
+    {
+        if (_worldGeneration == null || !_worldGeneration.generation_finished) return "[ WORLD GENERATION ] is not available.";
+        if (chunk == null) return "[ WORLD CHUNK ] is not available.";
+        if (chunk.initialized == false) return "[ WORLD CHUNK ] is not initialized.";
+
+
+        string str_out = $"[ WORLD CHUNK ] : {chunk.position}\n";
+        str_out += $"\t>> chunk_type : {chunk.type}\n";
+        str_out += $"\t>> Total Cell Count : {chunk.localCells.Count}\n";
+        str_out += $"\t    -- Empty Cells : {chunk.GetCellsOfType(WorldCell.TYPE.EMPTY).Count}\n";
+        str_out += $"\t    -- Edge Cells : {chunk.GetCellsOfType(WorldCell.TYPE.EDGE).Count}\n";
+        str_out += $"\t    -- Corner Cells : {chunk.GetCellsOfType(WorldCell.TYPE.CORNER).Count}\n";
+
+
+        return str_out;
     }
 }

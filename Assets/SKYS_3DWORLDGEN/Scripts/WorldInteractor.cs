@@ -13,6 +13,7 @@ public class WorldInteractor : MonoBehaviour
 {
     WorldGeneration _worldGeneration;
     WorldCellMap _worldCellMap;
+    WorldChunkMap _worldChunkMap;
 
     [Header("World Cursor")]
     public Transform worldCursor; // related transform to the cursor
@@ -22,12 +23,21 @@ public class WorldInteractor : MonoBehaviour
     {
         _worldGeneration = WorldGeneration.Instance;
         _worldCellMap = WorldCellMap.Instance;
+        _worldChunkMap = WorldChunkMap.Instance;
     }
 
     public void SelectClosestCell(Vector3 worldPos)
     {
+        // Hide previous chunk parent
+        if (currCursorCell != null)
+        {
+            _worldChunkMap.HideChunkCells(currCursorCell.GetChunk());
+        }
+
         currCursorCell = _worldCellMap.FindClosestCell(worldPos);
-        currCursorCell.ShowDebugCube();
+        currCursorCell.SetDebugRelativeScale(1);
+
+        _worldChunkMap.ShowChunkCells(currCursorCell.GetChunk());
 
         worldCursor.position = currCursorCell.position;
 

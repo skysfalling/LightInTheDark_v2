@@ -6,7 +6,7 @@ using TMPro;
 public class CameraOverlayUI : MonoBehaviour
 {
     WorldStatTracker _worldGenerationStats;
-    WorldChunkDebug _worldChunkDebug;
+    WorldChunkMap _worldChunkMap;
 
     public TextMeshProUGUI worldStatsTMP;
     public TextMeshProUGUI chunkStatsTMP;
@@ -15,7 +15,7 @@ public class CameraOverlayUI : MonoBehaviour
     void Start()
     {
         _worldGenerationStats = FindObjectOfType<WorldStatTracker>();
-        _worldChunkDebug = FindObjectOfType<WorldChunkDebug>();
+        _worldChunkMap = WorldChunkMap.Instance;
     }
 
     // Update is called once per frame
@@ -26,11 +26,13 @@ public class CameraOverlayUI : MonoBehaviour
             worldStatsTMP.text = _worldGenerationStats.GetWorldStats(); 
         }
 
-        WorldChunk selectedChunk = _worldChunkDebug.selected_worldChunk;
-        if (_worldChunkDebug != null && chunkStatsTMP != null &&
+        /*
+        WorldChunk selectedChunk = _worldChunkMap.selected_worldChunk;
+        if (_worldChunkMap != null && chunkStatsTMP != null &&
             selectedChunk != null && selectedChunk.initialized)
         {
-            chunkStatsTMP.text = _worldChunkDebug.GetChunkStats(selectedChunk);
+            chunkStatsTMP.text = _worldChunkMap.GetChunkStats(selectedChunk);
         }
+        */
     }
 }

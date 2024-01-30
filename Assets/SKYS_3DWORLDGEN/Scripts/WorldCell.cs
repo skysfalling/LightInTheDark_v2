@@ -23,7 +23,7 @@ public class WorldCell
     WorldMaterialLibrary _materialLibrary;
 
     GameObject _debugCubeObject;
-    float _debugCubeRelativeScale = 0.75f; // percentage of the WorldGeneration cellSize
+    float _debugCubeRelativeScale = 0.25f; // percentage of the WorldGeneration cellSize
     public Vector3[] vertices; // Corners of the cell
     public Vector3 position;     // Center position of the cell
 
@@ -50,10 +50,18 @@ public class WorldCell
 
     public void CreateDebugCube()
     {
+        float relativeSize = _generation.cellSize * _debugCubeRelativeScale;
+
         _debugCubeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        _debugCubeObject.transform.position = position + (Vector3.up * _generation.cellSize);
-        _debugCubeObject.transform.localScale = Vector3.one * (_generation.cellSize * _debugCubeRelativeScale);
-        _debugCubeObject.GetComponent<MeshRenderer>().material = _materialLibrary.GetMaterialOfCellType(type);
+        _debugCubeObject.transform.position = position + (Vector3.up * relativeSize * 0.5f); // adjust height offset
+        _debugCubeObject.transform.localScale = Vector3.one * relativeSize; // adjust scale
+        _debugCubeObject.GetComponent<MeshRenderer>().material = _materialLibrary.GetMaterialOfCellType(type); // set material
+    }
+
+    public GameObject GetDebugCube()
+    {
+        if (_debugCubeObject != null) { return _debugCubeObject; }
+        else { return null; }
     }
 
     public void ShowDebugCube()
@@ -62,10 +70,16 @@ public class WorldCell
         this._debugCubeObject.SetActive(true);
     }
 
+    // Note : Cannot Destroy debugCube from non - MonoBehaviour class
     public void HideDebugCube()
     {
-        if (this._debugCubeObject == null) { CreateDebugCube(); }
+        if (this._debugCubeObject == null) { return; }
         this._debugCubeObject.SetActive(false);
+    }
+
+    public void SetDebugRelativeScale(float relativeScale)
+    {
+        _debugCubeRelativeScale = relativeScale;
     }
 }
 
