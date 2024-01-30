@@ -4,26 +4,28 @@ using UnityEngine;
 
 public class WorldCellCursor : MonoBehaviour
 {
-    public WorldCell hoverCursorCell;
-    public WorldCell selectedCursorCell;
+    public enum CURSOR_TYPE { HOVERED_OVER , SELECTED }
+
+    WorldCell _hoverCursorCell;
+    WorldCell _selectedCursorCell;
+    Dictionary<WorldCell, GameObject> _activeCursors = new();
 
     public GameObject cursorPrefab;
-    Dictionary<WorldCell, GameObject> activeCursors = new();
+    [Range(0.1f, 10f)] public float localScaleMultiplier;
 
-    public Material selected_material;
-    public Material hoverOver_material;
 
 
     #region == Mouse Input ======================================= ///////
     public void MouseHoverInput(Vector3 worldPosition)
     {
-        UpdateHoverCursorCell(WorldCellMap.Instance.FindClosestCellTo(worldPosition));
+        WorldCell closestCell = WorldCellMap.Instance.FindClosestCellTo(worldPosition);
+        UpdateHoverCursorCell(closestCell);
     }
 
     public void MouseSelectInput(Vector3 worldPosition)
     {
-        selectedCursorCell = WorldCellMap.Instance.FindClosestCellTo(worldPosition);
-        CreateCursorAt(selectedCursorCell);
+        _selectedCursorCell = WorldCellMap.Instance.FindClosestCellTo(worldPosition);
+        CreateCursorAt(_selectedCursorCell, CURSOR_TYPE.SELECTED);
     }
     #endregion
 
@@ -31,22 +33,26 @@ public class WorldCellCursor : MonoBehaviour
     {
         if (WorldCellMap.Instance.initialized && cell != null)
         {
-            if (hoverCursorCell != null)
+            if (_hoverCursorCell != null)
             {
-                WorldCellMap.Instance.HideCellNeighbors(hoverCursorCell);
+                WorldCellMap.Instance.HideCellNeighbors(_hoverCursorCell);
             }
 
-            hoverCursorCell = cell;
+            _hoverCursorCell = cell;
             this.transform.position = cell.position;
+            CreateCursorAt(_hoverCursorCell, CURSOR_TYPE.HOVERED_OVER);
+
             WorldCellMap.Instance.ShowCellNeighbors(cell);
         }
     }
 
-    void CreateCursorAt(WorldCell cell)
+    void CreateCursorAt(WorldCell cell, CURSOR_TYPE type)
     {
         GameObject newCursor = Instantiate(cursorPrefab, cell.position, Quaternion.identity);
-        activeCursors[cell] = newCursor;
+        newCursor.transform.parent = this.transform;
+        newCursor.transform.localScale = Vector3.one * localScaleMultiplier;
+        _activeCursors[cell] = newCursor;
 
-        newCursor.GetComponent<MeshRenderer>().material = WorldMaterialLibrary.Instance.GetMaterialOfCellType(cell.type);
+        WorldMaterialLibrary.Instance.SetCursorMaterial(newCursor, type);
     }
 }

@@ -10,12 +10,16 @@ public class WorldMaterialLibrary : MonoBehaviour
         if (Instance == null) { Instance = this; }
     }
 
-    [Header("World Cell Debug")]
+    [Header("World Cell Default")]
     public Material cell_empty;
     public Material cell_edge;
     public Material cell_corner;
     public Material cell_obstacle;
     public Material cell_spawnpoint;
+
+    [Header("World Cell Cursor")]
+    public Material cursor_selected;
+    public Material cursor_hoverOver;
 
     public Material GetMaterialOfCellType(WorldCell.TYPE type)
     {
@@ -27,6 +31,23 @@ public class WorldMaterialLibrary : MonoBehaviour
             case WorldCell.TYPE.OBSTACLE: return cell_obstacle;
             case WorldCell.TYPE.SPAWN_POINT: return cell_spawnpoint;
             default: return null;
+        }
+    }
+
+    public void SetCursorMaterial(GameObject cursor, WorldCellCursor.CURSOR_TYPE type)
+    {
+        MeshRenderer renderer = cursor.GetComponent<MeshRenderer>();
+
+        switch (type)
+        {
+            case WorldCellCursor.CURSOR_TYPE.SELECTED:
+                renderer.material = cursor_selected;
+                break;
+            case WorldCellCursor.CURSOR_TYPE.HOVERED_OVER:
+                renderer.material = cursor_hoverOver;
+                break;
+            default:
+                break;
         }
     }
 }

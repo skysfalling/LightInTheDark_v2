@@ -965,12 +965,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 685670876672825989, guid: dad85dccd7fc00b49a2afeef84d99cca,
-        type: 3}
-      propertyPath: cursorPrefab
-      value: 
-      objectReference: {fileID: 919132149155446097, guid: 601c89e6ff4460549bc2de8547c2de4b,
-        type: 3}
     - target: {fileID: 802870232387478637, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
