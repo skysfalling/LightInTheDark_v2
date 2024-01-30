@@ -53,7 +53,7 @@ public class WorldPathfinder : MonoBehaviour
             }
 
             // << GET ALL NEIGHBORS OF CURRENT CELL >>
-            foreach (WorldCell neighbor in _worldCellMap.GetCellNeighbors(currentCell))
+            foreach (WorldCell neighbor in _worldCellMap.GetAllCellNeighbors(currentCell))
             {
                 // Skip invalid neighbors of current cell
                 if (closedSet.Contains(neighbor) || neighbor.type != WorldCell.TYPE.EMPTY)

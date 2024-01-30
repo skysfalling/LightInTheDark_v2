@@ -23,6 +23,7 @@ public class UniversalInputManager : MonoBehaviour
 
     [System.Serializable]
     public class WorldPointerEvent : UnityEvent<Vector3> { }
+    public WorldPointerEvent activePointerPositionEvent;
     public WorldPointerEvent primaryInteractionEvent;
     public WorldPointerEvent secondaryInteractionEvent;
 
@@ -46,6 +47,7 @@ public class UniversalInputManager : MonoBehaviour
         bool deviceFound = DetectAndEnableInputDevice();
         if (deviceFound)
         {
+            pointerScreenPosition.performed += context => InvokeActivePointerPositionEvent(pointerScreenPosition.ReadValue<Vector2>());
             primaryInteract.performed += context => InvokePrimaryInteractionEvent(pointerScreenPosition.ReadValue<Vector2>());
             secondaryInteract.performed += context => InvokeSecondaryInteractionEvent(pointerScreenPosition.ReadValue<Vector2>());
         }
@@ -99,6 +101,19 @@ public class UniversalInputManager : MonoBehaviour
         return true;
     }
 
+    void InvokeActivePointerPositionEvent(Vector2 pointerScreenPosition)
+    {
+        Ray ray = Camera.main.ScreenPointToRay(pointerScreenPosition);
+        RaycastHit hit;
+
+        // Perform the raycast
+        if (Physics.Raycast(ray, out hit))
+        {
+            Vector3 worldPointerPosition = hit.point + new Vector3(0, 0.5f, 0); // Adjust the Y offset as needed
+            activePointerPositionEvent.Invoke(worldPointerPosition);
+            //Debug.Log(prefix + $" Invoke PrimaryInteractionEvent {worldPointerPosition})");
+        }
+    }
 
     void InvokePrimaryInteractionEvent(Vector2 pointerScreenPosition)
     {

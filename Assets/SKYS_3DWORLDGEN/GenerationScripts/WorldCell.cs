@@ -58,15 +58,15 @@ public class WorldCell
     {
         float relativeSize = _generation.cellSize * _debugCubeRelativeScale;
 
-        _debugCubeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        _debugCubeObject.transform.position = position + (Vector3.up * relativeSize * 0.5f); // adjust height offset
-        _debugCubeObject.transform.localScale = Vector3.one * relativeSize; // adjust scale
-        _debugCubeObject.GetComponent<MeshRenderer>().material = _materialLibrary.GetMaterialOfCellType(type); // set material
+        this._debugCubeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        this._debugCubeObject.transform.position = position + (Vector3.up * relativeSize * 0.5f); // adjust height offset
+        this._debugCubeObject.transform.localScale = Vector3.one * relativeSize; // adjust scale
+        this._debugCubeObject.GetComponent<MeshRenderer>().material = _materialLibrary.GetMaterialOfCellType(type); // set material
     }
 
     public GameObject GetDebugCube()
     {
-        if (_debugCubeObject != null) { return _debugCubeObject; }
+        if (this._debugCubeObject != null) { return this._debugCubeObject; }
         else { return null; }
     }
 
@@ -74,6 +74,7 @@ public class WorldCell
     {
         if (this._debugCubeObject == null) { CreateDebugCube(); }
         this._debugCubeObject.SetActive(true);
+        this._debugCubeObject.GetComponent<MeshRenderer>().material = _materialLibrary.GetMaterialOfCellType(type); // set material
     }
 
     // Note : Cannot Destroy debugCube from non - MonoBehaviour class
