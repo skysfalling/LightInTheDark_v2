@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2625624407440556941}
-  - component: {fileID: 4764185375939684002}
+  - component: {fileID: 780361746922714697}
   - component: {fileID: 3752000102242565714}
   m_Layer: 0
   m_Name: world_spawn_map
@@ -33,7 +33,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5845749257906015333}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4764185375939684002
+--- !u!114 &780361746922714697
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -42,7 +42,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 117258419638920764}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1f67eba65ad252a4a8fc3f8de2375406, type: 3}
+  m_Script: {fileID: 11500000, guid: 2c55f4a288678a0448fe1ae7deddad0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   initialized: 0
@@ -427,14 +427,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa4b5f0099933435691cfd502fb2b0f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startCell:
-    type: 0
-    vertices: []
-    position: {x: 0, y: 0, z: 0}
-  endCell:
-    type: 0
-    vertices: []
-    position: {x: 0, y: 0, z: 0}
 --- !u!114 &2633072700718698929
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -450,8 +442,12 @@ MonoBehaviour:
   worldCursor: {fileID: 1981935170520572513}
   currCursorCell:
     type: 0
+    astar_fCost: 0
+    astar_gCost: 0
+    astar_hCost: 0
     vertices: []
     position: {x: 0, y: 0, z: 0}
+  selectedEntity: {fileID: 0}
 --- !u!114 &1689068836374433759
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -528,6 +524,13 @@ MonoBehaviour:
   generation_finished: 0
   playerPrefab: {fileID: 7174322603541102714, guid: 75e31aadaf670b74a88bea728e1f041d,
     type: 3}
+  playerSpawnCell:
+    type: 0
+    astar_fCost: 0
+    astar_gCost: 0
+    astar_hCost: 0
+    vertices: []
+    position: {x: 0, y: 0, z: 0}
   instantiatedPlayer: {fileID: 0}
   wall_0: {fileID: 2986166503023539567, guid: 96c08d2e01fd52540a29788d18bd682d, type: 3}
   environmentObjects: []
