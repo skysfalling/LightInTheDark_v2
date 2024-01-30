@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class WorldCellMap : MonoBehaviour
 {
+    public static WorldCellMap Instance;
+    public void Awake()
+    {
+        if (Instance == null) { Instance = this; }
+    }
+
     public bool initialized = false;
     WorldGeneration _worldGeneration;
     List<WorldCell> _worldCells = new List<WorldCell>();
@@ -131,6 +137,7 @@ public class WorldCellMap : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
+        /*
         foreach (WorldCell cell in _worldCells)
         {
             Gizmos.color = Color.white;
@@ -141,7 +148,7 @@ public class WorldCellMap : MonoBehaviour
             if (cell.type == WorldCell.TYPE.SPAWN_POINT) { Gizmos.color = Color.yellow; }
 
             Gizmos.DrawCube(cell.position, Vector3.one);
-        }
+        }*/
     }
 
 }

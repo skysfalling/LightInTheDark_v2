@@ -5,7 +5,7 @@ using TMPro;
 
 public class CameraOverlayUI : MonoBehaviour
 {
-    WorldGenerationStats _worldGenerationStats;
+    WorldStatTracker _worldGenerationStats;
     WorldChunkDebug _worldChunkDebug;
 
     public TextMeshProUGUI worldStatsTMP;
@@ -14,7 +14,7 @@ public class CameraOverlayUI : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        _worldGenerationStats = FindObjectOfType<WorldGenerationStats>();
+        _worldGenerationStats = FindObjectOfType<WorldStatTracker>();
         _worldChunkDebug = FindObjectOfType<WorldChunkDebug>();
     }
 

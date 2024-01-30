@@ -9,7 +9,7 @@ using UnityEngine;
  */
 
 
-public class WorldGenerationStats : MonoBehaviour
+public class WorldStatTracker : MonoBehaviour
 {
     WorldGeneration _worldGeneration;
     WorldSpawnMap _worldSpawnMap;

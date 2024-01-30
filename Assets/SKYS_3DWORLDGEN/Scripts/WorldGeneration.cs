@@ -4,11 +4,30 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.XR;
-using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
-[RequireComponent(typeof(WorldGenerationStats))]
+/// <summary>
+/// SKYS_3DWORLDGEN : Created by skysfalling @ darklightinteractive 2024
+/// 
+/// Handles the procedural generation of the game world in Unity.
+/// Responsible for initializing and populating the world with terrain, landscapes,
+/// resources, and points of interest. Interacts with various world components to
+/// ensure a cohesive and dynamically generated game environment.
+/// </summary>
+
+
+[RequireComponent(typeof(WorldPathfinder))]
+[RequireComponent(typeof(WorldInteractor))]
+[RequireComponent(typeof(WorldStatTracker))]
+[RequireComponent(typeof(WorldMaterialLibrary))]
+
 public class WorldGeneration : MonoBehaviour
 {
+    public static WorldGeneration Instance;
+    public void Awake()
+    {
+        if (Instance == null) { Instance = this; }
+    }
+
     string _prefix = "[ WORLD GENERATION ] ";
     GameObject _worldGenerationObject;
     GameObject _worldBorderObject;
@@ -60,7 +79,7 @@ public class WorldGeneration : MonoBehaviour
         FindObjectOfType<WorldCellMap>().Reset();
         FindObjectOfType<WorldSpawnMap>().Reset();
         FindObjectOfType<WorldEnvironment>().Reset();
-        FindObjectOfType<WorldGenerationStats>().UpdateStats();
+        FindObjectOfType<WorldStatTracker>().UpdateStats();
 
         _chunks.Clear();
         _borderChunks.Clear();

@@ -5,8 +5,8 @@ using UnityEngine;
 public class WorldPathfinder : MonoBehaviour
 {
     WorldCellMap worldCellMap;
-    public WorldCell startCell;
-    public WorldCell endCell;
+    [HideInInspector] public WorldCell startCell;
+    [HideInInspector] public WorldCell endCell;
 
     private void Start()
     {
@@ -22,20 +22,5 @@ public class WorldPathfinder : MonoBehaviour
     {
         worldCellMap = FindObjectOfType<WorldCellMap>();
         endCell = worldCellMap.FindClosestCell(worldPosition);
-    }
-
-    private void OnDrawGizmos()
-    {
-        if (startCell != null)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawCube(startCell.position, Vector3.one);
-        }
-
-        if (endCell != null)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawCube(endCell.position, Vector3.one);
-        }
     }
 }
