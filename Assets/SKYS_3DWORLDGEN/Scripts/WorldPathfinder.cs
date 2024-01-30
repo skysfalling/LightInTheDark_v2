@@ -11,49 +11,54 @@ public class WorldPathfinder : MonoBehaviour
     }
 
     // A* Pathfinding implementation
+    // - gCost is the known cost from the starting node
+    // - hCost is the estimated distance to the end node
+    // - fCost is gCost + hCost
+
     public List<WorldCell> FindPath(WorldCell startCell, WorldCell endCell)
     {
-        // The set of nodes to be evaluated
+        // INITIALIZE SETS
         List<WorldCell> openSet = new List<WorldCell>();
-        // Nodes already evaluated
         HashSet<WorldCell> closedSet = new HashSet<WorldCell>();
-        // Start by adding the start cell to the open set
         openSet.Add(startCell);
 
         while (openSet.Count > 0)
         {
+
+            // << GET BEST OPTION OF OPEN SET >>
             WorldCell currentCell = openSet[0];
             for (int i = 1; i < openSet.Count; i++)
             {
-                // Check if this path to neighbor is better than the one previously known.
-                // This is where you might check for things like terrain costs, etc.
-                if (openSet[i].astar_fCost < currentCell.astar_fCost || openSet[i].astar_fCost == currentCell.astar_fCost && openSet[i].astar_hCost < currentCell.astar_hCost)
-                {
-                    currentCell = openSet[i];
-                }
+                if (openSet[i].astar_fCost <= currentCell.astar_fCost) { continue; }
+                if (openSet[i].astar_hCost < currentCell.astar_hCost ) { continue; }
+
+                currentCell = openSet[i];
             }
 
+            // << ADD VALID CELL TO CLOSED SET >>
             openSet.Remove(currentCell);
             closedSet.Add(currentCell);
-
             if (currentCell == endCell)
             {
                 // We found the path, retrace steps from endCell to startCell
                 return RetracePath(startCell, endCell);
             }
 
+            // << GET ALL NEIGHBORS OF CURRENT CELL >>
             foreach (WorldCell neighbor in _worldCellMap.GetCellNeighbors(currentCell))
             {
-                if (closedSet.Contains(neighbor))
+                // Skip invalid neighbors of current cell
+                if (closedSet.Contains(neighbor) || neighbor.type != WorldCell.TYPE.EMPTY)
                 {
                     continue;
                 }
 
+                // Set movement cost for valid neighbor
                 float newMovementCostToNeighbor = currentCell.astar_gCost + _worldCellMap.GetDistance(currentCell, neighbor);
                 if (newMovementCostToNeighbor < neighbor.astar_gCost || !openSet.Contains(neighbor))
                 {
-                    neighbor.astar_gCost = newMovementCostToNeighbor;
-                    neighbor.astar_hCost = _worldCellMap.GetDistance(neighbor, endCell);
+                    neighbor.astar_gCost = newMovementCostToNeighbor; // cost from starting node
+                    neighbor.astar_hCost = _worldCellMap.GetDistance(neighbor, endCell); // distance from end node
                     neighbor.astar_parent = currentCell;
 
                     if (!openSet.Contains(neighbor))
