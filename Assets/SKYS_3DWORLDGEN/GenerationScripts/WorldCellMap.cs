@@ -52,14 +52,16 @@ public class WorldCellMap : MonoBehaviour
         foreach (WorldCell cell in _worldCells)
         {
             Destroy(cell.GetDebugCube());
+            cell.RemoveDebugCube();
         }
     }
 
     public void ClearCellPathDebugs(List<WorldCell> path)
     {
-        foreach (WorldCell cell in path)
+        foreach (WorldCell cell in _worldCells)
         {
             Destroy(cell.GetDebugCube());
+            cell.RemoveDebugCube();
         }
     }
 

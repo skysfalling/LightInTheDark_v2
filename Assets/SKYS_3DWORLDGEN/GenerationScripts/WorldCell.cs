@@ -28,6 +28,7 @@ public class WorldCell
     [HideInInspector] public WorldCell astar_parent;
 
     GameObject _debugCubeObject;
+    float _defaultRelativeScale = 0.25f;
     float _debugCubeRelativeScale = 0.25f; // percentage of the WorldGeneration cellSize
     public Vector3[] vertices; // Corners of the cell
     public Vector3 position;     // Center position of the cell
@@ -80,11 +81,23 @@ public class WorldCell
     {
         if (this._debugCubeObject == null) { return; }
         this._debugCubeObject.SetActive(false);
+        ResetDebugRelativeScale();
+    }
+
+    public void RemoveDebugCube()
+    {
+        this._debugCubeObject = null;
+        ResetDebugRelativeScale();
     }
 
     public void SetDebugRelativeScale(float relativeScale)
     {
         _debugCubeRelativeScale = relativeScale;
+    }
+
+    public void ResetDebugRelativeScale()
+    {
+        _debugCubeRelativeScale = _defaultRelativeScale;
     }
 }
 

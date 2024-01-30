@@ -7,6 +7,7 @@ public class Entity : MonoBehaviour
     WorldCellMap _cellMap;
     WorldEntityManager _entityManager;
     
+    List<WorldCell> _affectedPath = new List<WorldCell>();
     List<WorldCell> _movePath = new();
     WorldCell _currentCell = null;
     WorldCell _targetCell = null;
@@ -38,7 +39,9 @@ public class Entity : MonoBehaviour
         if (_movePath.Count > 0)
         {
             _currentCell = _movePath[0];
+
             _movePath.RemoveAt(0);
+
         }
     }
 
@@ -60,10 +63,11 @@ public class Entity : MonoBehaviour
         if (targetCell == null) return;
 
         // Clear old path
-        _cellMap.ClearCellPathDebugs(_movePath);
+        _cellMap.ClearCellPathDebugs(_affectedPath);
 
         _targetCell = targetCell;
         _movePath = WorldPathfinder.Instance.FindPath(_currentCell, _targetCell);
-        _cellMap.DrawPath(_movePath);
+        _affectedPath = _movePath;
+        _cellMap.DrawPath(_affectedPath);
     }
 }

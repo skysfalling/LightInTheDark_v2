@@ -931,7 +931,7 @@ PrefabInstance:
     - target: {fileID: 5524800860251384978, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: environmentObjects.Array.data[0].spawnChance
-      value: 1
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 5524800860251384978, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
