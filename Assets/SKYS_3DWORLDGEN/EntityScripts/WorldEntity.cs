@@ -35,6 +35,7 @@ public class Entity : MonoBehaviour
 
     void TickUpdate()
     {
+        if (_cellMap.initialized == false) { return; }
         if (_currentCell == null) { _currentCell = _cellMap.FindClosestCellTo(transform.position); }
 
         // if still following path .. update

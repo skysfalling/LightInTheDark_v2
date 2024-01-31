@@ -993,7 +993,7 @@ PrefabInstance:
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: cellSize
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
@@ -1027,8 +1027,33 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
+      propertyPath: worldChunkArea.x
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldChunkArea.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
       propertyPath: chunk_width_in_cells
       value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldChunkDimensions.x
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldChunkDimensions.z
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldChunk_widthInCells
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
@@ -1047,6 +1072,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
+      propertyPath: worldChunkBoundaryOffset
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldChunk_heightInCells
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldPlayArea_widthInChunks
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
       propertyPath: defaultBorderChunkDimensions.x
       value: 9
       objectReference: {fileID: 0}
@@ -1059,6 +1099,11 @@ PrefabInstance:
         type: 3}
       propertyPath: defaultBorderChunkDimensions.z
       value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldPlayArea_chunkDimensions.x
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 1963368856809856772, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}

@@ -10,8 +10,20 @@ public class WorldGenerationEditor : Editor
         EditorGUILayout.LabelField("Real World Chunk Size", worldGen.realWorldChunkSize.ToString());
         EditorGUILayout.LabelField("Real World Boundary Size", worldGen.realWorldBoundarySize.ToString());
 
-
         DrawDefaultInspector(); // Draws the default inspector elements
+
+        // Assuming you have a public integer property in WorldGeneration to set
+        // Adjust "worldPlayArea_widthInChunks" if your actual property name differs
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("World Play Area Width in Chunks", GUILayout.Width(250));
+        EditorGUILayout.IntSlider(worldGen.worldPlayArea_widthInChunks, -1, worldGen.worldBoundary_widthInChunks);
+        EditorGUILayout.EndHorizontal();
+
+        // Ensure changes are registered and the inspector updates as needed
+        if (GUI.changed)
+        {
+            EditorUtility.SetDirty(worldGen);
+        }
     }
 
     void OnSceneGUI()
@@ -19,34 +31,28 @@ public class WorldGenerationEditor : Editor
         WorldGeneration worldGen = (WorldGeneration)target;
         worldGen.SetWorldDimensions();
 
-        // Visualize the full playArea
-        Handles.color = Color.white;
-        Handles.DrawWireCube(worldGen.transform.position, new Vector3Int(worldGen.realWorldPlayAreaSize.x, 0, worldGen.realWorldPlayAreaSize.y));
-
-        // Visualize the full world boundary
-        Handles.color = Color.red;
-        Handles.DrawWireCube(worldGen.transform.position, new Vector3Int(worldGen.realWorldBoundarySize.x, 0, worldGen.realWorldBoundarySize.y));
+        Vector3 halfSize_chunkSize = (Vector3)worldGen.realWorldChunkSize * 0.5f;
+        Vector2 halfSize_playArea = (Vector2)worldGen.realWorldPlayAreaSize * 0.5f;
 
         // Calculate and visualize each theoretical chunk grid
-        Handles.color = Color.green;
-
-        Vector3 chunkSize = new Vector3(worldGen.realWorldChunkSize.x, 0, worldGen.realWorldChunkSize.z);
-        Vector3 halfSize_chunkSize = chunkSize * 0.5f;
-
-        Vector2 fullSize_playArea = (Vector2)worldGen.realWorldPlayAreaSize;
-        Vector2 halfSize_playArea = fullSize_playArea * 0.5f;
-
-        for (int x = 0; x < worldGen.worldPlayArea_widthInChunks; x++)
+        Handles.color = Color.white;
+        foreach(Vector2 chunkPosition in worldGen.GetAllPlayAreaChunkPositions())
         {
-            for (int z = 0; z < worldGen.worldPlayArea_widthInChunks; z++)
-            {
-                Vector3 chunkPosition = new Vector3(x * chunkSize.x, 0, z * chunkSize.z);
-                chunkPosition -= new Vector3(halfSize_playArea.x, 0, halfSize_playArea.y); // adjust for playAreaCenter
-                chunkPosition += new Vector3(halfSize_chunkSize.x, 0, halfSize_chunkSize.z); // adjust for chunkCenter
-
-
-                Handles.DrawWireCube(chunkPosition, chunkSize);
-            }
+            Vector3 chunkWorldPosition = new Vector3(chunkPosition.x, -worldGen.realWorldChunkSize.y, chunkPosition.y);
+            Handles.DrawWireCube(chunkWorldPosition, worldGen.realWorldChunkSize);
         }
+
+        Handles.color = Color.red;
+        foreach (Vector2 chunkPosition in worldGen.GetAllBoundaryChunkPositions())
+        {
+            Vector3 chunkWorldPosition = new Vector3(chunkPosition.x, -worldGen.realWorldChunkSize.y, chunkPosition.y);
+            Handles.DrawWireCube(chunkWorldPosition, worldGen.realWorldChunkSize);
+        }
+
+        // Label for play area width in cells
+        string playAreaWidthLabel = $"Play Area Width: {worldGen.worldPlayArea_widthInChunks} Chunks";
+        Vector3 labelPosition = worldGen.transform.position - new Vector3(0, 0, halfSize_playArea.y + halfSize_chunkSize.y); // Position the label below the play area
+        Handles.Label(labelPosition, playAreaWidthLabel);
+
     }
 }
