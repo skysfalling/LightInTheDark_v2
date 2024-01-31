@@ -14,45 +14,64 @@ public class WorldCellCursor : MonoBehaviour
     [Range(0.1f, 10f)] public float localScaleMultiplier;
 
 
-
     #region == Mouse Input ======================================= ///////
     public void MouseHoverInput(Vector3 worldPosition)
     {
         WorldCell closestCell = WorldCellMap.Instance.FindClosestCellTo(worldPosition);
-        UpdateHoverCursorCell(closestCell);
+        if (closestCell == _selectedCursorCell) { return; }
+        SetHoverCursorCell(closestCell);
     }
 
     public void MouseSelectInput(Vector3 worldPosition)
     {
-        _selectedCursorCell = WorldCellMap.Instance.FindClosestCellTo(worldPosition);
-        CreateCursorAt(_selectedCursorCell, CURSOR_TYPE.SELECTED);
+        WorldCell closestCell = WorldCellMap.Instance.FindClosestCellTo(worldPosition);
+        SetSelectedCursorCell(closestCell);
     }
     #endregion
 
-    void UpdateHoverCursorCell(WorldCell cell)
+
+    void SetHoverCursorCell(WorldCell cell)
     {
-        if (WorldCellMap.Instance.initialized && cell != null)
-        {
-            if (_hoverCursorCell != null)
-            {
-                WorldCellMap.Instance.HideCellNeighbors(_hoverCursorCell);
-            }
+        if (_selectedCursorCell == _hoverCursorCell) { return; }
+        if (_hoverCursorCell != null) { RemoveCursorAt(_hoverCursorCell); }
 
-            _hoverCursorCell = cell;
-            this.transform.position = cell.position;
-            CreateCursorAt(_hoverCursorCell, CURSOR_TYPE.HOVERED_OVER);
+        _hoverCursorCell = cell;
+        CreateCursorAt(_hoverCursorCell, CURSOR_TYPE.HOVERED_OVER);
 
-            WorldCellMap.Instance.ShowCellNeighbors(cell);
-        }
+        // Move transform to cell
+        transform.position = _hoverCursorCell.position;
     }
 
+    private void SetSelectedCursorCell(WorldCell cell)
+    {
+        if (_selectedCursorCell != null) { RemoveCursorAt(_selectedCursorCell); }
+
+        _selectedCursorCell = cell;
+        CreateCursorAt(_selectedCursorCell, CURSOR_TYPE.SELECTED);
+    }
+
+
+    #region == CURSOR CREATION ===================================== >>>>>
     void CreateCursorAt(WorldCell cell, CURSOR_TYPE type)
     {
-        GameObject newCursor = Instantiate(cursorPrefab, cell.position, Quaternion.identity);
-        newCursor.transform.parent = this.transform;
-        newCursor.transform.localScale = Vector3.one * localScaleMultiplier;
-        _activeCursors[cell] = newCursor;
+        RemoveCursorAt(cell);
 
-        WorldMaterialLibrary.Instance.SetCursorMaterial(newCursor, type);
+        // Create New Cursor
+        GameObject cursor = Instantiate(cursorPrefab, cell.position, Quaternion.identity);
+        cursor.transform.localScale = Vector3.one * localScaleMultiplier;
+        cursor.name = $"{cursorPrefab.name} :: {type}";
+        _activeCursors[cell] = cursor;
+        WorldMaterialLibrary.Instance.SetCursorMaterial(cursor, type);
     }
+
+    void RemoveCursorAt(WorldCell cell)
+    {
+        if (_activeCursors.ContainsKey(cell))
+        {
+            Destroy(_activeCursors[cell]);
+            _activeCursors.Remove(cell);
+        }
+    }
+    #endregion
+
 }

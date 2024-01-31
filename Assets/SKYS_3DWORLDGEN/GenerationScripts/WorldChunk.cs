@@ -310,6 +310,12 @@ public class WorldChunk
         List<WorldCell> cells = GetCellsOfType(cellType);
         return cells[UnityEngine.Random.Range(0, cells.Count)];
     }
+
+    public void ShowLocalCells()
+    {
+
+    }
+
 }
 
 

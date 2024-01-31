@@ -724,18 +724,6 @@ MonoBehaviour:
   primaryInteractionEvent:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2003027212}
-        m_TargetAssemblyTypeName: WorldInteractor, Assembly-CSharp
-        m_MethodName: PrimarySelectClosestCellTo
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
       - m_Target: {fileID: 1444784829}
         m_TargetAssemblyTypeName: Entity, Assembly-CSharp
         m_MethodName: SetTargetCell
@@ -750,6 +738,18 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 1519833723}
         m_TargetAssemblyTypeName: WorldCellCursor, Assembly-CSharp
+        m_MethodName: MouseSelectInput
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 2062262662}
+        m_TargetAssemblyTypeName: WorldChunkCursor, Assembly-CSharp
         m_MethodName: MouseSelectInput
         m_Mode: 0
         m_Arguments:
@@ -1051,6 +1051,11 @@ PrefabInstance:
       propertyPath: environmentObjects.Array.data[0].spawnCellTypeRequirements.Array.size
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5561459159524278966, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5845749257906015333, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1110,7 +1115,8 @@ PrefabInstance:
     - {fileID: 6199519495101546082, guid: dad85dccd7fc00b49a2afeef84d99cca, type: 3}
     - {fileID: 6734304272670252155, guid: dad85dccd7fc00b49a2afeef84d99cca, type: 3}
     - {fileID: 4764185375939684002, guid: dad85dccd7fc00b49a2afeef84d99cca, type: 3}
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 6794307147516497687, guid: dad85dccd7fc00b49a2afeef84d99cca, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dad85dccd7fc00b49a2afeef84d99cca, type: 3}
@@ -1126,16 +1132,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 620745325a50846479f301ec54b3a337, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &2003027212 stripped
+--- !u!114 &2062262662 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2633072700718698929, guid: dad85dccd7fc00b49a2afeef84d99cca,
+  m_CorrespondingSourceObject: {fileID: 9023293330023017650, guid: dad85dccd7fc00b49a2afeef84d99cca,
     type: 3}
   m_PrefabInstance: {fileID: 1996659570}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67f0a2e4bb6e73e4f91f9307e09526af, type: 3}
+  m_Script: {fileID: 11500000, guid: e0e44875405de6a449c109f5cb07d6c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807

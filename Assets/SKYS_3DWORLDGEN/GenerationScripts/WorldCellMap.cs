@@ -41,33 +41,75 @@ public class WorldCellMap : MonoBehaviour
 
         initialized = true;
     }
-
     public void Reset()
     {
         _worldCells.Clear();
         _cellFullNeighborMap.Clear();
         initialized = false;
+        Debug_DestroyWorldCells();
     }
 
-    public void ClearAllCellDebugs()
+    #region == Debug Management ========================================== ///
+
+    // =========== SHOW CELL DEBUGS =============================================== >>>>>>>>>>
+
+    public void Debug_ShowCellList(List<WorldCell> list)
     {
-        foreach (WorldCell cell in _worldCells)
+        foreach (WorldCell cell in list)
         {
-            Destroy(cell.GetDebugCube());
-            cell.RemoveDebugCube();
+            cell.ShowDebugCube();
         }
     }
 
-    public void ClearCellPathDebugs(List<WorldCell> path)
+    public void Debug_ShowCellNeighbors(WorldCell cell)
+    {
+        if (cell == null || initialized != true) { return; }
+        Debug_ShowCellList(GetAllCellNeighbors(cell));
+    }
+
+    public void Debug_ShowChunkLocalCells(WorldChunk chunk)
+    {
+        if (chunk == null || initialized != true) { return; }
+        Debug_ShowCellList(chunk.localCells);
+    }
+
+    // =========== DESTROY CELL DEBUGS =============================================== >>>>>>>>>>
+
+    public void Debug_DestroyWorldCells()
     {
         foreach (WorldCell cell in _worldCells)
         {
-            Destroy(cell.GetDebugCube());
-            cell.RemoveDebugCube();
+            Debug_DestroyCell(cell);
         }
     }
 
-    #region === INDIVIDUAL CELLS ======================================================..///
+    public void Debug_DestroyCellList(List<WorldCell> list)
+    {
+        foreach (WorldCell cell in list)
+        {
+            Debug_DestroyCell(cell);
+        }
+    }
+
+    public void Debug_DestroyChunkLocalCells(WorldChunk chunk)
+    {
+        Debug_DestroyCellList(chunk.localCells);
+    }
+
+    public void Debug_DestroyCellNeighbors(WorldCell cell)
+    {
+        Debug_DestroyCell(cell);
+        Debug_DestroyCellList(GetAllCellNeighbors(cell));
+    }
+
+    public void Debug_DestroyCell(WorldCell cell)
+    {
+        Destroy(cell.GetDebugCube());
+        cell.RemoveDebugCube();
+    }
+    #endregion
+
+    #region === INDIVIDUAL CELL MANAGEMENT ======================================================..///
     private WorldCell.TYPE SetCellType(WorldCell cell)
     {
         WorldCell.TYPE cellType = WorldCell.TYPE.EMPTY;
@@ -198,32 +240,11 @@ public class WorldCellMap : MonoBehaviour
         return _worldPathfinder.FindPath(cellStart, cellEnd);
     }
 
-    public void DrawPath(List<WorldCell> path)
-    {
-        foreach (WorldCell cell in path)
-        {
-            cell.ShowDebugCube();
-        }
-    }
+
     #endregion
 
 
     #region === CELL GROUPS ==================================================..//
-    public void ShowCellNeighbors(WorldCell cell)
-    {
-        if (cell == null || initialized != true) { return; }
-
-        List<WorldCell> neighbors = GetAllCellNeighbors(cell);
-        foreach (WorldCell neighbor in neighbors) { neighbor.ShowDebugCube(); }
-    }
-
-    public void HideCellNeighbors(WorldCell cell)
-    {
-        if (cell == null || initialized != true) { return; }
-
-        List<WorldCell> neighbors = GetAllCellNeighbors(cell);
-        foreach (WorldCell neighbor in neighbors) { neighbor.HideDebugCube(); }
-    }
 
     #endregion
 }

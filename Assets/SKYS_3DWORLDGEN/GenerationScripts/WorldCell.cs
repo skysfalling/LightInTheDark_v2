@@ -59,6 +59,7 @@ public class WorldCell
         float relativeSize = _generation.cellSize * _debugCubeRelativeScale;
 
         this._debugCubeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        this._debugCubeObject.transform.parent = WorldCellMap.Instance.transform;
         this._debugCubeObject.transform.position = position + (Vector3.up * relativeSize * 0.5f); // adjust height offset
         this._debugCubeObject.transform.localScale = Vector3.one * relativeSize; // adjust scale
         this._debugCubeObject.GetComponent<MeshRenderer>().material = _materialLibrary.GetMaterialOfCellType(type); // set material

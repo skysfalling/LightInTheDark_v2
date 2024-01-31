@@ -9,6 +9,7 @@ public class Entity : MonoBehaviour
     
     List<WorldCell> _affectedPath = new List<WorldCell>();
     List<WorldCell> _movePath = new();
+    int _currPathIndex = 0;
     WorldCell _currentCell = null;
     WorldCell _targetCell = null;
 
@@ -36,38 +37,48 @@ public class Entity : MonoBehaviour
     {
         if (_currentCell == null) { _currentCell = _cellMap.FindClosestCellTo(transform.position); }
 
-        if (_movePath.Count > 0)
+        // if still following path .. update
+        if (_currPathIndex < _movePath.Count)
         {
-            _currentCell = _movePath[0];
+            _currentCell = _movePath[_currPathIndex];
+            _cellMap.Debug_ShowCellList(_movePath);
 
-            _movePath.RemoveAt(0);
-
+            _currPathIndex++;
+        }
+        else 
+        {
+            _currPathIndex = 0;
+            _cellMap.Debug_DestroyCellList(_movePath);
+            _movePath = new List<WorldCell>();
         }
     }
 
     public void SetTargetCell(WorldCell cell)
     {
         _targetCell = cell;
-        CreatePathTo(_targetCell);
+        SetMovePathTo(_targetCell);
     }
 
     public void SetTargetCell(Vector3 worldPos)
     {
         _targetCell = WorldCellMap.Instance.FindClosestCellTo(worldPos);
-        CreatePathTo(_targetCell);
+        SetMovePathTo(_targetCell);
     }
 
-    public void CreatePathTo(WorldCell targetCell)
+    public void SetMovePathTo(WorldCell targetCell)
     {
         if (_currentCell == null) return;
         if (targetCell == null) return;
-
-        // Clear old path
-        _cellMap.ClearCellPathDebugs(_affectedPath);
+        _currPathIndex = 0;
+        _cellMap.Debug_DestroyCellList(_movePath);
 
         _targetCell = targetCell;
         _movePath = WorldPathfinder.Instance.FindPath(_currentCell, _targetCell);
-        _affectedPath = _movePath;
-        _cellMap.DrawPath(_affectedPath);
+        _cellMap.Debug_ShowCellList(_movePath);
+    }
+
+    void ClearPath()
+    {
+
     }
 }

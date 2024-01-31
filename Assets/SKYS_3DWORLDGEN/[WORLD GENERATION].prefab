@@ -431,6 +431,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5305021860519766170}
+  - component: {fileID: 9023293330023017650}
   m_Layer: 0
   m_Name: world_chunkCursor
   m_TagString: Untagged
@@ -454,6 +455,21 @@ Transform:
   - {fileID: 7420552898844237686}
   m_Father: {fileID: 5845749257906015333}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9023293330023017650
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5561459159524278966}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0e44875405de6a449c109f5cb07d6c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cursorPrefab: {fileID: 3110192868279737271, guid: 9d1cb1ff55cb07741a878298ce0cae3e,
+    type: 3}
+  localScaleMultiplier: 10
 --- !u!1 &6794307147516497687
 GameObject:
   m_ObjectHideFlags: 0

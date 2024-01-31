@@ -1,9 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Controls;
-using static UnityEngine.GraphicsBuffer;
 
 public class OrbitCamera : MonoBehaviour
 {
@@ -15,7 +11,7 @@ public class OrbitCamera : MonoBehaviour
     Vector2 _xAxisClamp = new Vector2(0, 90);
     Vector2 _zAxisClamp = new Vector2(0, 0);
     float _dollyDelta;
-    Vector3 _targetDollyPosition;
+    Vector3 _targetZoomPosition;
     Vector2 _prevTouch0Position;
     Vector2 _prevTouch1Position;
 
@@ -27,23 +23,26 @@ public class OrbitCamera : MonoBehaviour
     InputAction dragOrbitDelta;
     InputAction scrollZoom;
 
-
     [Header("Camera Settings")]
     public Camera connectedCamera;
 
-    [Space(10)]
-    public Transform followTarget;
-    [Range(0.1f, 10f)] public float followSpeed;
+    [Space(10), Header("Focus Target")]
+    public Transform focusTarget;
+    [Range(0.1f, 10f)] public float focusSpeed = 2;
 
-    [Space(10)]
+    [Space(10), Header("Dolly Target")]
+    public Transform dollyTarget;
+    [Range(0.1f, 10f)] public float dollySpeed = 2;
+
+    [Space(10), Header("Orbit")]
     [Range(0.1f, 1f)]public float orbitSensitivity = 0.1f;
     [Range(0.1f, 10f)] public float orbitSpeed = 1;
 
-    [Space(10)]
-    [Range(0.1f, 1f)] public float dollySensitivity = 0.1f;
-    [Range(0.1f, 10f)] public float dollySpeed = 2f;
-    public float minZ_camDolly = 5f;
-    public float maxZ_camDolly = 60f;
+    [Space(10), Header("Zoom")]
+    [Range(0.1f, 1f)] public float zoomSensitivity = 0.1f;
+    [Range(0.1f, 10f)] public float zoomSpeed = 2f;
+    public float minZ_camZoom = 5f;
+    public float maxZ_camZoom = 60f;
 
     private void Start()
     {
@@ -67,7 +66,7 @@ public class OrbitCamera : MonoBehaviour
         {
             actionMap = orbitCameraInteraction.FindActionMap("Mouse");
             InputAction scrollZoom = actionMap.FindAction("ScrollZoom");
-            scrollZoom.started += context => HandleCameraDolly(scrollZoom.ReadValue<Vector2>().y);
+            scrollZoom.started += context => HandleCameraZoom(scrollZoom.ReadValue<Vector2>().y);
         }
 
         // Store actions
@@ -80,7 +79,7 @@ public class OrbitCamera : MonoBehaviour
 
         // Initialize Values
         _targetOrbitRotation = transform.rotation.eulerAngles;
-        _targetDollyPosition = connectedCamera.transform.localPosition;
+        _targetZoomPosition = connectedCamera.transform.localPosition;
     }
 
     private void Update()
@@ -101,17 +100,18 @@ public class OrbitCamera : MonoBehaviour
 
         }
 
-        // Smoothly interpolate this parent to the target position
-        Vector3 followTargetPos = followTarget.position;
-        transform.position = Vector3.Slerp(transform.position, followTargetPos, followSpeed * Time.deltaTime);
+        // << UPDATE CAM POSITION >>
+        transform.position = Vector3.Slerp(transform.position, dollyTarget.position, dollySpeed * Time.deltaTime);
 
-        // Smoothly interpolate this parent to the target orbit rotation
+        // << UPDATE CAM ROTATION TO FOCUSTARGET >>
         Quaternion targetQuaternion = Quaternion.Euler(_targetOrbitRotation);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetQuaternion, orbitSpeed * Time.deltaTime);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetQuaternion, focusSpeed * Time.deltaTime);
 
-        // Smoothly interpolate the connected camera to the target dolly position
+        // Smoothly interpolate the connected camera to the target zoom position
         Vector3 camLocalPos = connectedCamera.transform.localPosition;
-        connectedCamera.transform.localPosition = Vector3.Slerp(camLocalPos, _targetDollyPosition, dollySpeed * Time.deltaTime);
+        connectedCamera.transform.localPosition = Vector3.Slerp(camLocalPos, _targetZoomPosition, zoomSpeed * Time.deltaTime);
+
+        connectedCamera.transform.LookAt(focusTarget);
 
     }
 
@@ -174,22 +174,22 @@ public class OrbitCamera : MonoBehaviour
         float distanceDelta = currentDistance - prevDistance;
 
         // Pass the distanceDelta to the CameraManager's zoom handling method
-        HandleCameraDolly(distanceDelta);
+        HandleCameraZoom(distanceDelta);
 
         // Update previous positions of the touches
         _prevTouch0Position = touch0Pos;
         _prevTouch1Position = touch1Pos;
     }
 
-    public void HandleCameraDolly(float distanceDelta)
+    public void HandleCameraZoom(float distanceDelta)
     {
         // Instead of using FOV, use local Z position
         Vector3 camLocalPos = connectedCamera.transform.localPosition;
-        float destinationZ = Mathf.Abs(camLocalPos.z) + (distanceDelta * -dollySensitivity);
-        destinationZ = Mathf.Clamp(destinationZ, minZ_camDolly, maxZ_camDolly);
+        float destinationZ = Mathf.Abs(camLocalPos.z) + (distanceDelta * -zoomSensitivity);
+        destinationZ = Mathf.Clamp(destinationZ, minZ_camZoom, maxZ_camZoom);
 
         // Set negative Z local position
-        _targetDollyPosition = new Vector3(camLocalPos.x, camLocalPos.y, -destinationZ);
+        _targetZoomPosition = new Vector3(camLocalPos.x, camLocalPos.y, -destinationZ);
     }
     #endregion
 

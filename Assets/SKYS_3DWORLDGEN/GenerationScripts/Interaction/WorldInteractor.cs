@@ -33,19 +33,4 @@ public class WorldInteractor : MonoBehaviour
         _worldEnvironment = WorldEnvironment.Instance;
     }
 
-    public void PrimarySelectClosestCellTo(Vector3 worldPos)
-    {
-        currCursorCell = _worldCellMap.FindClosestCellTo(worldPos);
-        currCursorCell.SetDebugRelativeScale(1);
-        worldCursor.position = currCursorCell.position;
-
-        _worldCellMap.GetPath(_worldEnvironment.playerSpawnCell, currCursorCell);
-
-        //Debug.Log("Selected cell " + currCursorCell.position);
-    }
-
-    public void SecondarySelectEntityClosestTo(Vector3 worldPos)
-    {
-
-    }
 }
