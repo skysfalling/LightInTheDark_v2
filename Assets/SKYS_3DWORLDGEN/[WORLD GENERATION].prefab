@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2625624407440556941
 Transform:
   m_ObjectHideFlags: 0
@@ -351,13 +351,12 @@ MonoBehaviour:
   generation_finished: 0
   chunkMaterial: {fileID: 2100000, guid: 431deed0f8230a44c9d08f72a642347f, type: 2}
   borderChunkMaterial: {fileID: 2100000, guid: 9297ff6ce79de634e805040c711164fa, type: 2}
-  maxChunkCount: {x: 10, y: 10}
-  steps: 200
   cellSize: 10
-  chunk_width_in_cells: 7
-  chunk_height_in_cells: 3
-  chunkDimensions: {x: 0, y: 0, z: 0}
-  fullsize_chunkDimensions: {x: 0, y: 0, z: 0}
+  worldChunk_widthInCells: 5
+  worldChunk_heightInCells: 3
+  worldPlayArea_widthInChunks: 10
+  _worldChunkBoundaryOffset: 0
+  steps: 200
 --- !u!114 &8701923849753727028
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -469,7 +468,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cursorPrefab: {fileID: 3110192868279737271, guid: 9d1cb1ff55cb07741a878298ce0cae3e,
     type: 3}
-  localScaleMultiplier: 10
 --- !u!1 &6794307147516497687
 GameObject:
   m_ObjectHideFlags: 0

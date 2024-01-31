@@ -54,7 +54,7 @@ public class WorldGeneration : MonoBehaviour
     // {{ AREA DIMENSIONS }} =====================================
     [Header("World Area")]
     [Range(1, 21)] public int worldPlayArea_widthInChunks = 10; // Size of PlayArea { in WorldChunk Size Units }
-    [Range(1, 5)] public int worldChunkBoundaryOffset = 1; // size of boundary offset
+    [Range(0, 3)] public int _worldChunkBoundaryOffset = 0; // size of boundary offset
     [HideInInspector] public int worldBoundary_widthInChunks { get; private set; }
     [HideInInspector] public Vector2Int realWorldPlayAreaSize { get; private set; } // worldChunkArea * cellSize
     [HideInInspector] public Vector2Int realWorldBoundarySize { get; private set; } // worldChunkArea + 1 for exit chunks * cellSize
@@ -86,7 +86,7 @@ public class WorldGeneration : MonoBehaviour
 
         realWorldPlayAreaSize = worldPlayArea_widthInChunks  * new Vector2Int(realWorldChunkSize.x, realWorldChunkSize.z);
 
-        worldBoundary_widthInChunks = worldPlayArea_widthInChunks + worldChunkBoundaryOffset;
+        worldBoundary_widthInChunks = worldPlayArea_widthInChunks + _worldChunkBoundaryOffset;
         realWorldBoundarySize = worldBoundary_widthInChunks * new Vector2Int(realWorldChunkSize.x, realWorldChunkSize.z);
     }
 
@@ -97,7 +97,6 @@ public class WorldGeneration : MonoBehaviour
 
         FindObjectOfType<WorldChunkMap>().Reset();
         FindObjectOfType<WorldCellMap>().Reset();
-        FindObjectOfType<WorldSpawnMap>().Reset();
         FindObjectOfType<WorldEnvironment>().Reset();
         FindObjectOfType<WorldStatTracker>().UpdateStats();
 
@@ -117,14 +116,14 @@ public class WorldGeneration : MonoBehaviour
         List<Vector2> allPlayAreaChunkPositions = GetAllPlayAreaChunkPositions();
 
         // [[ GENERATE PLAY AREA CHUNKS ]] ========================================== >>
-        foreach (Vector3 position in allPlayAreaChunkPositions)
+        foreach (Vector2 position in allPlayAreaChunkPositions)
         {
             WorldChunk newChunk = CreateWorldChunk(position, worldChunkDimensions);
             _chunks.Add(newChunk);
         }
 
         // [[ GENERATE BORDER CHUNKS ]] ========================================== >>
-        foreach (Vector3 position in allBorderChunkPositions)
+        foreach (Vector2 position in allBorderChunkPositions)
         {
             WorldChunk newChunk = CreateWorldChunk(position, worldChunkDimensions);
             _borderChunks.Add(newChunk);
@@ -180,7 +179,7 @@ public class WorldGeneration : MonoBehaviour
     {
         List<Vector2> chunkPositions = new();
 
-        int worldBoundary_widthInCells = worldPlayArea_widthInChunks + (worldChunkBoundaryOffset);
+        int worldBoundary_widthInCells = worldPlayArea_widthInChunks + (_worldChunkBoundaryOffset * 2);
         float halfSize_worldBoundary_widthInCells = worldBoundary_widthInCells * 0.5f;
 
         for (float x = -halfSize_worldBoundary_widthInCells; x <= halfSize_worldBoundary_widthInCells; x++)
@@ -202,10 +201,10 @@ public class WorldGeneration : MonoBehaviour
         Vector2 halfSize_playArea = (Vector2)realWorldPlayAreaSize * 0.5f;
         Vector3 halfSize_chunkSize = (Vector3)realWorldChunkSize * 0.5f;
 
-        float minX = -halfSize_playArea.x;
-        float maxX = halfSize_playArea.x;
-        float minZ = -halfSize_playArea.y;
-        float maxZ = halfSize_playArea.y;
+        float minX = -halfSize_playArea.x - halfSize_chunkSize.x;
+        float maxX = halfSize_playArea.x + halfSize_chunkSize.x;
+        float minZ = -halfSize_playArea.y - halfSize_chunkSize.y;
+        float maxZ = halfSize_playArea.y + halfSize_chunkSize.y;
 
         boundaryPositions = allPositions.Where(position => 
             position.x <= minX || position.x  >= maxX || 
@@ -239,7 +238,7 @@ public class WorldGeneration : MonoBehaviour
         return _chunks;
     }
 
-    public WorldChunk GetChunkAt(Vector3 position)
+    public WorldChunk GetChunkAt(Vector2 position)
     {
         foreach (WorldChunk chunk in _chunks)
         {
@@ -281,7 +280,7 @@ public class WorldGeneration : MonoBehaviour
     /// Constructs faces of the chunk and computes triangles for each face.
     /// </summary>
     /// <returns>A Mesh object representing a chunk of terrain or object.</returns>
-    WorldChunk CreateWorldChunk(Vector3 position, Vector3Int chunkDimensions)
+    WorldChunk CreateWorldChunk(Vector2 position, Vector3Int chunkDimensions)
     {
         Mesh mesh = new Mesh();
 

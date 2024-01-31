@@ -29,12 +29,12 @@ public class WorldChunk
     public bool WestEdgeActive { get; private set; }
 
     [HideInInspector] public Mesh mesh;
-    public Vector3 position;
+    public Vector2 position;
 
     public List<WorldCell> localCells = new List<WorldCell>();
     Dictionary<WorldCell.TYPE, List<WorldCell>> _cellTypeMap = new Dictionary<WorldCell.TYPE, List<WorldCell>>();
 
-    public WorldChunk(Mesh mesh, Vector3 position, int width = 3, int height = 3, int cellSize = 4)
+    public WorldChunk(Mesh mesh, Vector2 position, int width = 3, int height = 3, int cellSize = 4)
     {
         this.mesh = mesh;
         this.position = position;
@@ -139,15 +139,16 @@ public class WorldChunk
     #endregion
 
     // ================ CREATE WORLD CELLS ==============================>>
-    void OffsetMesh(Vector3 position)
+    void OffsetMesh(Vector2 chunkPosition)
     {
         Vector3[] vertices = mesh.vertices;
         for (int i = 0; i < vertices.Length; i++)
         {
-            vertices[i] += position;
+            vertices[i] += new Vector3(chunkPosition.x, 0, chunkPosition.y);
         }
         mesh.vertices = vertices;
     }
+
     void CreateCells()
     {
         localCells.Clear();
@@ -184,7 +185,7 @@ public class WorldChunk
             for (int colIndex = rowStartIndex; colIndex < rowStartIndex + verticesPerRow - 1; colIndex++)
             {
                 // Check for invalid indexes
-                if (colIndex + verticesPerRow < sortedVertices.Count)
+                if (colIndex + verticesPerRow + 1 < sortedVertices.Count)
                 {
                     Vector3 bottomLeft = sortedVertices[colIndex];
                     Vector3 bottomRight = sortedVertices[colIndex + 1];
