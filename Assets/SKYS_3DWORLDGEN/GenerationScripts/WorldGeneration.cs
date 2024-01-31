@@ -35,39 +35,56 @@ public class WorldGeneration : MonoBehaviour
     List<WorldChunk> _chunks = new List<WorldChunk>();
     List<WorldChunk> _borderChunks = new List<WorldChunk>();
 
-    public bool generation_finished = false;
+    [HideInInspector] public bool generation_finished = false;
+
+    [Header("Materials")]
     public Material chunkMaterial; // Assign a material in the inspector
     public Material borderChunkMaterial; // Assign a material in the inspector
 
-    public Vector2 maxChunkCount = new Vector2(10, 10);
-    Vector2 _fullWorldSize;
+    [Header("World Cells")]
+    [Range(1, 16)] public int cellSize = 4; // Size of each subdivision cell
+
+    // {{ CHUNK DIMENSIONS }} =====================================
+    [Header("World Chunks")]
+    [Range(0, 21)]
+    public int worldChunk_widthInCells = 5; // Length of width in cells
+    [Range(0, 21)]
+    public int worldChunk_heightInCells = 3; // Length of height in cells
+    [HideInInspector] public Vector3Int worldChunkDimensions { get; private set; } // chunkDimensions { WorldCell size units }
+    [HideInInspector] public Vector3Int realWorldChunkSize { get; private set; } // fullSize Chunk Dimensions [ in Unity units ]
+
+    // {{ AREA DIMENSIONS }} =====================================
+    [Header("World Area")]
+    public int worldPlayArea_widthInChunks = 10; // Size of PlayArea { in WorldChunk Size Units }
+    public int worldChunkBoundaryOffset = 1; // size of boundary offset
+
+    [HideInInspector] public Vector2Int realWorldPlayAreaSize { get; private set; } // worldChunkArea * cellSize
+    [HideInInspector] public Vector2Int realWorldBoundarySize { get; private set; } // worldChunkArea + 1 for exit chunks * cellSize
 
     public int steps = 10; // Number of steps in the random walk
-
-    [Header("Cells")]
-    [Range(0, 16)]
-    public int cellSize = 4; // Size of each subdivision cell
-
-    [Header("Chunks")]
-    [Range(0, 21)]
-    public int chunk_width_in_cells = 5; // Length of width in cells
-    [Range(0, 21)]
-    public int chunk_height_in_cells = 3; // Length of height in cells
-    [HideInInspector] public Vector3Int chunkDimensions; // default Chunk Dimensions [ in cellSize units ]
-    [HideInInspector] public Vector3Int fullsize_chunkDimensions; // default Chunk Dimensions [ in cellSize units ]
 
     private void Start()
     {
         StartGeneration();
     }
 
+    #region == Initialzer Functions ======
     public void StartGeneration()
     {
         Reset();
+        SetWorldDimensions();
 
         if (_worldGenerationRoutine != null) { StopCoroutine(_worldGenerationRoutine); }
         _worldGenerationRoutine = StartCoroutine(Generate());
 
+    }
+
+    public void SetWorldDimensions()
+    {
+        worldChunkDimensions = new Vector3Int(worldChunk_widthInCells, worldChunk_heightInCells, worldChunk_widthInCells);
+        realWorldChunkSize = worldChunkDimensions * cellSize;
+        realWorldPlayAreaSize = worldPlayArea_widthInChunks  * new Vector2Int(realWorldChunkSize.x, realWorldChunkSize.z);
+        realWorldBoundarySize = realWorldPlayAreaSize + (worldChunkBoundaryOffset * new Vector2Int(realWorldChunkSize.x, realWorldChunkSize.z));
     }
 
     public void Reset()
@@ -84,6 +101,7 @@ public class WorldGeneration : MonoBehaviour
         _chunks.Clear();
         _borderChunks.Clear();
     }
+    #endregion
 
     IEnumerator Generate(float delay = 0.25f)
     {
@@ -96,20 +114,14 @@ public class WorldGeneration : MonoBehaviour
             _chunks.Clear();
         }
 
-        // << Set Chunk Dimensions >>
-        chunkDimensions = new Vector3Int(chunk_width_in_cells, chunk_height_in_cells, chunk_width_in_cells);
-        fullsize_chunkDimensions = chunkDimensions * cellSize;
-        _fullWorldSize = maxChunkCount * new Vector2(fullsize_chunkDimensions.x, fullsize_chunkDimensions.z);
-        Debug.Log(_prefix + "_fullWorldSize " + _fullWorldSize);
-
         // Get All Possible Chunk Positions
         List<Vector3> allPossibleChunkPositions = new List<Vector3>();
 
         // Calculate all possible chunk positions
-        Vector2 halfBorderPos = _fullWorldSize * 0.5f;
-        for (float x = -halfBorderPos.x; x <= halfBorderPos.x; x += fullsize_chunkDimensions.x)
+        Vector2 halfBorderPos = (Vector2)realWorldBoundarySize * 0.5f;
+        for (float x = -halfBorderPos.x; x <= halfBorderPos.x; x += realWorldChunkSize.x)
         {
-            for (float z = -halfBorderPos.y; z <= halfBorderPos.y; z += fullsize_chunkDimensions.z)
+            for (float z = -halfBorderPos.y; z <= halfBorderPos.y; z += realWorldChunkSize.z)
             {
                 allPossibleChunkPositions.Add(new Vector3(x, 0, z));
             }
@@ -124,7 +136,7 @@ public class WorldGeneration : MonoBehaviour
         // Create Chunks for each position
         foreach (Vector3 position in positions)
         {
-            WorldChunk newChunk = CreateChunkMesh(position);
+            WorldChunk newChunk = CreateChunkMesh(position, worldChunkDimensions);
             _chunks.Add(newChunk);
 
             // Remove chunk from border positions
@@ -157,17 +169,18 @@ public class WorldGeneration : MonoBehaviour
         // [[ GENERATE BORDER CHUNKS ]] ========================================== >>
         foreach (Vector3 pos in borderPositions)
         {
-            WorldChunk newChunk = CreateChunkMesh(pos);
+            WorldChunk newChunk = CreateChunkMesh(pos, worldChunkDimensions);
             _borderChunks.Add(newChunk);
         }
 
         // Create Combined Mesh
         Mesh combinedBorderMesh = CombineChunks(_borderChunks);
-        _worldBorderObject = CreateCombinedMeshObject(combinedBorderMesh, chunkMaterial);
+        _worldBorderObject = CreateCombinedMeshObject(combinedBorderMesh, borderChunkMaterial);
         _worldBorderObject.transform.parent = transform;
+        _worldBorderObject.transform.position += (Vector3Int.up * realWorldChunkSize);
         _worldBorderObject.name = "(GEN) Ground Border";
 
-        // [[ INITIALIZE MAPS ]] ============================================= >>
+        #region [[ INITIALIZE MAPS ]] ============================================= >>    
         // Initialize Cell Map
         WorldCellMap worldCellMap = FindObjectOfType<WorldCellMap>();
         worldCellMap.InitializeCellMap();
@@ -191,11 +204,13 @@ public class WorldGeneration : MonoBehaviour
         worldEnvironment.StartEnvironmentGeneration();
         yield return new WaitUntil(() => worldEnvironment.generation_finished);
         Debug.Log(_prefix + "COMPLETE : Finished Environment Generation");
-
+#endregion
 
         generation_finished = true;
 
     }
+
+    #region == GENERATE CHUNKS ================================================ ///
 
     public List<WorldChunk> GetChunks()
     {
@@ -240,15 +255,16 @@ public class WorldGeneration : MonoBehaviour
 
         return cells;
     }
+    #endregion
 
-    // =========================================== CREATE CHUNK MESH ==============================================
-    
+    #region =========================================== CREATE CHUNK MESH ==============================================
+
     /// <summary>
     /// Creates a chunk mesh with specified dimensions, vertices, triangles, and UVs. 
     /// Constructs faces of the chunk and computes triangles for each face.
     /// </summary>
     /// <returns>A Mesh object representing a chunk of terrain or object.</returns>
-    WorldChunk CreateChunkMesh(Vector3 position)
+    WorldChunk CreateChunkMesh(Vector3 position, Vector3Int chunkDimensions)
     {
         Mesh mesh = new Mesh();
 
@@ -438,7 +454,7 @@ public class WorldGeneration : MonoBehaviour
 
         return worldObject;
     }
-
+    #endregion
 
     // =========================================== GENERATION HANDLER ==============================================
 
@@ -455,7 +471,7 @@ public class WorldGeneration : MonoBehaviour
 
         if (steps <= 1) { return positions; }
 
-        Vector2 halfBorder = _fullWorldSize * 0.5f; // Half of the world border size
+        Vector2 halfSize_worldPlayArea = (Vector2)realWorldPlayAreaSize * 0.5f; // Half of the world border size
 
         for (int i = 0; i < steps; i++)
         {
@@ -471,13 +487,13 @@ public class WorldGeneration : MonoBehaviour
             while (potentialDirections.Count > 0 && !validPositionFound)
             {
                 int randomIndex = UnityEngine.Random.Range(0, potentialDirections.Count);
-                Vector3 direction = potentialDirections[randomIndex] * fullsize_chunkDimensions.x;
+                Vector3 direction = potentialDirections[randomIndex] * realWorldChunkSize.x;
                 Vector3 proposedPos = currentPos + direction;
 
                 // Clamping the position within the world border
                 if (!positions.Contains(proposedPos) &&
-                    proposedPos.x >= -halfBorder.x && proposedPos.x <= halfBorder.x &&
-                    proposedPos.z >= -halfBorder.y && proposedPos.z <= halfBorder.y)
+                    proposedPos.x >= -halfSize_worldPlayArea.x && proposedPos.x <= halfSize_worldPlayArea.x &&
+                    proposedPos.z >= -halfSize_worldPlayArea.y && proposedPos.z <= halfSize_worldPlayArea.y)
                 {
                     validPositionFound = true;
                     currentPos = proposedPos;
@@ -516,13 +532,6 @@ public class WorldGeneration : MonoBehaviour
             case 3: return Vector3.right;
             default: return Vector3.forward;
         }
-    }
-
-    void OnDrawGizmos()
-    {
-        // Draw World Border
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireCube(Vector3.zero, new Vector3(_fullWorldSize.x, 1, _fullWorldSize.y));
     }
 }
 

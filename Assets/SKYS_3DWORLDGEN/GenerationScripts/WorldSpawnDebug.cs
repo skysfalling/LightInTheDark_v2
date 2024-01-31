@@ -50,7 +50,7 @@ public class WorldSpawnDebug : MonoBehaviour
 
             foreach (WorldChunk chunk in gizmoSelectedTypeChunks)
             {
-                Gizmos.DrawCube(chunk.position, _worldGeneration.fullsize_chunkDimensions);
+                Gizmos.DrawCube(chunk.position, _worldGeneration.realWorldChunkSize);
             }
 
 

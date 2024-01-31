@@ -598,6 +598,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3844159667476140213, guid: c32abf3b0da50e94b94c9b2bba5651a7,
         type: 3}
+      propertyPath: dollySpeed
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 3844159667476140213, guid: c32abf3b0da50e94b94c9b2bba5651a7,
+        type: 3}
+      propertyPath: dollyTarget
+      value: 
+      objectReference: {fileID: 2062262661}
+    - target: {fileID: 3844159667476140213, guid: c32abf3b0da50e94b94c9b2bba5651a7,
+        type: 3}
+      propertyPath: focusTarget
+      value: 
+      objectReference: {fileID: 1444784828}
+    - target: {fileID: 3844159667476140213, guid: c32abf3b0da50e94b94c9b2bba5651a7,
+        type: 3}
       propertyPath: followSpeed
       value: 2
       objectReference: {fileID: 0}
@@ -978,13 +993,84 @@ PrefabInstance:
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: cellSize
-      value: 4
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: chunkMaterial
       value: 
       objectReference: {fileID: 2100000, guid: e79c2a12d81e2df45a49e055ce74559f, type: 2}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: fullChunkSize.x
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: fullChunkSize.y
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: fullChunkSize.z
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: fullWorldSize.x
+      value: 99
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: fullWorldSize.y
+      value: 99
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: chunk_width_in_cells
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: defaultChunkDimensions.x
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: defaultChunkDimensions.y
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: defaultChunkDimensions.z
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: defaultBorderChunkDimensions.x
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: defaultBorderChunkDimensions.y
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: defaultBorderChunkDimensions.z
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1963368856809856772, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: m_Icon
+      value: 
+      objectReference: {fileID: -964228994112308473, guid: 0000000000000000d000000000000000,
+        type: 0}
+    - target: {fileID: 1963368856809856772, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3048074976327827359, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: m_Name
@@ -1132,6 +1218,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 620745325a50846479f301ec54b3a337, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!4 &2062262661 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5305021860519766170, guid: dad85dccd7fc00b49a2afeef84d99cca,
+    type: 3}
+  m_PrefabInstance: {fileID: 1996659570}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &2062262662 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 9023293330023017650, guid: dad85dccd7fc00b49a2afeef84d99cca,

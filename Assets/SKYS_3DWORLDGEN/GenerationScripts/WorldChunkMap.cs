@@ -48,13 +48,13 @@ public class WorldChunkMap : MonoBehaviour
     private List<WorldChunk> MapChunkNeighbors(WorldChunk chunk)
     {
         List<WorldChunk> neighbors = new List<WorldChunk>(new WorldChunk[4]);
-        float chunkSize = _worldGeneration.fullsize_chunkDimensions.x;
+        float chunkWidth = _worldGeneration.realWorldChunkSize.x;
 
         // Calculate neighbor positions
-        Vector3 leftPosition = chunk.position + new Vector3(-chunkSize, 0, 0);
-        Vector3 rightPosition = chunk.position + new Vector3(chunkSize, 0, 0);
-        Vector3 forwardPosition = chunk.position + new Vector3(0, 0, chunkSize);
-        Vector3 backwardPosition = chunk.position + new Vector3(0, 0, -chunkSize);
+        Vector3 leftPosition = chunk.position + new Vector3(-chunkWidth, 0, 0);
+        Vector3 rightPosition = chunk.position + new Vector3(chunkWidth, 0, 0);
+        Vector3 forwardPosition = chunk.position + new Vector3(0, 0, chunkWidth);
+        Vector3 backwardPosition = chunk.position + new Vector3(0, 0, -chunkWidth);
 
         // Find and assign neighbors in the specific order [Left, Right, Forward, Backward]
         neighbors[0] = _worldChunks.Find(c => c.position == leftPosition);     // Left
