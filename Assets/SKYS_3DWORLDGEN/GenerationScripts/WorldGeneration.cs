@@ -21,7 +21,7 @@ public class WorldGeneration : MonoBehaviour
 {
     public static WorldGeneration Instance;
     public static int WorldWidthInChunks = 10; // Default size of PlayArea { in WorldChunk Size Units }
-
+    public static int WorldBoundaryOffset = 1; // Size of boundary offset
 
     public void Awake()
     {
@@ -50,11 +50,9 @@ public class WorldGeneration : MonoBehaviour
     [Range(0, 21)] public int worldChunk_widthInCells = 5; // Length of width in cells
     [Range(0, 21)] public int worldChunk_heightInCells = 3; // Length of height in cells
     [HideInInspector] public Vector3Int worldChunkDimensions { get; private set; } // chunkDimensions { WorldCell size units }
-    [HideInInspector] public Vector3Int realWorldChunkSize { get; private set; } // fullSize Chunk Dimensions [ in Unity units ]
+    [HideInInspector] public Vector3Int realWorldChunkSize { get; private set; } // fullSize Chunk [ in Unity units ]
 
-    // {{ AREA DIMENSIONS }} =====================================
-    [Header("World Area Dimensions")]
-    [Range(0, 3)] public int _worldChunkBoundaryOffset = 0; // size of boundary offset
+    // {{ WORLD DIMENSIONS }} =====================================
     [HideInInspector] public int worldBoundary_widthInChunks { get; private set; }
     [HideInInspector] public Vector2Int realWorldPlayAreaSize { get; private set; } // worldChunkArea * cellSize
     [HideInInspector] public Vector2Int realWorldBoundarySize { get; private set; } // worldChunkArea + 1 for exit chunks * cellSize
@@ -87,8 +85,8 @@ public class WorldGeneration : MonoBehaviour
 
         realWorldPlayAreaSize = WorldWidthInChunks  * new Vector2Int(realWorldChunkSize.x, realWorldChunkSize.z);
 
-        worldBoundary_widthInChunks = WorldWidthInChunks + _worldChunkBoundaryOffset;
-        realWorldBoundarySize = worldBoundary_widthInChunks * new Vector2Int(realWorldChunkSize.x, realWorldChunkSize.z);
+        worldBoundary_widthInChunks = WorldWidthInChunks + (WorldBoundaryOffset * 2);
+        realWorldBoundarySize = (worldBoundary_widthInChunks + 1) * new Vector2Int(realWorldChunkSize.x, realWorldChunkSize.z);
     }
 
 
@@ -96,7 +94,7 @@ public class WorldGeneration : MonoBehaviour
     {
         List<Vector2> chunkPositions = new();
 
-        int worldBoundary_widthInCells = WorldWidthInChunks + (_worldChunkBoundaryOffset * 2);
+        int worldBoundary_widthInCells = WorldWidthInChunks + (WorldBoundaryOffset * 2);
         float halfSize_worldBoundary_widthInCells = worldBoundary_widthInCells * 0.5f;
 
         for (float x = -halfSize_worldBoundary_widthInCells; x <= halfSize_worldBoundary_widthInCells; x++)
@@ -475,13 +473,14 @@ public class WorldGeneration : MonoBehaviour
     }
     #endregion
 
+    #region == MANAGE WORLD EXITS ============================================
     public Vector3 GetWorldExitPosition(WorldExit worldExit)
     {
         WorldDirection direction = worldExit.edgeDirection;
         int index = worldExit.edgeIndex;
 
         // Calculate the number of chunks along the width and height of the play area
-        int widthChunks = WorldWidthInChunks + (_worldChunkBoundaryOffset * 2);
+        int widthChunks = WorldWidthInChunks + (WorldBoundaryOffset * 2);
         int heightChunks = widthChunks; // Assuming square for simplicity
 
         // Calculate chunk position based on direction and index
@@ -526,4 +525,5 @@ public class WorldGeneration : MonoBehaviour
         }
         return maxIndex;
     }
+    #endregion
 }

@@ -52,7 +52,6 @@ public class WorldExitDrawer : PropertyDrawer
         EditorGUI.BeginProperty(position, label, property);
 
         position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
-
         var indent = EditorGUI.indentLevel;
         EditorGUI.indentLevel = 0;
 
@@ -63,17 +62,12 @@ public class WorldExitDrawer : PropertyDrawer
         // Draw the direction field
         EditorGUI.PropertyField(directionRect, property.FindPropertyRelative("edgeDirection"), GUIContent.none);
 
-        // Assuming you can get a max index from somewhere, for demonstration it's hardcoded
-        int maxIndex = WorldGeneration.WorldWidthInChunks - 1;
-
-        // Fetch the current edgeIndex value
+        // << DRAW CUSTOM INDEX SLIDER >>>
         SerializedProperty edgeIndexProp = property.FindPropertyRelative("edgeIndex");
-
-        // Draw the slider for edgeIndex
+        int maxIndex = WorldGeneration.WorldWidthInChunks;
         edgeIndexProp.intValue = EditorGUI.IntSlider(indexRect, GUIContent.none, edgeIndexProp.intValue, 0, maxIndex);
 
         EditorGUI.indentLevel = indent;
-
         EditorGUI.EndProperty();
     }
 }

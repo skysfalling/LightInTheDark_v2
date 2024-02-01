@@ -52,20 +52,12 @@ public class WorldGenerationEditor : Editor
         }
 
         Handles.color = Color.red;
-        foreach (Vector2 chunkPosition in worldGen.GetAllBoundaryChunkPositions())
-        {
-            Vector3 chunkWorldPosition = new Vector3(chunkPosition.x, -worldGen.realWorldChunkSize.y, chunkPosition.y);
-            Handles.DrawWireCube(chunkWorldPosition, worldGen.realWorldChunkSize);
-        }
+        Vector3 worldBoundarySize = new Vector3(worldGen.realWorldBoundarySize.x, 0, worldGen.realWorldBoundarySize.y);
+        Handles.DrawWireCube(worldGen.transform.position, worldBoundarySize);
 
-        // Label for play area width in cells
-        string playAreaWidthLabel = $"Play Area Width: {WorldGeneration.WorldWidthInChunks} Chunks";
-        Vector3 labelPosition = worldGen.transform.position - new Vector3(0, halfSize_playArea.y + halfSize_chunkSize.y, 0); // Position the label below the play area
-        Handles.Label(labelPosition, playAreaWidthLabel);
 
         // Draw World Exits
         DrawWorldExits(worldGen);
-
     }
 
     private void DrawWorldExits(WorldGeneration worldGen)
@@ -78,7 +70,7 @@ public class WorldGenerationEditor : Editor
             Vector3 exitPosition = worldGen.GetWorldExitPosition(worldExit);
 
             Handles.color = Color.yellow;
-            Handles.DrawWireCube(exitPosition + (Vector3.up * 2), worldGen.realWorldChunkSize);
+            Handles.DrawWireCube(exitPosition + (Vector3.down * worldGen.realWorldChunkSize.y), worldGen.realWorldChunkSize);
             Handles.Label(exitPosition, $"Exit: {worldExit.edgeDirection}");
         }
     }
