@@ -77,9 +77,4 @@ public class Entity : MonoBehaviour
         _movePath = WorldPathfinder.Instance.FindPath(_currentCell, _targetCell);
         _cellMap.Debug_ShowCellList(_movePath);
     }
-
-    void ClearPath()
-    {
-
-    }
 }

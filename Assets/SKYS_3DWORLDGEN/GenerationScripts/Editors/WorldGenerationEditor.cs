@@ -4,13 +4,28 @@ using UnityEditor;
 [CustomEditor(typeof(WorldGeneration))]
 public class WorldGenerationEditor : Editor
 {
+
+    private SerializedObject serializedWorldGen;
+    SerializedProperty edgeDirectionProperty;
+    SerializedProperty edgeIndexProperty;
+
+    private void OnEnable()
+    {
+        // Cache the SerializedObject
+        serializedWorldGen = new SerializedObject(target);
+        edgeDirectionProperty = serializedWorldGen.FindProperty("edgeDirection");
+        edgeIndexProperty = serializedWorldGen.FindProperty("edgeIndex");
+    }
+
     public override void OnInspectorGUI()
     {
+        DrawDefaultInspector(); // Draws the default inspector elements
+
+        serializedWorldGen.Update(); // Always start with this call
+
         WorldGeneration worldGen = (WorldGeneration)target;
         EditorGUILayout.LabelField("Real World Chunk Size", worldGen.realWorldChunkSize.ToString());
         EditorGUILayout.LabelField("Real World Boundary Size", worldGen.realWorldBoundarySize.ToString());
-
-        DrawDefaultInspector(); // Draws the default inspector elements
 
 
         // Ensure changes are registered and the inspector updates as needed
@@ -44,8 +59,8 @@ public class WorldGenerationEditor : Editor
         }
 
         // Label for play area width in cells
-        string playAreaWidthLabel = $"Play Area Width: {worldGen.worldPlayArea_widthInChunks} Chunks";
-        Vector3 labelPosition = worldGen.transform.position - new Vector3(0, 0, halfSize_playArea.y + halfSize_chunkSize.y); // Position the label below the play area
+        string playAreaWidthLabel = $"Play Area Width: {WorldGeneration.WorldWidthInChunks} Chunks";
+        Vector3 labelPosition = worldGen.transform.position - new Vector3(0, halfSize_playArea.y + halfSize_chunkSize.y, 0); // Position the label below the play area
         Handles.Label(labelPosition, playAreaWidthLabel);
 
         // Draw World Exits
@@ -55,14 +70,12 @@ public class WorldGenerationEditor : Editor
 
     private void DrawWorldExits(WorldGeneration worldGen)
     {
-
         // Visualize each WorldExit
         foreach (WorldExit worldExit in worldGen.worldExits)
         {
             if (worldExit == null) continue;
 
             Vector3 exitPosition = worldGen.GetWorldExitPosition(worldExit);
-            Debug.Log("Draw World Exit at " + exitPosition);
 
             Handles.color = Color.yellow;
             Handles.DrawWireCube(exitPosition + (Vector3.up * 2), worldGen.realWorldChunkSize);

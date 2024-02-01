@@ -20,6 +20,9 @@ using UnityEngine.XR;
 public class WorldGeneration : MonoBehaviour
 {
     public static WorldGeneration Instance;
+    public static int WorldWidthInChunks = 10; // Default size of PlayArea { in WorldChunk Size Units }
+
+
     public void Awake()
     {
         if (Instance != null) { Destroy(Instance); }
@@ -51,7 +54,6 @@ public class WorldGeneration : MonoBehaviour
 
     // {{ AREA DIMENSIONS }} =====================================
     [Header("World Area Dimensions")]
-    [Range(1, 21)] public int worldPlayArea_widthInChunks = 10; // Size of PlayArea { in WorldChunk Size Units }
     [Range(0, 3)] public int _worldChunkBoundaryOffset = 0; // size of boundary offset
     [HideInInspector] public int worldBoundary_widthInChunks { get; private set; }
     [HideInInspector] public Vector2Int realWorldPlayAreaSize { get; private set; } // worldChunkArea * cellSize
@@ -83,9 +85,9 @@ public class WorldGeneration : MonoBehaviour
         worldChunkDimensions = new Vector3Int(worldChunk_widthInCells, worldChunk_heightInCells, worldChunk_widthInCells);
         realWorldChunkSize = worldChunkDimensions * cellSize;
 
-        realWorldPlayAreaSize = worldPlayArea_widthInChunks  * new Vector2Int(realWorldChunkSize.x, realWorldChunkSize.z);
+        realWorldPlayAreaSize = WorldWidthInChunks  * new Vector2Int(realWorldChunkSize.x, realWorldChunkSize.z);
 
-        worldBoundary_widthInChunks = worldPlayArea_widthInChunks + _worldChunkBoundaryOffset;
+        worldBoundary_widthInChunks = WorldWidthInChunks + _worldChunkBoundaryOffset;
         realWorldBoundarySize = worldBoundary_widthInChunks * new Vector2Int(realWorldChunkSize.x, realWorldChunkSize.z);
     }
 
@@ -94,7 +96,7 @@ public class WorldGeneration : MonoBehaviour
     {
         List<Vector2> chunkPositions = new();
 
-        int worldBoundary_widthInCells = worldPlayArea_widthInChunks + (_worldChunkBoundaryOffset * 2);
+        int worldBoundary_widthInCells = WorldWidthInChunks + (_worldChunkBoundaryOffset * 2);
         float halfSize_worldBoundary_widthInCells = worldBoundary_widthInCells * 0.5f;
 
         for (float x = -halfSize_worldBoundary_widthInCells; x <= halfSize_worldBoundary_widthInCells; x++)
@@ -479,7 +481,7 @@ public class WorldGeneration : MonoBehaviour
         int index = worldExit.edgeIndex;
 
         // Calculate the number of chunks along the width and height of the play area
-        int widthChunks = worldPlayArea_widthInChunks + (_worldChunkBoundaryOffset * 2);
+        int widthChunks = WorldWidthInChunks + (_worldChunkBoundaryOffset * 2);
         int heightChunks = widthChunks; // Assuming square for simplicity
 
         // Calculate chunk position based on direction and index
@@ -502,28 +504,26 @@ public class WorldGeneration : MonoBehaviour
 
         return position;
     }
-}
 
-// ================================================================================================== >>>>
-// ------------------------------- WORLD EXIT
-// ================================================================================================== >>>>
-
-public enum WorldDirection { West, East, North, South }
-
-[System.Serializable]
-public class WorldExit
-{
-    WorldGeneration _worldGen;
-    [HideInInspector] public WorldChunk chunk;
-    public WorldDirection edgeDirection;
-    public int edgeIndex;
-
-    // Constructor
-    public WorldExit(WorldDirection edgeDirection, int edgeIndex)
+    public int CalculateMaxEdgeIndex(WorldDirection direction)
     {
-        this.chunk = WorldChunkMap.Instance.GetEdgeChunk(edgeDirection, edgeIndex);
-        this.edgeDirection = edgeDirection;
-        this.edgeIndex = edgeIndex;
+        // Example calculation, replace with actual logic
+        int maxIndex = 10; // Default value, replace with your calculation
+                           // Assuming WorldGeneration.Instance provides access to world parameters
+        if (WorldGeneration.Instance != null)
+        {
+            switch (direction)
+            {
+                case WorldDirection.North:
+                case WorldDirection.South:
+                    maxIndex = WorldWidthInChunks - 1;
+                    break;
+                case WorldDirection.East:
+                case WorldDirection.West:
+                    maxIndex = WorldWidthInChunks - 1; // Adjust as needed
+                    break;
+            }
+        }
+        return maxIndex;
     }
 }
-
