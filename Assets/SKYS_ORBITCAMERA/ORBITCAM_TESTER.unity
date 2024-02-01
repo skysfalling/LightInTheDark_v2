@@ -1047,6 +1047,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
+      propertyPath: worldExits.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
       propertyPath: worldChunkDimensions.x
       value: 9
       objectReference: {fileID: 0}
@@ -1088,7 +1093,7 @@ PrefabInstance:
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: _worldChunkBoundaryOffset
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}

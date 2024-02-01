@@ -75,6 +75,58 @@ public class WorldChunkMap : MonoBehaviour
         return _chunkNeighborMap[chunk];
     }
 
+    // == WORLD CHUNK EDGES
+    // Method to retrieve an edge chunk
+    public WorldChunk GetEdgeChunk(WorldGeneration.WorldEdgeDirection edgeDirection, int index)
+    {
+        // This list will hold the chunks on the specified edge
+        List<WorldChunk> edgeChunks = new List<WorldChunk>();
+
+        // Identify chunks on the specified edge
+        foreach (WorldChunk chunk in WorldGeneration.Instance.GetBorderChunks())
+        {
+            if (IsOnSpecifiedEdge(chunk, edgeDirection))
+            {
+                edgeChunks.Add(chunk);
+            }
+        }
+
+        // Ensure the index is within bounds
+        if (index >= 0 && index < edgeChunks.Count)
+        {
+            return edgeChunks[index];
+        }
+
+        // Return null or throw an exception if no chunk is found at the index
+        return null;
+    }
+
+    private bool IsOnSpecifiedEdge(WorldChunk chunk, WorldGeneration.WorldEdgeDirection edgeDirection)
+    {
+        WorldGeneration worldGen = WorldGeneration.Instance;
+        Vector2 halfSize_playArea = (Vector2)worldGen.realWorldPlayAreaSize * 0.5f;
+
+
+        // Define the boundaries for each direction
+        float westBoundaryX = -halfSize_playArea.x;
+        float eastBoundaryX = halfSize_playArea.x;
+        float northBoundaryY = -halfSize_playArea.y;
+        float southBoundaryY = halfSize_playArea.y;
+
+        switch (edgeDirection)
+        {
+            case WorldGeneration.WorldEdgeDirection.West:
+                return chunk.position.x == westBoundaryX;
+            case WorldGeneration.WorldEdgeDirection.East:
+                return chunk.position.x == eastBoundaryX;
+            case WorldGeneration.WorldEdgeDirection.North:
+                return chunk.position.y == northBoundaryY;
+            case WorldGeneration.WorldEdgeDirection.South:
+                return chunk.position.y == southBoundaryY;
+            default:
+                return false;
+        }
+    }
 
     // == HELPER FUNCTIONS ==============>>
     public WorldChunk FindClosestChunk(Vector3 position)

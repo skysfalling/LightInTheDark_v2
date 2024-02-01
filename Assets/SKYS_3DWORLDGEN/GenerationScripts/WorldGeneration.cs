@@ -13,8 +13,6 @@ using UnityEngine.XR;
 /// resources, and points of interest. Interacts with various world components to
 /// ensure a cohesive and dynamically generated game environment.
 /// </summary>
-
-
 [RequireComponent(typeof(WorldPathfinder))]
 [RequireComponent(typeof(WorldInteractor))]
 [RequireComponent(typeof(WorldStatTracker))]
@@ -45,14 +43,14 @@ public class WorldGeneration : MonoBehaviour
     [Range(1, 16)] public int cellSize = 4; // Size of each subdivision cell
 
     // {{ CHUNK DIMENSIONS }} =====================================
-    [Header("World Chunks")]
+    [Header("World Chunk Dimensions")]
     [Range(0, 21)] public int worldChunk_widthInCells = 5; // Length of width in cells
     [Range(0, 21)] public int worldChunk_heightInCells = 3; // Length of height in cells
     [HideInInspector] public Vector3Int worldChunkDimensions { get; private set; } // chunkDimensions { WorldCell size units }
     [HideInInspector] public Vector3Int realWorldChunkSize { get; private set; } // fullSize Chunk Dimensions [ in Unity units ]
 
     // {{ AREA DIMENSIONS }} =====================================
-    [Header("World Area")]
+    [Header("World Area Dimensions")]
     [Range(1, 21)] public int worldPlayArea_widthInChunks = 10; // Size of PlayArea { in WorldChunk Size Units }
     [Range(0, 3)] public int _worldChunkBoundaryOffset = 0; // size of boundary offset
     [HideInInspector] public int worldBoundary_widthInChunks { get; private set; }
@@ -60,15 +58,12 @@ public class WorldGeneration : MonoBehaviour
     [HideInInspector] public Vector2Int realWorldBoundarySize { get; private set; } // worldChunkArea + 1 for exit chunks * cellSize
 
 
-    [Header("Generation Values")]
-    public int steps = 10; // Number of steps in the random walk
-
+    #region == Initalizer Functions ======
     private void Start()
     {
         StartGeneration();
     }
 
-    #region == Initialzer Functions ======
     public void StartGeneration()
     {
         Reset();
@@ -90,6 +85,58 @@ public class WorldGeneration : MonoBehaviour
         realWorldBoundarySize = worldBoundary_widthInChunks * new Vector2Int(realWorldChunkSize.x, realWorldChunkSize.z);
     }
 
+
+    public List<Vector2> GetAllWorldChunkPositions()
+    {
+        List<Vector2> chunkPositions = new();
+
+        int worldBoundary_widthInCells = worldPlayArea_widthInChunks + (_worldChunkBoundaryOffset * 2);
+        float halfSize_worldBoundary_widthInCells = worldBoundary_widthInCells * 0.5f;
+
+        for (float x = -halfSize_worldBoundary_widthInCells; x <= halfSize_worldBoundary_widthInCells; x++)
+        {
+            for (float z = -halfSize_worldBoundary_widthInCells; z <= halfSize_worldBoundary_widthInCells; z++)
+            {
+                // Offset position
+                Vector2 newPos = new Vector2(x * realWorldChunkSize.x, z * realWorldChunkSize.z);
+                chunkPositions.Add(newPos);
+            }
+        }
+        return chunkPositions;
+    }
+
+    public List<Vector2> GetAllBoundaryChunkPositions()
+    {
+        List<Vector2> allPositions = GetAllWorldChunkPositions();
+        List<Vector2> boundaryPositions = new List<Vector2>();
+        Vector2 halfSize_playArea = (Vector2)realWorldPlayAreaSize * 0.5f;
+        Vector3 halfSize_chunkSize = (Vector3)realWorldChunkSize * 0.5f;
+
+        float minX = -halfSize_playArea.x - halfSize_chunkSize.x;
+        float maxX = halfSize_playArea.x + halfSize_chunkSize.x;
+        float minZ = -halfSize_playArea.y - halfSize_chunkSize.y;
+        float maxZ = halfSize_playArea.y + halfSize_chunkSize.y;
+
+        boundaryPositions = allPositions.Where(position =>
+            position.x <= minX || position.x >= maxX ||
+            position.y <= minZ || position.y >= maxZ)
+                .ToList();
+
+        return boundaryPositions;
+    }
+
+    public List<Vector2> GetAllPlayAreaChunkPositions()
+    {
+        List<Vector2> allPositions = GetAllWorldChunkPositions();
+        List<Vector2> boundaryPositions = GetAllBoundaryChunkPositions();
+        List<Vector2> playAreaPositions = allPositions.Where(position =>
+            !boundaryPositions.Contains(position)
+        ).ToList();
+
+        return playAreaPositions;
+    }
+
+
     public void Reset()
     {
         Destroy(_worldGenerationObject);
@@ -105,6 +152,7 @@ public class WorldGeneration : MonoBehaviour
     }
     #endregion
 
+    #region == GENERATE CHUNKS ================================================ ///
     IEnumerator Generate(float delay = 0.25f)
     {
         generation_finished = false;
@@ -159,74 +207,23 @@ public class WorldGeneration : MonoBehaviour
         Debug.Log(_prefix + "COMPLETE : Initialized World Chunk Map");
 
         // Initialize Spawn Map
+        /*
         WorldSpawnMap worldSpawnMap = FindObjectOfType<WorldSpawnMap>();
         FindObjectOfType<WorldSpawnMap>().InitializeSpawnMap();
         yield return new WaitUntil(() => worldCellMap.initialized);
         Debug.Log(_prefix + "COMPLETE : Initialized World Spawn Map");
+        */
 
         // [[ ENVIRONMENT GENERATION ]] ===================================
         WorldEnvironment worldEnvironment = FindObjectOfType<WorldEnvironment>();
         worldEnvironment.StartEnvironmentGeneration();
         yield return new WaitUntil(() => worldEnvironment.generation_finished);
         Debug.Log(_prefix + "COMPLETE : Finished Environment Generation");
-#endregion
+        #endregion
 
         generation_finished = true;
 
     }
-
-    public List<Vector2> GetAllWorldChunkPositions()
-    {
-        List<Vector2> chunkPositions = new();
-
-        int worldBoundary_widthInCells = worldPlayArea_widthInChunks + (_worldChunkBoundaryOffset * 2);
-        float halfSize_worldBoundary_widthInCells = worldBoundary_widthInCells * 0.5f;
-
-        for (float x = -halfSize_worldBoundary_widthInCells; x <= halfSize_worldBoundary_widthInCells; x++)
-        {
-            for (float z = -halfSize_worldBoundary_widthInCells; z <= halfSize_worldBoundary_widthInCells; z++)
-            {
-                // Offset position
-                Vector2 newPos = new Vector2(x * realWorldChunkSize.x, z * realWorldChunkSize.z);
-                chunkPositions.Add(newPos);
-            }
-        }
-        return chunkPositions;
-    }
-
-    public List<Vector2> GetAllBoundaryChunkPositions()
-    {
-        List<Vector2> allPositions = GetAllWorldChunkPositions();
-        List<Vector2> boundaryPositions = new List<Vector2>();
-        Vector2 halfSize_playArea = (Vector2)realWorldPlayAreaSize * 0.5f;
-        Vector3 halfSize_chunkSize = (Vector3)realWorldChunkSize * 0.5f;
-
-        float minX = -halfSize_playArea.x - halfSize_chunkSize.x;
-        float maxX = halfSize_playArea.x + halfSize_chunkSize.x;
-        float minZ = -halfSize_playArea.y - halfSize_chunkSize.y;
-        float maxZ = halfSize_playArea.y + halfSize_chunkSize.y;
-
-        boundaryPositions = allPositions.Where(position => 
-            position.x <= minX || position.x  >= maxX || 
-            position.y <= minZ || position.y >= maxZ)
-                .ToList();
-
-        return boundaryPositions;
-    }
-
-    public List<Vector2> GetAllPlayAreaChunkPositions()
-    {
-        List<Vector2> allPositions = GetAllWorldChunkPositions();
-        List<Vector2> boundaryPositions = GetAllBoundaryChunkPositions();
-        List<Vector2> playAreaPositions = allPositions.Where(position =>
-            !boundaryPositions.Contains(position)
-        ).ToList();
-
-        return playAreaPositions;
-    }
-
-
-    #region == GENERATE CHUNKS ================================================ ///
 
     public List<WorldChunk> GetChunks()
     {
@@ -472,8 +469,31 @@ public class WorldGeneration : MonoBehaviour
     }
     #endregion
 
-    // =========================================== GENERATION HANDLER ==============================================
+    #region == HANDLE EXIT CHUNKS ========================================== ///
+    // == WORLD EXIT ============================////
+    // {{ EXIT CHUNKS }} =====================================
+    [System.Serializable]
+    public enum WorldEdgeDirection { West, East, North, South }
 
+    [System.Serializable]
+    public class WorldExit
+    {
+        [HideInInspector] public WorldChunk _chunk;
+        public WorldEdgeDirection edgeDirection;
+        public int edgeIndex = 0;
+
+        // Constructor
+        public WorldExit(WorldEdgeDirection edgeDirection, int edgeIndex)
+        {
+            this._chunk = WorldChunkMap.Instance.GetEdgeChunk(edgeDirection, edgeIndex);
+            this.edgeDirection = edgeDirection;
+        }
+    }
+    public List<WorldExit> worldExits = new List<WorldExit>();
+
+    #endregion
+
+    /*
     /// <summary>
     /// Generates a list of Vector3 positions based on a random walk algorithm.
     /// </summary>
@@ -549,5 +569,6 @@ public class WorldGeneration : MonoBehaviour
             default: return Vector3.forward;
         }
     }
+    */
 }
 

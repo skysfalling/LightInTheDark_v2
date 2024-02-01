@@ -54,5 +54,44 @@ public class WorldGenerationEditor : Editor
         Vector3 labelPosition = worldGen.transform.position - new Vector3(0, 0, halfSize_playArea.y + halfSize_chunkSize.y); // Position the label below the play area
         Handles.Label(labelPosition, playAreaWidthLabel);
 
+        // Draw World Exits
+        DrawWorldExits(worldGen);
+
+    }
+
+    private void DrawWorldExits(WorldGeneration worldGen)
+    {
+        // Get WorldChunkMap instance from WorldGeneration
+        WorldChunkMap chunkMap = WorldChunkMap.Instance;
+
+        // Visualize each WorldExit
+        foreach (WorldGeneration.WorldExit worldExit in worldGen.worldExits)
+        {
+            if (worldExit == null || worldExit._chunk == null) continue;
+
+            Vector3 exitPosition = new Vector3(worldExit._chunk.position.x, 0, worldExit._chunk.position.y);
+            Vector3 direction = GetExitDirectionVector(worldExit.edgeDirection);
+            Handles.color = Color.yellow;
+            Handles.DrawWireCube(exitPosition, worldGen.realWorldChunkSize);
+
+            Handles.Label(exitPosition, $"Exit: {worldExit.edgeDirection}");
+        }
+    }
+
+    private Vector3 GetExitDirectionVector(WorldGeneration.WorldEdgeDirection direction)
+    {
+        switch (direction)
+        {
+            case WorldGeneration.WorldEdgeDirection.West:
+                return Vector3.left;
+            case WorldGeneration.WorldEdgeDirection.East:
+                return Vector3.right;
+            case WorldGeneration.WorldEdgeDirection.North:
+                return Vector3.forward;
+            case WorldGeneration.WorldEdgeDirection.South:
+                return Vector3.back;
+            default:
+                return Vector3.zero;
+        }
     }
 }
