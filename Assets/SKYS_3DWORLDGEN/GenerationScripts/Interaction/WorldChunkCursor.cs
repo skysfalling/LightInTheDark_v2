@@ -38,7 +38,7 @@ public class WorldChunkCursor : MonoBehaviour
 
         // New active chunk
         _activeChunk = chunk;
-        transform.position = _activeChunk.position;
+        transform.position = _activeChunk.worldPosition;
         CreateCursorAt(_activeChunk);
         WorldCellMap.Instance.Debug_ShowChunkLocalCells(_activeChunk);
     }
@@ -53,12 +53,12 @@ public class WorldChunkCursor : MonoBehaviour
         }
 
         // Create New Cursor
-        cursor = Instantiate(cursorPrefab, chunk.position, Quaternion.identity);
+        cursor = Instantiate(cursorPrefab, chunk.worldPosition, Quaternion.identity);
 
         int chunkCursorWidth = (WorldGeneration.Instance.worldChunk_widthInCells + 1) * WorldGeneration.Instance.cellSize;
         cursor.transform.localScale = new Vector3(chunkCursorWidth, 1, chunkCursorWidth);
 
-        cursor.name = $"{cursorPrefab.name} :: Chunk {chunk.position}";
+        cursor.name = $"{cursorPrefab.name} :: Chunk {chunk.worldPosition}";
         _activeChunkCursors[chunk] = cursor;
 
     }

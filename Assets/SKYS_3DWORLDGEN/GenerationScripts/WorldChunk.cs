@@ -29,7 +29,7 @@ public class WorldChunk
     public bool WestEdgeActive { get; private set; }
 
     [HideInInspector] public Mesh mesh;
-    public Vector2 position;
+    public Vector2 worldPosition;
 
     public List<WorldCell> localCells = new List<WorldCell>();
     Dictionary<WorldCell.TYPE, List<WorldCell>> _cellTypeMap = new Dictionary<WorldCell.TYPE, List<WorldCell>>();
@@ -37,7 +37,7 @@ public class WorldChunk
     public WorldChunk(Mesh mesh, Vector2 position, int width = 3, int height = 3, int cellSize = 4)
     {
         this.mesh = mesh;
-        this.position = position;
+        this.worldPosition = position;
 
         OffsetMesh(position);
         CreateCells();

@@ -69,7 +69,7 @@ public class WorldEnvironment : MonoBehaviour
         if (environmentObjects.Count == 0) { return; }
         foreach (WorldChunk chunk in _worldGeneration.GetChunks())
         {
-            GameObject newParent = new GameObject(parentObjectPrefix + "chunk" + chunk.position);
+            GameObject newParent = new GameObject(parentObjectPrefix + "chunk" + chunk.worldPosition);
             newParent.transform.parent = transform;
             _worldChunkEnvParentMap[chunk] = newParent.transform;
         }
@@ -78,7 +78,7 @@ public class WorldEnvironment : MonoBehaviour
         if (environmentObjects.Count == 0) { return; }
         foreach (WorldChunk chunk in _worldGeneration.GetBorderChunks())
         {
-            GameObject newParent = new GameObject(parentObjectPrefix + "BORDER chunk" + chunk.position);
+            GameObject newParent = new GameObject(parentObjectPrefix + "BORDER chunk" + chunk.worldPosition);
             newParent.transform.parent = transform;
             _borderChunkEnvParentMap[chunk] = newParent.transform;
         }

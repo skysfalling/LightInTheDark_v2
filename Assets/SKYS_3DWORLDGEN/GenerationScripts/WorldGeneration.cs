@@ -30,7 +30,7 @@ public class WorldGeneration : MonoBehaviour
     GameObject _worldGenerationObject;
     GameObject _worldBorderObject;
     Coroutine _worldGenerationRoutine;
-    List<WorldChunk> _chunks = new List<WorldChunk>();
+    List<WorldChunk> _worldChunks = new List<WorldChunk>();
     List<WorldChunk> _borderChunks = new List<WorldChunk>();
 
     [HideInInspector] public bool generation_finished = false;
@@ -58,7 +58,11 @@ public class WorldGeneration : MonoBehaviour
     [HideInInspector] public Vector2Int realWorldBoundarySize { get; private set; } // worldChunkArea + 1 for exit chunks * cellSize
 
 
-    #region == Initalizer Functions ======
+    // == {{ WORLD EXITS }} ============================////
+    [Header("World Exits")]
+    public List<WorldExit> worldExits = new List<WorldExit>();
+
+    #region == INITIALIZE ======
     private void Start()
     {
         StartGeneration();
@@ -147,7 +151,7 @@ public class WorldGeneration : MonoBehaviour
         FindObjectOfType<WorldEnvironment>().Reset();
         FindObjectOfType<WorldStatTracker>().UpdateStats();
 
-        _chunks.Clear();
+        _worldChunks.Clear();
         _borderChunks.Clear();
     }
     #endregion
@@ -167,7 +171,7 @@ public class WorldGeneration : MonoBehaviour
         foreach (Vector2 position in allPlayAreaChunkPositions)
         {
             WorldChunk newChunk = CreateWorldChunk(position, worldChunkDimensions);
-            _chunks.Add(newChunk);
+            _worldChunks.Add(newChunk);
         }
 
         // [[ GENERATE BORDER CHUNKS ]] ========================================== >>
@@ -179,7 +183,7 @@ public class WorldGeneration : MonoBehaviour
 
         // [[ GENERATE WORLD CHUNKS ]] ========================================== >>
         // Create Combined Mesh of world chunks
-        Mesh combinedMesh = CombineChunks(_chunks);
+        Mesh combinedMesh = CombineChunks(_worldChunks);
         _worldGenerationObject = CreateCombinedMeshObject(combinedMesh, chunkMaterial);
         _worldGenerationObject.transform.parent = transform;
         _worldGenerationObject.name = "(WORLD GENERATION) Ground Layout";
@@ -227,19 +231,19 @@ public class WorldGeneration : MonoBehaviour
 
     public List<WorldChunk> GetChunks()
     {
-        if (_chunks.Count == 0 || _chunks == null)
+        if (_worldChunks.Count == 0 || _worldChunks == null)
         {
             return new List<WorldChunk>();
         }
 
-        return _chunks;
+        return _worldChunks;
     }
 
     public WorldChunk GetChunkAt(Vector2 position)
     {
-        foreach (WorldChunk chunk in _chunks)
+        foreach (WorldChunk chunk in _worldChunks)
         {
-            if (chunk.position == position) { return chunk; }
+            if (chunk.worldPosition == position) { return chunk; }
         }
         return null;
     }
@@ -258,7 +262,7 @@ public class WorldGeneration : MonoBehaviour
     {
         List<WorldCell> cells = new List<WorldCell>();
 
-        foreach (WorldChunk chunk in _chunks)
+        foreach (WorldChunk chunk in _worldChunks)
         {
             foreach (WorldCell cell in chunk.localCells)
             {
@@ -270,7 +274,7 @@ public class WorldGeneration : MonoBehaviour
     }
     #endregion
 
-    #region =========================================== CREATE CHUNK MESH ==============================================
+    #region == CREATE CHUNK MESH ==============================================
 
     /// <summary>
     /// Creates a chunk mesh with specified dimensions, vertices, triangles, and UVs. 
@@ -469,106 +473,57 @@ public class WorldGeneration : MonoBehaviour
     }
     #endregion
 
-    #region == HANDLE EXIT CHUNKS ========================================== ///
-    // == WORLD EXIT ============================////
-    // {{ EXIT CHUNKS }} =====================================
-    [System.Serializable]
-    public enum WorldEdgeDirection { West, East, North, South }
-
-    [System.Serializable]
-    public class WorldExit
+    public Vector3 GetWorldExitPosition(WorldExit worldExit)
     {
-        [HideInInspector] public WorldChunk _chunk;
-        public WorldEdgeDirection edgeDirection;
-        public int edgeIndex = 0;
+        WorldDirection direction = worldExit.edgeDirection;
+        int index = worldExit.edgeIndex;
 
-        // Constructor
-        public WorldExit(WorldEdgeDirection edgeDirection, int edgeIndex)
+        // Calculate the number of chunks along the width and height of the play area
+        int widthChunks = worldPlayArea_widthInChunks + (_worldChunkBoundaryOffset * 2);
+        int heightChunks = widthChunks; // Assuming square for simplicity
+
+        // Calculate chunk position based on direction and index
+        Vector3 position = Vector3.zero;
+        switch (direction)
         {
-            this._chunk = WorldChunkMap.Instance.GetEdgeChunk(edgeDirection, edgeIndex);
-            this.edgeDirection = edgeDirection;
-        }
-    }
-    public List<WorldExit> worldExits = new List<WorldExit>();
-
-    #endregion
-
-    /*
-    /// <summary>
-    /// Generates a list of Vector3 positions based on a random walk algorithm.
-    /// </summary>
-    /// <param name="steps">Number of steps in the random walk.</param>
-    /// <returns>A List of Vector3 positions representing the path of the random walk.</returns>
-    List<Vector3> GenerateRandomWalkPositions(int steps)
-    {
-        List<Vector3> positions = new List<Vector3>();
-        Vector3 currentPos = Vector3.zero; // Starting position
-        positions.Add(currentPos); // always have starter position
-
-        if (steps <= 1) { return positions; }
-
-        Vector2 halfSize_worldPlayArea = (Vector2)realWorldPlayAreaSize * 0.5f; // Half of the world border size
-
-        for (int i = 0; i < steps; i++)
-        {
-            List<Vector3> potentialDirections = new List<Vector3>
-            {
-                Vector3.forward,
-                Vector3.back,
-                Vector3.left,
-                Vector3.right
-            };
-
-            bool validPositionFound = false;
-            while (potentialDirections.Count > 0 && !validPositionFound)
-            {
-                int randomIndex = UnityEngine.Random.Range(0, potentialDirections.Count);
-                Vector3 direction = potentialDirections[randomIndex] * realWorldChunkSize.x;
-                Vector3 proposedPos = currentPos + direction;
-
-                // Clamping the position within the world border
-                if (!positions.Contains(proposedPos) &&
-                    proposedPos.x >= -halfSize_worldPlayArea.x && proposedPos.x <= halfSize_worldPlayArea.x &&
-                    proposedPos.z >= -halfSize_worldPlayArea.y && proposedPos.z <= halfSize_worldPlayArea.y)
-                {
-                    validPositionFound = true;
-                    currentPos = proposedPos;
-                    positions.Add(currentPos);
-                }
-                else
-                {
-                    // Remove the direction and try another one
-                    potentialDirections.RemoveAt(randomIndex);
-                }
-            }
-
-            // If no valid position is found, end the path
-            if (!validPositionFound)
-            {
+            case WorldDirection.North:
+                position = new Vector3((index - widthChunks / 2) * realWorldChunkSize.x, 0, (heightChunks / 2) * realWorldChunkSize.z);
                 break;
-            }
+            case WorldDirection.South:
+                position = new Vector3((index - widthChunks / 2) * realWorldChunkSize.x, 0, -(heightChunks / 2) * realWorldChunkSize.z);
+                break;
+            case WorldDirection.East:
+                position = new Vector3((widthChunks / 2) * realWorldChunkSize.x, 0, (index - heightChunks / 2) * realWorldChunkSize.z);
+                break;
+            case WorldDirection.West:
+                position = new Vector3(-(widthChunks / 2) * realWorldChunkSize.x, 0, (index - heightChunks / 2) * realWorldChunkSize.z);
+                break;
         }
 
-        return positions;
+        return position;
     }
+}
 
+// ================================================================================================== >>>>
+// ------------------------------- WORLD EXIT
+// ================================================================================================== >>>>
 
-    /// <summary>
-    /// Generates a random direction on the XZ plane.
-    /// </summary>
-    /// <returns>A Vector3 representing a random direction on the XZ plane.</returns>
-    Vector3 RandomDirectionOnXZ()
+public enum WorldDirection { West, East, North, South }
+
+[System.Serializable]
+public class WorldExit
+{
+    WorldGeneration _worldGen;
+    [HideInInspector] public WorldChunk chunk;
+    public WorldDirection edgeDirection;
+    public int edgeIndex;
+
+    // Constructor
+    public WorldExit(WorldDirection edgeDirection, int edgeIndex)
     {
-        int choice = UnityEngine.Random.Range(0, 4);
-        switch (choice)
-        {
-            case 0: return Vector3.forward;
-            case 1: return Vector3.back;
-            case 2: return Vector3.left;
-            case 3: return Vector3.right;
-            default: return Vector3.forward;
-        }
+        this.chunk = WorldChunkMap.Instance.GetEdgeChunk(edgeDirection, edgeIndex);
+        this.edgeDirection = edgeDirection;
+        this.edgeIndex = edgeIndex;
     }
-    */
 }
 

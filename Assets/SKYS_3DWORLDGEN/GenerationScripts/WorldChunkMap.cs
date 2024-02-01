@@ -51,16 +51,16 @@ public class WorldChunkMap : MonoBehaviour
         float chunkWidth = _worldGeneration.realWorldChunkSize.x;
 
         // Calculate neighbor positions
-        Vector2 leftPosition = chunk.position + new Vector2(-chunkWidth, 0);
-        Vector2 rightPosition = chunk.position + new Vector2(chunkWidth, 0);
-        Vector2 forwardPosition = chunk.position + new Vector2(0, chunkWidth);
-        Vector2 backwardPosition = chunk.position + new Vector2(0, -chunkWidth);
+        Vector2 leftPosition = chunk.worldPosition + new Vector2(-chunkWidth, 0);
+        Vector2 rightPosition = chunk.worldPosition + new Vector2(chunkWidth, 0);
+        Vector2 forwardPosition = chunk.worldPosition + new Vector2(0, chunkWidth);
+        Vector2 backwardPosition = chunk.worldPosition + new Vector2(0, -chunkWidth);
 
         // Find and assign neighbors in the specific order [Left, Right, Forward, Backward]
-        neighbors[0] = _worldChunks.Find(c => c.position == leftPosition);     // Left
-        neighbors[1] = _worldChunks.Find(c => c.position == rightPosition);    // Right
-        neighbors[2] = _worldChunks.Find(c => c.position == forwardPosition);  // Forward
-        neighbors[3] = _worldChunks.Find(c => c.position == backwardPosition); // Backward
+        neighbors[0] = _worldChunks.Find(c => c.worldPosition == leftPosition);     // Left
+        neighbors[1] = _worldChunks.Find(c => c.worldPosition == rightPosition);    // Right
+        neighbors[2] = _worldChunks.Find(c => c.worldPosition == forwardPosition);  // Forward
+        neighbors[3] = _worldChunks.Find(c => c.worldPosition == backwardPosition); // Backward
 
         // Remove null entries if a neighbor is not found
         neighbors.RemoveAll(item => item == null);
@@ -77,7 +77,7 @@ public class WorldChunkMap : MonoBehaviour
 
     // == WORLD CHUNK EDGES
     // Method to retrieve an edge chunk
-    public WorldChunk GetEdgeChunk(WorldGeneration.WorldEdgeDirection edgeDirection, int index)
+    public WorldChunk GetEdgeChunk(WorldDirection edgeDirection, int index)
     {
         // This list will hold the chunks on the specified edge
         List<WorldChunk> edgeChunks = new List<WorldChunk>();
@@ -101,7 +101,7 @@ public class WorldChunkMap : MonoBehaviour
         return null;
     }
 
-    private bool IsOnSpecifiedEdge(WorldChunk chunk, WorldGeneration.WorldEdgeDirection edgeDirection)
+    private bool IsOnSpecifiedEdge(WorldChunk chunk, WorldDirection edgeDirection)
     {
         WorldGeneration worldGen = WorldGeneration.Instance;
         Vector2 halfSize_playArea = (Vector2)worldGen.realWorldPlayAreaSize * 0.5f;
@@ -115,14 +115,14 @@ public class WorldChunkMap : MonoBehaviour
 
         switch (edgeDirection)
         {
-            case WorldGeneration.WorldEdgeDirection.West:
-                return chunk.position.x == westBoundaryX;
-            case WorldGeneration.WorldEdgeDirection.East:
-                return chunk.position.x == eastBoundaryX;
-            case WorldGeneration.WorldEdgeDirection.North:
-                return chunk.position.y == northBoundaryY;
-            case WorldGeneration.WorldEdgeDirection.South:
-                return chunk.position.y == southBoundaryY;
+            case WorldDirection.West:
+                return chunk.worldPosition.x == westBoundaryX;
+            case WorldDirection.East:
+                return chunk.worldPosition.x == eastBoundaryX;
+            case WorldDirection.North:
+                return chunk.worldPosition.y == northBoundaryY;
+            case WorldDirection.South:
+                return chunk.worldPosition.y == southBoundaryY;
             default:
                 return false;
         }
@@ -137,7 +137,7 @@ public class WorldChunkMap : MonoBehaviour
         // Iterate over each cell in WorldGeneration
         foreach (WorldChunk chunk in _worldGeneration.GetChunks())
         {
-            float distance = Vector3.Distance(position, chunk.position);
+            float distance = Vector3.Distance(position, chunk.worldPosition);
 
             if (distance < minDistance)
             {
@@ -182,7 +182,7 @@ public class WorldChunkMap : MonoBehaviour
         if (chunk.initialized == false) return "[ WORLD CHUNK ] is not initialized.";
 
 
-        string str_out = $"[ WORLD CHUNK ] : {chunk.position}\n";
+        string str_out = $"[ WORLD CHUNK ] : {chunk.worldPosition}\n";
         str_out += $"\t>> chunk_type : {chunk.type}\n";
         str_out += $"\t>> Total Cell Count : {chunk.localCells.Count}\n";
         str_out += $"\t    -- Empty Cells : {chunk.GetCellsOfType(WorldCell.TYPE.EMPTY).Count}\n";
