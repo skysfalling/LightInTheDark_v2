@@ -18,20 +18,17 @@ public class WorldChunkMapEditor : Editor
         serializedChunkMap.Update(); // Always start with this call
 
         WorldChunkMap worldChunkMap = (WorldChunkMap)target;
-        worldChunkMap.SetWorldExitCoordinates();
 
-        Debug.Log("WorldChunkMap Editor");
-        
+        if (GUILayout.Button("Find Golden Path"))
+        {
+            worldChunkMap.FindGoldenPath();
+        }
+        serializedChunkMap.ApplyModifiedProperties();
+
         // Ensure changes are registered and the inspector updates as needed
         if (GUI.changed)
         {
             EditorUtility.SetDirty(worldChunkMap);
         }
-    }
-
-    private void OnSceneGUI()
-    {
-        WorldChunkMap worldChunkMap = (WorldChunkMap)target;
-        worldChunkMap.SetWorldExitCoordinates();
     }
 }

@@ -14,11 +14,11 @@ public enum WorldDirection { West, East, North, South }
 public class WorldExit
 {
     [SerializeField]
-    private WorldChunkMap.Coordinate _coordinate;
+    private WorldCoordinate _coordinate;
     public WorldDirection edgeDirection;
     public int edgeIndex;
 
-    public WorldChunkMap.Coordinate Coordinate
+    public WorldCoordinate Coordinate
     {
         get { return _coordinate; }
         set { _coordinate = value; }

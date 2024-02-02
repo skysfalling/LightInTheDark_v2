@@ -69,6 +69,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2832013479746530852}
+  - component: {fileID: 8295359213703746231}
   - component: {fileID: 4922368716762689905}
   - component: {fileID: 4652889822070907782}
   m_Layer: 0
@@ -93,6 +94,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5845749257906015333}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8295359213703746231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1220748305561793608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97b232c10588f6a499c0ca26e13742c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showGizmos: 0
 --- !u!114 &4922368716762689905
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -118,6 +132,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3677fe2dc3f6fda468e449286c891a6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  worldExits:
+  - edgeDirection: 1
+    edgeIndex: 2
+  - edgeDirection: 0
+    edgeIndex: 6
+  showGizmos: 1
   initialized: 0
 --- !u!1 &1652254909227268323
 GameObject:
@@ -328,9 +348,9 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 2832013479746530852}
   - {fileID: 1981935170520572513}
   - {fileID: 5305021860519766170}
-  - {fileID: 2832013479746530852}
   - {fileID: 2625624407440556941}
   - {fileID: 4240412395327542972}
   - {fileID: 7926454517991110185}
@@ -349,7 +369,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   generation_finished: 0
-  worldExits: []
 --- !u!114 &8701923849753727028
 MonoBehaviour:
   m_ObjectHideFlags: 0

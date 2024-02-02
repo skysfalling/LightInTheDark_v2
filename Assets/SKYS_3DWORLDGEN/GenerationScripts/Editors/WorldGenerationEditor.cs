@@ -43,10 +43,12 @@ public class WorldGenerationEditor : Editor
         worldGen.InitializeWorldDimensions();
 
         // >> DRAW BOUNDARY SQUARES
+        /*
         Handles.color = Color.white;
         Handles.DrawWireCube(worldGen.transform.position, new Vector3(WorldGeneration.GetRealPlayAreaSize().x, 0, WorldGeneration.GetRealPlayAreaSize().y));
 
         Handles.color = Color.red;
         Handles.DrawWireCube(worldGen.transform.position, new Vector3(WorldGeneration.GetRealFullWorldSize().x, 0, WorldGeneration.GetRealFullWorldSize().y));
+        */
     }
 }

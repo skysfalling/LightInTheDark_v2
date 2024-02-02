@@ -20,7 +20,7 @@ public class WorldChunk
      * DEADEND : 3 walls
      * CLOSED : 4 walls
      */
-    public enum TYPE { EMPTY , WALL, HALLWAY, CORNER, DEADEND, CLOSED, BORDER, EXIT }
+    public enum TYPE { EMPTY, WALL, HALLWAY, CORNER, DEADEND, CLOSED, BORDER, EXIT }
     public TYPE type;
 
     // EDGES

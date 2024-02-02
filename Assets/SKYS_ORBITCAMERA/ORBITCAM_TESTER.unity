@@ -1198,18 +1198,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
+      propertyPath: showGizmos
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
       propertyPath: worldExits.Array.size
       value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: worldExits.Array.data[0].edgeIndex
-      value: 0
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: worldExits.Array.data[1].edgeIndex
-      value: 0
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
