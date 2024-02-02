@@ -43,21 +43,20 @@ public class WorldGeneration : MonoBehaviour
 
     // CONVERT TO REAL UNITS
     Vector2Int _realChunkAreaSize;// realWorldChunkSize * cellSize
-    Vector2Int _realPlayZoneSize; // PlayZoneArea * realChunkSize
+    Vector2Int _realPlayAreaSize; // PlayZoneArea * realChunkSize
     Vector2Int _realFullWorldSize; // _fullWorldArea * cellSize
     public static Vector2Int GetRealChunkAreaSize() { return ChunkArea * CellSize; }
-    public static Vector3Int GetRealChunkDimensions() { return GetRealChunkDimensions() * CellSize; }
-    public static Vector2Int GetRealPlayZoneSize() { return PlayZoneArea * GetRealChunkAreaSize(); }
+    public static Vector3Int GetRealChunkDimensions() { return new Vector3Int(ChunkArea.x, ChunkDepth, ChunkArea.y); }
+    public static Vector2Int GetRealPlayAreaSize() { return PlayZoneArea * GetRealChunkAreaSize(); }
     public static Vector2Int GetRealFullWorldSize() { return GetFullWorldArea() * GetRealChunkAreaSize(); }
 
     public void InitializeWorldDimensions()
     {
         _fullWorldArea = GetFullWorldArea();
         _realChunkAreaSize = GetRealChunkAreaSize();
-        _realPlayZoneSize = GetRealPlayZoneSize();
+        _realPlayAreaSize = GetRealPlayAreaSize();
         _realFullWorldSize = GetRealFullWorldSize();
     }
-
 
     string _prefix = "[ WORLD GENERATION ] ";
     [HideInInspector] public bool generation_finished = false;
@@ -66,14 +65,6 @@ public class WorldGeneration : MonoBehaviour
     Coroutine _worldGenerationRoutine;
     List<WorldChunk> _worldChunks = new List<WorldChunk>();
     List<WorldChunk> _borderChunks = new List<WorldChunk>();
-
-
-    [Space(10), Header("Materials")]
-    public Material chunkMaterial; // Assign a material in the inspector
-    public Material borderChunkMaterial; // Assign a material in the inspector
-
-
-
 
     // == {{ WORLD EXITS }} ============================////
     [Header("World Exits")]
@@ -95,53 +86,7 @@ public class WorldGeneration : MonoBehaviour
 
     }
 
-    public List<Vector2> GetAllWorldChunkPositions()
-    {
-        List<Vector2> chunkPositions = new();
-        Vector2 half_FullWorldArea = (Vector2)_fullWorldArea * 0.5f;
 
-        for (float x = -half_FullWorldArea.x; x <= half_FullWorldArea.x; x++)
-        {
-            for (float y = -half_FullWorldArea.y; y <= half_FullWorldArea.y; y++)
-            {
-                // Offset position
-                Vector2 newPos = new Vector2(x * _realChunkAreaSize.x, y * _realChunkAreaSize.y);
-                chunkPositions.Add(newPos);
-            }
-        }
-        return chunkPositions;
-    }
-
-    public List<Vector2> GetAllBoundaryChunkPositions()
-    {
-        List<Vector2> allPositions = GetAllWorldChunkPositions();
-        List<Vector2> boundaryPositions = new List<Vector2>();
-        Vector2 half_playAreaSize = (Vector2)_realPlayZoneSize * 0.5f;
-        Vector3 half_chunkSize = (Vector2)_realChunkAreaSize * 0.5f;
-
-        float minX = -half_playAreaSize.x - half_chunkSize.x;
-        float maxX = half_playAreaSize.x + half_chunkSize.x;
-        float minZ = -half_playAreaSize.y - half_chunkSize.y;
-        float maxZ = half_playAreaSize.y + half_chunkSize.y;
-
-        boundaryPositions = allPositions.Where(position =>
-            position.x <= minX || position.x >= maxX ||
-            position.y <= minZ || position.y >= maxZ)
-                .ToList();
-
-        return boundaryPositions;
-    }
-
-    public List<Vector2> GetAllPlayAreaChunkPositions()
-    {
-        List<Vector2> allPositions = GetAllWorldChunkPositions();
-        List<Vector2> boundaryPositions = GetAllBoundaryChunkPositions();
-        List<Vector2> playAreaPositions = allPositions.Where(position =>
-            !boundaryPositions.Contains(position)
-        ).ToList();
-
-        return playAreaPositions;
-    }
 
 
     public void Reset()
@@ -166,10 +111,10 @@ public class WorldGeneration : MonoBehaviour
         if (_worldGenerationObject != null) { Reset(); }
 
         // Get All Chunk Positions
-        List<Vector2> allWorldChunkPositions = GetAllWorldChunkPositions();
-        List<Vector2> allBorderChunkPositions = GetAllBoundaryChunkPositions();
-        List<Vector2> allPlayAreaChunkPositions = GetAllPlayAreaChunkPositions();
+        List<Vector2> allWorldChunkPositions = WorldChunkMap.GetCoordinateMapPositions();
 
+
+        /*
         // [[ GENERATE PLAY AREA CHUNKS ]] ========================================== >>
         foreach (Vector2 position in allPlayAreaChunkPositions)
         {
@@ -187,7 +132,7 @@ public class WorldGeneration : MonoBehaviour
         // [[ GENERATE COMBINED MESHES ]] ========================================== >>
         // Create Combined Mesh of world chunks
         Mesh combinedMesh = CombineChunks(_worldChunks);
-        _worldGenerationObject = CreateCombinedMeshObject(combinedMesh, chunkMaterial);
+        _worldGenerationObject = CreateCombinedMeshObject(combinedMesh, WorldMaterialLibrary.chunkMaterial);
         _worldGenerationObject.transform.parent = transform;
         _worldGenerationObject.name = "(WORLD GENERATION) Combined Ground Mesh";
         MeshCollider collider = _worldGenerationObject.AddComponent<MeshCollider>();
@@ -195,9 +140,10 @@ public class WorldGeneration : MonoBehaviour
 
         // Create Combined Mesh
         Mesh combinedBorderMesh = CombineChunks(_borderChunks);
-        _worldBorderObject = CreateCombinedMeshObject(combinedBorderMesh, borderChunkMaterial);
+        _worldBorderObject = CreateCombinedMeshObject(combinedBorderMesh, WorldMaterialLibrary.chunkMaterial);
         _worldBorderObject.transform.parent = transform;
         _worldBorderObject.name = "(WORLD GENERATION) Combined Ground Border";
+        */
 
         #region [[ INITIALIZE MAPS ]] ============================================= >>    
         // Initialize Cell Map
@@ -276,9 +222,7 @@ public class WorldGeneration : MonoBehaviour
     }
     #endregion
 
-    #region == CREATE CHUNK MESH ==============================================
-
-
+    #region == CREATE COMBINED CHUNK MESH ==============================================
     /// <summary>
     /// Combines multiple Mesh objects into a single mesh. This is useful for optimizing rendering by reducing draw calls.
     /// </summary>

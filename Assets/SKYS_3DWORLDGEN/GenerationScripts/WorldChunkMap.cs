@@ -1,34 +1,85 @@
  using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class WorldChunkMap : MonoBehaviour
 {
+    // >> SINGLETON INSTANCE ================== >>
     public static WorldChunkMap Instance;
     public void Awake()
     {
         if (Instance == null) { Instance = this; }
     }
+    // >> COORDINATE CLASS ================================ >>
+    public class Coordinate
+    {
+        public Vector2 Position { get; set; }
+        public float GCost { get; set; }
+        public float HCost { get; set; }
+        public float FCost => GCost + HCost;
+        public Coordinate Parent { get; set; }
+
+        public Coordinate(Vector2 position)
+        {
+            Position = position;
+            GCost = float.MaxValue;
+            HCost = 0;
+            Parent = null;
+        }
+    }
+
+    public static List<Coordinate> CreateCoordinateMap()
+    {
+        List<Coordinate> coordMap = new();
+
+        Vector2Int chunkArea = WorldGeneration.ChunkArea;
+        Vector2 half_FullWorldArea = (Vector2)WorldGeneration.GetFullWorldArea() * 0.5f;
+
+        for (float x = -half_FullWorldArea.x; x <= half_FullWorldArea.x; x++)
+        {
+            for (float y = -half_FullWorldArea.y; y <= half_FullWorldArea.y; y++)
+            {
+                Vector2 newPos = new Vector2(x * chunkArea.x, y * chunkArea.y);
+                coordMap.Add(new Coordinate(newPos));
+            }
+        }
+        return coordMap;
+    }
+
+    public static List<Vector2> GetCoordinateMapPositions()
+    {
+        List<Coordinate> coordMap = CreateCoordinateMap();
+        List<Vector2> coordMapPositions = new List<Vector2>();
+
+        foreach(Coordinate coord in coordMap) { coordMapPositions.Add(coord.Position); }
+        return coordMapPositions;
+    }
+
+    // =================================================================
+
+
+    // == GAME INTIALIZATION ===============================================================
 
     public bool initialized = false;
     WorldGeneration _worldGen;
     List<WorldChunk> _worldChunks = new List<WorldChunk>();
-    Dictionary<WorldChunk, List<WorldChunk>> _chunkNeighborMap = new Dictionary<WorldChunk, List<WorldChunk>>();
+    Dictionary<WorldChunk, List<WorldChunk>> _chunkMap = new Dictionary<WorldChunk, List<WorldChunk>>();
 
     public void InitializeChunkMap()
     {
         initialized = false;
 
-        _worldGen = GetComponentInParent<WorldGeneration>();
+        _worldGen = WorldGeneration.Instance;
         _worldChunks = _worldGen.GetChunks();
-        _chunkNeighborMap.Clear();
+        _chunkMap.Clear();
 
         // << Initialize Chunks >>
         foreach (WorldChunk chunk in _worldChunks)
         {
             // Set Neighbors
             List<WorldChunk> neighbors = SetChunkNeighbors(chunk);
-            _chunkNeighborMap[chunk] = neighbors;
+            _chunkMap[chunk] = neighbors;
 
             // Initialize
             chunk.Initialize();
@@ -50,7 +101,7 @@ public class WorldChunkMap : MonoBehaviour
     public void Reset()
     {
         _worldChunks.Clear();
-        _chunkNeighborMap.Clear();
+        _chunkMap.Clear();
         initialized = false;
     }
 
@@ -81,9 +132,9 @@ public class WorldChunkMap : MonoBehaviour
 
     public List<WorldChunk> GetAllChunkNeighbors(WorldChunk chunk) 
     {
-        if (!_chunkNeighborMap.ContainsKey(chunk)) { return new List<WorldChunk>(); }
+        if (!_chunkMap.ContainsKey(chunk)) { return new List<WorldChunk>(); }
 
-        return _chunkNeighborMap[chunk];
+        return _chunkMap[chunk];
     }
     #endregion
 
@@ -144,23 +195,6 @@ public class WorldChunkMap : MonoBehaviour
     // - gCost is the known cost from the starting node
     // - hCost is the estimated distance to the end node
     // - fCost is gCost + hCost
-
-    public class Coordinate
-    {
-        public Vector2 Position { get; set; }
-        public float GCost { get; set; }
-        public float HCost { get; set; }
-        public float FCost => GCost + HCost;
-        public Coordinate Parent { get; set; }
-
-        public Coordinate(Vector2 position)
-        {
-            Position = position;
-            GCost = float.MaxValue;
-            HCost = 0;
-            Parent = null;
-        }
-    }
 
     public List<Coordinate> FindCoordinatePath(Coordinate startCoordinate, Coordinate endCoordinate)
     {
@@ -352,5 +386,16 @@ public class WorldChunkMap : MonoBehaviour
 
 
         return str_out;
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.black;
+        List<Vector2> coordinatePositions = new();
+
+        foreach(Vector2 pos in GetCoordinateMapPositions())
+        {
+            Gizmos.DrawCube(pos, WorldGeneration.GetRealChunkDimensions());
+        }
     }
 }

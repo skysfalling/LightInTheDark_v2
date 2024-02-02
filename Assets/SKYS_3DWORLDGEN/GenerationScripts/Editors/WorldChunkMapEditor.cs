@@ -1,36 +1,28 @@
 using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
 
 [CustomEditor(typeof(WorldGeneration))]
-public class WorldGenerationEditor : Editor
+public class WorldChunkMapEditor : Editor
 {
-    private SerializedObject serializedWorldGen;
-    SerializedProperty edgeDirectionProperty;
-    SerializedProperty edgeIndexProperty;
+    private SerializedObject serializedChunkMap;
 
     private void OnEnable()
     {
-        // Cache the SerializedObject
-        serializedWorldGen = new SerializedObject(target);
-        edgeDirectionProperty = serializedWorldGen.FindProperty("edgeDirection");
-        edgeIndexProperty = serializedWorldGen.FindProperty("edgeIndex");
+        serializedChunkMap = new SerializedObject(target); // Cache the SerializedObject
     }
 
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector(); // Draws the default inspector elements
+        serializedChunkMap.Update(); // Always start with this call
 
-        serializedWorldGen.Update(); // Always start with this call
-
-        WorldGeneration worldGen = (WorldGeneration)target;
-        EditorGUILayout.LabelField("Real Chunk Area Size", WorldGeneration.GetRealChunkAreaSize().ToString());
-        EditorGUILayout.LabelField("Real Full World Size", WorldGeneration.GetRealFullWorldSize().ToString());
-
-
+        WorldChunkMap worldChunkMap = (WorldChunkMap)target;
+        
         // Ensure changes are registered and the inspector updates as needed
         if (GUI.changed)
         {
-            EditorUtility.SetDirty(worldGen);
+            EditorUtility.SetDirty(worldChunkMap);
         }
     }
 

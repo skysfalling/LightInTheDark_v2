@@ -1123,7 +1123,7 @@ PrefabInstance:
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: worldExits.Array.data[0].edgeIndex
-      value: 11
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}

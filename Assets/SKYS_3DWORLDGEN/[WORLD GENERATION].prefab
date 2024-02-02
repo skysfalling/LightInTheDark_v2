@@ -349,14 +349,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   generation_finished: 0
-  chunkMaterial: {fileID: 2100000, guid: 431deed0f8230a44c9d08f72a642347f, type: 2}
-  borderChunkMaterial: {fileID: 2100000, guid: 9297ff6ce79de634e805040c711164fa, type: 2}
-  cellSize: 10
-  worldChunk_widthInCells: 5
-  worldChunk_heightInCells: 3
-  worldPlayArea_widthInChunks: 10
-  _worldChunkBoundaryOffset: 0
-  steps: 200
+  worldExits: []
 --- !u!114 &8701923849753727028
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -421,6 +414,7 @@ MonoBehaviour:
   cell_spawnpoint: {fileID: 2100000, guid: da65495a0eecc04468622cb6c1660ec4, type: 2}
   cursor_selected: {fileID: 2100000, guid: ac81a57d4b5279f499adf13b8f552096, type: 2}
   cursor_hoverOver: {fileID: 2100000, guid: 9297ff6ce79de634e805040c711164fa, type: 2}
+  borderChunkMaterial: {fileID: 2100000, guid: e79c2a12d81e2df45a49e055ce74559f, type: 2}
 --- !u!1 &5561459159524278966
 GameObject:
   m_ObjectHideFlags: 0
