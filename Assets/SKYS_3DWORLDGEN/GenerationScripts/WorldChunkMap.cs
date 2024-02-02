@@ -57,8 +57,8 @@ public class WorldChunkMap : MonoBehaviour
 
     // == {{ WORLD EXITS }} ======================================================== ////
     [Header("World Exits")]
-    public List<WorldExit> worldExits = new List<WorldExit>();
-    public void SetWorldExitCoordinates()
+    [HideInInspector] public List<WorldExit> worldExits = new List<WorldExit>();
+    public void InitializeWorldExits()
     {
         // Reset Borders
         List<WorldCoordinate> borderCoords = WorldCoordinateMap.GetCoordinatesOnAllBorders();
@@ -70,29 +70,27 @@ public class WorldChunkMap : MonoBehaviour
         // Initialize New Exits
         foreach (WorldExit exit in worldExits)
         {
-            exit.Coordinate = WorldCoordinateMap.GetCoordinateAtWorldExit(exit);
-
+            exit.Coordinate = WorldCoordinateMap.InitializeWorldExit(exit);
             if (exit.Coordinate != null)
+            {
                 exit.Coordinate.ChunkType = WorldChunk.TYPE.EXIT;
+                exit.PathConnectionCoordinate = WorldCoordinateMap.GetWorldExitPathConnection(exit);
+            }
         }
     }
 
     public List<WorldCoordinate> FindGoldenPath()
     {
         List<WorldCoordinate> goldenPath = new();
-        SetWorldExitCoordinates();
 
         // Find Golden Path
         if (worldExits.Count > 0)
         {
-            WorldCoordinate exitZero = worldExits[0].Coordinate;
-            WorldCoordinate exitOne = worldExits[1].Coordinate;
+            WorldExit exitZero = worldExits[0];
+            WorldExit exitOne = worldExits[1];
 
-            
-            goldenPath = WorldCoordinateMap.FindCoordinatePath(exitZero, exitOne);
+            goldenPath = WorldCoordinateMap.FindCoordinatePath(exitZero.PathConnectionCoordinate, exitOne.PathConnectionCoordinate);
             foreach (WorldCoordinate coord in goldenPath) { coord.goldenPath = true; }
-
-            Debug.Log($"Found golden path {goldenPath.Count}");
         }
 
         return goldenPath;
@@ -202,6 +200,7 @@ public class WorldChunkMap : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         if (!showGizmos) return;
+        if (WorldCoordinateMap.CoordinateMap.Count == 0) return; // Dont draw if coordinateMap is empty
 
         List<WorldCoordinate> coordMap = WorldCoordinateMap.GetCoordinateMap();
         Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
@@ -224,11 +223,20 @@ public class WorldChunkMap : MonoBehaviour
                     Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
                     break;
                 case WorldChunk.TYPE.EMPTY:
-                    Gizmos.color = Color.white;
-                    if (coord.goldenPath) { Gizmos.color = Color.yellow; }
+                    if (coord.goldenPath) { 
+                        Gizmos.color = Color.yellow;
+                        Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+                    }
+                    else
+                    {
+                        Gizmos.color = Color.white;
+                        Gizmos.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+                    }
+                    break;
+                case WorldChunk.TYPE.CLOSED:
+                    Gizmos.color = Color.black;
                     Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
                     break;
-
             }
         }
     }

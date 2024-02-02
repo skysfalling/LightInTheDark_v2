@@ -43,7 +43,7 @@ public class WorldCoordinateMap : MonoBehaviour
     public bool showGizmos;
 
     // >> COORDINATE MAP ================================ >>
-    static List<WorldCoordinate> CoordinateMap = new List<WorldCoordinate>();
+    public static List<WorldCoordinate> CoordinateMap = new List<WorldCoordinate>();
 
     public static List<WorldCoordinate> GetCoordinateMap(bool forceReset = false)
     {
@@ -96,6 +96,12 @@ public class WorldCoordinateMap : MonoBehaviour
         return CoordinateMap;
     }
 
+    public static void ResetCoordinateMap()
+    {
+        List<WorldCoordinate> coordMap = GetCoordinateMap();
+        foreach (WorldCoordinate coord in coordMap) { coord.goldenPath = false; }
+    }
+
     public static List<Vector2> GetCoordinateMapPositions()
     {
         List<WorldCoordinate> coordMap = GetCoordinateMap();
@@ -107,7 +113,7 @@ public class WorldCoordinateMap : MonoBehaviour
 
     public static WorldCoordinate GetCoordinateAtPosition(Vector2 position)
     {
-        foreach (WorldCoordinate coord in CoordinateMap) { 
+        foreach (WorldCoordinate coord in GetCoordinateMap()) { 
             if (coord.Position == position)
             {
                 return coord;
@@ -144,7 +150,66 @@ public class WorldCoordinateMap : MonoBehaviour
         return coordinatesOnEdge;
     }
 
-    public static WorldCoordinate GetCoordinateAtWorldExit(WorldExit worldExit)
+    public static List<WorldCoordinate> GetCoordinateNaturalNeighbors(WorldCoordinate coordinate)
+    {
+        List<WorldCoordinate> neighbors = new List<WorldCoordinate>(new WorldCoordinate[4]);
+
+        // Find and assign neighbors in the specific order [Left, Right, Forward, Backward]
+        neighbors[0] = GetCoordinateNeighborInDirection(coordinate, WorldDirection.West);
+        neighbors[1] = GetCoordinateNeighborInDirection(coordinate, WorldDirection.East);
+        neighbors[2] = GetCoordinateNeighborInDirection(coordinate, WorldDirection.North);
+        neighbors[3] = GetCoordinateNeighborInDirection(coordinate, WorldDirection.South);
+
+        // Remove null entries if a neighbor is not found
+        neighbors.RemoveAll(item => item == null);
+
+        return neighbors;
+    }
+
+    public static WorldCoordinate GetCoordinateNeighborInDirection(WorldCoordinate coordinate, WorldDirection direction)
+    {
+        if (coordinate == null) { return null; }
+        int chunkWidth = WorldGeneration.GetRealChunkAreaSize().x;
+        int chunkLength = WorldGeneration.GetRealChunkAreaSize().y;
+
+        WorldCoordinate coord = null;
+        switch (direction)
+        {
+            case WorldDirection.West:
+                coord = GetCoordinateAtPosition(coordinate.Position + new Vector2(-chunkWidth, 0));
+                break;
+            case WorldDirection.East:
+                coord = GetCoordinateAtPosition(coordinate.Position + new Vector2(chunkWidth, 0));
+                break;
+            case WorldDirection.North:
+                coord = GetCoordinateAtPosition(coordinate.Position + new Vector2(0, chunkLength));
+                break;
+            case WorldDirection.South:
+                coord = GetCoordinateAtPosition(coordinate.Position + new Vector2(0, -chunkLength));
+                break;
+        }
+
+        return coord;
+    }
+
+    public static WorldCoordinate GetWorldExitPathConnection(WorldExit exit)
+    {
+        switch (exit.edgeDirection)
+        {
+            case WorldDirection.West:
+                return GetCoordinateNeighborInDirection(exit.Coordinate, WorldDirection.East);
+            case WorldDirection.East:
+                return GetCoordinateNeighborInDirection(exit.Coordinate, WorldDirection.West);
+            case WorldDirection.North:
+                return GetCoordinateNeighborInDirection(exit.Coordinate, WorldDirection.South);
+            case WorldDirection.South:
+                return GetCoordinateNeighborInDirection(exit.Coordinate, WorldDirection.North);
+        }
+
+        return null;
+    }
+
+    public static WorldCoordinate InitializeWorldExit(WorldExit worldExit)
     {
         WorldDirection direction = worldExit.edgeDirection;
         int index = worldExit.edgeIndex;
@@ -169,16 +234,8 @@ public class WorldCoordinateMap : MonoBehaviour
         HashSet<WorldCoordinate> closedSet = new HashSet<WorldCoordinate>();
         openSet.Add(startCoordinate);
 
-        Debug.Log("Find Coord Path ");
-        int iterations = 0;
-        while (openSet.Count > 0 && iterations < 1000)
+        while (openSet.Count > 0)
         {
-            iterations++;
-            if (iterations % 100 == 0)
-            {
-                Debug.Log($"Coordinate Pathfinding Iteration {iterations}");
-            }
-
             WorldCoordinate currentCoordinate = openSet[0];
             for (int i = 1; i < openSet.Count; i++)
             {
@@ -192,8 +249,6 @@ public class WorldCoordinateMap : MonoBehaviour
                 }
             }
 
-
-
             openSet.Remove(currentCoordinate);
             closedSet.Add(currentCoordinate);
 
@@ -201,14 +256,8 @@ public class WorldCoordinateMap : MonoBehaviour
             {
                 return RetracePath(startCoordinate, endCoordinate);
             }
-            else if (iterations == 999)
-            {
-                Debug.Log($"BREAK Coordinate Pathfinding at Iteration {iterations}");
-                return RetracePath(startCoordinate, currentCoordinate);
 
-            }
-
-            List<WorldCoordinate> currentNeighbors = GetAllCoordinateNeighbors(currentCoordinate);
+            List<WorldCoordinate> currentNeighbors = GetCoordinateNaturalNeighbors(currentCoordinate);
             foreach (WorldCoordinate neighbor in currentNeighbors)
             {
                 if (closedSet.Contains(neighbor))
@@ -224,7 +273,9 @@ public class WorldCoordinateMap : MonoBehaviour
                     neighbor.Parent = currentCoordinate;
 
                     if (!openSet.Contains(neighbor))
+                    {
                         openSet.Add(neighbor);
+                    }
                 }
             }
         }
@@ -242,37 +293,17 @@ public class WorldCoordinateMap : MonoBehaviour
             path.Add(currentCoordinate);
             currentCoordinate = currentCoordinate.Parent;
         }
+        path.Add(startCoordinate);
+
         path.Reverse();
         return path;
     }
 
-    public static List<WorldCoordinate> GetAllCoordinateNeighbors(WorldCoordinate coordinate)
-    {
-        List<WorldCoordinate> worldCoordinates = GetCoordinateMap();
-        List<WorldCoordinate> neighbors = new List<WorldCoordinate>(new WorldCoordinate[4]);
-        int chunkWidth = WorldGeneration.GetRealChunkAreaSize().x;
-        int chunkLength = WorldGeneration.GetRealChunkAreaSize().y;
 
-        // Calculate neighbor positions
-        Vector2 leftPosition = coordinate.Position + new Vector2(-chunkWidth, 0);
-        Vector2 rightPosition = coordinate.Position + new Vector2(chunkWidth, 0);
-        Vector2 forwardPosition = coordinate.Position + new Vector2(0, chunkLength);
-        Vector2 backwardPosition = coordinate.Position + new Vector2(0, -chunkLength);
-
-        // Find and assign neighbors in the specific order [Left, Right, Forward, Backward]
-        neighbors[0] = worldCoordinates.Find(c => c.Position == leftPosition);     // Left
-        neighbors[1] = worldCoordinates.Find(c => c.Position == rightPosition);    // Right
-        neighbors[2] = worldCoordinates.Find(c => c.Position == forwardPosition);  // Forward
-        neighbors[3] = worldCoordinates.Find(c => c.Position == backwardPosition); // Backward
-
-        // Remove null entries if a neighbor is not found
-        neighbors.RemoveAll(item => item == null);
-
-        return neighbors;
-    }
 
     public static float GetCoordinateDistance(WorldCoordinate a, WorldCoordinate b)
     {
+        // This link has more heuristics :: https://www.enjoyalgorithms.com/blog/a-star-search-algorithm
         return Vector2.Distance(a.Position, b.Position);
     }
     #endregion

@@ -13,8 +13,9 @@ public enum WorldDirection { West, East, North, South }
 [System.Serializable]
 public class WorldExit
 {
-    [SerializeField]
-    private WorldCoordinate _coordinate;
+    WorldCoordinate _coordinate;
+    WorldCoordinate _pathConnection;
+
     public WorldDirection edgeDirection;
     public int edgeIndex;
 
@@ -22,6 +23,12 @@ public class WorldExit
     {
         get { return _coordinate; }
         set { _coordinate = value; }
+    }
+
+    public WorldCoordinate PathConnectionCoordinate
+    {
+        get { return _pathConnection; }
+        set { _pathConnection = value; }
     }
 }
 

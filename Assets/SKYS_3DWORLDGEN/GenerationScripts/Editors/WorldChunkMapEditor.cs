@@ -6,10 +6,13 @@ using System.Collections.Generic;
 public class WorldChunkMapEditor : Editor
 {
     private SerializedObject serializedChunkMap;
+    SerializedProperty worldExitsProperty;
 
     private void OnEnable()
     {
         serializedChunkMap = new SerializedObject(target); // Cache the SerializedObject
+        worldExitsProperty = serializedChunkMap.FindProperty("worldExits");
+
     }
 
     public override void OnInspectorGUI()
@@ -18,17 +21,25 @@ public class WorldChunkMapEditor : Editor
         serializedChunkMap.Update(); // Always start with this call
 
         WorldChunkMap worldChunkMap = (WorldChunkMap)target;
+        worldChunkMap.InitializeWorldExits();
 
-        if (GUILayout.Button("Find Golden Path"))
+        // {{ FIND GOLDEN PATH AFTER UPDATING EXITS }}
+        EditorGUI.BeginChangeCheck(); // Start checking for changes
+        EditorGUILayout.PropertyField(worldExitsProperty); // Display and potentially edit the specific value
+        if (EditorGUI.EndChangeCheck()) // Check if any changes were made
         {
+            serializedChunkMap.ApplyModifiedProperties(); // Apply changes to the serialized object
+
+            WorldCoordinateMap.ResetCoordinateMap();
             worldChunkMap.FindGoldenPath();
-        }
-        serializedChunkMap.ApplyModifiedProperties();
 
-        // Ensure changes are registered and the inspector updates as needed
-        if (GUI.changed)
-        {
-            EditorUtility.SetDirty(worldChunkMap);
+            EditorUtility.SetDirty(target); // Mark the object as dirty to ensure changes are saved
         }
+    }
+
+    private void OnSceneGUI()
+    {
+        WorldChunkMap worldChunkMap = (WorldChunkMap)target;
+        worldChunkMap.InitializeWorldExits();
     }
 }
