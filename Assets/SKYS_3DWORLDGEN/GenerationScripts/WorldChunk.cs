@@ -8,9 +8,9 @@ using UnityEngine.XR;
 [System.Serializable]
 public class WorldChunk
 {
+    WorldGeneration _worldGeneration;
     string prefix = " [[ WORLD CHUNK ]]";
     public bool initialized = false;
-    WorldGeneration _worldGeneration;
 
     /*
      * EMPTY : 0 walls
@@ -20,7 +20,7 @@ public class WorldChunk
      * DEADEND : 3 walls
      * CLOSED : 4 walls
      */
-    public enum TYPE { EMPTY , WALL, HALLWAY, CORNER, DEADEND, CLOSED }
+    public enum TYPE { EMPTY , WALL, HALLWAY, CORNER, DEADEND, CLOSED, BORDER, EXIT }
     public TYPE type;
 
     // EDGES
@@ -34,14 +34,12 @@ public class WorldChunk
     [HideInInspector] public float astar_gCost;
     [HideInInspector] public float astar_hCost;
     [HideInInspector] public WorldChunk astar_parent;
-    public bool isOnGoldenPath;
 
+    // Mesh
     [HideInInspector] public Mesh mesh;
     public Vector2 coordinate;
-
     public List<WorldCell> localCells = new List<WorldCell>();
     Dictionary<WorldCell.TYPE, List<WorldCell>> _cellTypeMap = new Dictionary<WorldCell.TYPE, List<WorldCell>>();
-
     public WorldChunk(Vector2 position)
     {
         this.coordinate = position;
@@ -51,21 +49,19 @@ public class WorldChunk
         CreateCells();
     }
 
-    // ================ INITIALIZE =============================>>
+    // ================ INITIALIZE ============================= >>
     #region
     public void Initialize()
     {
         initialized = false;
 
-        _worldGeneration = GameObject.FindObjectOfType<WorldGeneration>();
-
+        _worldGeneration = WorldGeneration.Instance;
         DetermineChunkEdges();
         SetChunkType();
         CreateCellTypeMap();
 
         initialized = true;
     }
-
     void CreateMesh()
     {
         int cellSize = WorldGeneration.CellSize;
@@ -195,8 +191,6 @@ public class WorldChunk
 
         this.mesh = newMesh;
     }
-
-
     void DetermineChunkEdges()
     {
         // Initialize all edges as active
@@ -278,7 +272,7 @@ public class WorldChunk
     }
     #endregion
 
-    // ================ CREATE WORLD CELLS ==============================>>
+    // ================ CREATE WORLD CELLS ============================== >>
     void OffsetMesh(Vector2 chunkPosition)
     {
         Vector3[] vertices = mesh.vertices;
@@ -288,7 +282,6 @@ public class WorldChunk
         }
         mesh.vertices = vertices;
     }
-
     void CreateCells()
     {
         localCells.Clear();
@@ -340,7 +333,7 @@ public class WorldChunk
         }
     }
 
-    // ================== SPAWN OBJECTS ================================================================ >>
+    // ================== SPAWN OBJECTS ============= >>
     public List<WorldCell> FindSpace(EnvironmentObject envObj)
     {
         Dictionary<int, List<WorldCell>> availableSpace = new Dictionary<int, List<WorldCell>>();
@@ -364,7 +357,6 @@ public class WorldChunk
         // Return Empty
         return new List<WorldCell>();
     }
-
     public bool IsSpaceAvailable(WorldCell startCell, EnvironmentObject envObj)
     {
         List<WorldCell> cellsInArea = GetCellsInArea(startCell, envObj.space);
@@ -436,8 +428,7 @@ public class WorldChunk
         foreach (WorldCell cell in area) { cell.SetCellType(markType); }
     }
 
-
-    // ================= HELPER FUNCTIONS ==============================>>
+    // ================= HELPER FUNCTIONS ============================== >>
     public List<WorldCell> GetCellsOfType(WorldCell.TYPE cellType)
     {
         if (!initialized) { return new List<WorldCell>(); }

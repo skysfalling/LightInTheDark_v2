@@ -46,7 +46,7 @@ public class WorldGeneration : MonoBehaviour
     Vector2Int _realPlayAreaSize; // PlayZoneArea * realChunkSize
     Vector2Int _realFullWorldSize; // _fullWorldArea * cellSize
     public static Vector2Int GetRealChunkAreaSize() { return ChunkArea * CellSize; }
-    public static Vector3Int GetRealChunkDimensions() { return new Vector3Int(ChunkArea.x, ChunkDepth, ChunkArea.y); }
+    public static Vector3Int GetRealChunkDimensions() { return new Vector3Int(ChunkArea.x, ChunkDepth, ChunkArea.y) * CellSize; }
     public static Vector2Int GetRealPlayAreaSize() { return PlayZoneArea * GetRealChunkAreaSize(); }
     public static Vector2Int GetRealFullWorldSize() { return GetFullWorldArea() * GetRealChunkAreaSize(); }
 
@@ -69,6 +69,17 @@ public class WorldGeneration : MonoBehaviour
     // == {{ WORLD EXITS }} ============================////
     [Header("World Exits")]
     public List<WorldExit> worldExits = new List<WorldExit>();
+    public void SetWorldExitCoordinates()
+    {
+        Debug.Log("SetWorldExitCoordinates " + worldExits.Count);
+        foreach (WorldExit exit in worldExits) { 
+            exit.Coordinate = WorldChunkMap.GetWorldExitCoordinate(exit);
+
+            if (exit.Coordinate != null)
+                exit.Coordinate.ChunkType = WorldChunk.TYPE.EXIT;
+        }
+    }
+
 
     #region == INITIALIZE ======
     private void Start()
@@ -85,9 +96,6 @@ public class WorldGeneration : MonoBehaviour
         _worldGenerationRoutine = StartCoroutine(Generate());
 
     }
-
-
-
 
     public void Reset()
     {

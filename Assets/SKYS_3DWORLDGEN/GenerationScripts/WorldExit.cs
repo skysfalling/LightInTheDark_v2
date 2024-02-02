@@ -1,4 +1,6 @@
 using UnityEngine;
+using Unity.VisualScripting;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -11,13 +13,15 @@ public enum WorldDirection { West, East, North, South }
 [System.Serializable]
 public class WorldExit
 {
-    private WorldChunkMap.Coordinate _chunkMapCoordinate;
+    [SerializeField]
+    private WorldChunkMap.Coordinate _coordinate;
     public WorldDirection edgeDirection;
     public int edgeIndex;
 
-    public void SetChunkCoordinate()
+    public WorldChunkMap.Coordinate Coordinate
     {
-        _chunkMapCoordinate = WorldChunkMap.GetWorldExitCoordinate(this);
+        get { return _coordinate; }
+        set { _coordinate = value; }
     }
 }
 
@@ -42,8 +46,8 @@ public class WorldExitDrawer : PropertyDrawer
 
         // << DRAW CUSTOM INDEX SLIDER >>>
         SerializedProperty edgeIndexProp = property.FindPropertyRelative("edgeIndex");
-        int maxIndex = WorldGeneration.GetFullWorldArea().x + 1;
-        edgeIndexProp.intValue = EditorGUI.IntSlider(indexRect, GUIContent.none, edgeIndexProp.intValue, 1, maxIndex);
+        int maxIndex = WorldGeneration.GetFullWorldArea().x;
+        edgeIndexProp.intValue = EditorGUI.IntSlider(indexRect, GUIContent.none, edgeIndexProp.intValue, 0, maxIndex);
 
         EditorGUI.indentLevel = indent;
         EditorGUI.EndProperty();

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
 
 [CustomEditor(typeof(WorldGeneration))]
 public class WorldGenerationEditor : Editor
@@ -26,6 +27,8 @@ public class WorldGenerationEditor : Editor
         EditorGUILayout.LabelField("Real Chunk Area Size", WorldGeneration.GetRealChunkAreaSize().ToString());
         EditorGUILayout.LabelField("Real Full World Size", WorldGeneration.GetRealFullWorldSize().ToString());
 
+        WorldChunkMap.GetCoordinateMap(true);
+        worldGen.SetWorldExitCoordinates();
 
         // Ensure changes are registered and the inspector updates as needed
         if (GUI.changed)

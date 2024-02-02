@@ -1,6 +1,8 @@
  using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Experimental.GraphView;
+using UnityEditor.U2D.Aseprite;
 using UnityEngine;
 
 public class WorldChunkMap : MonoBehaviour
@@ -11,10 +13,17 @@ public class WorldChunkMap : MonoBehaviour
     {
         if (Instance == null) { Instance = this; }
     }
-    // >> COORDINATE CLASS ================================ >>
+
+    // >> COORDINATE MAP ================================ >>
+    static List<Coordinate> CoordinateMap = new List<Coordinate>();
     public class Coordinate
     {
+        public WorldChunk.TYPE ChunkType = WorldChunk.TYPE.EMPTY;
+        public WorldDirection borderEdgeDirection;
+
+        // ASTAR PATHFINDING
         public Vector2 Position { get; set; }
+        public Vector3 WorldPosition { get; set; }
         public float GCost { get; set; }
         public float HCost { get; set; }
         public float FCost => GCost + HCost;
@@ -23,44 +32,103 @@ public class WorldChunkMap : MonoBehaviour
         public Coordinate(Vector2 position)
         {
             Position = position;
+            WorldPosition = new Vector3(position.x, 0, position.y);
+
+            GCost = float.MaxValue;
+            HCost = 0;
+            Parent = null;
+        }
+        public Coordinate(Vector2 position, WorldChunk.TYPE type)
+        {
+            Position = position;
+            WorldPosition = new Vector3(position.x, 0, position.y);
+
+            ChunkType = type;
+
             GCost = float.MaxValue;
             HCost = 0;
             Parent = null;
         }
     }
 
-    public static List<Coordinate> CreateCoordinateMap()
+    public static List<Coordinate> GetCoordinateMap(bool forceReset = false)
     {
-        List<Coordinate> coordMap = new();
+        if (!forceReset && CoordinateMap != null && CoordinateMap.Count > 0) return CoordinateMap;
 
-        Vector2Int chunkArea = WorldGeneration.ChunkArea;
-        Vector2 half_FullWorldArea = (Vector2)WorldGeneration.GetFullWorldArea() * 0.5f;
+        List<Coordinate> coordMap = new List<Coordinate>();
+        Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkAreaSize();
+        Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
+        Vector2 half_FullWorldSize = realFullWorldSize * 0.5f;
 
-        for (float x = -half_FullWorldArea.x; x <= half_FullWorldArea.x; x++)
+        int xCoordCount = Mathf.CeilToInt(realFullWorldSize.x / realChunkAreaSize.x);
+        int yCoordCount = Mathf.CeilToInt(realFullWorldSize.y / realChunkAreaSize.y);
+
+        for (int x = 0; x < xCoordCount; x++)
         {
-            for (float y = -half_FullWorldArea.y; y <= half_FullWorldArea.y; y++)
+            for (int y = 0; y < yCoordCount; y++)
             {
-                Vector2 newPos = new Vector2(x * chunkArea.x, y * chunkArea.y);
-                coordMap.Add(new Coordinate(newPos));
+                Vector2 newPos = new Vector2(x * realChunkAreaSize.x, y * realChunkAreaSize.y);
+                newPos -= Vector2.one * half_FullWorldSize;
+                newPos += Vector2.one * realChunkAreaSize * 0.5f;
+
+                Coordinate newCoord = new Coordinate(newPos);
+
+                // Check if the position is on the border
+                if (x == 0 || y == 0 || x == xCoordCount - 1 || y == yCoordCount - 1)
+                {
+                    newCoord.ChunkType = WorldChunk.TYPE.BORDER;
+                    if ( x == 0 ) { newCoord.borderEdgeDirection = WorldDirection.West; }
+                    else if ( y == 0 ) { newCoord.borderEdgeDirection = WorldDirection.South; }
+                    else if ( x == xCoordCount - 1 ) { newCoord.borderEdgeDirection = WorldDirection.East; }
+                    else if ( y == yCoordCount - 1 ) { newCoord.borderEdgeDirection = WorldDirection.North; }
+                }
+
+                coordMap.Add( newCoord );
             }
         }
-        return coordMap;
+
+        CoordinateMap = coordMap;
+        Debug.Log("New Coordinate Map " + CoordinateMap.Count);
+
+        return CoordinateMap;
     }
 
     public static List<Vector2> GetCoordinateMapPositions()
     {
-        List<Coordinate> coordMap = CreateCoordinateMap();
+        List<Coordinate> coordMap = GetCoordinateMap();
         List<Vector2> coordMapPositions = new List<Vector2>();
 
         foreach(Coordinate coord in coordMap) { coordMapPositions.Add(coord.Position); }
         return coordMapPositions;
     }
+    public static List<Coordinate> GetCoordinatesOnBorder(WorldDirection edgeDirection)
+    {
+        List<Coordinate> coordinatesOnEdge = new List<Coordinate>();
+        List<Coordinate> coordMap = GetCoordinateMap();
+        foreach (Coordinate coord in coordMap)
+        {
+            if (coord.borderEdgeDirection == edgeDirection)
+            {
+                coordinatesOnEdge.Add(coord);
+            }
+        }
+        return coordinatesOnEdge;
+    }
 
-    // =================================================================
+    public static Coordinate GetWorldExitCoordinate(WorldExit worldExit)
+    {
+        WorldDirection direction = worldExit.edgeDirection;
+        int index = worldExit.edgeIndex;
 
+        List<Coordinate> borderCoords = GetCoordinatesOnBorder(direction);
+        if (borderCoords.Count > index)
+        {
+            return borderCoords[index];
+        }
+        return null;
+    }
 
     // == GAME INTIALIZATION ===============================================================
-
     public bool initialized = false;
     WorldGeneration _worldGen;
     List<WorldChunk> _worldChunks = new List<WorldChunk>();
@@ -77,11 +145,8 @@ public class WorldChunkMap : MonoBehaviour
         // << Initialize Chunks >>
         foreach (WorldChunk chunk in _worldChunks)
         {
-            // Set Neighbors
             List<WorldChunk> neighbors = SetChunkNeighbors(chunk);
             _chunkMap[chunk] = neighbors;
-
-            // Initialize
             chunk.Initialize();
         }
 
@@ -93,8 +158,6 @@ public class WorldChunkMap : MonoBehaviour
             if (pathA.Count > 1) { foreach (WorldChunk chunk in pathA) { chunk.isOnGoldenPath = true; } }
         }
         */
-
-
         initialized = true;
     }
 
@@ -138,57 +201,6 @@ public class WorldChunkMap : MonoBehaviour
     }
     #endregion
 
-    #region == WORLD EDGE CHUNKS ==========================>>
-    // Method to retrieve an edge chunk
-    public WorldChunk GetEdgeChunk(WorldDirection edgeDirection, int index)
-    {
-        // This list will hold the chunks on the specified edge
-        List<WorldChunk> edgeChunks = new List<WorldChunk>();
-
-        // Identify chunks on the specified edge
-        foreach (WorldChunk chunk in WorldGeneration.Instance.GetBorderChunks())
-        {
-            if (IsOnSpecifiedEdge(chunk, edgeDirection))
-            {
-                edgeChunks.Add(chunk);
-            }
-        }
-
-        // Ensure the index is within bounds
-        if (index >= 0 && index < edgeChunks.Count)
-        {
-            return edgeChunks[index];
-        }
-
-        // Return null or throw an exception if no chunk is found at the index
-        return null;
-    }
-
-    private bool IsOnSpecifiedEdge(WorldChunk chunk, WorldDirection edgeDirection)
-    {
-        Vector2 halfSize_playArea = (Vector2)WorldGeneration.PlayZoneArea * 0.5f;
-
-        // Define the boundaries for each direction
-        float westBoundaryX = -halfSize_playArea.x;
-        float eastBoundaryX = halfSize_playArea.x;
-        float northBoundaryY = -halfSize_playArea.y;
-        float southBoundaryY = halfSize_playArea.y;
-
-        switch (edgeDirection)
-        {
-            case WorldDirection.West:
-                return chunk.coordinate.x == westBoundaryX;
-            case WorldDirection.East:
-                return chunk.coordinate.x == eastBoundaryX;
-            case WorldDirection.North:
-                return chunk.coordinate.y == northBoundaryY;
-            case WorldDirection.South:
-                return chunk.coordinate.y == southBoundaryY;
-            default:
-                return false;
-        }
-    }
-    #endregion
 
     #region == COORDINATE PATHFINDING =================================///
     // A* Pathfinding implementation
@@ -285,37 +297,6 @@ public class WorldChunkMap : MonoBehaviour
     {
         return Vector2.Distance(a.Position, b.Position);
     }
-
-    public static Coordinate GetWorldExitCoordinate(WorldExit worldExit)
-    {
-        WorldDirection direction = worldExit.edgeDirection;
-        int index = worldExit.edgeIndex;
-
-        // Assuming these values are accessible in the current context
-        int fullWorldAreaWidth = WorldGeneration.GetFullWorldArea().x;
-        int fullWorldAreaLength = WorldGeneration.GetFullWorldArea().y;
-        float realChunkWidthSize = WorldGeneration.GetRealChunkAreaSize().x;
-        float realChunkHeightSize = WorldGeneration.GetRealChunkAreaSize().y;
-
-        Vector2 position = Vector2.zero;
-        switch (direction)
-        {
-            case WorldDirection.North:
-                position = new Vector2((index - fullWorldAreaWidth / 2) * realChunkWidthSize, (fullWorldAreaLength / 2) * realChunkHeightSize);
-                break;
-            case WorldDirection.South:
-                position = new Vector2((index - fullWorldAreaWidth / 2) * realChunkWidthSize, -(fullWorldAreaLength / 2) * realChunkHeightSize);
-                break;
-            case WorldDirection.East:
-                position = new Vector2((fullWorldAreaWidth / 2) * realChunkWidthSize, (index - fullWorldAreaLength / 2) * realChunkHeightSize);
-                break;
-            case WorldDirection.West:
-                position = new Vector2(-(fullWorldAreaWidth / 2) * realChunkWidthSize, (index - fullWorldAreaLength / 2) * realChunkHeightSize);
-                break;
-        }
-
-        return new Coordinate(position);
-    }
     #endregion
 
 
@@ -384,18 +365,37 @@ public class WorldChunkMap : MonoBehaviour
         str_out += $"\t    -- Edge Cells : {chunk.GetCellsOfType(WorldCell.TYPE.EDGE).Count}\n";
         str_out += $"\t    -- Corner Cells : {chunk.GetCellsOfType(WorldCell.TYPE.CORNER).Count}\n";
 
-
         return str_out;
     }
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.black;
-        List<Vector2> coordinatePositions = new();
+        List<Coordinate> coordMap = GetCoordinateMap();
+        Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
 
-        foreach(Vector2 pos in GetCoordinateMapPositions())
+        // << DRAW CHUNK MAP >>
+        foreach (Coordinate coord in coordMap)
         {
-            Gizmos.DrawCube(pos, WorldGeneration.GetRealChunkDimensions());
+            // Draw Chunks
+            Vector3 chunkHeightOffset = realChunkDimensions.y * Vector3.down * 0.5f;
+            if (coord.ChunkType == WorldChunk.TYPE.BORDER) { 
+                Gizmos.color = Color.red;
+                Gizmos.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+            }
+            else if (coord.ChunkType == WorldChunk.TYPE.EXIT)
+            {
+                Gizmos.color = Color.red;
+                Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+            }
+            else
+            {
+                Gizmos.color = Color.white;
+                Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+            }
+
+            // Draw Coordinates
+            Gizmos.color = Color.black;
+            Gizmos.DrawCube(coord.WorldPosition, Vector3.one);
         }
     }
 }

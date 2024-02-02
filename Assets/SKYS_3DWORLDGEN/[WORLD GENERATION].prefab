@@ -72,7 +72,7 @@ GameObject:
   - component: {fileID: 4922368716762689905}
   - component: {fileID: 4652889822070907782}
   m_Layer: 0
-  m_Name: world_map
+  m_Name: ( WORLD MAP )
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 1981935170520572513}
   - component: {fileID: 685670876672825989}
   m_Layer: 0
-  m_Name: world_cellCursor
+  m_Name: cellCursor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -426,7 +426,7 @@ GameObject:
   - component: {fileID: 5305021860519766170}
   - component: {fileID: 9023293330023017650}
   m_Layer: 0
-  m_Name: world_chunkCursor
+  m_Name: chunkCursor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

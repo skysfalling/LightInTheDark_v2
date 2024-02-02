@@ -18,6 +18,7 @@ public class WorldChunkMapEditor : Editor
         serializedChunkMap.Update(); // Always start with this call
 
         WorldChunkMap worldChunkMap = (WorldChunkMap)target;
+        WorldChunkMap.GetCoordinateMap();
         
         // Ensure changes are registered and the inspector updates as needed
         if (GUI.changed)
