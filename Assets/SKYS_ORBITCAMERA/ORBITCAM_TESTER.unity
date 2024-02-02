@@ -1196,6 +1196,56 @@ PrefabInstance:
       propertyPath: worldCursor
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldExits.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldExits.Array.data[0].edgeIndex
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldExits.Array.data[1].edgeIndex
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldExits.Array.data[2].edgeIndex
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldExits.Array.data[3].edgeIndex
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldExits.Array.data[4].edgeIndex
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldExits.Array.data[0].edgeDirection
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldExits.Array.data[2].edgeDirection
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldExits.Array.data[3].edgeDirection
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4652889822070907782, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldExits.Array.data[4].edgeDirection
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 5524800860251384978, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: playerPrefab

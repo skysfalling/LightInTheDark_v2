@@ -46,7 +46,7 @@ public class WorldExitDrawer : PropertyDrawer
 
         // << DRAW CUSTOM INDEX SLIDER >>>
         SerializedProperty edgeIndexProp = property.FindPropertyRelative("edgeIndex");
-        int maxIndex = WorldGeneration.GetFullWorldArea().x;
+        int maxIndex = WorldGeneration.PlayZoneArea.x - 1;
         edgeIndexProp.intValue = EditorGUI.IntSlider(indexRect, GUIContent.none, edgeIndexProp.intValue, 0, maxIndex);
 
         EditorGUI.indentLevel = indent;

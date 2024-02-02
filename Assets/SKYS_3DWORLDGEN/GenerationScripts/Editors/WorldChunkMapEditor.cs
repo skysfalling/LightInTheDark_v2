@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 
-[CustomEditor(typeof(WorldGeneration))]
+[CustomEditor(typeof(WorldChunkMap))]
 public class WorldChunkMapEditor : Editor
 {
     private SerializedObject serializedChunkMap;
@@ -18,7 +18,9 @@ public class WorldChunkMapEditor : Editor
         serializedChunkMap.Update(); // Always start with this call
 
         WorldChunkMap worldChunkMap = (WorldChunkMap)target;
-        WorldChunkMap.GetCoordinateMap();
+        worldChunkMap.SetWorldExitCoordinates();
+
+        Debug.Log("WorldChunkMap Editor");
         
         // Ensure changes are registered and the inspector updates as needed
         if (GUI.changed)
@@ -27,18 +29,9 @@ public class WorldChunkMapEditor : Editor
         }
     }
 
-    void OnSceneGUI()
+    private void OnSceneGUI()
     {
-        WorldGeneration worldGen = (WorldGeneration)target;
-
-        // >> SET WORLD DIMENSIONS
-        worldGen.InitializeWorldDimensions();
-
-        // >> DRAW BOUNDARY SQUARES
-        Handles.color = Color.white;
-        Handles.DrawWireCube(worldGen.transform.position, new Vector3(WorldGeneration.GetRealPlayAreaSize().x, 0, WorldGeneration.GetRealPlayAreaSize().y));
-
-        Handles.color = Color.red;
-        Handles.DrawWireCube(worldGen.transform.position, new Vector3(WorldGeneration.GetRealFullWorldSize().x, 0, WorldGeneration.GetRealFullWorldSize().y));
+        WorldChunkMap worldChunkMap = (WorldChunkMap)target;
+        worldChunkMap.SetWorldExitCoordinates();
     }
 }

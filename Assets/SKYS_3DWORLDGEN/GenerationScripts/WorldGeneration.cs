@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.XR;
 
@@ -65,21 +66,6 @@ public class WorldGeneration : MonoBehaviour
     Coroutine _worldGenerationRoutine;
     List<WorldChunk> _worldChunks = new List<WorldChunk>();
     List<WorldChunk> _borderChunks = new List<WorldChunk>();
-
-    // == {{ WORLD EXITS }} ============================////
-    [Header("World Exits")]
-    public List<WorldExit> worldExits = new List<WorldExit>();
-    public void SetWorldExitCoordinates()
-    {
-        Debug.Log("SetWorldExitCoordinates " + worldExits.Count);
-        foreach (WorldExit exit in worldExits) { 
-            exit.Coordinate = WorldChunkMap.GetWorldExitCoordinate(exit);
-
-            if (exit.Coordinate != null)
-                exit.Coordinate.ChunkType = WorldChunk.TYPE.EXIT;
-        }
-    }
-
 
     #region == INITIALIZE ======
     private void Start()

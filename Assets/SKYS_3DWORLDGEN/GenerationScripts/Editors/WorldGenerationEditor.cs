@@ -15,6 +15,7 @@ public class WorldGenerationEditor : Editor
         serializedWorldGen = new SerializedObject(target);
         edgeDirectionProperty = serializedWorldGen.FindProperty("edgeDirection");
         edgeIndexProperty = serializedWorldGen.FindProperty("edgeIndex");
+
     }
 
     public override void OnInspectorGUI()
@@ -26,9 +27,6 @@ public class WorldGenerationEditor : Editor
         WorldGeneration worldGen = (WorldGeneration)target;
         EditorGUILayout.LabelField("Real Chunk Area Size", WorldGeneration.GetRealChunkAreaSize().ToString());
         EditorGUILayout.LabelField("Real Full World Size", WorldGeneration.GetRealFullWorldSize().ToString());
-
-        WorldChunkMap.GetCoordinateMap(true);
-        worldGen.SetWorldExitCoordinates();
 
         // Ensure changes are registered and the inspector updates as needed
         if (GUI.changed)

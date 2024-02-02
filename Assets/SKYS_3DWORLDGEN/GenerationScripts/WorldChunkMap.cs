@@ -55,6 +55,7 @@ public class WorldChunkMap : MonoBehaviour
     {
         if (!forceReset && CoordinateMap != null && CoordinateMap.Count > 0) return CoordinateMap;
 
+
         List<Coordinate> coordMap = new List<Coordinate>();
         Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkAreaSize();
         Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
@@ -73,14 +74,24 @@ public class WorldChunkMap : MonoBehaviour
 
                 Coordinate newCoord = new Coordinate(newPos);
 
+
+
+                // Check if the position is in a corner & close it
+                if ((x == 0 && y == 0) || 
+                    (x == xCoordCount - 1 && y == 0) || 
+                    (x == 0 && y == yCoordCount - 1) || 
+                    (x == xCoordCount - 1 && y == yCoordCount - 1))
+                {
+                    newCoord.ChunkType = WorldChunk.TYPE.CLOSED;
+                }
                 // Check if the position is on the border
-                if (x == 0 || y == 0 || x == xCoordCount - 1 || y == yCoordCount - 1)
+                else if (x == 0 || y == 0 || x == xCoordCount - 1 || y == yCoordCount - 1)
                 {
                     newCoord.ChunkType = WorldChunk.TYPE.BORDER;
-                    if ( x == 0 ) { newCoord.borderEdgeDirection = WorldDirection.West; }
-                    else if ( y == 0 ) { newCoord.borderEdgeDirection = WorldDirection.South; }
-                    else if ( x == xCoordCount - 1 ) { newCoord.borderEdgeDirection = WorldDirection.East; }
-                    else if ( y == yCoordCount - 1 ) { newCoord.borderEdgeDirection = WorldDirection.North; }
+                    if (x == 0) { newCoord.borderEdgeDirection = WorldDirection.West; }
+                    if (y == 0) { newCoord.borderEdgeDirection = WorldDirection.South; }
+                    if (x == xCoordCount - 1) { newCoord.borderEdgeDirection = WorldDirection.East; }
+                    if (y == yCoordCount - 1) { newCoord.borderEdgeDirection = WorldDirection.North; }
                 }
 
                 coordMap.Add( newCoord );
@@ -101,11 +112,26 @@ public class WorldChunkMap : MonoBehaviour
         foreach(Coordinate coord in coordMap) { coordMapPositions.Add(coord.Position); }
         return coordMapPositions;
     }
-    public static List<Coordinate> GetCoordinatesOnBorder(WorldDirection edgeDirection)
+
+    public static List<Coordinate> GetCoordinatesOnAllBorders()
     {
-        List<Coordinate> coordinatesOnEdge = new List<Coordinate>();
+        List<Coordinate> borderCoords = new();
         List<Coordinate> coordMap = GetCoordinateMap();
         foreach (Coordinate coord in coordMap)
+        {
+            if (coord.ChunkType == WorldChunk.TYPE.BORDER || coord.ChunkType == WorldChunk.TYPE.EXIT)
+            {
+                borderCoords.Add(coord);
+            }
+        }
+        return borderCoords;
+    }
+
+    public static List<Coordinate> GetCoordinatesOnBorderDirection(WorldDirection edgeDirection)
+    {
+        List<Coordinate> coordinatesOnEdge = new List<Coordinate>();
+        List<Coordinate> borderMap = GetCoordinatesOnAllBorders();
+        foreach (Coordinate coord in borderMap)
         {
             if (coord.borderEdgeDirection == edgeDirection)
             {
@@ -120,12 +146,33 @@ public class WorldChunkMap : MonoBehaviour
         WorldDirection direction = worldExit.edgeDirection;
         int index = worldExit.edgeIndex;
 
-        List<Coordinate> borderCoords = GetCoordinatesOnBorder(direction);
+        List<Coordinate> borderCoords = GetCoordinatesOnBorderDirection(direction);
         if (borderCoords.Count > index)
         {
             return borderCoords[index];
         }
         return null;
+    }
+
+    // == {{ WORLD EXITS }} ============================////
+    [Header("World Exits")]
+    public List<WorldExit> worldExits = new List<WorldExit>();
+    public void SetWorldExitCoordinates()
+    {
+        List<Coordinate> borderCoords = GetCoordinatesOnAllBorders();
+        foreach (Coordinate coord in borderCoords)
+        {
+            coord.ChunkType = WorldChunk.TYPE.BORDER;
+        }
+
+        Debug.Log("SetBorderCoordinates " + borderCoords.Count);
+        foreach (WorldExit exit in worldExits)
+        {
+            exit.Coordinate = GetWorldExitCoordinate(exit);
+
+            if (exit.Coordinate != null)
+                exit.Coordinate.ChunkType = WorldChunk.TYPE.EXIT;
+        }
     }
 
     // == GAME INTIALIZATION ===============================================================
