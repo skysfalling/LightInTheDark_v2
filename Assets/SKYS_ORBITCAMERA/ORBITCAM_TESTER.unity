@@ -1123,12 +1123,12 @@ PrefabInstance:
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: worldExits.Array.data[0].edgeIndex
-      value: 3
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: worldExits.Array.data[1].edgeIndex
-      value: 8
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
@@ -1149,6 +1149,11 @@ PrefabInstance:
         type: 3}
       propertyPath: worldExits.Array.data[0].edgeDirection
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldExits.Array.data[1].edgeDirection
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}

@@ -24,8 +24,8 @@ public class WorldGenerationEditor : Editor
         serializedWorldGen.Update(); // Always start with this call
 
         WorldGeneration worldGen = (WorldGeneration)target;
-        EditorGUILayout.LabelField("Real World Chunk Size", worldGen.realWorldChunkSize.ToString());
-        EditorGUILayout.LabelField("Real World Boundary Size", worldGen.realWorldBoundarySize.ToString());
+        EditorGUILayout.LabelField("Real Chunk Area Size", WorldGeneration.GetRealChunkAreaSize().ToString());
+        EditorGUILayout.LabelField("Real Full World Size", WorldGeneration.GetRealFullWorldSize().ToString());
 
 
         // Ensure changes are registered and the inspector updates as needed
@@ -38,30 +38,44 @@ public class WorldGenerationEditor : Editor
     void OnSceneGUI()
     {
         WorldGeneration worldGen = (WorldGeneration)target;
-        worldGen.SetWorldDimensions();
 
-        Vector3 halfSize_chunkSize = (Vector3)worldGen.realWorldChunkSize * 0.5f;
-        Vector2 halfSize_playArea = (Vector2)worldGen.realWorldPlayAreaSize * 0.5f;
+        // >> SET WORLD DIMENSIONS
+        worldGen.InitializeWorldDimensions();
 
-        // Calculate and visualize each theoretical chunk grid
-        Handles.color = Color.white;
-        foreach(Vector2 chunkPosition in worldGen.GetAllPlayAreaChunkPositions())
-        {
-            Vector3 chunkWorldPosition = new Vector3(chunkPosition.x, -worldGen.realWorldChunkSize.y, chunkPosition.y);
-            Handles.DrawWireCube(chunkWorldPosition, worldGen.realWorldChunkSize);
-        }
-
+        // >> DRAW BOUNDARY SQUARE
         Handles.color = Color.red;
-        Vector3 worldBoundarySize = new Vector3(worldGen.realWorldBoundarySize.x, 0, worldGen.realWorldBoundarySize.y);
-        Handles.DrawWireCube(worldGen.transform.position, worldBoundarySize);
+        Handles.DrawWireCube(worldGen.transform.position, new Vector3(WorldGeneration.GetRealFullWorldSize().x, 0, WorldGeneration.GetRealFullWorldSize().y));
 
+        // Draw Chunk Grid
+        //DrawChunkGrid();
 
         // Draw World Exits
-        DrawWorldExits(worldGen);
+        //DrawWorldExits();
     }
 
-    private void DrawWorldExits(WorldGeneration worldGen)
+    /*
+    void DrawChunkGrid()
     {
+        WorldGeneration worldGen = (WorldGeneration)target;
+        Handles.color = Color.white;
+
+        // Visualize Chunk Grid
+        foreach (WorldChunk chunk in worldGen.GetChunks())
+        {
+            if (chunk.isOnGoldenPath) { Handles.color = Color.yellow; }
+
+            Vector3 chunkWorldPosition = new Vector3(chunk.coordinate.x, -worldGen.realWorldChunkVolume.y, chunk.coordinate.y);
+            Handles.DrawWireCube(chunkWorldPosition, worldGen.realWorldChunkVolume);
+        }
+    }
+    */
+
+    /*
+    void DrawWorldExits()
+    {
+        WorldGeneration worldGen = (WorldGeneration)target;
+        Handles.color = Color.red;
+
         // Visualize each WorldExit
         foreach (WorldExit worldExit in worldGen.worldExits)
         {
@@ -69,10 +83,9 @@ public class WorldGenerationEditor : Editor
 
             Vector3 exitPosition = worldGen.GetWorldExitPosition(worldExit);
 
-            Handles.color = Color.yellow;
-            Handles.DrawWireCube(exitPosition + (Vector3.down * worldGen.realWorldChunkSize.y), worldGen.realWorldChunkSize);
+            Handles.DrawWireCube(exitPosition + (Vector3.down * worldGen.realWorldChunkVolume.y), worldGen.realWorldChunkVolume);
             Handles.Label(exitPosition, $"Exit: {worldExit.edgeDirection}");
         }
     }
-
+    */
 }

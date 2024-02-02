@@ -5,42 +5,20 @@ using UnityEditor;
 
 public enum WorldDirection { West, East, North, South }
 
+// =================================================================
+//      WORLD EXIT CLASS
+// ========================================================
 [System.Serializable]
 public class WorldExit
 {
-    WorldGeneration _worldGen;
-    [HideInInspector] public WorldChunk chunk;
+    private WorldChunkMap.Coordinate _chunkMapCoordinate;
     public WorldDirection edgeDirection;
     public int edgeIndex;
 
-    // Constructor
-    public WorldExit(WorldDirection edgeDirection, int edgeIndex)
+    public void SetChunkCoordinate()
     {
-        this.chunk = WorldChunkMap.Instance.GetEdgeChunk(edgeDirection, edgeIndex);
-        this.edgeDirection = edgeDirection;
-        this.edgeIndex = edgeIndex;
+        _chunkMapCoordinate = WorldChunkMap.GetWorldExitCoordinate(this);
     }
-
-    int CalculateMaxIndex(WorldDirection direction)
-    {
-        int maxIndex = 10;
-        if (WorldGeneration.Instance != null)
-        {
-            switch (direction)
-            {
-                case WorldDirection.North:
-                case WorldDirection.South:
-                    maxIndex = WorldGeneration.WorldWidthInChunks - 1;
-                    break;
-                case WorldDirection.East:
-                case WorldDirection.West:
-                    maxIndex = WorldGeneration.WorldWidthInChunks - 1; // Adjust as needed
-                    break;
-            }
-        }
-        return maxIndex;
-    }
-
 }
 
 #if UNITY_EDITOR
@@ -64,8 +42,8 @@ public class WorldExitDrawer : PropertyDrawer
 
         // << DRAW CUSTOM INDEX SLIDER >>>
         SerializedProperty edgeIndexProp = property.FindPropertyRelative("edgeIndex");
-        int maxIndex = WorldGeneration.WorldWidthInChunks;
-        edgeIndexProp.intValue = EditorGUI.IntSlider(indexRect, GUIContent.none, edgeIndexProp.intValue, 0, maxIndex);
+        int maxIndex = WorldGeneration.GetFullWorldArea().x + 1;
+        edgeIndexProp.intValue = EditorGUI.IntSlider(indexRect, GUIContent.none, edgeIndexProp.intValue, 1, maxIndex);
 
         EditorGUI.indentLevel = indent;
         EditorGUI.EndProperty();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.XR;
 
@@ -28,17 +29,24 @@ public class WorldChunk
     public bool EastEdgeActive { get; private set; }
     public bool WestEdgeActive { get; private set; }
 
+    // ASTAR PATHFINDING
+    [HideInInspector] public float astar_fCost;
+    [HideInInspector] public float astar_gCost;
+    [HideInInspector] public float astar_hCost;
+    [HideInInspector] public WorldChunk astar_parent;
+    public bool isOnGoldenPath;
+
     [HideInInspector] public Mesh mesh;
-    public Vector2 worldPosition;
+    public Vector2 coordinate;
 
     public List<WorldCell> localCells = new List<WorldCell>();
     Dictionary<WorldCell.TYPE, List<WorldCell>> _cellTypeMap = new Dictionary<WorldCell.TYPE, List<WorldCell>>();
 
-    public WorldChunk(Mesh mesh, Vector2 position, int width = 3, int height = 3, int cellSize = 4)
+    public WorldChunk(Vector2 position)
     {
-        this.mesh = mesh;
-        this.worldPosition = position;
+        this.coordinate = position;
 
+        CreateMesh();
         OffsetMesh(position);
         CreateCells();
     }
@@ -57,6 +65,138 @@ public class WorldChunk
 
         initialized = true;
     }
+
+    void CreateMesh()
+    {
+        int cellSize = WorldGeneration.CellSize;
+        Vector3Int chunkDimensions = WorldGeneration.GetRealChunkDimensions();
+
+        Mesh newMesh = new Mesh();
+        List<Vector3> vertices = new List<Vector3>();
+        List<int> triangles = new List<int>();
+        List<Vector2> uvs = new List<Vector2>(); // Initialize UV list
+
+        // Helper method to add vertices for a face
+        // 'start' is the starting point of the face, 'u' and 'v' are the directions of the grid
+        List<Vector3> AddFace(Vector3 start, Vector3 u, Vector3 v, int uDivisions, int vDivisions, Vector3 faceNormal)
+        {
+            List<Vector3> faceVertices = new List<Vector3>();
+
+            for (int i = 0; i <= vDivisions; i++)
+            {
+                for (int j = 0; j <= uDivisions; j++)
+                {
+
+                    Vector3 newVertex = start + (i * cellSize * v) + (j * cellSize * u);
+                    vertices.Add(newVertex);
+                    faceVertices.Add(newVertex);
+
+                    // Standard UV rectangle for each face
+                    float uCoord = 1 - (j / (float)uDivisions); // Flipped horizontally
+                    float vCoord = i / (float)vDivisions;
+                    uvs.Add(new Vector2(uCoord, vCoord));
+                }
+            }
+
+            return faceVertices;
+        }
+
+        Vector3 MultiplyVectors(Vector3 a, Vector3 b)
+        {
+            return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
+        }
+
+
+        // << FACES >>
+        // note** :: starts the faces at -fullsized_chunkDimensions.y so that top of chunk is at y=0
+        // -- the chunks will be treated as a 'Generated Ground' to build upon
+
+        Vector3Int fullsize_chunkDimensions = chunkDimensions * cellSize;
+        Vector3 newFaceStartOffset = new Vector3((fullsize_chunkDimensions.x) * 0.5f, -(fullsize_chunkDimensions.y), (fullsize_chunkDimensions.z) * 0.5f);
+
+        // Forward face
+        Vector3 forwardFaceStartVertex = MultiplyVectors(newFaceStartOffset, new Vector3(-1, 1, 1));
+        Vector3 forwardFaceNormal = Vector3.forward; // Normal for forward face
+        AddFace(forwardFaceStartVertex, Vector3.right, Vector3.up, chunkDimensions.x, chunkDimensions.y, forwardFaceNormal);
+
+        // Back face
+        Vector3 backFaceStartVertex = MultiplyVectors(newFaceStartOffset, new Vector3(1, 1, -1));
+        Vector3 backFaceNormal = Vector3.back; // Normal for back face
+        AddFace(backFaceStartVertex, Vector3.left, Vector3.up, chunkDimensions.x, chunkDimensions.y, backFaceNormal);
+
+        // Right face
+        Vector3 rightFaceStartVertex = MultiplyVectors(newFaceStartOffset, new Vector3(-1, 1, -1));
+        Vector3 rightFaceNormal = Vector3.right; // Normal for right face
+        AddFace(rightFaceStartVertex, Vector3.forward, Vector3.up, chunkDimensions.z, chunkDimensions.y, rightFaceNormal);
+
+        // Left face
+        Vector3 leftFaceStartVertex = MultiplyVectors(newFaceStartOffset, new Vector3(1, 1, 1));
+        Vector3 leftFaceNormal = Vector3.left; // Normal for left face
+        AddFace(leftFaceStartVertex, Vector3.back, Vector3.up, chunkDimensions.z, chunkDimensions.y, leftFaceNormal);
+
+        // Bottom face
+        Vector3 bottomFaceStartVertex = MultiplyVectors(newFaceStartOffset, new Vector3(-1, 1, -1));
+        Vector3 bottomFaceNormal = Vector3.down; // Normal for bottom face
+        AddFace(bottomFaceStartVertex, Vector3.right, Vector3.forward, chunkDimensions.x, chunkDimensions.z, bottomFaceNormal);
+
+        // Top face
+        Vector3 topFaceStartVertex = MultiplyVectors(newFaceStartOffset, new Vector3(1, 0, -1));
+        Vector3 topFaceNormal = Vector3.up; // Normal for top face
+        List<Vector3> topfacevertices = AddFace(topFaceStartVertex, Vector3.left, Vector3.forward, chunkDimensions.x, chunkDimensions.z, topFaceNormal);
+
+        // Helper method to dynamically generate triangles for a face
+        void AddFaceTriangles(int faceStartIndex, int uDivisions, int vDivisions)
+        {
+            for (int i = 0; i < vDivisions; i++)
+            {
+                for (int j = 0; j < uDivisions; j++)
+                {
+                    int rowStart = faceStartIndex + i * (uDivisions + 1);
+                    int nextRowStart = faceStartIndex + (i + 1) * (uDivisions + 1);
+
+                    int bottomLeft = rowStart + j;
+                    int bottomRight = bottomLeft + 1;
+                    int topLeft = nextRowStart + j;
+                    int topRight = topLeft + 1;
+
+                    // Add two triangles for each square
+                    List<int> newSquareMesh = new List<int>() { bottomLeft, topRight, topLeft, topRight, bottomLeft, bottomRight };
+                    triangles.AddRange(newSquareMesh);
+                }
+            }
+        }
+
+
+        // ITERATE through 6 faces
+        // Triangles generation
+        int vertexCount = 0;
+        for (int faceIndex = 0; faceIndex < 6; faceIndex++)
+        {
+            if (faceIndex < 4) // Side faces (XY plane)
+            {
+                AddFaceTriangles(vertexCount, chunkDimensions.x, chunkDimensions.y);
+                vertexCount += (chunkDimensions.x + 1) * (chunkDimensions.y + 1);
+            }
+            else // Vertical faces (XZ plane)
+            {
+                AddFaceTriangles(vertexCount, chunkDimensions.x, chunkDimensions.z);
+                vertexCount += (chunkDimensions.x + 1) * (chunkDimensions.z + 1);
+            }
+        }
+
+        // Apply the vertices and triangles to the mesh
+        newMesh.vertices = vertices.ToArray();
+        newMesh.triangles = triangles.ToArray();
+        newMesh.uv = uvs.ToArray();
+
+        // Recalculate normals for proper lighting
+        newMesh.RecalculateNormals();
+        newMesh.RecalculateBounds();
+
+        this.mesh = newMesh;
+    }
+
+
     void DetermineChunkEdges()
     {
         // Initialize all edges as active
@@ -262,7 +402,7 @@ public class WorldChunk
     private List<WorldCell> GetCellsInArea(WorldCell startCell, Vector2Int space)
     {
         List<WorldCell> areaCells = new List<WorldCell> ();
-        int cellSize = _worldGeneration.cellSize;
+        int cellSize = WorldGeneration.CellSize;
 
         for (int x = 0; x < space.x; x++)
         {
@@ -311,12 +451,6 @@ public class WorldChunk
         List<WorldCell> cells = GetCellsOfType(cellType);
         return cells[UnityEngine.Random.Range(0, cells.Count)];
     }
-
-    public void ShowLocalCells()
-    {
-
-    }
-
 }
 
 

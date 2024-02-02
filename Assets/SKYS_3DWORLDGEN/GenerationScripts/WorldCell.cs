@@ -56,7 +56,7 @@ public class WorldCell
 
     public void CreateDebugCube()
     {
-        float relativeSize = _generation.cellSize * _debugCubeRelativeScale;
+        float relativeSize = WorldGeneration.CellSize * _debugCubeRelativeScale;
 
         this._debugCubeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
         this._debugCubeObject.transform.parent = WorldCellMap.Instance.transform;

@@ -69,7 +69,7 @@ public class WorldEnvironment : MonoBehaviour
         if (environmentObjects.Count == 0) { return; }
         foreach (WorldChunk chunk in _worldGeneration.GetChunks())
         {
-            GameObject newParent = new GameObject(parentObjectPrefix + "chunk" + chunk.worldPosition);
+            GameObject newParent = new GameObject(parentObjectPrefix + "chunk" + chunk.coordinate);
             newParent.transform.parent = transform;
             _worldChunkEnvParentMap[chunk] = newParent.transform;
         }
@@ -78,7 +78,7 @@ public class WorldEnvironment : MonoBehaviour
         if (environmentObjects.Count == 0) { return; }
         foreach (WorldChunk chunk in _worldGeneration.GetBorderChunks())
         {
-            GameObject newParent = new GameObject(parentObjectPrefix + "BORDER chunk" + chunk.worldPosition);
+            GameObject newParent = new GameObject(parentObjectPrefix + "BORDER chunk" + chunk.coordinate);
             newParent.transform.parent = transform;
             _borderChunkEnvParentMap[chunk] = newParent.transform;
         }
@@ -134,7 +134,7 @@ public class WorldEnvironment : MonoBehaviour
         {
             if (cell.type == WorldCell.TYPE.EDGE || cell.type == WorldCell.TYPE.CORNER)
             {
-                SpawnPrefab(wall_0, cell, parentMap[cell.GetChunk()], _worldGeneration.cellSize);
+                SpawnPrefab(wall_0, cell, parentMap[cell.GetChunk()], WorldGeneration.CellSize);
             }
 
             // TRY TO SPAWN ENV OBJECT

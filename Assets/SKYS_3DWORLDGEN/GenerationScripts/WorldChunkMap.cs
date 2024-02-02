@@ -11,7 +11,7 @@ public class WorldChunkMap : MonoBehaviour
     }
 
     public bool initialized = false;
-    WorldGeneration _worldGeneration;
+    WorldGeneration _worldGen;
     List<WorldChunk> _worldChunks = new List<WorldChunk>();
     Dictionary<WorldChunk, List<WorldChunk>> _chunkNeighborMap = new Dictionary<WorldChunk, List<WorldChunk>>();
 
@@ -19,20 +19,30 @@ public class WorldChunkMap : MonoBehaviour
     {
         initialized = false;
 
-        _worldGeneration = GetComponentInParent<WorldGeneration>();
-        _worldChunks = _worldGeneration.GetChunks();
+        _worldGen = GetComponentInParent<WorldGeneration>();
+        _worldChunks = _worldGen.GetChunks();
         _chunkNeighborMap.Clear();
 
         // << Initialize Chunks >>
         foreach (WorldChunk chunk in _worldChunks)
         {
             // Set Neighbors
-            List<WorldChunk> neighbors = MapChunkNeighbors(chunk);
+            List<WorldChunk> neighbors = SetChunkNeighbors(chunk);
             _chunkNeighborMap[chunk] = neighbors;
 
             // Initialize
             chunk.Initialize();
         }
+
+        /*
+        // << Find Golden Path >>
+        if (_worldGen.worldExits.Count > 1)
+        {
+            List<WorldChunk> pathA = FindCoordinatePath(_worldGen.worldExits[0], _worldGen.worldExits[1]);
+            if (pathA.Count > 1) { foreach (WorldChunk chunk in pathA) { chunk.isOnGoldenPath = true; } }
+        }
+        */
+
 
         initialized = true;
     }
@@ -44,23 +54,24 @@ public class WorldChunkMap : MonoBehaviour
         initialized = false;
     }
 
-    // == MAP CHUNK NEIGHBORS ==============>>
-    private List<WorldChunk> MapChunkNeighbors(WorldChunk chunk)
+    #region == INDIVIDUAL CHUNK NEIGHBORS ==============>>
+    private List<WorldChunk> SetChunkNeighbors(WorldChunk chunk)
     {
         List<WorldChunk> neighbors = new List<WorldChunk>(new WorldChunk[4]);
-        float chunkWidth = _worldGeneration.realWorldChunkSize.x;
+        int chunkWidth = WorldGeneration.GetRealChunkAreaSize().x;
+        int chunkLength = WorldGeneration.GetRealChunkAreaSize().y;
 
         // Calculate neighbor positions
-        Vector2 leftPosition = chunk.worldPosition + new Vector2(-chunkWidth, 0);
-        Vector2 rightPosition = chunk.worldPosition + new Vector2(chunkWidth, 0);
-        Vector2 forwardPosition = chunk.worldPosition + new Vector2(0, chunkWidth);
-        Vector2 backwardPosition = chunk.worldPosition + new Vector2(0, -chunkWidth);
+        Vector2 leftPosition = chunk.coordinate + new Vector2(-chunkWidth, 0);
+        Vector2 rightPosition = chunk.coordinate + new Vector2(chunkWidth, 0);
+        Vector2 forwardPosition = chunk.coordinate + new Vector2(0, chunkLength);
+        Vector2 backwardPosition = chunk.coordinate + new Vector2(0, -chunkLength);
 
         // Find and assign neighbors in the specific order [Left, Right, Forward, Backward]
-        neighbors[0] = _worldChunks.Find(c => c.worldPosition == leftPosition);     // Left
-        neighbors[1] = _worldChunks.Find(c => c.worldPosition == rightPosition);    // Right
-        neighbors[2] = _worldChunks.Find(c => c.worldPosition == forwardPosition);  // Forward
-        neighbors[3] = _worldChunks.Find(c => c.worldPosition == backwardPosition); // Backward
+        neighbors[0] = _worldChunks.Find(c => c.coordinate == leftPosition);     // Left
+        neighbors[1] = _worldChunks.Find(c => c.coordinate == rightPosition);    // Right
+        neighbors[2] = _worldChunks.Find(c => c.coordinate == forwardPosition);  // Forward
+        neighbors[3] = _worldChunks.Find(c => c.coordinate == backwardPosition); // Backward
 
         // Remove null entries if a neighbor is not found
         neighbors.RemoveAll(item => item == null);
@@ -68,14 +79,15 @@ public class WorldChunkMap : MonoBehaviour
         return neighbors;
     }
 
-    public List<WorldChunk> GetChunkNeighbors(WorldChunk chunk) 
+    public List<WorldChunk> GetAllChunkNeighbors(WorldChunk chunk) 
     {
         if (!_chunkNeighborMap.ContainsKey(chunk)) { return new List<WorldChunk>(); }
 
         return _chunkNeighborMap[chunk];
     }
+    #endregion
 
-    // == WORLD CHUNK EDGES
+    #region == WORLD EDGE CHUNKS ==========================>>
     // Method to retrieve an edge chunk
     public WorldChunk GetEdgeChunk(WorldDirection edgeDirection, int index)
     {
@@ -103,9 +115,7 @@ public class WorldChunkMap : MonoBehaviour
 
     private bool IsOnSpecifiedEdge(WorldChunk chunk, WorldDirection edgeDirection)
     {
-        WorldGeneration worldGen = WorldGeneration.Instance;
-        Vector2 halfSize_playArea = (Vector2)worldGen.realWorldPlayAreaSize * 0.5f;
-
+        Vector2 halfSize_playArea = (Vector2)WorldGeneration.PlayZoneArea * 0.5f;
 
         // Define the boundaries for each direction
         float westBoundaryX = -halfSize_playArea.x;
@@ -116,17 +126,164 @@ public class WorldChunkMap : MonoBehaviour
         switch (edgeDirection)
         {
             case WorldDirection.West:
-                return chunk.worldPosition.x == westBoundaryX;
+                return chunk.coordinate.x == westBoundaryX;
             case WorldDirection.East:
-                return chunk.worldPosition.x == eastBoundaryX;
+                return chunk.coordinate.x == eastBoundaryX;
             case WorldDirection.North:
-                return chunk.worldPosition.y == northBoundaryY;
+                return chunk.coordinate.y == northBoundaryY;
             case WorldDirection.South:
-                return chunk.worldPosition.y == southBoundaryY;
+                return chunk.coordinate.y == southBoundaryY;
             default:
                 return false;
         }
     }
+    #endregion
+
+    #region == COORDINATE PATHFINDING =================================///
+    // A* Pathfinding implementation
+    // - gCost is the known cost from the starting node
+    // - hCost is the estimated distance to the end node
+    // - fCost is gCost + hCost
+
+    public class Coordinate
+    {
+        public Vector2 Position { get; set; }
+        public float GCost { get; set; }
+        public float HCost { get; set; }
+        public float FCost => GCost + HCost;
+        public Coordinate Parent { get; set; }
+
+        public Coordinate(Vector2 position)
+        {
+            Position = position;
+            GCost = float.MaxValue;
+            HCost = 0;
+            Parent = null;
+        }
+    }
+
+    public List<Coordinate> FindCoordinatePath(Coordinate startCoordinate, Coordinate endCoordinate)
+    {
+        List<Coordinate> openSet = new List<Coordinate>();
+        HashSet<Coordinate> closedSet = new HashSet<Coordinate>();
+        openSet.Add(startCoordinate);
+
+        while (openSet.Count > 0)
+        {
+            Coordinate currentCoordinate = openSet[0];
+            for (int i = 1; i < openSet.Count; i++)
+            {
+                if (openSet[i].FCost <= currentCoordinate.FCost && openSet[i].HCost < currentCoordinate.HCost)
+                {
+                    currentCoordinate = openSet[i];
+                }
+            }
+
+            openSet.Remove(currentCoordinate);
+            closedSet.Add(currentCoordinate);
+
+            if (currentCoordinate == endCoordinate)
+            {
+                return RetracePath(startCoordinate, endCoordinate);
+            }
+
+            foreach (Coordinate neighbor in GetAllCoordinateNeighbors(currentCoordinate))
+            {
+                if (closedSet.Contains(neighbor))
+                {
+                    continue;
+                }
+
+                float newMovementCostToNeighbor = currentCoordinate.GCost + GetCoordinateDistance(currentCoordinate, neighbor);
+                if (newMovementCostToNeighbor < neighbor.GCost || !openSet.Contains(neighbor))
+                {
+                    neighbor.GCost = newMovementCostToNeighbor;
+                    neighbor.HCost = GetCoordinateDistance(neighbor, endCoordinate);
+                    neighbor.Parent = currentCoordinate;
+
+                    if (!openSet.Contains(neighbor))
+                        openSet.Add(neighbor);
+                }
+            }
+        }
+
+        return new List<Coordinate>(); // Return an empty path if there is no path
+    }
+
+    List<Coordinate> RetracePath(Coordinate startCoordinate, Coordinate endCoordinate)
+    {
+        List<Coordinate> path = new List<Coordinate>();
+        Coordinate currentCoordinate = endCoordinate;
+
+        while (currentCoordinate != startCoordinate)
+        {
+            path.Add(currentCoordinate);
+            currentCoordinate = currentCoordinate.Parent;
+        }
+        path.Reverse();
+        return path;
+    }
+
+    public List<Coordinate> GetAllCoordinateNeighbors(Coordinate coordinate)
+    {
+        List<Coordinate> neighbors = new List<Coordinate>();
+
+        // List of potential neighbor positions (north, south, east, west)
+        Vector2[] potentialNeighbors = {
+        new Vector2(coordinate.Position.x, coordinate.Position.y + 1), // North
+        new Vector2(coordinate.Position.x, coordinate.Position.y - 1), // South
+        new Vector2(coordinate.Position.x + 1, coordinate.Position.y), // East
+        new Vector2(coordinate.Position.x - 1, coordinate.Position.y)  // West
+    };
+
+        foreach (Vector2 neighborPos in potentialNeighbors)
+        {
+            // Here you would typically check if the neighbor is within the bounds of your world
+            // and if it is traversable (not an obstacle or otherwise inaccessible)
+            // For simplicity, we'll assume all generated positions are valid and add them directly
+            neighbors.Add(new Coordinate(neighborPos));
+        }
+
+        return neighbors;
+    }
+
+    public float GetCoordinateDistance(Coordinate a, Coordinate b)
+    {
+        return Vector2.Distance(a.Position, b.Position);
+    }
+
+    public static Coordinate GetWorldExitCoordinate(WorldExit worldExit)
+    {
+        WorldDirection direction = worldExit.edgeDirection;
+        int index = worldExit.edgeIndex;
+
+        // Assuming these values are accessible in the current context
+        int fullWorldAreaWidth = WorldGeneration.GetFullWorldArea().x;
+        int fullWorldAreaLength = WorldGeneration.GetFullWorldArea().y;
+        float realChunkWidthSize = WorldGeneration.GetRealChunkAreaSize().x;
+        float realChunkHeightSize = WorldGeneration.GetRealChunkAreaSize().y;
+
+        Vector2 position = Vector2.zero;
+        switch (direction)
+        {
+            case WorldDirection.North:
+                position = new Vector2((index - fullWorldAreaWidth / 2) * realChunkWidthSize, (fullWorldAreaLength / 2) * realChunkHeightSize);
+                break;
+            case WorldDirection.South:
+                position = new Vector2((index - fullWorldAreaWidth / 2) * realChunkWidthSize, -(fullWorldAreaLength / 2) * realChunkHeightSize);
+                break;
+            case WorldDirection.East:
+                position = new Vector2((fullWorldAreaWidth / 2) * realChunkWidthSize, (index - fullWorldAreaLength / 2) * realChunkHeightSize);
+                break;
+            case WorldDirection.West:
+                position = new Vector2(-(fullWorldAreaWidth / 2) * realChunkWidthSize, (index - fullWorldAreaLength / 2) * realChunkHeightSize);
+                break;
+        }
+
+        return new Coordinate(position);
+    }
+    #endregion
+
 
     // == HELPER FUNCTIONS ==============>>
     public WorldChunk FindClosestChunk(Vector3 position)
@@ -135,9 +292,9 @@ public class WorldChunkMap : MonoBehaviour
         WorldChunk closestChunk = null;
 
         // Iterate over each cell in WorldGeneration
-        foreach (WorldChunk chunk in _worldGeneration.GetChunks())
+        foreach (WorldChunk chunk in _worldGen.GetChunks())
         {
-            float distance = Vector3.Distance(position, chunk.worldPosition);
+            float distance = Vector3.Distance(position, chunk.coordinate);
 
             if (distance < minDistance)
             {
@@ -154,6 +311,10 @@ public class WorldChunkMap : MonoBehaviour
         return null;
     }
 
+    public float GetDistanceBetweenChunks(WorldChunk chunkA, WorldChunk chunkB)
+    {
+        return Vector2.Distance(chunkA.coordinate, chunkB.coordinate);
+    }
 
     // == DEBUG FUNCTIONS ==============>>
     public void ShowChunkCells(WorldChunk chunk)
@@ -177,12 +338,12 @@ public class WorldChunkMap : MonoBehaviour
 
     public string GetChunkStats(WorldChunk chunk)
     {
-        if (_worldGeneration == null || !_worldGeneration.generation_finished) return "[ WORLD GENERATION ] is not available.";
+        if (_worldGen == null) return "[ WORLD GENERATION ] is not available.";
         if (chunk == null) return "[ WORLD CHUNK ] is not available.";
         if (chunk.initialized == false) return "[ WORLD CHUNK ] is not initialized.";
 
 
-        string str_out = $"[ WORLD CHUNK ] : {chunk.worldPosition}\n";
+        string str_out = $"[ WORLD CHUNK ] : {chunk.coordinate}\n";
         str_out += $"\t>> chunk_type : {chunk.type}\n";
         str_out += $"\t>> Total Cell Count : {chunk.localCells.Count}\n";
         str_out += $"\t    -- Empty Cells : {chunk.GetCellsOfType(WorldCell.TYPE.EMPTY).Count}\n";
