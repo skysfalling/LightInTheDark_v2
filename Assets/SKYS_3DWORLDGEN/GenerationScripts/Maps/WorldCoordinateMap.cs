@@ -1,9 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 public class WorldCoordinate
 {
-    public WorldChunk.TYPE ChunkType = WorldChunk.TYPE.EMPTY;
+    public enum TYPE { NULL, BORDER, EXIT, PATH, CLOSED }
+
+    public TYPE type;
     public WorldDirection borderEdgeDirection;
 
     // ASTAR PATHFINDING
@@ -14,8 +15,6 @@ public class WorldCoordinate
     public float FCost => GCost + HCost;
     public WorldCoordinate Parent { get; set; }
 
-    public bool goldenPath;
-
     public WorldCoordinate(Vector2 position)
     {
         Position = position;
@@ -25,12 +24,12 @@ public class WorldCoordinate
         HCost = 0;
         Parent = null;
     }
-    public WorldCoordinate(Vector2 position, WorldChunk.TYPE type)
+    public WorldCoordinate(Vector2 position, TYPE type)
     {
         Position = position;
         WorldPosition = new Vector3(position.x, 0, position.y);
 
-        ChunkType = type;
+        this.type = type;
 
         GCost = float.MaxValue;
         HCost = 0;
@@ -40,7 +39,11 @@ public class WorldCoordinate
 
 public class WorldCoordinateMap : MonoBehaviour
 {
-    public bool showGizmos;
+    public static WorldCoordinateMap Instance;
+    public void Awake()
+    {
+        if (Instance == null) { Instance = this; }
+    }
 
     // >> COORDINATE MAP ================================ >>
     public static List<WorldCoordinate> CoordinateMap = new List<WorldCoordinate>();
@@ -74,12 +77,12 @@ public class WorldCoordinateMap : MonoBehaviour
                     (x == 0 && y == yCoordCount - 1) ||
                     (x == xCoordCount - 1 && y == yCoordCount - 1))
                 {
-                    newCoord.ChunkType = WorldChunk.TYPE.CLOSED;
+                    newCoord.type = WorldCoordinate.TYPE.CLOSED;
                 }
                 // Check if the position is on the border
                 else if (x == 0 || y == 0 || x == xCoordCount - 1 || y == yCoordCount - 1)
                 {
-                    newCoord.ChunkType = WorldChunk.TYPE.BORDER;
+                    newCoord.type = WorldCoordinate.TYPE.BORDER;
                     if (x == 0) { newCoord.borderEdgeDirection = WorldDirection.West; }
                     if (y == 0) { newCoord.borderEdgeDirection = WorldDirection.South; }
                     if (x == xCoordCount - 1) { newCoord.borderEdgeDirection = WorldDirection.East; }
@@ -94,12 +97,6 @@ public class WorldCoordinateMap : MonoBehaviour
         Debug.Log("New Coordinate Map " + CoordinateMap.Count);
 
         return CoordinateMap;
-    }
-
-    public static void ResetCoordinateMap()
-    {
-        List<WorldCoordinate> coordMap = GetCoordinateMap();
-        foreach (WorldCoordinate coord in coordMap) { coord.goldenPath = false; }
     }
 
     public static List<Vector2> GetCoordinateMapPositions()
@@ -128,7 +125,7 @@ public class WorldCoordinateMap : MonoBehaviour
         List<WorldCoordinate> coordMap = GetCoordinateMap();
         foreach (WorldCoordinate coord in coordMap)
         {
-            if (coord.ChunkType == WorldChunk.TYPE.BORDER || coord.ChunkType == WorldChunk.TYPE.EXIT)
+            if (coord.type == WorldCoordinate.TYPE.BORDER || coord.type == WorldCoordinate.TYPE.EXIT)
             {
                 borderCoords.Add(coord);
             }
@@ -192,6 +189,26 @@ public class WorldCoordinateMap : MonoBehaviour
         return coord;
     }
 
+    #region == {{ WORLD EXITS }} ======================================================== ////
+    public List<WorldExitPath> worldExitPaths = new List<WorldExitPath>();
+
+    public void InitializeWorldExits()
+    {
+        // Reset Borders
+        List<WorldCoordinate> borderCoords = GetCoordinatesOnAllBorders();
+        foreach (WorldCoordinate coord in borderCoords)
+        {
+            coord.type = WorldCoordinate.TYPE.BORDER;
+        }
+
+        // Initialize New Exits
+        foreach (WorldExitPath exitPath in worldExitPaths)
+        {
+            exitPath.startExit.Initialize();
+            exitPath.endExit.Initialize();
+        }
+    }
+
     public static WorldCoordinate GetWorldExitPathConnection(WorldExit exit)
     {
         switch (exit.borderDirection)
@@ -209,7 +226,7 @@ public class WorldCoordinateMap : MonoBehaviour
         return null;
     }
 
-    public static WorldCoordinate InitializeWorldExit(WorldExit worldExit)
+    public static WorldCoordinate GetCoordinateAtWorldExit(WorldExit worldExit)
     {
         WorldDirection direction = worldExit.borderDirection;
         int index = worldExit.borderIndex;
@@ -221,6 +238,7 @@ public class WorldCoordinateMap : MonoBehaviour
         }
         return null;
     }
+    #endregion
 
     #region == COORDINATE PATHFINDING =================================///
     // A* Pathfinding implementation
@@ -243,7 +261,7 @@ public class WorldCoordinateMap : MonoBehaviour
                 // Check if best option
                 if (openSet[i].FCost <= currentCoordinate.FCost && 
                     openSet[i].HCost < currentCoordinate.HCost &&
-                    openSet[i].ChunkType == WorldChunk.TYPE.EMPTY)
+                    openSet[i].type == WorldCoordinate.TYPE.NULL)
                 {
                     currentCoordinate = openSet[i];
                 }
@@ -299,8 +317,6 @@ public class WorldCoordinateMap : MonoBehaviour
         return path;
     }
 
-
-
     public static float GetCoordinateDistance(WorldCoordinate a, WorldCoordinate b)
     {
         // This link has more heuristics :: https://www.enjoyalgorithms.com/blog/a-star-search-algorithm
@@ -308,15 +324,41 @@ public class WorldCoordinateMap : MonoBehaviour
     }
     #endregion
 
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
-        if (!showGizmos) { return; }
+        List<WorldCoordinate> coordMap = GetCoordinateMap();
+        Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
 
-        // Draw Coordinates
-        foreach (WorldCoordinate coord in GetCoordinateMap())
+        // << DRAW COORDINATE MAP >>
+        foreach (WorldCoordinate coord in coordMap)
         {
-            Gizmos.color = Color.black;
-            Gizmos.DrawCube(coord.WorldPosition, Vector3.one);
+            // Draw Chunks
+            Gizmos.color = Color.white;
+            Vector3 chunkHeightOffset = realChunkDimensions.y * Vector3.down * 0.5f;
+
+            switch (coord.type)
+            {
+                case WorldCoordinate.TYPE.NULL:
+                    Gizmos.color = Color.white;
+                    Gizmos.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+                    break;
+                case WorldCoordinate.TYPE.BORDER:
+                    Gizmos.color = Color.red;
+                    Gizmos.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+                    break;
+                case WorldCoordinate.TYPE.EXIT:
+                    Gizmos.color = Color.red;
+                    Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+                    break;
+                case WorldCoordinate.TYPE.PATH:
+                    Gizmos.color = Color.yellow;
+                    Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+                    break;
+                case WorldCoordinate.TYPE.CLOSED:
+                    Gizmos.color = Color.black;
+                    Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+                    break;
+            }
         }
     }
 }

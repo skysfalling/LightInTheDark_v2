@@ -54,45 +54,6 @@ public class WorldChunkMap : MonoBehaviour
         initialized = false;
     }
 
-    // == {{ WORLD EXITS }} ======================================================== ////
-    [HideInInspector] public List<WorldExit> worldExits = new List<WorldExit>();
-    public void InitializeWorldExits()
-    {
-        // Reset Borders
-        List<WorldCoordinate> borderCoords = WorldCoordinateMap.GetCoordinatesOnAllBorders();
-        foreach (WorldCoordinate coord in borderCoords)
-        {
-            coord.ChunkType = WorldChunk.TYPE.BORDER;
-        }
-
-        // Initialize New Exits
-        foreach (WorldExit exit in worldExits)
-        {
-            exit.Coordinate = WorldCoordinateMap.InitializeWorldExit(exit);
-            if (exit.Coordinate != null)
-            {
-                exit.Coordinate.ChunkType = WorldChunk.TYPE.EXIT;
-                exit.PathConnectionCoordinate = WorldCoordinateMap.GetWorldExitPathConnection(exit);
-            }
-        }
-    }
-
-    public List<WorldCoordinate> FindGoldenPath()
-    {
-        List<WorldCoordinate> goldenPath = new();
-
-        // Find Golden Path
-        if (worldExits.Count > 1)
-        {
-            WorldExit exitZero = worldExits[0];
-            WorldExit exitOne = worldExits[1];
-
-            goldenPath = WorldCoordinateMap.FindCoordinatePath(exitZero.PathConnectionCoordinate, exitOne.PathConnectionCoordinate);
-            foreach (WorldCoordinate coord in goldenPath) { coord.goldenPath = true; }
-        }
-
-        return goldenPath;
-    }
 
     #region == INDIVIDUAL CHUNK NEIGHBORS ==============>>
     private List<WorldChunk> SetChunkNeighbors(WorldChunk chunk)
@@ -193,48 +154,5 @@ public class WorldChunkMap : MonoBehaviour
         str_out += $"\t    -- Corner Cells : {chunk.GetCellsOfType(WorldCell.TYPE.CORNER).Count}\n";
 
         return str_out;
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        if (WorldCoordinateMap.CoordinateMap.Count == 0) return; // Dont draw if coordinateMap is empty
-
-        List<WorldCoordinate> coordMap = WorldCoordinateMap.GetCoordinateMap();
-        Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
-
-        // << DRAW CHUNK MAP >>
-        foreach (WorldCoordinate coord in coordMap)
-        {
-            // Draw Chunks
-            Gizmos.color = Color.white;
-            Vector3 chunkHeightOffset = realChunkDimensions.y * Vector3.down * 0.5f;
-
-            switch (coord.ChunkType)
-            {
-                case WorldChunk.TYPE.BORDER:
-                    Gizmos.color = Color.red;
-                    Gizmos.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
-                    break;
-                case WorldChunk.TYPE.EXIT:
-                    Gizmos.color = Color.red;
-                    Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
-                    break;
-                case WorldChunk.TYPE.EMPTY:
-                    if (coord.goldenPath) { 
-                        Gizmos.color = Color.yellow;
-                        Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
-                    }
-                    else
-                    {
-                        Gizmos.color = Color.white;
-                        Gizmos.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
-                    }
-                    break;
-                case WorldChunk.TYPE.CLOSED:
-                    Gizmos.color = Color.black;
-                    Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
-                    break;
-            }
-        }
     }
 }
