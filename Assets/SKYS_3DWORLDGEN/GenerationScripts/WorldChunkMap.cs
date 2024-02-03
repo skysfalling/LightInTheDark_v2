@@ -15,7 +15,6 @@ public class WorldChunkMap : MonoBehaviour
     }
 
     // == GAME INTIALIZATION ===============================================================
-    public bool showGizmos;
     [HideInInspector] public bool initialized = false;
     WorldGeneration _worldGen;
     List<WorldChunk> _worldChunks = new List<WorldChunk>();
@@ -56,7 +55,6 @@ public class WorldChunkMap : MonoBehaviour
     }
 
     // == {{ WORLD EXITS }} ======================================================== ////
-    [Header("World Exits")]
     [HideInInspector] public List<WorldExit> worldExits = new List<WorldExit>();
     public void InitializeWorldExits()
     {
@@ -84,7 +82,7 @@ public class WorldChunkMap : MonoBehaviour
         List<WorldCoordinate> goldenPath = new();
 
         // Find Golden Path
-        if (worldExits.Count > 0)
+        if (worldExits.Count > 1)
         {
             WorldExit exitZero = worldExits[0];
             WorldExit exitOne = worldExits[1];
@@ -199,7 +197,6 @@ public class WorldChunkMap : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        if (!showGizmos) return;
         if (WorldCoordinateMap.CoordinateMap.Count == 0) return; // Dont draw if coordinateMap is empty
 
         List<WorldCoordinate> coordMap = WorldCoordinateMap.GetCoordinateMap();

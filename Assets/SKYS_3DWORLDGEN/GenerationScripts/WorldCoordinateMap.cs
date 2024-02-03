@@ -194,7 +194,7 @@ public class WorldCoordinateMap : MonoBehaviour
 
     public static WorldCoordinate GetWorldExitPathConnection(WorldExit exit)
     {
-        switch (exit.edgeDirection)
+        switch (exit.borderDirection)
         {
             case WorldDirection.West:
                 return GetCoordinateNeighborInDirection(exit.Coordinate, WorldDirection.East);
@@ -211,8 +211,8 @@ public class WorldCoordinateMap : MonoBehaviour
 
     public static WorldCoordinate InitializeWorldExit(WorldExit worldExit)
     {
-        WorldDirection direction = worldExit.edgeDirection;
-        int index = worldExit.edgeIndex;
+        WorldDirection direction = worldExit.borderDirection;
+        int index = worldExit.borderIndex;
 
         List<WorldCoordinate> borderCoords = GetCoordinatesOnBorderDirection(direction);
         if (borderCoords.Count > index)

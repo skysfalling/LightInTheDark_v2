@@ -37,27 +37,12 @@ public class WorldGeneration : MonoBehaviour
     public static Vector2Int PlayZoneArea = new Vector2Int(10, 10); // Default size of PlayArea { in WorldChunk Units }
     public static int BoundaryOffset = 1; // Boundary offset value 
 
-    Vector2Int _fullWorldArea; // PlayZoneArea + (BoundaryOffset * 2 * Vector2Int.one)
     public static Vector2Int GetFullWorldArea() { return PlayZoneArea + (BoundaryOffset * 2 * Vector2Int.one); } // Include BoundaryOffset on both sides
     public static Vector3Int GetChunkDimensions() { return new Vector3Int(ChunkArea.x, ChunkDepth, ChunkArea.y); }
-
-
-    // CONVERT TO REAL UNITS
-    Vector2Int _realChunkAreaSize;// realWorldChunkSize * cellSize
-    Vector2Int _realPlayAreaSize; // PlayZoneArea * realChunkSize
-    Vector2Int _realFullWorldSize; // _fullWorldArea * cellSize
     public static Vector2Int GetRealChunkAreaSize() { return ChunkArea * CellSize; }
     public static Vector3Int GetRealChunkDimensions() { return new Vector3Int(ChunkArea.x, ChunkDepth, ChunkArea.y) * CellSize; }
     public static Vector2Int GetRealPlayAreaSize() { return PlayZoneArea * GetRealChunkAreaSize(); }
     public static Vector2Int GetRealFullWorldSize() { return GetFullWorldArea() * GetRealChunkAreaSize(); }
-
-    public void InitializeWorldDimensions()
-    {
-        _fullWorldArea = GetFullWorldArea();
-        _realChunkAreaSize = GetRealChunkAreaSize();
-        _realPlayAreaSize = GetRealPlayAreaSize();
-        _realFullWorldSize = GetRealFullWorldSize();
-    }
 
     string _prefix = "[ WORLD GENERATION ] ";
     [HideInInspector] public bool generation_finished = false;
@@ -76,7 +61,6 @@ public class WorldGeneration : MonoBehaviour
     public void StartGeneration()
     {
         Reset();
-        InitializeWorldDimensions();
 
         if (_worldGenerationRoutine != null) { StopCoroutine(_worldGenerationRoutine); }
         _worldGenerationRoutine = StartCoroutine(Generate());
