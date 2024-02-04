@@ -15,6 +15,8 @@ public class WorldCoordinate
     public float FCost => GCost + HCost;
     public WorldCoordinate Parent { get; set; }
 
+    public Color pathColor = Color.white;
+
     public WorldCoordinate(Vector2 position)
     {
         Position = position;
@@ -119,6 +121,28 @@ public class WorldCoordinateMap : MonoBehaviour
         return null;
     }
 
+    public static List<WorldCoordinate> GetAllCoordinatesOfType(WorldCoordinate.TYPE type)
+    {
+        List<WorldCoordinate> typeList = new();
+        foreach(WorldCoordinate coord in GetCoordinateMap())
+        {
+            if (coord.type == type)
+            {
+                typeList.Add(coord);
+            }
+        }
+        return typeList;
+    }
+
+    public static List<WorldCoordinate> ConvertCoordinatesToType(List<WorldCoordinate> coords, WorldCoordinate.TYPE conversionType)
+    {
+        foreach (WorldCoordinate coordinate in coords)
+        {
+            coordinate.type = conversionType;
+        }
+        return coords;
+    }
+
     public static List<WorldCoordinate> GetCoordinatesOnAllBorders()
     {
         List<WorldCoordinate> borderCoords = new();
@@ -192,20 +216,19 @@ public class WorldCoordinateMap : MonoBehaviour
     #region == {{ WORLD EXITS }} ======================================================== ////
     public List<WorldExitPath> worldExitPaths = new List<WorldExitPath>();
 
-    public void InitializeWorldExits()
+    public void InitializeWorldExitPaths()
     {
         // Reset Borders
         List<WorldCoordinate> borderCoords = GetCoordinatesOnAllBorders();
-        foreach (WorldCoordinate coord in borderCoords)
-        {
-            coord.type = WorldCoordinate.TYPE.BORDER;
-        }
+        ConvertCoordinatesToType(borderCoords, WorldCoordinate.TYPE.BORDER);
+
+        // Reset Paths
+        ConvertCoordinatesToType(GetAllCoordinatesOfType(WorldCoordinate.TYPE.PATH), WorldCoordinate.TYPE.NULL);
 
         // Initialize New Exits
         foreach (WorldExitPath exitPath in worldExitPaths)
         {
-            exitPath.startExit.Initialize();
-            exitPath.endExit.Initialize();
+            exitPath.Initialize();
         }
     }
 
@@ -328,14 +351,11 @@ public class WorldCoordinateMap : MonoBehaviour
     {
         List<WorldCoordinate> coordMap = GetCoordinateMap();
         Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
+        Vector3 chunkHeightOffset = realChunkDimensions.y * Vector3.down * 0.5f;
 
-        // << DRAW COORDINATE MAP >>
+        // << DRAW BASE COORDINATE MAP >>
         foreach (WorldCoordinate coord in coordMap)
         {
-            // Draw Chunks
-            Gizmos.color = Color.white;
-            Vector3 chunkHeightOffset = realChunkDimensions.y * Vector3.down * 0.5f;
-
             switch (coord.type)
             {
                 case WorldCoordinate.TYPE.NULL:
@@ -346,18 +366,34 @@ public class WorldCoordinateMap : MonoBehaviour
                     Gizmos.color = Color.red;
                     Gizmos.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
                     break;
-                case WorldCoordinate.TYPE.EXIT:
-                    Gizmos.color = Color.red;
-                    Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
-                    break;
-                case WorldCoordinate.TYPE.PATH:
-                    Gizmos.color = Color.yellow;
-                    Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
-                    break;
                 case WorldCoordinate.TYPE.CLOSED:
                     Gizmos.color = Color.black;
                     Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
                     break;
+            }
+        }
+
+        // DRAW EXIT PATHS
+        int pathCount = 0;
+        foreach (WorldExitPath exitPath in worldExitPaths)
+        {
+            if (!exitPath.initialized) { continue; }
+            pathCount++;
+
+            WorldCoordinate start = exitPath.startExit.Coordinate;
+            Gizmos.color = start.pathColor;
+            Gizmos.DrawCube(start.WorldPosition + chunkHeightOffset, realChunkDimensions);
+
+            WorldCoordinate end = exitPath.endExit.Coordinate;
+            Gizmos.color = end.pathColor;
+            Gizmos.DrawCube(end.WorldPosition + chunkHeightOffset, realChunkDimensions);
+
+            List<WorldCoordinate> pathCoords = exitPath.GetPathCoordinates();
+            Debug.Log($"Path {pathCount} : Count {pathCoords.Count}");
+            foreach (WorldCoordinate coord in pathCoords)
+            {
+                Gizmos.color = coord.pathColor;
+                Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
             }
         }
     }

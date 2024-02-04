@@ -1,51 +1,99 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.VisualScripting;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+public enum PathColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE }
+
 [System.Serializable]
 public class WorldPath
 {
+    PathColor _color;
     WorldCoordinate _startCoordinate;
     WorldCoordinate _endCoordinate;
-    List<WorldCoordinate> _path;
+    List<WorldCoordinate> _pathCoords;
     bool _isValid;
+    [HideInInspector] public bool initialized = false;
 
     public static float PathRandomness;
-
-    public Color pathColor = Color.yellow;
-
-    public WorldPath(WorldCoordinate startCoord, WorldCoordinate endCoord)
+    public WorldPath(WorldCoordinate startCoord, WorldCoordinate endCoord, PathColor color)
     {
         this._startCoordinate = startCoord;
         this._endCoordinate = endCoord;
-        _path = WorldCoordinateMap.FindCoordinatePath(startCoord, endCoord);
-        foreach (WorldCoordinate c in _path)
-        {
-            c.type = WorldCoordinate.TYPE.PATH;
-        }
+        this._color = color;
+
+        Initialize();
+
+        initialized = true;
     }
 
+    public void Initialize()
+    {
+        _pathCoords = WorldCoordinateMap.FindCoordinatePath(this._startCoordinate, this._endCoordinate);
+        foreach (WorldCoordinate c in _pathCoords)
+        {
+            c.pathColor = GetPathColor(_color);
+            c.type = WorldCoordinate.TYPE.PATH;
+        }
 
+        initialized = true;
+    }
+
+    public Color GetPathColor(PathColor color)
+    {
+        switch (color)
+        {
+            case PathColor.BLACK:
+                return Color.black;
+            case PathColor.WHITE:
+                return Color.white;
+            case PathColor.RED:
+                return Color.red;
+            case PathColor.YELLOW:
+                return Color.yellow;
+            case PathColor.GREEN:
+                return Color.green;
+            case PathColor.BLUE:
+                return Color.blue;
+        }
+        return Color.black;
+    }
+
+    public List<WorldCoordinate> GetPathCoordinates()
+    {
+        if (!initialized) { Initialize(); }
+
+        return _pathCoords;
+    }
 }
 
 [System.Serializable]
 public class WorldExitPath
 {
-    public Color gizmosColor;
+    public PathColor pathColor = PathColor.YELLOW;
     public WorldExit startExit;
     public WorldExit endExit;
-    WorldPath _path;
+    WorldPath _worldPath;
+    [HideInInspector] public bool initialized = false;
 
-    public WorldExitPath(WorldExit startExit, WorldExit endExit)
+    public void Initialize()
     {
-        this.startExit = startExit;
-        this.endExit = endExit;
-        _path = new WorldPath(startExit.PathConnectionCoord, endExit.PathConnectionCoord);
+        if (startExit == null) { return; }
+        if (endExit == null) { return; }
+
+        startExit.Initialize();
+        endExit.Initialize();
+        _worldPath = new WorldPath(startExit.PathConnectionCoord, endExit.PathConnectionCoord, pathColor);
+
+        initialized = true;
+    }
+
+    public List<WorldCoordinate> GetPathCoordinates()
+    {
+        if (!initialized) { Initialize(); }
+
+        return _worldPath.GetPathCoordinates();
     }
 }

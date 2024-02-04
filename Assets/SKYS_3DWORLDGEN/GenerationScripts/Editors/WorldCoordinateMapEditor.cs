@@ -57,7 +57,7 @@ public class WorldCoordinateMapEditor : Editor
             WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
 
             // Call your initialization method here
-            worldCoordMap.InitializeWorldExits();
+            worldCoordMap.InitializeWorldExitPaths();
 
             // Optionally, mark the target object as dirty to ensure the changes are saved
             EditorUtility.SetDirty(target);
@@ -67,7 +67,7 @@ public class WorldCoordinateMapEditor : Editor
     private void OnSceneGUI()
     {
         WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
-        worldCoordMap.InitializeWorldExits();
+        worldCoordMap.InitializeWorldExitPaths();
     }
 }
 #endif
