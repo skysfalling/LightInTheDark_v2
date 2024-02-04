@@ -18,29 +18,56 @@ public class WorldCoordinateMapEditor : Editor
     {
         serializedCoordinateMap.Update();
 
-        WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
-        worldCoordMap.InitializeWorldExits();
+        // Store the current state to check for changes later
+        EditorGUI.BeginChangeCheck();
 
+        // Display each WorldExitPath with a foldout
         if (worldExitPathsProperty != null)
         {
+            EditorGUILayout.LabelField("World Exit Paths", EditorStyles.boldLabel); // Optional: Add a section label
+
             for (int i = 0; i < worldExitPathsProperty.arraySize; i++)
             {
                 SerializedProperty exitProperty = worldExitPathsProperty.GetArrayElementAtIndex(i);
-
                 EditorGUILayout.PropertyField(exitProperty, new GUIContent($"World Exit Path {i}"), true);
-
-                // Additional custom UI elements can be added here
             }
 
-            // Optionally, add buttons for adding/removing WorldExit objects from the list
-            if (GUILayout.Button("Add New WorldExitPath"))
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Add World Exit Path"))
             {
                 worldExitPathsProperty.arraySize++;
             }
+            if (GUILayout.Button("Remove Last"))
+            {
+                if (worldExitPathsProperty.arraySize > 0)
+                {
+                    worldExitPathsProperty.arraySize--;
+                }
+            }
+            EditorGUILayout.EndHorizontal();
         }
 
+        // Check if any changes were made in the Inspector
+        if (EditorGUI.EndChangeCheck())
+        {
+            // If there were changes, apply them to the serialized object
+            serializedCoordinateMap.ApplyModifiedProperties();
 
-        serializedCoordinateMap.ApplyModifiedProperties(); // Apply changes to the serialized object
+            // Get your WorldCoordinateMap component
+            WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
+
+            // Call your initialization method here
+            worldCoordMap.InitializeWorldExits();
+
+            // Optionally, mark the target object as dirty to ensure the changes are saved
+            EditorUtility.SetDirty(target);
+        }
+    }
+
+    private void OnSceneGUI()
+    {
+        WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
+        worldCoordMap.InitializeWorldExits();
     }
 }
 #endif

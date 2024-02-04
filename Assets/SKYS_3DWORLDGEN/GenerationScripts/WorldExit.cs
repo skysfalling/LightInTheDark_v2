@@ -66,10 +66,13 @@ public class WorldExitDrawer : PropertyDrawer
         var indent = EditorGUI.indentLevel;
         EditorGUI.indentLevel = 0;
 
+        float singleLineHeight = EditorGUIUtility.singleLineHeight;
+        float verticalSpacing = EditorGUIUtility.standardVerticalSpacing;
+
         // Calculate rects for each field
         var halfWidth = position.width / 2 - 2;
-        Rect directionRect = new Rect(position.x, position.y, halfWidth/2, EditorGUIUtility.singleLineHeight);
-        Rect indexRect = new Rect(position.x + halfWidth, position.y, halfWidth/2, EditorGUIUtility.singleLineHeight);
+        Rect directionRect = new Rect(position.x, position.y, halfWidth, singleLineHeight);
+        Rect indexRect = new Rect(position.x, position.y + singleLineHeight + verticalSpacing, halfWidth, singleLineHeight);
 
         // Draw the "Border Direction" field
         EditorGUI.PropertyField(directionRect, property.FindPropertyRelative("borderDirection"), GUIContent.none);

@@ -37,6 +37,7 @@ public class WorldPath
 [System.Serializable]
 public class WorldExitPath
 {
+    public Color gizmosColor;
     public WorldExit startExit;
     public WorldExit endExit;
     WorldPath _path;
