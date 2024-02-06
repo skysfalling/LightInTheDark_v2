@@ -18,6 +18,7 @@ public class WorldExit
     // == INITIALIZE COORDINATES >>
     WorldCoordinate _coordinate; // Coordinate on border
     WorldCoordinate _pathConnection; // Connecting Neighbor that is in the playArea
+    bool _initialized;
 
     public WorldCoordinate Coordinate
     {
@@ -49,6 +50,19 @@ public class WorldExit
             _coordinate.type = WorldCoordinate.TYPE.EXIT;
             _pathConnection = WorldCoordinateMap.GetWorldExitPathConnection(this);
         }
+        IsInitialized();
+    }
+
+    public bool IsInitialized() {
+
+        // Check if exits and path are initialized
+        if (_coordinate != null) 
+        { 
+            _initialized = true; 
+        }
+        else { _initialized = false; }
+
+        return _initialized; 
     }
 }
 

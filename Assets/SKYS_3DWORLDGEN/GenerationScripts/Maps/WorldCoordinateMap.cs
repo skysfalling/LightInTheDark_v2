@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 public class WorldCoordinate
 {
     public enum TYPE { NULL, BORDER, EXIT, PATH, CLOSED }
@@ -8,15 +9,12 @@ public class WorldCoordinate
     public WorldDirection borderEdgeDirection;
 
     // ASTAR PATHFINDING
-    public Vector2 Position { get; set; }
-    public Vector3 WorldPosition { get; set; }
+    public Vector2 Position { get; private set; }
+    public Vector3 WorldPosition { get { return new Vector3(Position.x, 0, Position.y); } private set { } }
     public float GCost { get; set; }
     public float HCost { get; set; }
     public float FCost => GCost + HCost;
     public WorldCoordinate Parent { get; set; }
-
-    public Color pathColor = Color.white;
-
     public WorldCoordinate(Vector2 position)
     {
         Position = position;
@@ -229,6 +227,12 @@ public class WorldCoordinateMap : MonoBehaviour
         foreach (WorldExitPath exitPath in worldExitPaths)
         {
             exitPath.Initialize();
+
+            /*
+            Debug.Log($"Initialize WorldExitPath Result : {exitPath.IsInitialized()}" +
+                $"\n StartExit : {exitPath.startExit.IsInitialized()}" +
+                $"\n EndExit : {exitPath.endExit.IsInitialized()}");
+            */
         }
     }
 
@@ -269,7 +273,7 @@ public class WorldCoordinateMap : MonoBehaviour
     // - hCost is the estimated distance to the end node
     // - fCost is gCost + hCost
 
-    public static List<WorldCoordinate> FindCoordinatePath(WorldCoordinate startCoordinate, WorldCoordinate endCoordinate)
+    public static List<WorldCoordinate> FindCoordinatePath(WorldCoordinate startCoordinate, WorldCoordinate endCoordinate, float pathRandomness = 0)
     {
         List<WorldCoordinate> openSet = new List<WorldCoordinate>();
         HashSet<WorldCoordinate> closedSet = new HashSet<WorldCoordinate>();
@@ -280,9 +284,8 @@ public class WorldCoordinateMap : MonoBehaviour
             WorldCoordinate currentCoordinate = openSet[0];
             for (int i = 1; i < openSet.Count; i++)
             {
-
-                // Check if best option
-                if (openSet[i].FCost <= currentCoordinate.FCost && 
+                // Adjusted comparison to include randomness in the heuristic cost
+                if (openSet[i].FCost + Random.Range(-pathRandomness, pathRandomness) <= currentCoordinate.FCost &&
                     openSet[i].HCost < currentCoordinate.HCost &&
                     openSet[i].type == WorldCoordinate.TYPE.NULL)
                 {
@@ -307,6 +310,9 @@ public class WorldCoordinateMap : MonoBehaviour
                 }
 
                 float newMovementCostToNeighbor = currentCoordinate.GCost + GetCoordinateDistance(currentCoordinate, neighbor);
+                // Apply randomness here to affect the movement cost
+                newMovementCostToNeighbor += Random.Range(-pathRandomness, pathRandomness);
+
                 if (newMovementCostToNeighbor < neighbor.GCost || !openSet.Contains(neighbor))
                 {
                     neighbor.GCost = newMovementCostToNeighbor;
@@ -323,6 +329,7 @@ public class WorldCoordinateMap : MonoBehaviour
 
         return new List<WorldCoordinate>(); // Return an empty path if there is no path
     }
+
 
     static List<WorldCoordinate> RetracePath(WorldCoordinate startCoordinate, WorldCoordinate endCoordinate)
     {
@@ -347,54 +354,4 @@ public class WorldCoordinateMap : MonoBehaviour
     }
     #endregion
 
-    private void OnDrawGizmosSelected()
-    {
-        List<WorldCoordinate> coordMap = GetCoordinateMap();
-        Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
-        Vector3 chunkHeightOffset = realChunkDimensions.y * Vector3.down * 0.5f;
-
-        // << DRAW BASE COORDINATE MAP >>
-        foreach (WorldCoordinate coord in coordMap)
-        {
-            switch (coord.type)
-            {
-                case WorldCoordinate.TYPE.NULL:
-                    Gizmos.color = Color.white;
-                    Gizmos.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
-                    break;
-                case WorldCoordinate.TYPE.BORDER:
-                    Gizmos.color = Color.red;
-                    Gizmos.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
-                    break;
-                case WorldCoordinate.TYPE.CLOSED:
-                    Gizmos.color = Color.black;
-                    Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
-                    break;
-            }
-        }
-
-        // DRAW EXIT PATHS
-        int pathCount = 0;
-        foreach (WorldExitPath exitPath in worldExitPaths)
-        {
-            if (!exitPath.initialized) { continue; }
-            pathCount++;
-
-            WorldCoordinate start = exitPath.startExit.Coordinate;
-            Gizmos.color = start.pathColor;
-            Gizmos.DrawCube(start.WorldPosition + chunkHeightOffset, realChunkDimensions);
-
-            WorldCoordinate end = exitPath.endExit.Coordinate;
-            Gizmos.color = end.pathColor;
-            Gizmos.DrawCube(end.WorldPosition + chunkHeightOffset, realChunkDimensions);
-
-            List<WorldCoordinate> pathCoords = exitPath.GetPathCoordinates();
-            Debug.Log($"Path {pathCount} : Count {pathCoords.Count}");
-            foreach (WorldCoordinate coord in pathCoords)
-            {
-                Gizmos.color = coord.pathColor;
-                Gizmos.DrawCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
-            }
-        }
-    }
 }

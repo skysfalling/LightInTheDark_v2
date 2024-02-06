@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,6 +13,9 @@ public class WorldCoordinateMapEditor : Editor
     {
         serializedCoordinateMap = new SerializedObject(target);
         worldExitPathsProperty = serializedCoordinateMap.FindProperty("worldExitPaths");
+
+        WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
+        worldCoordMap.InitializeWorldExitPaths();
     }
 
     public override void OnInspectorGUI()
@@ -66,8 +70,84 @@ public class WorldCoordinateMapEditor : Editor
 
     private void OnSceneGUI()
     {
+        DrawMap();
+    }
+
+    private void DrawMap()
+    {
+        List<WorldCoordinate> coordMap = WorldCoordinateMap.GetCoordinateMap();
+        Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
+        Vector2Int realChunkArea = WorldGeneration.GetRealChunkAreaSize();
+        Vector3 chunkHeightOffset = realChunkDimensions.y * Vector3.down * 0.5f;
+
+        // << DRAW BASE COORDINATE MAP >>
+        foreach (WorldCoordinate coord in coordMap)
+        {
+            switch (coord.type)
+            {
+                case WorldCoordinate.TYPE.NULL:
+                    Handles.color = Color.white;
+                    Handles.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+                    break;
+                case WorldCoordinate.TYPE.BORDER:
+                    Handles.color = Color.red;
+                    Handles.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+                    break;
+                case WorldCoordinate.TYPE.CLOSED:
+                    DrawRectangleArea(coord, realChunkArea, Color.black);
+                    break;
+            }
+        }
+
+        // DRAW PATHS
         WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
-        worldCoordMap.InitializeWorldExitPaths();
+        foreach (WorldExitPath path in worldCoordMap.worldExitPaths)
+        {
+            DrawExitPath(path);
+        }
+
+    }
+
+    void DrawExitPath(WorldExitPath path)
+    {
+        if (path == null || !path.IsInitialized()) return;
+
+        Vector2Int realChunkArea = WorldGeneration.GetRealChunkAreaSize();
+        Color pathColor = path.GetPathColorRGBA();
+
+        // Draw Exits
+        WorldCoordinate startCoord = path.startExit.Coordinate;
+        WorldCoordinate endCoord = path.endExit.Coordinate;
+
+        DrawRectangleArea(startCoord, realChunkArea, pathColor);
+        DrawRectangleArea(endCoord, realChunkArea, pathColor);
+
+        // Draw Paths
+        List<WorldCoordinate> pathCoords = path.GetPathCoordinates();
+        foreach (WorldCoordinate coord in pathCoords)
+        {
+            DrawRectangleArea(coord, realChunkArea, pathColor);
+        }
+    }
+
+    private void DrawRectangleArea(WorldCoordinate coord, Vector2Int area, Color fillColor)
+    {
+        Handles.color = fillColor;
+        Handles.DrawSolidRectangleWithOutline(GetRectangleVertices(coord.WorldPosition, area), fillColor, Color.clear);
+    }
+
+    private Vector3[] GetRectangleVertices(Vector3 center, Vector2 area)
+    {
+        Vector2 halfArea = area * 0.5f;
+        Vector3[] vertices = new Vector3[4]
+        {
+            center + new Vector3(-halfArea.x, 0, -halfArea.y),
+            center + new Vector3(halfArea.x, 0, -halfArea.y),
+            center + new Vector3(halfArea.x, 0, halfArea.y),
+            center + new Vector3(-halfArea.x, 0, halfArea.y)
+        };
+
+        return vertices;
     }
 }
 #endif
