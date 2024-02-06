@@ -70,8 +70,8 @@ GameObject:
   m_Component:
   - component: {fileID: 2832013479746530852}
   - component: {fileID: 8295359213703746231}
-  - component: {fileID: 4922368716762689905}
   - component: {fileID: 4652889822070907782}
+  - component: {fileID: 4922368716762689905}
   m_Layer: 0
   m_Name: ( WORLD MAP )
   m_TagString: Untagged
@@ -106,20 +106,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97b232c10588f6a499c0ca26e13742c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showGizmos: 0
---- !u!114 &4922368716762689905
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1220748305561793608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9703bbe44710b6e409bbe24a1955aaca, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  initialized: 0
+  worldExitPaths: []
 --- !u!114 &4652889822070907782
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -132,12 +119,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3677fe2dc3f6fda468e449286c891a6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  worldExits:
-  - edgeDirection: 1
-    edgeIndex: 2
-  - edgeDirection: 0
-    edgeIndex: 6
-  showGizmos: 1
+  initialized: 0
+--- !u!114 &4922368716762689905
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1220748305561793608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9703bbe44710b6e409bbe24a1955aaca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   initialized: 0
 --- !u!1 &1652254909227268323
 GameObject:
@@ -369,6 +363,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   generation_finished: 0
+  gameSeed: Default Game Seed
 --- !u!114 &8701923849753727028
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.UIElements;
 using UnityEngine.XR;
 
 [System.Serializable]
@@ -10,7 +11,7 @@ public class WorldChunk
 {
     WorldGeneration _worldGeneration;
     string prefix = " [[ WORLD CHUNK ]]";
-    public bool initialized = false;
+    bool _initialized = false;
 
     /*
      * EMPTY : 0 walls
@@ -22,45 +23,50 @@ public class WorldChunk
      */
     public enum TYPE { EMPTY, WALL, HALLWAY, CORNER, DEADEND, CLOSED, BORDER, EXIT }
     public TYPE type;
+    public WorldCoordinate coordinate;
 
-    // EDGES
-    public bool NorthEdgeActive { get; private set; }
-    public bool SouthEdgeActive { get; private set; }
-    public bool EastEdgeActive { get; private set; }
-    public bool WestEdgeActive { get; private set; }
+    public int chunkHeight = 0;
+    Vector2 _realChunkAreaSize { get { return WorldGeneration.GetRealChunkAreaSize(); } }
+    int _realChunkHeight { get { return this.chunkHeight * WorldGeneration.GetRealChunkDepth(); }}
+    public Vector3 GroundPosition { 
+        get { return new Vector3(
+            coordinate.WorldPosition.x, 
+            _realChunkHeight, 
+            coordinate.WorldPosition.z); 
+        } 
+    }
+    public Vector3 GroundMeshDimensions { get { return new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y); } }
 
-    // ASTAR PATHFINDING
-    [HideInInspector] public float astar_fCost;
-    [HideInInspector] public float astar_gCost;
-    [HideInInspector] public float astar_hCost;
-    [HideInInspector] public WorldChunk astar_parent;
+    public Vector3 GroundMeshSpawnPosition { get { return new Vector3(GroundPosition.x, _realChunkHeight * 0.5f, GroundPosition.z); } }
+
+    // Active Edges
+    bool _northEdgeActive;
+    bool _southEdgeActive;
+    bool _eastEdgeActive;
+    bool _westEdgeActive;
 
     // Mesh
     [HideInInspector] public Mesh mesh;
-    public Vector2 coordinate;
-    public List<WorldCell> localCells = new List<WorldCell>();
-    Dictionary<WorldCell.TYPE, List<WorldCell>> _cellTypeMap = new Dictionary<WorldCell.TYPE, List<WorldCell>>();
-    public WorldChunk(Vector2 position)
-    {
-        this.coordinate = position;
 
-        CreateMesh();
-        OffsetMesh(position);
-        CreateCells();
+    public WorldChunk(WorldCoordinate coordinate)
+    {
+        this.coordinate = coordinate;
     }
 
-    // ================ INITIALIZE ============================= >>
+    // ================ INITIALIZE WORLD CHUNK ============================= >>
     #region
     public void Initialize()
     {
-        initialized = false;
+        _initialized = false;
 
-        _worldGeneration = WorldGeneration.Instance;
+        CreateMesh();
+        OffsetMesh(this.coordinate.WorldPosition);
+        CreateCells();
         DetermineChunkEdges();
         SetChunkType();
         CreateCellTypeMap();
 
-        initialized = true;
+        _initialized = true;
     }
     void CreateMesh()
     {
@@ -194,10 +200,10 @@ public class WorldChunk
     void DetermineChunkEdges()
     {
         // Initialize all edges as active
-        NorthEdgeActive = true;
-        SouthEdgeActive = true;
-        EastEdgeActive = true;
-        WestEdgeActive = true;
+        _northEdgeActive = true;
+        _southEdgeActive = true;
+        _eastEdgeActive = true;
+        _westEdgeActive = true;
 
         // Define the edge positions
         float northEdgeZ = float.MinValue;
@@ -219,10 +225,10 @@ public class WorldChunk
         {
             if (cell.type == WorldCell.TYPE.EMPTY)
             {
-                if (cell.position.z == northEdgeZ) NorthEdgeActive = false;
-                if (cell.position.z == southEdgeZ) SouthEdgeActive = false;
-                if (cell.position.x == eastEdgeX) EastEdgeActive = false;
-                if (cell.position.x == westEdgeX) WestEdgeActive = false;
+                if (cell.position.z == northEdgeZ) _northEdgeActive = false;
+                if (cell.position.z == southEdgeZ) _southEdgeActive = false;
+                if (cell.position.x == eastEdgeX) _eastEdgeActive = false;
+                if (cell.position.x == westEdgeX) _westEdgeActive = false;
             }
         }
 
@@ -238,10 +244,10 @@ public class WorldChunk
     {
         // Get Edge Count
         int activeEdgeCount = 0;
-        if (NorthEdgeActive) { activeEdgeCount++; }
-        if (SouthEdgeActive) { activeEdgeCount++; }
-        if (EastEdgeActive) { activeEdgeCount++; }
-        if (WestEdgeActive) { activeEdgeCount++; }
+        if (_northEdgeActive) { activeEdgeCount++; }
+        if (_southEdgeActive) { activeEdgeCount++; }
+        if (_eastEdgeActive) { activeEdgeCount++; }
+        if (_westEdgeActive) { activeEdgeCount++; }
 
         // Set Type
         if (activeEdgeCount == 4) { type = TYPE.CLOSED; return; }
@@ -249,39 +255,19 @@ public class WorldChunk
         if (activeEdgeCount == 2)
         {
             // Check for parallel edges
-            if (NorthEdgeActive && SouthEdgeActive) { type = TYPE.HALLWAY; return; }
-            if (EastEdgeActive && WestEdgeActive) { type = TYPE.HALLWAY; return; }
+            if (_northEdgeActive && _southEdgeActive) { type = TYPE.HALLWAY; return; }
+            if (_eastEdgeActive && _westEdgeActive) { type = TYPE.HALLWAY; return; }
             type = TYPE.CORNER;
         }
         if (activeEdgeCount == 1) { type = TYPE.WALL; return; }
         if (activeEdgeCount == 0) { type = TYPE.EMPTY; return; }
     }
-    void CreateCellTypeMap()
-    {
-        _cellTypeMap.Clear();
-        foreach (WorldCell cell in localCells)
-        {
-            // Create new List for new key
-            if (!_cellTypeMap.ContainsKey(cell.type))
-            {
-                _cellTypeMap[cell.type] = new List<WorldCell>();
-            }
 
-            _cellTypeMap[cell.type].Add(cell);
-        }
-    }
     #endregion
 
-    // ================ CREATE WORLD CELLS ============================== >>
-    void OffsetMesh(Vector2 chunkPosition)
-    {
-        Vector3[] vertices = mesh.vertices;
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            vertices[i] += new Vector3(chunkPosition.x, 0, chunkPosition.y);
-        }
-        mesh.vertices = vertices;
-    }
+    // ================ CREATE & INITIALIZE WORLD CELLS ============================== >>
+    public List<WorldCell> localCells = new List<WorldCell>();
+    Dictionary<WorldCell.TYPE, List<WorldCell>> _cellTypeMap = new Dictionary<WorldCell.TYPE, List<WorldCell>>();
     void CreateCells()
     {
         localCells.Clear();
@@ -330,6 +316,29 @@ public class WorldChunk
                     cell_index++;
                 }
             }
+        }
+    }
+    void OffsetMesh(Vector2 chunkPosition)
+    {
+        Vector3[] vertices = mesh.vertices;
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            vertices[i] += new Vector3(chunkPosition.x, 0, chunkPosition.y);
+        }
+        mesh.vertices = vertices;
+    }
+    void CreateCellTypeMap()
+    {
+        _cellTypeMap.Clear();
+        foreach (WorldCell cell in localCells)
+        {
+            // Create new List for new key
+            if (!_cellTypeMap.ContainsKey(cell.type))
+            {
+                _cellTypeMap[cell.type] = new List<WorldCell>();
+            }
+
+            _cellTypeMap[cell.type].Add(cell);
         }
     }
 
@@ -431,14 +440,14 @@ public class WorldChunk
     // ================= HELPER FUNCTIONS ============================== >>
     public List<WorldCell> GetCellsOfType(WorldCell.TYPE cellType)
     {
-        if (!initialized) { return new List<WorldCell>(); }
+        if (!_initialized) { return new List<WorldCell>(); }
         if (!_cellTypeMap.ContainsKey(cellType)) { _cellTypeMap[cellType] = new List<WorldCell>(); }
         return _cellTypeMap[cellType];
     }
 
     public WorldCell GetRandomCellOfType(WorldCell.TYPE cellType)
     {
-        if (!initialized) { return null; }
+        if (!_initialized) { return null; }
         List<WorldCell> cells = GetCellsOfType(cellType);
         return cells[UnityEngine.Random.Range(0, cells.Count)];
     }

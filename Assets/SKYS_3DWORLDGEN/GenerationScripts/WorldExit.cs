@@ -35,6 +35,8 @@ public class WorldExit
     // == EXIT VALUES >>
     public WorldDirection borderDirection;
     public int borderIndex;
+    public int exitHeight;
+
     public WorldExit(WorldDirection borderDirection, int index)
     {
         this.borderDirection = borderDirection;
@@ -49,6 +51,8 @@ public class WorldExit
         {
             _coordinate.type = WorldCoordinate.TYPE.EXIT;
             _pathConnection = WorldCoordinateMap.GetWorldExitPathConnection(this);
+            WorldChunkMap.GetChunkAtCoordinate(_coordinate).chunkHeight = exitHeight;
+
         }
         IsInitialized();
     }
@@ -81,28 +85,34 @@ public class WorldExitDrawer : PropertyDrawer
         EditorGUI.indentLevel = 0;
 
         float singleLineHeight = EditorGUIUtility.singleLineHeight;
-        float verticalSpacing = EditorGUIUtility.standardVerticalSpacing;
+        float verticalOffset = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
         // Calculate rects for each field
         var halfWidth = position.width / 2 - 2;
-        Rect directionRect = new Rect(position.x, position.y, halfWidth, singleLineHeight);
-        Rect indexRect = new Rect(position.x, position.y + singleLineHeight + verticalSpacing, halfWidth, singleLineHeight);
+        Rect directionRect = new Rect(position.x - halfWidth, position.y + verticalOffset, position.width, singleLineHeight);
+        Rect indexRect = new Rect(position.x - halfWidth, directionRect.y + verticalOffset, position.width, singleLineHeight);
+        Rect exitHeightRect = new Rect(position.x - halfWidth, indexRect.y + verticalOffset, position.width, singleLineHeight);
+
 
         // Draw the "Border Direction" field
-        EditorGUI.PropertyField(directionRect, property.FindPropertyRelative("borderDirection"), GUIContent.none);
+        EditorGUI.PropertyField(directionRect, property.FindPropertyRelative("borderDirection"), new GUIContent("borderDirection"));
 
         // Draw the "Border Index" slider
         SerializedProperty borderIndexProp = property.FindPropertyRelative("borderIndex");
-        int maxIndex = Mathf.Max(0, WorldGeneration.PlayZoneArea.x - 1); // Ensure maxIndex is at least 0
-        borderIndexProp.intValue = EditorGUI.IntSlider(indexRect, GUIContent.none, borderIndexProp.intValue, 0, maxIndex);
+        int maxIndex = Mathf.Max(0, WorldGeneration.PlayZoneArea.x - 1);
+        borderIndexProp.intValue = EditorGUI.IntSlider(indexRect, new GUIContent("borderIndex"), borderIndexProp.intValue, 0, maxIndex);
 
+        // Draw the "Chunk Height" slider
+        SerializedProperty exitHeightProp = property.FindPropertyRelative("exitHeight");
+        int maxHeight = Mathf.Max(0, WorldGeneration.MaxChunkHeight);
+        exitHeightProp.intValue = EditorGUI.IntSlider(exitHeightRect, new GUIContent("exitHeight"), exitHeightProp.intValue, 0, maxHeight);
         EditorGUI.EndProperty();
     }
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
-        // Calculate the total height needed by adding the height of two controls and the spacing between them
-        return EditorGUIUtility.singleLineHeight * 2 + EditorGUIUtility.standardVerticalSpacing;
+        // Calculate the total height needed by adding the height of three controls and the spacing between them
+        return (EditorGUIUtility.singleLineHeight * 5) + EditorGUIUtility.standardVerticalSpacing;
     }
 }
 #endif

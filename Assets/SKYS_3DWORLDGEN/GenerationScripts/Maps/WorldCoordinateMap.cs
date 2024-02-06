@@ -8,32 +8,24 @@ public class WorldCoordinate
     public TYPE type;
     public WorldDirection borderEdgeDirection;
 
-    // ASTAR PATHFINDING
+    // POSITION
     public Vector2 Position { get; private set; }
-    public Vector3 WorldPosition { get { return new Vector3(Position.x, 0, Position.y); } private set { } }
-    public float GCost { get; set; }
-    public float HCost { get; set; }
+    public Vector3 WorldPosition { 
+        get { 
+            return new Vector3(Position.x, 0, Position.y); 
+        } 
+        private set { } 
+    }
+
+    // ASTAR PATHFINDING VALUES
+    public float GCost = float.MaxValue;
+    public float HCost = 0;
     public float FCost => GCost + HCost;
-    public WorldCoordinate Parent { get; set; }
+    public WorldCoordinate Parent = null;
     public WorldCoordinate(Vector2 position)
     {
         Position = position;
         WorldPosition = new Vector3(position.x, 0, position.y);
-
-        GCost = float.MaxValue;
-        HCost = 0;
-        Parent = null;
-    }
-    public WorldCoordinate(Vector2 position, TYPE type)
-    {
-        Position = position;
-        WorldPosition = new Vector3(position.x, 0, position.y);
-
-        this.type = type;
-
-        GCost = float.MaxValue;
-        HCost = 0;
-        Parent = null;
     }
 }
 
@@ -45,8 +37,8 @@ public class WorldCoordinateMap : MonoBehaviour
         if (Instance == null) { Instance = this; }
     }
 
-    // >> COORDINATE MAP ================================ >>
-    public static List<WorldCoordinate> CoordinateMap = new List<WorldCoordinate>();
+    #region == COORDINATE MAP ================================ ////
+    private static List<WorldCoordinate> CoordinateMap = new List<WorldCoordinate>();
 
     public static List<WorldCoordinate> GetCoordinateMap(bool forceReset = false)
     {
@@ -210,6 +202,7 @@ public class WorldCoordinateMap : MonoBehaviour
 
         return coord;
     }
+    #endregion
 
     #region == {{ WORLD EXITS }} ======================================================== ////
     public List<WorldExitPath> worldExitPaths = new List<WorldExitPath>();
@@ -268,10 +261,11 @@ public class WorldCoordinateMap : MonoBehaviour
     #endregion
 
     #region == COORDINATE PATHFINDING =================================///
-    // A* Pathfinding implementation
-    // - gCost is the known cost from the starting node
-    // - hCost is the estimated distance to the end node
-    // - fCost is gCost + hCost
+    /* A* Pathfinding implementation
+    * - gCost is the known cost from the starting node
+    * - hCost is the estimated distance to the end node
+    * - fCost is gCost + hCost
+    */
 
     public static List<WorldCoordinate> FindCoordinatePath(WorldCoordinate startCoordinate, WorldCoordinate endCoordinate, float pathRandomness = 0)
     {
@@ -287,7 +281,7 @@ public class WorldCoordinateMap : MonoBehaviour
                 if (openSet[i].FCost <= currentCoordinate.FCost &&
                     openSet[i].HCost < currentCoordinate.HCost &&
                     openSet[i].type == WorldCoordinate.TYPE.NULL &&
-                    Random.Range(0f, 1f) < pathRandomness)
+                    Random.Range(0f, 1f) <= pathRandomness)
                 {
                     currentCoordinate = openSet[i];
                 }
@@ -330,7 +324,6 @@ public class WorldCoordinateMap : MonoBehaviour
         return new List<WorldCoordinate>(); // Return an empty path if there is no path
     }
 
-
     static List<WorldCoordinate> RetracePath(WorldCoordinate startCoordinate, WorldCoordinate endCoordinate)
     {
         List<WorldCoordinate> path = new List<WorldCoordinate>();
@@ -353,5 +346,6 @@ public class WorldCoordinateMap : MonoBehaviour
         return Vector2.Distance(a.Position, b.Position);
     }
     #endregion
+
 
 }

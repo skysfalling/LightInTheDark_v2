@@ -37,10 +37,12 @@ public class WorldGeneration : MonoBehaviour
     public static int ChunkDepth = 3;
     public static Vector2Int PlayZoneArea = new Vector2Int(10, 10); // Default size of PlayArea { in WorldChunk Units }
     public static int BoundaryOffset = 1; // Boundary offset value 
+    public static int MaxChunkHeight = 10; // Maximum chunk height
 
     public static Vector2Int GetFullWorldArea() { return PlayZoneArea + (BoundaryOffset * 2 * Vector2Int.one); } // Include BoundaryOffset on both sides
     public static Vector3Int GetChunkDimensions() { return new Vector3Int(ChunkArea.x, ChunkDepth, ChunkArea.y); }
     public static Vector2Int GetRealChunkAreaSize() { return ChunkArea * CellSize; }
+    public static int GetRealChunkDepth() { return ChunkDepth * CellSize; }
     public static Vector3Int GetRealChunkDimensions() { return new Vector3Int(ChunkArea.x, ChunkDepth, ChunkArea.y) * CellSize; }
     public static Vector2Int GetRealPlayAreaSize() { return PlayZoneArea * GetRealChunkAreaSize(); }
     public static Vector2Int GetRealFullWorldSize() { return GetFullWorldArea() * GetRealChunkAreaSize(); }
@@ -86,7 +88,6 @@ public class WorldGeneration : MonoBehaviour
         Destroy(_worldGenerationObject);
         Destroy(_worldBorderObject);
 
-        FindObjectOfType<WorldChunkMap>().Reset();
         FindObjectOfType<WorldCellMap>().Reset();
         FindObjectOfType<WorldEnvironment>().Reset();
         FindObjectOfType<WorldStatTracker>().UpdateStats();
@@ -104,7 +105,7 @@ public class WorldGeneration : MonoBehaviour
 
         // Get All Chunk Positions
         List<Vector2> allWorldChunkPositions = WorldCoordinateMap.GetCoordinateMapPositions();
-
+        yield return new WaitForSeconds(delay);
 
         /*
         // [[ GENERATE PLAY AREA CHUNKS ]] ========================================== >>
@@ -137,7 +138,8 @@ public class WorldGeneration : MonoBehaviour
         _worldBorderObject.name = "(WORLD GENERATION) Combined Ground Border";
         */
 
-        #region [[ INITIALIZE MAPS ]] ============================================= >>    
+        #region [[ INITIALIZE MAPS ]] ============================================= >>
+        /*
         // Initialize Cell Map
         WorldCellMap worldCellMap = FindObjectOfType<WorldCellMap>();
         worldCellMap.InitializeCellMap();
@@ -146,9 +148,10 @@ public class WorldGeneration : MonoBehaviour
 
         // Initialize Chunk Map
         WorldChunkMap worldChunkMap = FindObjectOfType<WorldChunkMap>();
-        FindObjectOfType<WorldChunkMap>().InitializeChunkMap();
+        FindObjectOfType<WorldChunkMap>().GetChunkMap();
         yield return new WaitUntil(() => worldChunkMap.initialized);
         Debug.Log(_prefix + "COMPLETE : Initialized World Chunk Map");
+        */
 
         // Initialize Spawn Map
         /*
@@ -158,11 +161,13 @@ public class WorldGeneration : MonoBehaviour
         Debug.Log(_prefix + "COMPLETE : Initialized World Spawn Map");
         */
 
+        /*
         // [[ ENVIRONMENT GENERATION ]] ===================================
         WorldEnvironment worldEnvironment = FindObjectOfType<WorldEnvironment>();
         worldEnvironment.StartEnvironmentGeneration();
         yield return new WaitUntil(() => worldEnvironment.generation_finished);
         Debug.Log(_prefix + "COMPLETE : Finished Environment Generation");
+        */
         #endregion
 
         generation_finished = true;
@@ -183,7 +188,7 @@ public class WorldGeneration : MonoBehaviour
     {
         foreach (WorldChunk chunk in _worldChunks)
         {
-            if (chunk.coordinate == position) { return chunk; }
+            if (chunk.coordinate.Position == position) { return chunk; }
         }
         return null;
     }
