@@ -70,6 +70,7 @@ public class WorldCoordinateMapEditor : Editor
 
     private void OnSceneGUI()
     {
+        WorldGeneration.InitializeRandomSeed();
         DrawMap();
     }
 

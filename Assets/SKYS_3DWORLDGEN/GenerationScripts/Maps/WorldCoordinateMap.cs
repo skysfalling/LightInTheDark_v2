@@ -284,10 +284,10 @@ public class WorldCoordinateMap : MonoBehaviour
             WorldCoordinate currentCoordinate = openSet[0];
             for (int i = 1; i < openSet.Count; i++)
             {
-                // Adjusted comparison to include randomness in the heuristic cost
-                if (openSet[i].FCost + Random.Range(-pathRandomness, pathRandomness) <= currentCoordinate.FCost &&
+                if (openSet[i].FCost <= currentCoordinate.FCost &&
                     openSet[i].HCost < currentCoordinate.HCost &&
-                    openSet[i].type == WorldCoordinate.TYPE.NULL)
+                    openSet[i].type == WorldCoordinate.TYPE.NULL &&
+                    Random.Range(0f, 1f) < pathRandomness)
                 {
                     currentCoordinate = openSet[i];
                 }

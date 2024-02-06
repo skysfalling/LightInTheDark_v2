@@ -27,7 +27,9 @@ public class WorldGeneration : MonoBehaviour
         if (Instance != null) { Destroy(Instance); }
         Instance = this;
     }
-    // ========================================================= ///
+    // STATIC GENERATION VALUES ========================================================= ///
+    public static string GameSeed = "Default Game Seed";
+    public static int CurrentSeed { get { return GameSeed.GetHashCode(); }}
 
     // STATIC GENERATION DIMENSIONS ==================================== ///
     public static int CellSize = 4; // Size of each WorldCell // Size of each WorldCell { in Unity Units }
@@ -50,6 +52,19 @@ public class WorldGeneration : MonoBehaviour
     Coroutine _worldGenerationRoutine;
     List<WorldChunk> _worldChunks = new List<WorldChunk>();
     List<WorldChunk> _borderChunks = new List<WorldChunk>();
+
+    public string gameSeed = GameSeed;
+    public static void InitializeRandomSeed(string newGameSeed = "") { 
+
+        if (newGameSeed != "" && newGameSeed != GameSeed)
+        {
+            GameSeed = newGameSeed;
+            Debug.Log($"Initialize Random Seed to => {GameSeed} :: {CurrentSeed}");
+        }
+
+        UnityEngine.Random.InitState(CurrentSeed);
+
+    }
 
     #region == INITIALIZE ======
     private void Start()

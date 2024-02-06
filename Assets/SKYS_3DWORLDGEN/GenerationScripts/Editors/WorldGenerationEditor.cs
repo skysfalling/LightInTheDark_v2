@@ -12,31 +12,47 @@ public class WorldGenerationEditor : Editor
     {
         // Cache the SerializedObject
         serializedWorldGen = new SerializedObject(target);
+        WorldGeneration.InitializeRandomSeed();
     }
 
     public override void OnInspectorGUI()
     {
-        DrawDefaultInspector(); // Draws the default inspector elements
-
         serializedWorldGen.Update(); // Always start with this call
 
-        WorldGeneration worldGen = (WorldGeneration)target;
+        // Store the current state to check for changes later
+        EditorGUI.BeginChangeCheck();
+
+        SerializedProperty gameSeedProperty = serializedWorldGen.FindProperty("gameSeed");
+        EditorGUILayout.PropertyField(gameSeedProperty);
+
+        EditorGUILayout.LabelField("============");
+        EditorGUILayout.LabelField("CurrentSeed", WorldGeneration.CurrentSeed.ToString());
         EditorGUILayout.LabelField("Cell Size {in Units}", WorldGeneration.CellSize.ToString());
         EditorGUILayout.LabelField("Chunk Dimensions {in Cells}", WorldGeneration.ChunkArea.ToString());
         EditorGUILayout.LabelField("Play Zone Area {in Chunks}", WorldGeneration.PlayZoneArea.ToString());
         EditorGUILayout.LabelField("Real Chunk Area Size {in Units}", WorldGeneration.GetRealChunkAreaSize().ToString());
         EditorGUILayout.LabelField("Real Full World Size {in Units}", WorldGeneration.GetRealFullWorldSize().ToString());
 
-        // Ensure changes are registered and the inspector updates as needed
-        if (GUI.changed)
+        // Check if any changes were made in the Inspector
+        if (EditorGUI.EndChangeCheck())
         {
-            EditorUtility.SetDirty(worldGen);
+            // If there were changes, apply them to the serialized object
+            serializedWorldGen.ApplyModifiedProperties();
+
+            WorldGeneration.InitializeRandomSeed(gameSeedProperty.stringValue);
+
+            WorldGeneration worldGen = (WorldGeneration)target;
+
+            // Optionally, mark the target object as dirty to ensure the changes are saved
+            EditorUtility.SetDirty(target);
         }
     }
 
     void OnSceneGUI()
     {
+        WorldGeneration.InitializeRandomSeed();
         WorldGeneration worldGen = (WorldGeneration)target;
+
         // >> DRAW BOUNDARY SQUARES
         Handles.color = Color.white;
         Handles.DrawWireCube(worldGen.transform.position, new Vector3(WorldGeneration.GetRealPlayAreaSize().x, 0, WorldGeneration.GetRealPlayAreaSize().y));

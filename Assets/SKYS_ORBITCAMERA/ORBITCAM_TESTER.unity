@@ -1102,8 +1102,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
+      propertyPath: GameSeed
+      value: hello
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
       propertyPath: cellSize
       value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: gameSeed
+      value: nah
       objectReference: {fileID: 0}
     - target: {fileID: 1656387468885595367, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
@@ -1535,7 +1545,7 @@ PrefabInstance:
     - target: {fileID: 8295359213703746231, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: worldExitPaths.Array.data[0].pathColor
-      value: 3
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 8295359213703746231, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
@@ -1574,6 +1584,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8295359213703746231, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
+      propertyPath: worldExitPaths.Array.data[0].pathRandomness
+      value: 0.489
+      objectReference: {fileID: 0}
+    - target: {fileID: 8295359213703746231, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: worldExitPaths.Array.data[1].pathRandomness
+      value: 0.72
+      objectReference: {fileID: 0}
+    - target: {fileID: 8295359213703746231, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
       propertyPath: worldExits.Array.data[0].targetExits.Array.size
       value: 2
       objectReference: {fileID: 0}
@@ -1590,7 +1610,7 @@ PrefabInstance:
     - target: {fileID: 8295359213703746231, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: worldExitPaths.Array.data[1].endExit.borderIndex
-      value: 1
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 8295359213703746231, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
@@ -1600,12 +1620,12 @@ PrefabInstance:
     - target: {fileID: 8295359213703746231, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: worldExitPaths.Array.data[0].startExit.borderIndex
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8295359213703746231, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: worldExitPaths.Array.data[1].startExit.borderIndex
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8295359213703746231, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
@@ -1635,7 +1655,7 @@ PrefabInstance:
     - target: {fileID: 8295359213703746231, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: worldExitPaths.Array.data[1].startExit.borderDirection
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8295359213703746231, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}

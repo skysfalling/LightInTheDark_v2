@@ -30,7 +30,7 @@ public class WorldPath
     public void Initialize()
     {
         // Get Valid Path
-        _pathCoords = WorldCoordinateMap.FindCoordinatePath(this._startCoordinate, this._endCoordinate);
+        _pathCoords = WorldCoordinateMap.FindCoordinatePath(this._startCoordinate, this._endCoordinate, _pathRandomness);
         if (_pathCoords.Count == 0 ) { 
             _isValid = false; 
             _initialized = false; 
