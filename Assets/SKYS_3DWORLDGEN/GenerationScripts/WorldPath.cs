@@ -1,58 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-public enum PathColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE, CLEAR }
 
 [System.Serializable]
 public class WorldPath
 {
-    PathColor _color = PathColor.CLEAR;
-    WorldCoordinate _startCoordinate;
-    WorldCoordinate _endCoordinate;
-    List<WorldCoordinate> _pathCoords;
-    bool _isValid;
-    float _pathRandomness = 0;
-    bool _initialized = false;
+    public enum PathColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE, CLEAR }
 
-    public WorldPath(WorldCoordinate startCoord, WorldCoordinate endCoord, PathColor color, float pathRandomness = 0)
+    PathColor _pathColor = PathColor.CLEAR;
+    public static Color GetRGBAfromPathColorType(PathColor pathColor)
     {
-        this._startCoordinate = startCoord;
-        this._endCoordinate = endCoord;
-        this._color = color;
-        this._pathRandomness = pathRandomness;
-        Initialize();
-    }
-
-    public void Initialize()
-    {
-        // Get Valid Path
-        _pathCoords = WorldCoordinateMap.FindCoordinatePath(this._startCoordinate, this._endCoordinate, _pathRandomness);
-        if (_pathCoords.Count == 0 ) { 
-            _isValid = false; 
-            _initialized = false; 
-            return; 
-        }
-
-        _isValid = true;
-
-        // Set Coordinate Path Type
-        foreach (WorldCoordinate c in _pathCoords)
-        {
-            c.type = WorldCoordinate.TYPE.PATH;
-        }
-
-        _initialized = true;
-    }
-
-    public bool IsInitialized() { return _initialized; }
-
-    public Color GetPathColorRGBA()
-    {
-        switch (this._color)
+        switch (pathColor)
         {
             case PathColor.BLACK:
                 return Color.black;
@@ -70,6 +34,93 @@ public class WorldPath
                 return Color.clear;
         }
     }
+    WorldCoordinate _startCoordinate;
+    WorldCoordinate _endCoordinate;
+    List<WorldCoordinate> _pathCoords;
+    List<WorldChunk> _pathChunks;
+    bool _isValid;
+    float _pathRandomness = 0;
+    bool _initialized = false;
+
+    public WorldPath(WorldCoordinate startCoord, WorldCoordinate endCoord, PathColor pathColor, float pathRandomness = 0)
+    {
+        this._startCoordinate = startCoord;
+        this._endCoordinate = endCoord;
+        this._pathColor = pathColor;
+        this._pathRandomness = pathRandomness;
+        Initialize();
+    }
+
+    public void Initialize()
+    {
+        // Get Valid Path
+        _pathCoords = WorldCoordinateMap.FindCoordinatePath(this._startCoordinate, this._endCoordinate, _pathRandomness);
+        if (_pathCoords.Count == 0 ) { 
+            _isValid = false; 
+            _initialized = false; 
+            return; 
+        }
+
+        _isValid = true;
+
+        // Set Coordinate Path Type
+        foreach (WorldCoordinate coord in _pathCoords)
+        {
+            coord.type = WorldCoordinate.TYPE.PATH;
+        }
+
+        // Set Chunk Path Color
+        _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
+        foreach(WorldChunk chunk in _pathChunks)
+        {
+            chunk.debugColor = GetRGBAfromPathColorType(_pathColor);
+        }
+
+        _initialized = true;
+    }
+
+    public void DeterminePathChunkHeights(int startHeight, int endHeight, float heightAdjustChance = 1f)
+    {
+        // Assign start/end chunk heights
+        WorldChunk startChunk = _pathChunks[0];
+        WorldChunk endChunk = _pathChunks[_pathChunks.Count - 1];
+        startChunk.chunkHeight = startHeight;
+        endChunk.chunkHeight = endHeight;
+
+        // Remove start and end chunks from consideration in the loop
+        List<WorldChunk> midpathChunks = new List<WorldChunk>(_pathChunks);
+        midpathChunks.RemoveAt(midpathChunks.Count - 1);
+        midpathChunks.RemoveAt(0);
+
+
+
+        int midpathChunkCount = midpathChunks.Count; // full path count
+        int endpointHeightDifference = endHeight - startHeight;
+        int currHeightLevel = startHeight; // current height level starting from the startHeight
+
+        // Get Offset List
+        int heightLeft = endpointHeightDifference;
+        for (int i = 0; i < midpathChunkCount; i++)
+        {
+            int heightOffset = 0;
+
+            // Determine height direction
+            if (heightLeft > 0) { heightOffset = 1; }
+            else if (heightLeft < 0) { heightOffset = -1; }
+            else { heightOffset = 0; }
+
+            // Recalculate heightLeft with the new current height level
+            currHeightLevel += heightOffset;
+            heightLeft = endHeight - currHeightLevel;
+
+            midpathChunks[i].chunkHeight = currHeightLevel;
+        }
+
+    }
+
+    public bool IsInitialized() { return _initialized; }
+
+
 
     public List<WorldCoordinate> GetPathCoordinates()
     {
@@ -85,7 +136,7 @@ public class WorldExitPath
     WorldPath _worldPath;
     bool _initialized = false;
 
-    public PathColor pathColor = PathColor.YELLOW;
+    public WorldPath.PathColor pathColor = WorldPath.PathColor.YELLOW;
     [Range(0, 1)] public float pathRandomness = 0f;
     public WorldExit startExit;
     public WorldExit endExit;
@@ -98,6 +149,7 @@ public class WorldExitPath
         startExit.Initialize();
         endExit.Initialize();
         _worldPath = new WorldPath(startExit.PathConnectionCoord, endExit.PathConnectionCoord, pathColor, pathRandomness);
+        _worldPath.DeterminePathChunkHeights(startExit.exitHeight, endExit.exitHeight);
 
         IsInitialized();
     }
@@ -127,22 +179,6 @@ public class WorldExitPath
 
     public Color GetPathColorRGBA()
     {
-        switch (this.pathColor)
-        {
-            case PathColor.BLACK:
-                return Color.black;
-            case PathColor.WHITE:
-                return Color.white;
-            case PathColor.RED:
-                return Color.red;
-            case PathColor.YELLOW:
-                return Color.yellow;
-            case PathColor.GREEN:
-                return Color.green;
-            case PathColor.BLUE:
-                return Color.blue;
-            default:
-                return Color.clear;
-        }
+        return WorldPath.GetRGBAfromPathColorType(pathColor);
     }
 }

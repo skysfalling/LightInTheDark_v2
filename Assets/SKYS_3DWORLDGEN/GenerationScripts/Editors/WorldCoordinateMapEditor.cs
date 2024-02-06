@@ -95,7 +95,8 @@ public class WorldCoordinateMapEditor : Editor
                     Handles.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
                     break;
                 case WorldCoordinate.TYPE.CLOSED:
-                    DrawRectangleArea(coord, realChunkArea, Color.black);
+                    Handles.color = Color.black;
+                    Handles.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
                     break;
             }
         }
@@ -113,21 +114,20 @@ public class WorldCoordinateMapEditor : Editor
     {
         if (path == null || !path.IsInitialized()) return;
 
-        Vector2Int realChunkArea = WorldGeneration.GetRealChunkAreaSize();
-        Color pathColor = path.GetPathColorRGBA();
+        Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
+        Handles.color = path.GetPathColorRGBA();
 
         // Draw Exits
-        WorldCoordinate startCoord = path.startExit.Coordinate;
-        WorldCoordinate endCoord = path.endExit.Coordinate;
-
-        DrawRectangleArea(startCoord, realChunkArea, pathColor);
-        DrawRectangleArea(endCoord, realChunkArea, pathColor);
+        WorldCoordinate startExitCoord = path.startExit.Coordinate;
+        WorldCoordinate endExitCoord = path.endExit.Coordinate;
+        Handles.DrawWireCube(startExitCoord.WorldPosition, realChunkDimensions);
+        Handles.DrawWireCube(endExitCoord.WorldPosition, realChunkDimensions);
 
         // Draw Paths
         List<WorldCoordinate> pathCoords = path.GetPathCoordinates();
         foreach (WorldCoordinate coord in pathCoords)
         {
-            DrawRectangleArea(coord, realChunkArea, pathColor);
+            Handles.DrawWireCube(coord.WorldPosition, realChunkDimensions);
         }
     }
 

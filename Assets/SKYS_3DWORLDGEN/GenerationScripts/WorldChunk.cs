@@ -24,8 +24,9 @@ public class WorldChunk
     public enum TYPE { EMPTY, WALL, HALLWAY, CORNER, DEADEND, CLOSED, BORDER, EXIT }
     public TYPE type;
     public WorldCoordinate coordinate;
+    public int chunkHeight = 1;
+    public Color debugColor;
 
-    public int chunkHeight = 0;
     Vector2 _realChunkAreaSize { get { return WorldGeneration.GetRealChunkAreaSize(); } }
     int _realChunkHeight { get { return this.chunkHeight * WorldGeneration.GetRealChunkDepth(); }}
     public Vector3 GroundPosition { 
@@ -41,7 +42,7 @@ public class WorldChunk
 
     // Active Edges
     bool _northEdgeActive;
-    bool _southEdgeActive;
+    bool _southEdgeActive;  
     bool _eastEdgeActive;
     bool _westEdgeActive;
 

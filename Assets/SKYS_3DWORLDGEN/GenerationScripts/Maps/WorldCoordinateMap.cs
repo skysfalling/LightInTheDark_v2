@@ -216,16 +216,16 @@ public class WorldCoordinateMap : MonoBehaviour
         // Reset Paths
         ConvertCoordinatesToType(GetAllCoordinatesOfType(WorldCoordinate.TYPE.PATH), WorldCoordinate.TYPE.NULL);
 
+        // Reset Chunk Debugs
+        foreach (WorldChunk chunk in WorldChunkMap.GetChunkMap())
+        {
+            chunk.debugColor = Color.clear;
+        }
+
         // Initialize New Exits
         foreach (WorldExitPath exitPath in worldExitPaths)
         {
             exitPath.Initialize();
-
-            /*
-            Debug.Log($"Initialize WorldExitPath Result : {exitPath.IsInitialized()}" +
-                $"\n StartExit : {exitPath.startExit.IsInitialized()}" +
-                $"\n EndExit : {exitPath.endExit.IsInitialized()}");
-            */
         }
     }
 

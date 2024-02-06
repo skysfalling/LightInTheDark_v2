@@ -28,11 +28,11 @@ public class WorldChunkMapEditor : Editor
         List<WorldChunk> chunkMap = WorldChunkMap.GetChunkMap();
         if (chunkMap.Count > 0)
         {
-            foreach (WorldChunk chunk in WorldChunkMap.GetChunkMap())
+            foreach (WorldChunk chunk in chunkMap)
             {
-                Handles.color = Color.red;
-                Handles.DrawWireCube(chunk.GroundMeshSpawnPosition, chunk.GroundMeshDimensions);
-                DrawRectangleArea(chunk.GroundPosition, WorldGeneration.GetRealChunkAreaSize(), Color.white);
+                Handles.color = chunk.debugColor;
+                //Handles.DrawWireCube(chunk.GroundMeshSpawnPosition, chunk.GroundMeshDimensions);
+                DrawRectangleArea(chunk.GroundPosition, WorldGeneration.GetRealChunkAreaSize(), chunk.debugColor);
             }
         }
     }

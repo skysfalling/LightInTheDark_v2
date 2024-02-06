@@ -18,9 +18,9 @@ public class WorldChunkMap : MonoBehaviour
     private static List<WorldChunk> ChunkMap = new List<WorldChunk>();
     private static Dictionary<WorldCoordinate, WorldChunk> ChunkCoordMap = new();
 
-    public static List<WorldChunk> GetChunkMap()
+    public static List<WorldChunk> GetChunkMap(bool forceReset = false)
     {
-        if (ChunkMap != null && ChunkMap.Count > 0) return ChunkMap;
+        if (forceReset == false && ChunkMap != null && ChunkMap.Count > 0) return ChunkMap;
 
         ChunkMap = new();
         ChunkCoordMap = new();
@@ -43,12 +43,25 @@ public class WorldChunkMap : MonoBehaviour
         return ChunkCoordMap[coord]; 
     }
 
+    public static List<WorldChunk> GetChunksAtCoordinates(List<WorldCoordinate> coords)
+    {
+        GetChunkMap();
+
+        List<WorldChunk> chunks = new List<WorldChunk>();
+        foreach (WorldCoordinate c in coords)
+        {
+            chunks.Add(ChunkCoordMap[c]);
+        }
+        return chunks;
+    }
+
     // == GAME INTIALIZATION ===============================================================
     [HideInInspector] public bool initialized = false;
 
 
 
     #region == DETERMINE CHUNK HEIGHTS ==================>>
+
 
     #endregion
 
