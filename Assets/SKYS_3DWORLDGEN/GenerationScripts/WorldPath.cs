@@ -84,8 +84,8 @@ public class WorldPath
         // Assign start/end chunk heights
         WorldChunk startChunk = _pathChunks[0];
         WorldChunk endChunk = _pathChunks[_pathChunks.Count - 1];
-        startChunk.chunkHeight = startHeight;
-        endChunk.chunkHeight = endHeight;
+        startChunk.groundHeight = startHeight;
+        endChunk.groundHeight = endHeight;
 
         // Remove start and end chunks from consideration in the loop
         List<WorldChunk> midpathChunks = new List<WorldChunk>(_pathChunks);
@@ -113,7 +113,7 @@ public class WorldPath
             currHeightLevel += heightOffset;
             heightLeft = endHeight - currHeightLevel;
 
-            midpathChunks[i].chunkHeight = currHeightLevel;
+            midpathChunks[i].groundHeight = currHeightLevel;
         }
 
     }

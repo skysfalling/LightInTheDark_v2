@@ -87,16 +87,15 @@ public class WorldCoordinateMapEditor : Editor
             switch (coord.type)
             {
                 case WorldCoordinate.TYPE.NULL:
-                    Handles.color = Color.white;
-                    Handles.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+                    DrawRectangleAtCoord(coord, Color.clear);
+
                     break;
                 case WorldCoordinate.TYPE.BORDER:
-                    Handles.color = Color.red;
-                    Handles.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+                    DrawRectangleAtCoord(coord, Color.red);
+
                     break;
                 case WorldCoordinate.TYPE.CLOSED:
-                    Handles.color = Color.black;
-                    Handles.DrawWireCube(coord.WorldPosition + chunkHeightOffset, realChunkDimensions);
+                    DrawRectangleAtCoord(coord, Color.black);
                     break;
             }
         }
@@ -131,10 +130,10 @@ public class WorldCoordinateMapEditor : Editor
         }
     }
 
-    private void DrawRectangleArea(WorldCoordinate coord, Vector2Int area, Color fillColor)
+    private void DrawRectangleAtCoord(WorldCoordinate coord, Color fillColor)
     {
         Handles.color = fillColor;
-        Handles.DrawSolidRectangleWithOutline(GetRectangleVertices(coord.WorldPosition, area), fillColor, Color.clear);
+        Handles.DrawSolidRectangleWithOutline(GetRectangleVertices(coord.WorldPosition, WorldGeneration.GetRealChunkAreaSize()), fillColor, Color.clear);
     }
 
     private Vector3[] GetRectangleVertices(Vector3 center, Vector2 area)
