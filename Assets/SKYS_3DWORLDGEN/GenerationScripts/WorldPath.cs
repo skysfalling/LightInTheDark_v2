@@ -73,7 +73,7 @@ public class WorldPath
         _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
         foreach(WorldChunk chunk in _pathChunks)
         {
-            chunk.debugColor = GetRGBAfromPathColorType(_pathColor);
+            chunk.pathColor = _pathColor;
         }
 
         _initialized = true;
@@ -120,12 +120,9 @@ public class WorldPath
 
     public bool IsInitialized() { return _initialized; }
 
-
-
     public List<WorldCoordinate> GetPathCoordinates()
     {
-        if (!_initialized) { Initialize(); }
-
+        if (!_initialized) { return new List<WorldCoordinate>(); }
         return _pathCoords;
     }
 }
@@ -148,8 +145,13 @@ public class WorldExitPath
 
         startExit.Initialize();
         endExit.Initialize();
+
         _worldPath = new WorldPath(startExit.PathConnectionCoord, endExit.PathConnectionCoord, pathColor, pathRandomness);
-        _worldPath.DeterminePathChunkHeights(startExit.exitHeight, endExit.exitHeight);
+        
+        if (_worldPath.IsInitialized())
+        {
+            _worldPath.DeterminePathChunkHeights(startExit.exitHeight, endExit.exitHeight);
+        }
 
         IsInitialized();
     }

@@ -13,9 +13,6 @@ public class WorldCoordinateMapEditor : Editor
     {
         serializedCoordinateMap = new SerializedObject(target);
         worldExitPathsProperty = serializedCoordinateMap.FindProperty("worldExitPaths");
-
-        WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
-        worldCoordMap.InitializeWorldExitPaths();
     }
 
     public override void OnInspectorGUI()
@@ -59,9 +56,7 @@ public class WorldCoordinateMapEditor : Editor
 
             // Get your WorldCoordinateMap component
             WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
-
-            // Call your initialization method here
-            worldCoordMap.InitializeWorldExitPaths();
+            DrawMap();
 
             // Optionally, mark the target object as dirty to ensure the changes are saved
             EditorUtility.SetDirty(target);
@@ -70,7 +65,9 @@ public class WorldCoordinateMapEditor : Editor
 
     private void OnSceneGUI()
     {
-        WorldGeneration.InitializeRandomSeed();
+        WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
+        if (worldCoordMap.mapInitialized == false) { return; }
+
         DrawMap();
     }
 

@@ -1,6 +1,7 @@
  using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.U2D.Aseprite;
 using UnityEngine;
@@ -14,10 +15,30 @@ public class WorldChunkMap : MonoBehaviour
         if (Instance == null) { Instance = this; }
     }
 
-    // == CHUNK MAP ======================================== ////
+    public bool mapInitialized { get; private set; }
+    public bool zonesInitialized { get; private set; }
+
+    public void InitializeChunkMap()
+    {
+        GetChunkMap();
+        mapInitialized = true;
+    }
+    public void ResetChunkMap()
+    {
+        zonesInitialized = false;
+
+        // Reset Path Colors
+        foreach (WorldChunk chunk in GetChunkMap())
+        {
+            chunk.groundHeight = 0;
+            chunk.pathColor = WorldPath.PathColor.CLEAR;
+            chunk.zoneColor = WorldZone.ZoneColor.CLEAR;
+        }
+    }
+
+    #region == CHUNK MAP ======================================== ////
     private static List<WorldChunk> ChunkMap = new List<WorldChunk>();
     private static Dictionary<WorldCoordinate, WorldChunk> ChunkCoordMap = new();
-
     public static List<WorldChunk> GetChunkMap(bool forceReset = false)
     {
         if (forceReset == false && ChunkMap != null && ChunkMap.Count > 0) return ChunkMap;
@@ -36,13 +57,15 @@ public class WorldChunkMap : MonoBehaviour
 
         return ChunkMap;
     }
-
     public static WorldChunk GetChunkAtCoordinate(WorldCoordinate coord) 
     {
         GetChunkMap();
-        return ChunkCoordMap[coord]; 
-    }
 
+        WorldChunk value;
+        ChunkCoordMap.TryGetValue(coord, out value);
+
+        return value; 
+    }
     public static List<WorldChunk> GetChunksAtCoordinates(List<WorldCoordinate> coords)
     {
         GetChunkMap();
@@ -55,50 +78,22 @@ public class WorldChunkMap : MonoBehaviour
         return chunks;
     }
 
-    // == GAME INTIALIZATION ===============================================================
-    [HideInInspector] public bool initialized = false;
+    #endregion
 
+    #region == WORLD ZONES ==================================== ////
+    public List<WorldZone> zones = new List<WorldZone>();
+    public void InitializeZones()
+    {
+        ResetChunkMap();
 
-
-    #region == DETERMINE CHUNK HEIGHTS ==================>>
-
-
+        // Initialize Zones
+        foreach (WorldZone zone in zones)
+        {
+            zone.Initialize();
+        }
+        zonesInitialized = true;
+    }
     #endregion
 
 
-    // == DEBUG FUNCTIONS ==============>>
-    public void ShowChunkCells(WorldChunk chunk)
-    {
-        if (chunk == null) { return; }
-        foreach (WorldCell cell in chunk.localCells)
-        {
-            cell.ShowDebugCube();
-        }
-    }
-
-    public void HideChunkCells(WorldChunk chunk)
-    {
-        if (chunk == null) { return; }
-        foreach (WorldCell cell in chunk.localCells)
-        {
-            //cell.HideDebugCube();
-            Destroy(cell.GetDebugCube()); // Destroy the debug cube for efficiency
-        }
-    }
-
-    public string GetChunkStats(WorldChunk chunk)
-    {
-        if (chunk == null) return "[ WORLD CHUNK ] is not available.";
-        //if (chunk._initialized == false) return "[ WORLD CHUNK ] is not initialized.";
-
-
-        string str_out = $"[ WORLD CHUNK ] : {chunk.coordinate}\n";
-        str_out += $"\t>> chunk_type : {chunk.type}\n";
-        str_out += $"\t>> Total Cell Count : {chunk.localCells.Count}\n";
-        str_out += $"\t    -- Empty Cells : {chunk.GetCellsOfType(WorldCell.TYPE.EMPTY).Count}\n";
-        str_out += $"\t    -- Edge Cells : {chunk.GetCellsOfType(WorldCell.TYPE.EDGE).Count}\n";
-        str_out += $"\t    -- Corner Cells : {chunk.GetCellsOfType(WorldCell.TYPE.CORNER).Count}\n";
-
-        return str_out;
-    }
 }

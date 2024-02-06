@@ -1510,7 +1510,7 @@ PrefabInstance:
     - target: {fileID: 8295359213703746231, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: worldExitPaths.Array.size
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8295359213703746231, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}

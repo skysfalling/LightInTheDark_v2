@@ -3,12 +3,11 @@ using UnityEngine;
 using UnityEngine.UIElements;
 public class WorldCoordinate
 {
-    public enum TYPE { NULL, BORDER, EXIT, PATH, CLOSED }
-
+    public enum TYPE { NULL, BORDER, EXIT, PATH, ZONE, CLOSED }
     public TYPE type;
     public WorldDirection borderEdgeDirection;
 
-    // POSITION
+    public Vector2Int Coordinate { get; private set; }
     public Vector2 Position { get; private set; }
     public Vector3 WorldPosition { 
         get { 
@@ -22,10 +21,20 @@ public class WorldCoordinate
     public float HCost = 0;
     public float FCost => GCost + HCost;
     public WorldCoordinate Parent = null;
-    public WorldCoordinate(Vector2 position)
+    public WorldCoordinate(Vector2Int coord)
     {
-        Position = position;
-        WorldPosition = new Vector3(position.x, 0, position.y);
+        Coordinate = coord;
+
+        // Calculate position
+        Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkAreaSize();
+        Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
+        Vector2 half_FullWorldSize = realFullWorldSize * 0.5f;
+        Vector2 newPos = new Vector2(coord.x * realChunkAreaSize.x, coord.y * realChunkAreaSize.y);
+        newPos -= Vector2.one * half_FullWorldSize;
+        newPos += Vector2.one * realChunkAreaSize * 0.5f;
+
+        Position = newPos;
+        WorldPosition = new Vector3(Position.x, 0, Position.y);
     }
 }
 
@@ -37,6 +46,36 @@ public class WorldCoordinateMap : MonoBehaviour
         if (Instance == null) { Instance = this; }
     }
 
+    public bool mapInitialized { get; private set; }
+    public bool pathsInitialized { get; private set; }
+
+    public void InitializeCoordinateMap()
+    {
+        GetCoordinateMap();
+
+        if (CoordinateMap.Count > 0)
+        {
+            mapInitialized = true;
+        }
+    }
+
+    public void ResetCoordinateMap()
+    {
+        InitializeCoordinateMap();
+
+        // Reset Borders
+        List<WorldCoordinate> borderCoords = GetCoordinatesOnAllBorders();
+        ConvertCoordinatesToType(borderCoords, WorldCoordinate.TYPE.BORDER);
+
+        // Reset Paths
+        pathsInitialized = false;
+        ConvertCoordinatesToType(GetAllCoordinatesOfType(WorldCoordinate.TYPE.PATH), WorldCoordinate.TYPE.NULL);
+
+        // Reset Zones
+        List<WorldCoordinate> zoneCoords = GetAllCoordinatesOfType(WorldCoordinate.TYPE.ZONE);
+        ConvertCoordinatesToType(zoneCoords, WorldCoordinate.TYPE.NULL);
+    }
+
     #region == COORDINATE MAP ================================ ////
     private static List<WorldCoordinate> CoordinateMap = new List<WorldCoordinate>();
 
@@ -46,9 +85,8 @@ public class WorldCoordinateMap : MonoBehaviour
 
 
         List<WorldCoordinate> coordMap = new List<WorldCoordinate>();
-        Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkAreaSize();
         Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
-        Vector2 half_FullWorldSize = realFullWorldSize * 0.5f;
+        Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkAreaSize();
 
         int xCoordCount = Mathf.CeilToInt(realFullWorldSize.x / realChunkAreaSize.x);
         int yCoordCount = Mathf.CeilToInt(realFullWorldSize.y / realChunkAreaSize.y);
@@ -57,11 +95,7 @@ public class WorldCoordinateMap : MonoBehaviour
         {
             for (int y = 0; y < yCoordCount; y++)
             {
-                Vector2 newPos = new Vector2(x * realChunkAreaSize.x, y * realChunkAreaSize.y);
-                newPos -= Vector2.one * half_FullWorldSize;
-                newPos += Vector2.one * realChunkAreaSize * 0.5f;
-
-                WorldCoordinate newCoord = new WorldCoordinate(newPos);
+                WorldCoordinate newCoord = new WorldCoordinate(new Vector2Int(x, y));
 
                 // Check if the position is in a corner & close it
                 if ((x == 0 && y == 0) ||
@@ -98,6 +132,18 @@ public class WorldCoordinateMap : MonoBehaviour
 
         foreach (WorldCoordinate coord in coordMap) { coordMapPositions.Add(coord.Position); }
         return coordMapPositions;
+    }
+
+    public static WorldCoordinate GetCoordinate(Vector2Int coordinate)
+    {
+        foreach (WorldCoordinate worldCoord in GetCoordinateMap())
+        {
+            if (worldCoord.Coordinate == coordinate)
+            {
+                return worldCoord;
+            }
+        }
+        return null;
     }
 
     public static WorldCoordinate GetCoordinateAtPosition(Vector2 position)
@@ -177,6 +223,33 @@ public class WorldCoordinateMap : MonoBehaviour
         return neighbors;
     }
 
+    public static List<WorldCoordinate> GetCoordinateDiagonalNeighbors(WorldCoordinate coordinate)
+    {
+        if (coordinate == null) { return null; }
+        int chunkWidth = WorldGeneration.GetRealChunkAreaSize().x;
+        int chunkLength = WorldGeneration.GetRealChunkAreaSize().y;
+
+        List<WorldCoordinate> neighbors = new List<WorldCoordinate>(new WorldCoordinate[4]);
+
+        // Find and assign neighbors in the specific order [Left, Right, Forward, Backward]
+        neighbors[0] = GetCoordinateAtPosition(coordinate.Position + new Vector2(-chunkWidth, -chunkLength)); // SOUTH WEST
+        neighbors[1] = GetCoordinateAtPosition(coordinate.Position + new Vector2(-chunkWidth, chunkLength)); // NORTH WEST
+        neighbors[2] = GetCoordinateAtPosition(coordinate.Position + new Vector2(chunkWidth, -chunkLength)); // SOUTH EAST
+        neighbors[3] = GetCoordinateAtPosition(coordinate.Position + new Vector2(chunkWidth, chunkLength)); // NORTH EAST
+
+        // Remove null entries if a neighbor is not found
+        neighbors.RemoveAll(item => item == null);
+
+        return neighbors;
+    }
+
+    public static List<WorldCoordinate> GetAllCoordinateNeighbors(WorldCoordinate coordinate)
+    {
+        List<WorldCoordinate> neighbors = GetCoordinateNaturalNeighbors(coordinate);
+        neighbors.AddRange(GetCoordinateDiagonalNeighbors(coordinate));
+        return neighbors;
+    }
+
     public static WorldCoordinate GetCoordinateNeighborInDirection(WorldCoordinate coordinate, WorldDirection direction)
     {
         if (coordinate == null) { return null; }
@@ -202,6 +275,7 @@ public class WorldCoordinateMap : MonoBehaviour
 
         return coord;
     }
+
     #endregion
 
     #region == {{ WORLD EXITS }} ======================================================== ////
@@ -209,24 +283,14 @@ public class WorldCoordinateMap : MonoBehaviour
 
     public void InitializeWorldExitPaths()
     {
-        // Reset Borders
-        List<WorldCoordinate> borderCoords = GetCoordinatesOnAllBorders();
-        ConvertCoordinatesToType(borderCoords, WorldCoordinate.TYPE.BORDER);
-
-        // Reset Paths
-        ConvertCoordinatesToType(GetAllCoordinatesOfType(WorldCoordinate.TYPE.PATH), WorldCoordinate.TYPE.NULL);
-
-        // Reset Chunk Debugs
-        foreach (WorldChunk chunk in WorldChunkMap.GetChunkMap())
-        {
-            chunk.debugColor = Color.clear;
-        }
+        ResetCoordinateMap();
 
         // Initialize New Exits
         foreach (WorldExitPath exitPath in worldExitPaths)
         {
             exitPath.Initialize();
         }
+        pathsInitialized = true;
     }
 
     public static WorldCoordinate GetWorldExitPathConnection(WorldExit exit)

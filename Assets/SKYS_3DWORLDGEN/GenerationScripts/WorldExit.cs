@@ -51,8 +51,9 @@ public class WorldExit
         {
             _coordinate.type = WorldCoordinate.TYPE.EXIT;
             _pathConnection = WorldCoordinateMap.GetWorldExitPathConnection(this);
-            WorldChunkMap.GetChunkAtCoordinate(_coordinate).groundHeight = exitHeight;
 
+            WorldChunk chunk = WorldChunkMap.GetChunkAtCoordinate(_coordinate);
+            if (chunk != null) { chunk.groundHeight = exitHeight; }
         }
         IsInitialized();
     }

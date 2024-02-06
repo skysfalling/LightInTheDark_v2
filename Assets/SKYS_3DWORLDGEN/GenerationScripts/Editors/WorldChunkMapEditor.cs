@@ -7,32 +7,72 @@ using UnityEngine;
 public class WorldChunkMapEditor : Editor
 {
     SerializedObject serializedObject;
-    SerializedProperty property;
+    SerializedProperty zonesProperty;
 
     private void OnEnable()
     {
         serializedObject = new SerializedObject(target);
-        //property = serializedObject.FindProperty("yourProperty");
+        zonesProperty = serializedObject.FindProperty("zones");
+
+        WorldChunkMap map = (WorldChunkMap)target;
     }
 
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
+        // Display each WorldExitPath with a foldout
+        if (zonesProperty != null)
+        {
+            EditorGUILayout.LabelField("World Zones", EditorStyles.boldLabel); // Optional: Add a section label
 
+            for (int i = 0; i < zonesProperty.arraySize; i++)
+            {
+                SerializedProperty zoneProperty = zonesProperty.GetArrayElementAtIndex(i);
+                EditorGUILayout.PropertyField(zoneProperty, new GUIContent($"World Zone {i}"), true);
+            }
 
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Add World Zone"))
+            {
+                zonesProperty.arraySize++;
+            }
+            if (GUILayout.Button("Remove Last"))
+            {
+                if (zonesProperty.arraySize > 0)
+                {
+                    zonesProperty.arraySize--;
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+
+        // Check if any changes were made in the Inspector
+        if (EditorGUI.EndChangeCheck())
+        {
+            // If there were changes, apply them to the serialized object
+            serializedObject.ApplyModifiedProperties();
+
+            // Optionally, mark the target object as dirty to ensure the changes are saved
+            EditorUtility.SetDirty(target);
+        }
     }
 
     private void OnSceneGUI()
     {
         WorldChunkMap map = (WorldChunkMap)target;
+
+        if (map.mapInitialized == false) { return; }
+
         List<WorldChunk> chunkMap = WorldChunkMap.GetChunkMap();
         if (chunkMap.Count > 0)
         {
             foreach (WorldChunk chunk in chunkMap)
             {
-                Handles.color = chunk.debugColor;
-                //Handles.DrawWireCube(chunk.GroundMeshSpawnPosition, chunk.GroundMeshDimensions);
-                DrawRectangleArea(chunk.GroundPosition, WorldGeneration.GetRealChunkAreaSize(), chunk.debugColor);
+                Color zoneColorRGBA = WorldZone.GetRGBAfromZoneColorType(chunk.zoneColor);
+                DrawRectangleArea(chunk.GroundPosition, WorldGeneration.GetRealChunkAreaSize(), zoneColorRGBA);
+
+                Color pathColorRGBA = WorldPath.GetRGBAfromPathColorType(chunk.pathColor);
+                DrawRectangleArea(chunk.GroundPosition, WorldGeneration.GetRealChunkAreaSize(), pathColorRGBA);
             }
         }
     }
