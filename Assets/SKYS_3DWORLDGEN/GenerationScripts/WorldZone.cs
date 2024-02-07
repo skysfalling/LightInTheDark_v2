@@ -31,7 +31,7 @@ public class WorldZone
     }
 
     WorldCoordinate _centerCoordinate;
-    List<WorldCoordinate> _zoneCoordinates;
+    List<WorldCoordinate> _zoneCoordinates = new List<WorldCoordinate>();
     bool _initialized = false;
 
     public enum TYPE { FULL, NATURAL, HORIZONTAL, VERTICAL }
@@ -57,6 +57,8 @@ public class WorldZone
     {
         if ( _initialized ) { return; }
         _initialized = false;
+
+        if (WorldCoordinateMap.coordMapInitialized == false) { return; }
 
         // Get affected neighbors
         List<WorldCoordinate> affectedNeighbors = new();
@@ -89,7 +91,9 @@ public class WorldZone
 
     public void Reset()
     {
-        if (_initialized && _centerCoordinate.Coordinate != coordinateVector)
+        if (WorldCoordinateMap.coordMapInitialized == false || !_initialized) { return; }
+
+        if (_centerCoordinate == null || _centerCoordinate.Coordinate != coordinateVector)
         {
             WorldCoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, WorldCoordinate.TYPE.NULL);
             _zoneCoordinates = new();

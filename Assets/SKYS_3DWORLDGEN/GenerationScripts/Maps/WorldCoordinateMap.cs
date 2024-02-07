@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -131,7 +132,7 @@ public class WorldCoordinateMap : MonoBehaviour
     {
         CoordinateList = new();
         CoordinateMap = new();
-        coordMapInitialized = true;
+        coordMapInitialized = false;
 
         // Destroy World Zones
         worldZones = new List<WorldZone>();
@@ -168,6 +169,7 @@ public class WorldCoordinateMap : MonoBehaviour
 
     public static WorldCoordinate GetCoordinate(Vector2Int coordinate)
     {
+        if (!coordMapInitialized) { return null; }
         // Use the dictionary for fast lookups
         if (CoordinateMap.TryGetValue(coordinate, out WorldCoordinate foundCoord))
         {
@@ -347,7 +349,6 @@ public class WorldCoordinateMap : MonoBehaviour
     
     public void UpdateAllWorldExitPaths()
     {
-
         foreach (WorldExitPath path in worldExitPaths) 
         {
             path.Reset();
@@ -400,76 +401,93 @@ public class WorldCoordinateMap : MonoBehaviour
     * - fCost is gCost + hCost
     */
 
-    public static List<WorldCoordinate> FindCoordinatePath(WorldCoordinate startCoordinate, WorldCoordinate endCoordinate, float pathRandomness = 0)
+    public static List<WorldCoordinate> FindCoordinatePath(Vector2Int startCoord, Vector2Int endCoord, float pathRandomness = 0)
     {
-        List<WorldCoordinate> openSet = new List<WorldCoordinate>();
-        HashSet<WorldCoordinate> closedSet = new HashSet<WorldCoordinate>();
-        openSet.Add(startCoordinate);
+        // Initialize the open set with the start coordinate
+        List<Vector2Int> openSet = new List<Vector2Int> { startCoord };
+        // Initialize the closed set as an empty collection of Vector2Int
+        HashSet<Vector2Int> closedSet = new HashSet<Vector2Int>();
+
+        // Initialize costs for all coordinates to infinity, except the start coordinate
+        Dictionary<Vector2Int, float> gCost = new Dictionary<Vector2Int, float>();
+        Dictionary<Vector2Int, WorldCoordinate> parents = new Dictionary<Vector2Int, WorldCoordinate>();
+        foreach (var coord in CoordinateMap.Keys)
+        {
+            gCost[coord] = float.MaxValue;
+        }
+        gCost[startCoord] = 0;
+
+        // Initialize the heuristic costs
+        Dictionary<Vector2Int, float> fCost = new Dictionary<Vector2Int, float>();
+        foreach (var coord in CoordinateMap.Keys)
+        {
+            fCost[coord] = float.MaxValue;
+        }
+        fCost[startCoord] = Vector2Int.Distance(startCoord, endCoord);
 
         while (openSet.Count > 0)
         {
-            WorldCoordinate currentCoordinate = openSet[0];
+            Vector2Int current = openSet[0];
             for (int i = 1; i < openSet.Count; i++)
             {
-                if (openSet[i].FCost <= currentCoordinate.FCost &&
-                    openSet[i].HCost < currentCoordinate.HCost &&
-                    openSet[i].type == WorldCoordinate.TYPE.NULL &&
-                    Random.Range(0f, 1f) <= pathRandomness)
+                Vector2Int candidate = openSet[i];
+                // Convert FCost and HCost checks to work with Vector2Int by accessing WorldCoordinate properties
+                if (fCost[candidate] <= fCost[current] &&
+                    CoordinateMap[current].type == WorldCoordinate.TYPE.NULL &&
+                    UnityEngine.Random.Range(0f, 1f) <= pathRandomness)
                 {
-                    currentCoordinate = openSet[i];
+                    current = openSet[i];
                 }
             }
 
-            openSet.Remove(currentCoordinate);
-            closedSet.Add(currentCoordinate);
-
-            if (currentCoordinate == endCoordinate)
+            if (current == endCoord)
             {
-                return RetracePath(startCoordinate, endCoordinate);
+                // Path has been found
+                return RetracePath(startCoord, endCoord, parents);
             }
 
-            List<WorldCoordinate> currentNeighbors = GetCoordinateNaturalNeighbors(currentCoordinate);
-            foreach (WorldCoordinate neighbor in currentNeighbors)
+            openSet.Remove(current);
+            closedSet.Add(current);
+
+            foreach (WorldCoordinate neighbor in GetCoordinateNaturalNeighbors(CoordinateMap[current]))
             {
-                if (closedSet.Contains(neighbor))
+                if (closedSet.Contains(neighbor.Coordinate) 
+                    || CoordinateMap[neighbor.Coordinate].type != WorldCoordinate.TYPE.NULL) // Remove invalid neighbors
+                    continue; // Skip non-traversable neighbors and those already evaluated
+
+                float tentativeGCost = gCost[current] + Vector2Int.Distance(current, neighbor.Coordinate);
+
+                if (tentativeGCost < gCost[neighbor.Coordinate])
                 {
-                    continue;
-                }
+                    // This path to neighbor is better than any previous one. Record it!
+                    parents[neighbor.Coordinate] = CoordinateMap[current];
+                    gCost[neighbor.Coordinate] = tentativeGCost;
+                    fCost[neighbor.Coordinate] = tentativeGCost + Vector2Int.Distance(neighbor.Coordinate, endCoord);
 
-                float newMovementCostToNeighbor = currentCoordinate.GCost + GetCoordinateDistance(currentCoordinate, neighbor);
-                // Apply randomness here to affect the movement cost
-                newMovementCostToNeighbor += Random.Range(-pathRandomness, pathRandomness);
-
-                if (newMovementCostToNeighbor < neighbor.GCost || !openSet.Contains(neighbor))
-                {
-                    neighbor.GCost = newMovementCostToNeighbor;
-                    neighbor.HCost = GetCoordinateDistance(neighbor, endCoordinate);
-                    neighbor.Parent = currentCoordinate;
-
-                    if (!openSet.Contains(neighbor))
-                    {
-                        openSet.Add(neighbor);
-                    }
+                    if (!openSet.Contains(neighbor.Coordinate))
+                        openSet.Add(neighbor.Coordinate);
                 }
             }
         }
 
-        return new List<WorldCoordinate>(); // Return an empty path if there is no path
+        // If we reach here, then there is no path
+        return new List<WorldCoordinate>();
     }
 
-    static List<WorldCoordinate> RetracePath(WorldCoordinate startCoordinate, WorldCoordinate endCoordinate)
+    // Helper method to retrace path from end to start using parent references
+    static List<WorldCoordinate> RetracePath(Vector2Int startCoord, Vector2Int endCoord, Dictionary<Vector2Int, WorldCoordinate> parents)
     {
         List<WorldCoordinate> path = new List<WorldCoordinate>();
-        WorldCoordinate currentCoordinate = endCoordinate;
+        Vector2Int currentCoord = endCoord;
 
-        while (currentCoordinate != startCoordinate)
+        while (currentCoord != startCoord)
         {
-            path.Add(currentCoordinate);
-            currentCoordinate = currentCoordinate.Parent;
+            path.Add(CoordinateMap[currentCoord]);
+            currentCoord = parents[currentCoord].Coordinate; // Move to the parent coordinate
         }
-        path.Add(startCoordinate);
+        path.Add(CoordinateMap[startCoord]); // Add the start coordinate at the end
+        path.Reverse(); // Reverse the list to start from the beginning
 
-        path.Reverse();
         return path;
     }
 

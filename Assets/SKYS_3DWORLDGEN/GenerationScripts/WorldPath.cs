@@ -51,18 +51,17 @@ public class WorldPath
     }
 
 
-    WorldCoordinate _startCoordinate;
-    WorldCoordinate _endCoordinate;
-    List<WorldCoordinate> _pathCoords;
+    Vector2Int _startCoordinate;
+    Vector2Int _endCoordinate;
+    List<WorldCoordinate> _pathCoords = new List<WorldCoordinate>();
     List<WorldChunk> _pathChunks;
-    bool _isValid;
     float _pathRandomness = 0;
     bool _initialized = false;
 
     public WorldPath(WorldCoordinate startCoord, WorldCoordinate endCoord, PathColor pathColor, float pathRandomness = 0)
     {
-        this._startCoordinate = startCoord;
-        this._endCoordinate = endCoord;
+        this._startCoordinate = startCoord.Coordinate;
+        this._endCoordinate = endCoord.Coordinate;
         this._pathColor = pathColor;
         this._pathRandomness = pathRandomness;
         Initialize();
@@ -74,24 +73,7 @@ public class WorldPath
         _initialized = false;
 
         // Get Valid Path
-        _pathCoords = WorldCoordinateMap.FindCoordinatePath(this._startCoordinate, this._endCoordinate, _pathRandomness);
-
-
-        foreach ( WorldCoordinate coord in _pathCoords )
-        {
-            if (WorldCoordinateMap.GetTypeAtCoord(coord) == WorldCoordinate.TYPE.ZONE)
-            {
-
-                Debug.Log("Found Zone in Path");
-                _isValid = false;
-                return;
-            }
-            
-        }
-
-
-
-        _isValid = true;
+        _pathCoords = WorldCoordinateMap.FindCoordinatePath(_startCoordinate, _endCoordinate, _pathRandomness);
 
         // Set Coordinate Path Type
         WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.PATH);
@@ -108,11 +90,15 @@ public class WorldPath
 
     public void Reset()
     {
-        // Set Coordinate Path Type
-        WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.NULL);
-        _pathCoords.Clear();
+        if (!_initialized || WorldCoordinateMap.coordMapInitialized == false) return;
+
+        // Reset Coordinate Path Type
+        if (_pathCoords != null && _pathCoords.Count > 0)
+        {
+            WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.NULL);
+            _pathCoords.Clear();
+        }
         _initialized = false;
-        _isValid = true;
     }
 
     public void DeterminePathChunkHeights(int startHeight, int endHeight, float heightAdjustChance = 1f)
@@ -197,7 +183,7 @@ public class WorldExitPath
 
         if (_worldPath.IsInitialized())
         {
-            _worldPath.DeterminePathChunkHeights(startExit.exitHeight, endExit.exitHeight);
+            //_worldPath.DeterminePathChunkHeights(startExit.exitHeight, endExit.exitHeight);
         }
 
         _initialized = true;
