@@ -6,10 +6,7 @@ using UnityEngine.UIElements;
 public class WorldCoordinate
 {
     public enum TYPE { NULL, BORDER, EXIT, PATH, ZONE, CLOSED }
-    public TYPE type { 
-        get { return WorldCoordinateMap.GetTypeAtCoord(this); } 
-        set { WorldCoordinateMap.SetMapCoordinateToType(this, value); }
-    }
+    public TYPE type;
     public WorldDirection borderEdgeDirection;
 
     public Vector2Int Coordinate { get; private set; }
@@ -56,27 +53,18 @@ public class WorldCoordinateMap : MonoBehaviour
     public bool zonesInitialized { get; private set; }
 
     #region == COORDINATE MAP ================================ ////
-    private static List<WorldCoordinate> CoordinateList = new List<WorldCoordinate>();
-    private static Dictionary<Vector2Int, WorldCoordinate> CoordinateMap = new();
-    private static Dictionary<WorldCoordinate, List<WorldCoordinate>> CoordinateNeighborMap = new();
+    public static List<WorldCoordinate> CoordinateList { get; private set; }
+    public static Dictionary<Vector2Int, WorldCoordinate> CoordinateMap { get; private set; }
+    public static Dictionary<WorldCoordinate, List<WorldCoordinate>> CoordinateNeighborMap { get; private set; }
 
-    public static List<WorldCoordinate> GetCoordinateList(bool forceReset = false)
+    static void InitializeCoordinateMap(bool forceReset = false)
     {
-        if (!forceReset && coordMapInitialized) return CoordinateList;
-        coordMapInitialized = false;
-        InitializeCoordinateMap();
-
-        return CoordinateList;
-    }
-
-    static void InitializeCoordinateMap()
-    {
+        if (coordMapInitialized) return;
 
         List<WorldCoordinate> newCoordList = new List<WorldCoordinate>();
         Dictionary<Vector2Int, WorldCoordinate> newCoordMap = new();
 
-
-    Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
+        Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
         Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkAreaSize();
 
         int xCoordCount = Mathf.CeilToInt(realFullWorldSize.x / realChunkAreaSize.x);
@@ -109,38 +97,41 @@ public class WorldCoordinateMap : MonoBehaviour
         int xCoordCount = Mathf.CeilToInt(realFullWorldSize.x / realChunkAreaSize.x);
         int yCoordCount = Mathf.CeilToInt(realFullWorldSize.y / realChunkAreaSize.y);
 
-        List<WorldCoordinate> coordMap = GetCoordinateList();
-        foreach (WorldCoordinate coord in coordMap)
+        for (int x = 0; x < xCoordCount; x++)
         {
-            int x = coord.Coordinate.x;
-            int y = coord.Coordinate.y;
+            for (int y = 0; y < yCoordCount; y++)
+            {
+                Vector2Int coordinateVector = new Vector2Int(x, y);
 
-            // Check if the position is in a corner & close it
-            if ((x == 0 && y == 0) || (x == xCoordCount - 1 && y == 0) ||
-                (x == 0 && y == yCoordCount - 1) || (x == xCoordCount - 1 && y == yCoordCount - 1))
-            {
-                coord.type = WorldCoordinate.TYPE.CLOSED;
-            }
-            // Check if the position is on the border
-            else if (x == 0 || y == 0 || x == xCoordCount - 1 || y == yCoordCount - 1)
-            {
-                coord.type = WorldCoordinate.TYPE.BORDER;
-                if (x == 0) { coord.borderEdgeDirection = WorldDirection.West; }
-                if (y == 0) { coord.borderEdgeDirection = WorldDirection.South; }
-                if (x == xCoordCount - 1) { coord.borderEdgeDirection = WorldDirection.East; }
-                if (y == yCoordCount - 1) { coord.borderEdgeDirection = WorldDirection.North; }
-            }
-            // Coordinate is inside PlayZone
-            else
-            {
-                coord.type = WorldCoordinate.TYPE.NULL;
+                // Check if the position is in a corner & close it
+                if ((x == 0 && y == 0) || (x == xCoordCount - 1 && y == 0) ||
+                    (x == 0 && y == yCoordCount - 1) || (x == xCoordCount - 1 && y == yCoordCount - 1))
+                {
+                    CoordinateMap[coordinateVector].type = WorldCoordinate.TYPE.CLOSED;
+                }
+                // Check if the position is on the border
+                else if (x == 0 || y == 0 || x == xCoordCount - 1 || y == yCoordCount - 1)
+                {
+                    CoordinateMap[coordinateVector].type = WorldCoordinate.TYPE.BORDER;
+                    if (x == 0) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.West; }
+                    if (y == 0) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.South; }
+                    if (x == xCoordCount - 1) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.East; }
+                    if (y == yCoordCount - 1) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.North; }
+                }
+                // Coordinate is inside PlayZone
+                else
+                {
+                    CoordinateMap[coordinateVector].type = WorldCoordinate.TYPE.NULL;
+                }
             }
         }
     }
 
     public void ResetCoordinateMap()
     {
-        GetCoordinateList(); // Make sure CoordinateMap is initialized
+        CoordinateList = new();
+        CoordinateMap = new();
+        coordMapInitialized = true;
 
         // Destroy World Zones
         worldZones = new List<WorldZone>();
@@ -149,12 +140,12 @@ public class WorldCoordinateMap : MonoBehaviour
         // Destroy World Paths
         worldExitPaths = new List<WorldExitPath>();
         pathsInitialized = false;
-
-        SetAllCoordinateTypesToDefault(); // Set all Coordinates to their default type
     }
 
     public void UpdateCoordinateMap()
     {
+        InitializeCoordinateMap(); // Make sure CoordinateMap is initialized
+
         // Initialize Random Seed :: IMPORTANT To keep the same results per seed
         WorldGeneration.InitializeRandomSeed();
 
@@ -168,7 +159,7 @@ public class WorldCoordinateMap : MonoBehaviour
 
     public static List<Vector2> GetCoordinateMapPositions()
     {
-        List<WorldCoordinate> coordMap = GetCoordinateList();
+        List<WorldCoordinate> coordMap = CoordinateList;
         List<Vector2> coordMapPositions = new List<Vector2>();
 
         foreach (WorldCoordinate coord in coordMap) { coordMapPositions.Add(coord.Position); }
@@ -187,7 +178,7 @@ public class WorldCoordinateMap : MonoBehaviour
 
     public static WorldCoordinate GetCoordinateAtPosition(Vector2 position)
     {
-        foreach (WorldCoordinate coord in GetCoordinateList()) { 
+        foreach (WorldCoordinate coord in CoordinateList) { 
             if (coord.Position == position)
             {
                 return coord;
@@ -204,7 +195,7 @@ public class WorldCoordinateMap : MonoBehaviour
     public static List<WorldCoordinate> GetAllCoordinatesOfType(WorldCoordinate.TYPE type)
     {
         List<WorldCoordinate> typeList = new();
-        foreach(WorldCoordinate coord in GetCoordinateList())
+        foreach(WorldCoordinate coord in CoordinateList)
         {
             if (coord.type == type)
             {
@@ -218,7 +209,6 @@ public class WorldCoordinateMap : MonoBehaviour
     {
         // Make sure to get the updated coordinate from the map
         WorldCoordinate mapCoord = GetCoordinate(coord.Coordinate);
-
         mapCoord.type = type;
     }
 

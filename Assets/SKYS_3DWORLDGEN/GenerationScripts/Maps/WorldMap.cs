@@ -12,28 +12,16 @@ using UnityEditor;
 [RequireComponent(typeof(WorldCoordinateMap), typeof(WorldChunkMap), typeof(WorldCellMap))]
 public class WorldMap : MonoBehaviour
 {
-    Coroutine initializationCoroutine = null;
-
-    public void InitializeWorldMap()
-    {
-        WorldCoordinateMap worldCoordinateMap = GetComponent<WorldCoordinateMap>();
-        WorldChunkMap worldChunkMap = GetComponent<WorldChunkMap>();
-    }
-
-    public IEnumerator InitializeWorldMapRoutine()
+    public void UpdateWorldMap()
     {
         WorldCoordinateMap worldCoordinateMap = GetComponent<WorldCoordinateMap>();
         WorldChunkMap worldChunkMap = GetComponent<WorldChunkMap>();
 
-        yield return null;
+        worldCoordinateMap.UpdateCoordinateMap();
     }
 
     public void ResetWorldMap()
     {
-        if (initializationCoroutine != null) {
-            StopCoroutine(initializationCoroutine);
-        }
-
         WorldCoordinateMap worldCoordinateMap = GetComponent<WorldCoordinateMap>();
         WorldChunkMap worldChunkMap = GetComponent<WorldChunkMap>();
 
@@ -57,6 +45,32 @@ public class WorldMapEditor : Editor
         WorldCoordinateMap worldCoordinateMap = worldMap.GetComponent<WorldCoordinateMap>();
         WorldChunkMap worldChunkMap = worldMap.GetComponent<WorldChunkMap>();
 
+        // ================================================= >>
+
+        UpdateGUIWorldMap();
+
+        if (GUILayout.Button("Update"))
+        {
+            worldMap.UpdateWorldMap();
+        }
+
+        if (GUILayout.Button("Reset"))
+        {
+            worldMap.ResetWorldMap();
+        }
+
+        // ================================================= >>
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            serializedObject.ApplyModifiedProperties();
+
+            EditorUtility.SetDirty(target);
+        }
+    }
+
+    private void UpdateGUIWorldMap()
+    {
         // Control the size of each box representing a coordinate
         float mapGUIBoxSize = 10f;
         int mapWidth = WorldGeneration.GetFullWorldArea().x;
@@ -72,68 +86,27 @@ public class WorldMapEditor : Editor
             GUILayout.BeginHorizontal();
             for (int x = 0; x < mapWidth; x++)
             {
-                WorldCoordinate worldCoord = WorldCoordinateMap.GetCoordinate(new Vector2Int(x, y));
-                if (worldCoord != null)
+                if (WorldCoordinateMap.coordMapInitialized)
                 {
-                    // Draw a box for each type of coordinate with different colors
-                    Color color = GetColorForCoordinateType(worldCoord.type);
-                    Rect rect = EditorGUILayout.GetControlRect(GUILayout.Width(mapGUIBoxSize), GUILayout.Height(mapGUIBoxSize));
-                    EditorGUI.DrawRect(rect, color);
+                    WorldCoordinate worldCoord = WorldCoordinateMap.GetCoordinate(new Vector2Int(x, y));
+                    if (worldCoord != null)
+                    {
+                        // Draw a box for each type of coordinate with different colors
+                        Color color = GetColorForCoordinateType(worldCoord.type);
+                        Rect rect = EditorGUILayout.GetControlRect(GUILayout.Width(mapGUIBoxSize), GUILayout.Height(mapGUIBoxSize));
+                        EditorGUI.DrawRect(rect, color);
+                        continue; // continue to next coordinate
+                    }
                 }
-                else
-                {
-                    // Draw a default box for null coordinates
-                    GUILayout.Box("", GUILayout.Width(mapGUIBoxSize), GUILayout.Height(mapGUIBoxSize));
-                }
+
+                // Draw a default box for null coordinates
+                GUILayout.Box("", GUILayout.Width(mapGUIBoxSize), GUILayout.Height(mapGUIBoxSize));
             }
             GUILayout.EndHorizontal();
         }
         GUILayout.EndVertical();
         EditorGUILayout.EndScrollView();
-
-
-        /*
-        showWorldCoordinateMap = EditorGUILayout.Foldout(showWorldCoordinateMap, "World Coordinate Map Details");
-        if (showWorldCoordinateMap)
-        {
-            EditorGUILayout.LabelField($"Initialized: {worldCoordinateMap.mapInitialized}");
-            EditorGUILayout.LabelField($"World Paths Initialized: {worldCoordinateMap.pathsInitialized}");
-            EditorGUILayout.LabelField($"Count: {worldCoordinateMap.worldExitPaths.Count}");
-            // Add more details or actions here
-        }
-
-        showWorldChunkMap = EditorGUILayout.Foldout(showWorldChunkMap, "World Chunk Map Details");
-        if (showWorldChunkMap)
-        {
-            EditorGUILayout.LabelField($"Initialized: {worldChunkMap.mapInitialized}");
-            EditorGUILayout.LabelField($"World Zones Initialized: {worldChunkMap.zonesInitialized}");
-            EditorGUILayout.LabelField($"Count: {worldChunkMap.zones.Count}");
-            // Add more details or actions here
-        }
-        */
-
-        // ================================================= >>
-
-        if (GUILayout.Button("Update"))
-        {
-
-        }
-
-        if (GUILayout.Button("Reset"))
-        {
-            worldMap.ResetWorldMap();
-        }
-
-
-        if (EditorGUI.EndChangeCheck())
-        {
-            serializedObject.ApplyModifiedProperties();
-            //worldMap.InitializeWorldMap();
-            EditorUtility.SetDirty(target);
-        }
     }
-
-
 
     private Color GetColorForCoordinateType(WorldCoordinate.TYPE type)
     {

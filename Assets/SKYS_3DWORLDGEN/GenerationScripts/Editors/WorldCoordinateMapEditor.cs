@@ -32,9 +32,6 @@ public class WorldCoordinateMapEditor : Editor
         h2Style.normal.textColor = Color.grey;
 
         WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
-        worldCoordMap.ResetCoordinateMap();
-        worldCoordMap.UpdateCoordinateMap();
-
     }
 
     public override void OnInspectorGUI()
@@ -111,9 +108,6 @@ public class WorldCoordinateMapEditor : Editor
 
         }
 
-        worldCoordMap.UpdateCoordinateMap();
-
-
         //======================================================== ////
         // Check if any changes were made in the Inspector
         if (EditorGUI.EndChangeCheck())
@@ -138,7 +132,7 @@ public class WorldCoordinateMapEditor : Editor
     {
         if (WorldCoordinateMap.coordMapInitialized == false) { return; }
 
-        List<WorldCoordinate> coordMap = WorldCoordinateMap.GetCoordinateList();
+        List<WorldCoordinate> coordList = WorldCoordinateMap.CoordinateList;
         Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
         Vector2Int realChunkArea = WorldGeneration.GetRealChunkAreaSize();
         Vector3 chunkHeightOffset = realChunkDimensions.y * Vector3.down * 0.5f;
@@ -149,7 +143,7 @@ public class WorldCoordinateMapEditor : Editor
         coordinatelabelStyle.fontSize = 10; // Adjust font size
         coordinatelabelStyle.normal.textColor = Color.white; // Text color
         coordinatelabelStyle.alignment = TextAnchor.MiddleCenter; // Center the text
-        foreach (WorldCoordinate coord in coordMap)
+        foreach (WorldCoordinate coord in coordList)
         {
             switch (coord.type)
             {
