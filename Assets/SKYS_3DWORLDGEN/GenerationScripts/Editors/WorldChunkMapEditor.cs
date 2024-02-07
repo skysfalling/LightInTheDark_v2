@@ -13,8 +13,6 @@ public class WorldChunkMapEditor : Editor
     {
         serializedObject = new SerializedObject(target);
         zonesProperty = serializedObject.FindProperty("zones");
-
-        WorldChunkMap map = (WorldChunkMap)target;
     }
 
     public override void OnInspectorGUI()
@@ -63,18 +61,6 @@ public class WorldChunkMapEditor : Editor
 
         if (map.mapInitialized == false) { return; }
 
-        List<WorldChunk> chunkMap = WorldChunkMap.GetChunkMap();
-        if (chunkMap.Count > 0)
-        {
-            foreach (WorldChunk chunk in chunkMap)
-            {
-                Color zoneColorRGBA = WorldZone.GetRGBAfromZoneColorType(chunk.zoneColor);
-                DrawRectangleArea(chunk.GroundPosition, WorldGeneration.GetRealChunkAreaSize(), zoneColorRGBA);
-
-                Color pathColorRGBA = WorldPath.GetRGBAfromPathColorType(chunk.pathColor);
-                DrawRectangleArea(chunk.GroundPosition, WorldGeneration.GetRealChunkAreaSize(), pathColorRGBA);
-            }
-        }
     }
 
     private void DrawRectangleArea(Vector3 worldPos, Vector2Int area, Color fillColor)

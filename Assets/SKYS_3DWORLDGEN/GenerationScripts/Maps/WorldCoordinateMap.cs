@@ -68,12 +68,19 @@ public class WorldCoordinateMap : MonoBehaviour
         ConvertCoordinatesToType(borderCoords, WorldCoordinate.TYPE.BORDER);
 
         // Reset Paths
-        pathsInitialized = false;
-        ConvertCoordinatesToType(GetAllCoordinatesOfType(WorldCoordinate.TYPE.PATH), WorldCoordinate.TYPE.NULL);
 
+
+        /*
         // Reset Zones
         List<WorldCoordinate> zoneCoords = GetAllCoordinatesOfType(WorldCoordinate.TYPE.ZONE);
         ConvertCoordinatesToType(zoneCoords, WorldCoordinate.TYPE.NULL);
+        */
+    }
+
+    public void ResetCoordinatePaths()
+    {
+        pathsInitialized = false;
+        ConvertCoordinatesToType(GetAllCoordinatesOfType(WorldCoordinate.TYPE.PATH), WorldCoordinate.TYPE.NULL);
     }
 
     #region == COORDINATE MAP ================================ ////
@@ -281,11 +288,18 @@ public class WorldCoordinateMap : MonoBehaviour
     #region == {{ WORLD EXITS }} ======================================================== ////
     public List<WorldExitPath> worldExitPaths = new List<WorldExitPath>();
 
+    public void CreateWorldExitPath()
+    {
+        WorldExit defaultStart = new WorldExit(WorldDirection.West, 5);
+        WorldExit defaultEnd = new WorldExit(WorldDirection.East, 5);
+        worldExitPaths.Add(new WorldExitPath(defaultStart, defaultEnd));
+    }
+
     public void InitializeWorldExitPaths()
     {
-        ResetCoordinateMap();
+        ResetCoordinatePaths();
 
-        // Initialize New Exits
+        // Initialize New Exit Paths
         foreach (WorldExitPath exitPath in worldExitPaths)
         {
             exitPath.Initialize();

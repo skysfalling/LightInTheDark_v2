@@ -2,6 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using UnityEngine.UIElements;
+using System;
+
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -34,6 +38,19 @@ public class WorldPath
                 return Color.clear;
         }
     }
+    public static PathColor GetRandomPathColor()
+    {
+        // Get all values of the PathColor enum
+        Array values = Enum.GetValues(typeof(PathColor));
+
+        // Select a random index
+        int randomIndex = UnityEngine.Random.Range(0, values.Length);
+
+        // Return the random PathColor
+        return (PathColor)values.GetValue(randomIndex);
+    }
+
+
     WorldCoordinate _startCoordinate;
     WorldCoordinate _endCoordinate;
     List<WorldCoordinate> _pathCoords;
@@ -138,6 +155,15 @@ public class WorldExitPath
     public WorldExit startExit;
     public WorldExit endExit;
 
+    public WorldExitPath(WorldExit startExit,  WorldExit endExit)
+    {
+        this.startExit = startExit;
+        this.endExit = endExit;
+        this.pathColor = WorldPath.GetRandomPathColor();
+
+        Initialize();
+    }
+
     public void Initialize()
     {
         if (startExit == null) { return; }
@@ -147,7 +173,7 @@ public class WorldExitPath
         endExit.Initialize();
 
         _worldPath = new WorldPath(startExit.PathConnectionCoord, endExit.PathConnectionCoord, pathColor, pathRandomness);
-        
+
         if (_worldPath.IsInitialized())
         {
             _worldPath.DeterminePathChunkHeights(startExit.exitHeight, endExit.exitHeight);

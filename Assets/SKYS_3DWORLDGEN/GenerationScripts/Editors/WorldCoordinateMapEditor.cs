@@ -8,16 +8,40 @@ public class WorldCoordinateMapEditor : Editor
 {
     SerializedObject serializedCoordinateMap;
     SerializedProperty worldExitPathsProperty;
+    private GUIStyle h1Style;
+    private GUIStyle h2Style;
 
     private void OnEnable()
     {
         serializedCoordinateMap = new SerializedObject(target);
         worldExitPathsProperty = serializedCoordinateMap.FindProperty("worldExitPaths");
+
+        // Initialize GUIStyle for H1 header
+        h1Style = new GUIStyle()
+        {
+            fontSize = 18,
+            fontStyle = FontStyle.Bold,
+            alignment = TextAnchor.MiddleLeft
+        };
+        h1Style.normal.textColor = Color.grey;
+
+        // Initialize GUIStyle for H2 header
+        h2Style = new GUIStyle(h1Style) // Inherit from H1 and override as needed
+        {
+            fontSize = 14,
+            fontStyle = FontStyle.Italic
+        };
+        h2Style.normal.textColor = Color.grey;
     }
 
     public override void OnInspectorGUI()
     {
         serializedCoordinateMap.Update();
+        WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
+
+
+        EditorGUILayout.LabelField("Exit Paths", h1Style);
+        EditorGUILayout.Space();
 
         // Store the current state to check for changes later
         EditorGUI.BeginChangeCheck();
@@ -25,8 +49,6 @@ public class WorldCoordinateMapEditor : Editor
         // Display each WorldExitPath with a foldout
         if (worldExitPathsProperty != null)
         {
-            EditorGUILayout.LabelField("World Exit Paths", EditorStyles.boldLabel); // Optional: Add a section label
-
             for (int i = 0; i < worldExitPathsProperty.arraySize; i++)
             {
                 SerializedProperty exitProperty = worldExitPathsProperty.GetArrayElementAtIndex(i);
@@ -36,7 +58,7 @@ public class WorldCoordinateMapEditor : Editor
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Add World Exit Path"))
             {
-                worldExitPathsProperty.arraySize++;
+                worldCoordMap.CreateWorldExitPath();
             }
             if (GUILayout.Button("Remove Last"))
             {
@@ -55,7 +77,7 @@ public class WorldCoordinateMapEditor : Editor
             serializedCoordinateMap.ApplyModifiedProperties();
 
             // Get your WorldCoordinateMap component
-            WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
+            worldCoordMap.InitializeWorldExitPaths();
             DrawMap();
 
             // Optionally, mark the target object as dirty to ensure the changes are saved
@@ -79,20 +101,30 @@ public class WorldCoordinateMapEditor : Editor
         Vector3 chunkHeightOffset = realChunkDimensions.y * Vector3.down * 0.5f;
 
         // << DRAW BASE COORDINATE MAP >>
+        // Start by defining a GUIStyle for your labels
+        GUIStyle coordinatelabelStyle = new GUIStyle();
+        coordinatelabelStyle.fontSize = 10; // Adjust font size
+        coordinatelabelStyle.normal.textColor = Color.white; // Text color
+        coordinatelabelStyle.alignment = TextAnchor.MiddleCenter; // Center the text
         foreach (WorldCoordinate coord in coordMap)
         {
             switch (coord.type)
             {
                 case WorldCoordinate.TYPE.NULL:
                     DrawRectangleAtCoord(coord, Color.clear);
-
+                    Handles.Label(coord.WorldPosition, new GUIContent($"{coord.Coordinate}"), coordinatelabelStyle);
                     break;
                 case WorldCoordinate.TYPE.BORDER:
                     DrawRectangleAtCoord(coord, Color.red);
-
+                    Handles.Label(coord.WorldPosition, new GUIContent($"{coord.Coordinate}"), coordinatelabelStyle);
                     break;
                 case WorldCoordinate.TYPE.CLOSED:
                     DrawRectangleAtCoord(coord, Color.black);
+                    Handles.Label(coord.WorldPosition, new GUIContent($"{coord.Coordinate}"), coordinatelabelStyle);
+                    break;
+                case WorldCoordinate.TYPE.ZONE:
+                    DrawRectangleAtCoord(coord, Color.green);
+                    Handles.Label(coord.WorldPosition, new GUIContent($"{coord.Coordinate}"), coordinatelabelStyle);
                     break;
             }
         }

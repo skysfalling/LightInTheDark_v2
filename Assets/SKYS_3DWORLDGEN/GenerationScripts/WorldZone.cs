@@ -69,13 +69,18 @@ public class WorldZone
         _zoneCoordinates = new List<WorldCoordinate> { _centerCoordinate};
         _zoneCoordinates.AddRange(affectedNeighbors);
 
+        string debugStr = "Set Zones";
         foreach(WorldCoordinate coordinate in _zoneCoordinates)
         {
+            debugStr += $"\n coordinate : {coordinate.Coordinate} {coordinate.type} -> ZONE";
+
             coordinate.type = WorldCoordinate.TYPE.ZONE;
 
             WorldChunk chunk = WorldChunkMap.GetChunkAtCoordinate(coordinate);
             chunk.zoneColor = this.zoneColor;
         }
+
+        Debug.Log(debugStr);
     }
 }
 
