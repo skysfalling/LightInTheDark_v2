@@ -16,7 +16,8 @@ public class WorldMap : MonoBehaviour
 
     public void InitializeWorldMap()
     {
-        initializationCoroutine = StartCoroutine(InitializeWorldMapRoutine());
+        WorldCoordinateMap worldCoordinateMap = GetComponent<WorldCoordinateMap>();
+        WorldChunkMap worldChunkMap = GetComponent<WorldChunkMap>();
     }
 
     public IEnumerator InitializeWorldMapRoutine()
@@ -24,17 +25,7 @@ public class WorldMap : MonoBehaviour
         WorldCoordinateMap worldCoordinateMap = GetComponent<WorldCoordinateMap>();
         WorldChunkMap worldChunkMap = GetComponent<WorldChunkMap>();
 
-        worldCoordinateMap.InitializeCoordinateMap();
-        yield return new WaitUntil(() => worldCoordinateMap.mapInitialized);
-
-        worldChunkMap.InitializeChunkMap();
-        yield return new WaitUntil(() => worldChunkMap.mapInitialized);
-
-        worldChunkMap.InitializeZones();
-        yield return new WaitUntil(() => worldChunkMap.zonesInitialized);
-
-        worldCoordinateMap.InitializeWorldExitPaths();
-        yield return new WaitUntil(() => worldCoordinateMap.pathsInitialized);  
+        yield return null;
     }
 
     public void ResetWorldMap()
@@ -47,7 +38,6 @@ public class WorldMap : MonoBehaviour
         WorldChunkMap worldChunkMap = GetComponent<WorldChunkMap>();
 
         worldCoordinateMap.ResetCoordinateMap();
-        worldChunkMap.ResetChunkMap();
     }
 }
 
@@ -124,6 +114,10 @@ public class WorldMapEditor : Editor
 
         // ================================================= >>
 
+        if (GUILayout.Button("Reset"))
+        {
+            worldMap.ResetWorldMap();
+        }
         if (EditorGUI.EndChangeCheck())
         {
             serializedObject.ApplyModifiedProperties();

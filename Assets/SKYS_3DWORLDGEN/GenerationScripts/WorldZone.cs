@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 
@@ -31,22 +32,33 @@ public class WorldZone
 
     WorldCoordinate _centerCoordinate;
     List<WorldCoordinate> _zoneCoordinates;
+    bool _initialized = false;
 
     public enum TYPE { FULL, NATURAL, HORIZONTAL, VERTICAL }
     public TYPE type = TYPE.FULL;
-    public Vector2Int coord;
+    public Vector2Int coordinateVector = Vector2Int.one;
 
+    public WorldZone()
+    {
+        this._centerCoordinate = WorldCoordinateMap.GetCoordinate(coordinateVector);
+        this.type = TYPE.FULL;
+        Update();
+    }
 
     public WorldZone( WorldCoordinate centerCoordinate, TYPE zoneType )
     {
         this._centerCoordinate = centerCoordinate;
+        this.coordinateVector = _centerCoordinate.Coordinate;
         this.type = zoneType;
+        Update();
     }
 
-    public void Initialize()
+    public void Update()
     {
-        this._centerCoordinate = WorldCoordinateMap.GetCoordinate(coord);
+        if ( _initialized ) { Reset(); }
+        _initialized = false;
 
+        // Get affected neighbors
         List<WorldCoordinate> affectedNeighbors = new();
         switch(this.type)
         {
@@ -69,6 +81,8 @@ public class WorldZone
         _zoneCoordinates = new List<WorldCoordinate> { _centerCoordinate};
         _zoneCoordinates.AddRange(affectedNeighbors);
 
+
+        // Assign Zone TYPE
         string debugStr = "Set Zones";
         foreach(WorldCoordinate coordinate in _zoneCoordinates)
         {
@@ -79,9 +93,23 @@ public class WorldZone
             WorldChunk chunk = WorldChunkMap.GetChunkAtCoordinate(coordinate);
             chunk.zoneColor = this.zoneColor;
         }
-
-        Debug.Log(debugStr);
+        _initialized = true;
     }
+
+    public void Reset()
+    {
+        foreach (WorldCoordinate coordinate in _zoneCoordinates)
+        {
+            coordinate.type = WorldCoordinate.TYPE.NULL;
+        }
+        _zoneCoordinates = new();
+        _centerCoordinate = WorldCoordinateMap.GetCoordinate(coordinateVector);
+        _initialized = false;
+    }
+
+    public List<WorldCoordinate> GetZoneCoordinates() { return _zoneCoordinates; }
+
+    public bool IsInitialized() { return _initialized; }
 }
 
 // =================================================================
@@ -114,7 +142,7 @@ public class WorldZoneDrawer : PropertyDrawer
         // Draw the "ZoneType" field
         EditorGUI.PropertyField(typeRect, property.FindPropertyRelative("type"), new GUIContent("Zone Type"));
 
-        SerializedProperty coordProp = property.FindPropertyRelative("coord");
+        SerializedProperty coordProp = property.FindPropertyRelative("coordinateVector");
         int x = EditorGUI.IntSlider(coordXRect, new GUIContent("Coord X"), coordProp.vector2IntValue.x, 0, WorldGeneration.PlayZoneArea.x);
         int y = EditorGUI.IntSlider(coordYRect, new GUIContent("Coord Y"), coordProp.vector2IntValue.y, 0, WorldGeneration.PlayZoneArea.y);
         coordProp.vector2IntValue = new Vector2Int(x, y);

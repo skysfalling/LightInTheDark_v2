@@ -161,10 +161,10 @@ public class WorldExitPath
         this.endExit = endExit;
         this.pathColor = WorldPath.GetRandomPathColor();
 
-        Initialize();
+        Update();
     }
 
-    public void Initialize()
+    public void Update()
     {
         if (startExit == null) { return; }
         if (endExit == null) { return; }

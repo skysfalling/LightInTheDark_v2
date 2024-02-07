@@ -50,6 +50,7 @@ public class WorldChunkMapEditor : Editor
             // If there were changes, apply them to the serialized object
             serializedObject.ApplyModifiedProperties();
 
+
             // Optionally, mark the target object as dirty to ensure the changes are saved
             EditorUtility.SetDirty(target);
         }

@@ -7,14 +7,12 @@ using UnityEngine;
 public class WorldCoordinateMapEditor : Editor
 {
     SerializedObject serializedCoordinateMap;
-    SerializedProperty worldExitPathsProperty;
     private GUIStyle h1Style;
     private GUIStyle h2Style;
 
     private void OnEnable()
     {
         serializedCoordinateMap = new SerializedObject(target);
-        worldExitPathsProperty = serializedCoordinateMap.FindProperty("worldExitPaths");
 
         // Initialize GUIStyle for H1 header
         h1Style = new GUIStyle()
@@ -32,6 +30,9 @@ public class WorldCoordinateMapEditor : Editor
             fontStyle = FontStyle.Italic
         };
         h2Style.normal.textColor = Color.grey;
+
+        WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
+        worldCoordMap.UpdateCoordinateMap();
     }
 
     public override void OnInspectorGUI()
@@ -39,14 +40,17 @@ public class WorldCoordinateMapEditor : Editor
         serializedCoordinateMap.Update();
         WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
 
-
-        EditorGUILayout.LabelField("Exit Paths", h1Style);
-        EditorGUILayout.Space();
-
         // Store the current state to check for changes later
         EditorGUI.BeginChangeCheck();
 
-        // Display each WorldExitPath with a foldout
+        //======================================================== ////
+        // WORLD PATHS
+        //======================================================== ////
+        EditorGUILayout.LabelField("Exit Paths", h1Style);
+        EditorGUILayout.Space();
+        #region World Exit Paths List
+
+        SerializedProperty worldExitPathsProperty = serializedCoordinateMap.FindProperty("worldExitPaths");
         if (worldExitPathsProperty != null)
         {
             for (int i = 0; i < worldExitPathsProperty.arraySize; i++)
@@ -68,17 +72,52 @@ public class WorldCoordinateMapEditor : Editor
                 }
             }
             EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space();
+        }
+        #endregion
+
+        //======================================================== ////
+        // WORLD ZONES
+        //======================================================== ////
+        EditorGUILayout.LabelField("World Zones", h1Style);
+        EditorGUILayout.Space();
+
+        // Display each WorldZone with a foldout
+        SerializedProperty worldZonesProperty = serializedCoordinateMap.FindProperty("worldZones");
+        if (worldZonesProperty != null)
+        {
+            for (int i = 0; i < worldZonesProperty.arraySize; i++)
+            {
+                SerializedProperty zoneProperty = worldZonesProperty.GetArrayElementAtIndex(i);
+                EditorGUILayout.PropertyField(zoneProperty, new GUIContent($"World Zone {i}"), true);
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Add World Zone"))
+            {
+                worldCoordMap.CreateWorldZone();
+            }
+            if (GUILayout.Button("Remove Last"))
+            {
+                if (worldZonesProperty.arraySize > 0)
+                {
+                    worldZonesProperty.arraySize--;
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space();
+
         }
 
+
+        //======================================================== ////
         // Check if any changes were made in the Inspector
         if (EditorGUI.EndChangeCheck())
         {
             // If there were changes, apply them to the serialized object
             serializedCoordinateMap.ApplyModifiedProperties();
 
-            // Get your WorldCoordinateMap component
-            worldCoordMap.InitializeWorldExitPaths();
-            DrawMap();
+            worldCoordMap.UpdateCoordinateMap();
 
             // Optionally, mark the target object as dirty to ensure the changes are saved
             EditorUtility.SetDirty(target);
@@ -87,14 +126,13 @@ public class WorldCoordinateMapEditor : Editor
 
     private void OnSceneGUI()
     {
-        WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
-        if (worldCoordMap.mapInitialized == false) { return; }
-
         DrawMap();
     }
 
     private void DrawMap()
     {
+        if (WorldCoordinateMap.coordMapInitialized == false) { return; }
+
         List<WorldCoordinate> coordMap = WorldCoordinateMap.GetCoordinateMap();
         Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
         Vector2Int realChunkArea = WorldGeneration.GetRealChunkAreaSize();
@@ -122,10 +160,6 @@ public class WorldCoordinateMapEditor : Editor
                     DrawRectangleAtCoord(coord, Color.black);
                     Handles.Label(coord.WorldPosition, new GUIContent($"{coord.Coordinate}"), coordinatelabelStyle);
                     break;
-                case WorldCoordinate.TYPE.ZONE:
-                    DrawRectangleAtCoord(coord, Color.green);
-                    Handles.Label(coord.WorldPosition, new GUIContent($"{coord.Coordinate}"), coordinatelabelStyle);
-                    break;
             }
         }
 
@@ -136,6 +170,12 @@ public class WorldCoordinateMapEditor : Editor
             DrawExitPath(path);
         }
 
+        // DRAW ZONES
+        foreach (WorldZone zone in worldCoordMap.worldZones)
+        {
+            DrawZone(zone);
+        }
+
     }
 
     void DrawExitPath(WorldExitPath path)
@@ -143,19 +183,34 @@ public class WorldCoordinateMapEditor : Editor
         if (path == null || !path.IsInitialized()) return;
 
         Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
-        Handles.color = path.GetPathColorRGBA();
+        Color pathColorRGBA = path.GetPathColorRGBA();
 
         // Draw Exits
         WorldCoordinate startExitCoord = path.startExit.Coordinate;
         WorldCoordinate endExitCoord = path.endExit.Coordinate;
-        Handles.DrawWireCube(startExitCoord.WorldPosition, realChunkDimensions);
-        Handles.DrawWireCube(endExitCoord.WorldPosition, realChunkDimensions);
+        DrawRectangleAtCoord(startExitCoord, pathColorRGBA);
+        DrawRectangleAtCoord(endExitCoord, pathColorRGBA);
 
         // Draw Paths
         List<WorldCoordinate> pathCoords = path.GetPathCoordinates();
         foreach (WorldCoordinate coord in pathCoords)
         {
-            Handles.DrawWireCube(coord.WorldPosition, realChunkDimensions);
+            DrawRectangleAtCoord(coord, pathColorRGBA);
+        }
+    }
+
+    void DrawZone(WorldZone zone)
+    {
+        if (zone == null || !zone.IsInitialized()) return;
+
+        Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
+        Color zoneColorRGBA = WorldZone.GetRGBAfromZoneColorType(zone.zoneColor);
+
+        // Draw Paths
+        List<WorldCoordinate> zoneCoords = zone.GetZoneCoordinates();
+        foreach (WorldCoordinate coord in zoneCoords)
+        {
+            DrawRectangleAtCoord(coord, zoneColorRGBA);
         }
     }
 

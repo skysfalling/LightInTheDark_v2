@@ -16,7 +16,6 @@ public class WorldChunkMap : MonoBehaviour
     }
 
     public bool mapInitialized { get; private set; }
-    public bool zonesInitialized { get; private set; }
 
     public void InitializeChunkMap()
     {
@@ -25,8 +24,6 @@ public class WorldChunkMap : MonoBehaviour
     }
     public void ResetChunkMap()
     {
-        zonesInitialized = false;
-
         // Reset Path Colors
         foreach (WorldChunk chunk in GetChunkMap())
         {
@@ -79,20 +76,7 @@ public class WorldChunkMap : MonoBehaviour
     }
     #endregion
 
-    #region == WORLD ZONES ==================================== ////
-    public List<WorldZone> zones = new List<WorldZone>();
-    public void InitializeZones()
-    {
-        ResetChunkMap();
 
-        // Initialize Zones
-        foreach (WorldZone zone in zones)
-        {
-            zone.Initialize();
-        }
-        zonesInitialized = true;
-    }
-    #endregion
 
 
 }
