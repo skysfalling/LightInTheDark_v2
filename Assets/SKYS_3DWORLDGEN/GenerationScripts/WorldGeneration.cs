@@ -65,7 +65,6 @@ public class WorldGeneration : MonoBehaviour
         }
 
         UnityEngine.Random.InitState(CurrentSeed);
-
     }
 
     #region == INITIALIZE ======

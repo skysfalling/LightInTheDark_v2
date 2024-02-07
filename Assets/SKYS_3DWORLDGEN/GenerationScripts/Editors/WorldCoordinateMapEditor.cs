@@ -32,7 +32,9 @@ public class WorldCoordinateMapEditor : Editor
         h2Style.normal.textColor = Color.grey;
 
         WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
+        worldCoordMap.ResetCoordinateMap();
         worldCoordMap.UpdateCoordinateMap();
+
     }
 
     public override void OnInspectorGUI()
@@ -109,6 +111,8 @@ public class WorldCoordinateMapEditor : Editor
 
         }
 
+        worldCoordMap.UpdateCoordinateMap();
+
 
         //======================================================== ////
         // Check if any changes were made in the Inspector
@@ -126,6 +130,7 @@ public class WorldCoordinateMapEditor : Editor
 
     private void OnSceneGUI()
     {
+
         DrawMap();
     }
 
@@ -133,7 +138,7 @@ public class WorldCoordinateMapEditor : Editor
     {
         if (WorldCoordinateMap.coordMapInitialized == false) { return; }
 
-        List<WorldCoordinate> coordMap = WorldCoordinateMap.GetCoordinateMap();
+        List<WorldCoordinate> coordMap = WorldCoordinateMap.GetCoordinateList();
         Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
         Vector2Int realChunkArea = WorldGeneration.GetRealChunkAreaSize();
         Vector3 chunkHeightOffset = realChunkDimensions.y * Vector3.down * 0.5f;
@@ -182,7 +187,6 @@ public class WorldCoordinateMapEditor : Editor
     {
         if (path == null || !path.IsInitialized()) return;
 
-        Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
         Color pathColorRGBA = path.GetPathColorRGBA();
 
         // Draw Exits
@@ -203,10 +207,9 @@ public class WorldCoordinateMapEditor : Editor
     {
         if (zone == null || !zone.IsInitialized()) return;
 
-        Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
         Color zoneColorRGBA = WorldZone.GetRGBAfromZoneColorType(zone.zoneColor);
 
-        // Draw Paths
+        // Draw Zones
         List<WorldCoordinate> zoneCoords = zone.GetZoneCoordinates();
         foreach (WorldCoordinate coord in zoneCoords)
         {

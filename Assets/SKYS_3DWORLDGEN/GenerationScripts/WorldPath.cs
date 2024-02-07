@@ -70,21 +70,31 @@ public class WorldPath
 
     public void Initialize()
     {
+        if (_initialized) return;
+        _initialized = false;
+
         // Get Valid Path
         _pathCoords = WorldCoordinateMap.FindCoordinatePath(this._startCoordinate, this._endCoordinate, _pathRandomness);
-        if (_pathCoords.Count == 0 ) { 
-            _isValid = false; 
-            _initialized = false; 
-            return; 
+
+
+        foreach ( WorldCoordinate coord in _pathCoords )
+        {
+            if (WorldCoordinateMap.GetTypeAtCoord(coord) == WorldCoordinate.TYPE.ZONE)
+            {
+
+                Debug.Log("Found Zone in Path");
+                _isValid = false;
+                return;
+            }
+            
         }
+
+
 
         _isValid = true;
 
         // Set Coordinate Path Type
-        foreach (WorldCoordinate coord in _pathCoords)
-        {
-            coord.type = WorldCoordinate.TYPE.PATH;
-        }
+        WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.PATH);
 
         // Set Chunk Path Color
         _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
@@ -94,6 +104,15 @@ public class WorldPath
         }
 
         _initialized = true;
+    }
+
+    public void Reset()
+    {
+        // Set Coordinate Path Type
+        WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.NULL);
+        _pathCoords.Clear();
+        _initialized = false;
+        _isValid = true;
     }
 
     public void DeterminePathChunkHeights(int startHeight, int endHeight, float heightAdjustChance = 1f)
@@ -155,46 +174,50 @@ public class WorldExitPath
     public WorldExit startExit;
     public WorldExit endExit;
 
+    WorldCoordinate _pathStart;
+    WorldCoordinate _pathEnd;
+    float _pathRandomness;
+
     public WorldExitPath(WorldExit startExit,  WorldExit endExit)
     {
         this.startExit = startExit;
         this.endExit = endExit;
         this.pathColor = WorldPath.GetRandomPathColor();
-
-        Update();
     }
 
     public void Update()
     {
-        if (startExit == null) { return; }
-        if (endExit == null) { return; }
+        if (_initialized) { return; }
 
-        startExit.Initialize();
-        endExit.Initialize();
+        _pathStart = startExit.PathConnectionCoord;
+        _pathEnd = endExit.PathConnectionCoord;
+        _pathRandomness = pathRandomness;
 
-        _worldPath = new WorldPath(startExit.PathConnectionCoord, endExit.PathConnectionCoord, pathColor, pathRandomness);
+        _worldPath = new WorldPath(_pathStart, _pathEnd, pathColor, pathRandomness);
 
         if (_worldPath.IsInitialized())
         {
             _worldPath.DeterminePathChunkHeights(startExit.exitHeight, endExit.exitHeight);
         }
 
-        IsInitialized();
+        _initialized = true;
+    }
+
+    public void Reset()
+    {
+        if (!_initialized) return;
+
+        // Check if values are incorrectly initialized
+        if (_pathStart != startExit.PathConnectionCoord 
+            || _pathEnd != endExit.PathConnectionCoord
+            || _pathRandomness != pathRandomness)
+        {
+            _worldPath.Reset();
+            _initialized = false;
+        }
     }
 
     public bool IsInitialized() {
-
-        /*
-        Debug.Log($"Initialize WorldExitPath : {_initialized}" +
-            $"\n StartExit : {startExit.IsInitialized()}" +
-            $"\n EndExit : {endExit.IsInitialized()}" +
-            $"\n WorldPath : {_worldPath.IsInitialized()}");
-        */
-
-        // Check if exits and path are initialized
-        if (startExit.IsInitialized() && endExit.IsInitialized() && _worldPath.IsInitialized()) { _initialized = true; }
-        else { _initialized = false; }
-
         return _initialized; 
     }
 

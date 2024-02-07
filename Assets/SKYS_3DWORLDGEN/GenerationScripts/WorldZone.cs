@@ -55,7 +55,7 @@ public class WorldZone
 
     public void Update()
     {
-        if ( _initialized ) { Reset(); }
+        if ( _initialized ) { return; }
         _initialized = false;
 
         // Get affected neighbors
@@ -78,33 +78,24 @@ public class WorldZone
                 break;
         }
 
-        _zoneCoordinates = new List<WorldCoordinate> { _centerCoordinate};
+        _zoneCoordinates = new List<WorldCoordinate> { _centerCoordinate };
         _zoneCoordinates.AddRange(affectedNeighbors);
 
-
         // Assign Zone TYPE
-        string debugStr = "Set Zones";
-        foreach(WorldCoordinate coordinate in _zoneCoordinates)
-        {
-            debugStr += $"\n coordinate : {coordinate.Coordinate} {coordinate.type} -> ZONE";
+        WorldCoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, WorldCoordinate.TYPE.ZONE);
 
-            coordinate.type = WorldCoordinate.TYPE.ZONE;
-
-            WorldChunk chunk = WorldChunkMap.GetChunkAtCoordinate(coordinate);
-            chunk.zoneColor = this.zoneColor;
-        }
         _initialized = true;
     }
 
     public void Reset()
     {
-        foreach (WorldCoordinate coordinate in _zoneCoordinates)
+        if (_initialized && _centerCoordinate.Coordinate != coordinateVector)
         {
-            coordinate.type = WorldCoordinate.TYPE.NULL;
+            WorldCoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, WorldCoordinate.TYPE.NULL);
+            _zoneCoordinates = new();
+            _centerCoordinate = WorldCoordinateMap.GetCoordinate(coordinateVector);
+            _initialized = false;
         }
-        _zoneCoordinates = new();
-        _centerCoordinate = WorldCoordinateMap.GetCoordinate(coordinateVector);
-        _initialized = false;
     }
 
     public List<WorldCoordinate> GetZoneCoordinates() { return _zoneCoordinates; }

@@ -43,7 +43,7 @@ public class WorldChunkMap : MonoBehaviour
         ChunkMap = new();
         ChunkCoordMap = new();
 
-        List<WorldCoordinate> coordMap = WorldCoordinateMap.GetCoordinateMap();
+        List<WorldCoordinate> coordMap = WorldCoordinateMap.GetCoordinateList();
         foreach (WorldCoordinate coord in coordMap)
         {
             WorldChunk newChunk = new WorldChunk(coord);

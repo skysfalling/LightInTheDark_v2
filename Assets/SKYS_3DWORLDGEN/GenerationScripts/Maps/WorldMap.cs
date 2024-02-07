@@ -114,10 +114,17 @@ public class WorldMapEditor : Editor
 
         // ================================================= >>
 
+        if (GUILayout.Button("Update"))
+        {
+
+        }
+
         if (GUILayout.Button("Reset"))
         {
             worldMap.ResetWorldMap();
         }
+
+
         if (EditorGUI.EndChangeCheck())
         {
             serializedObject.ApplyModifiedProperties();
@@ -125,6 +132,9 @@ public class WorldMapEditor : Editor
             EditorUtility.SetDirty(target);
         }
     }
+
+
+
     private Color GetColorForCoordinateType(WorldCoordinate.TYPE type)
     {
         return type switch

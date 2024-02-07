@@ -22,13 +22,13 @@ public class WorldExit
 
     public WorldCoordinate Coordinate
     {
-        get { return _coordinate; }
+        get { return WorldCoordinateMap.GetCoordinateAtWorldExit(this); }
         set { _coordinate = value; }
     }
 
     public WorldCoordinate PathConnectionCoord
     {
-        get { return _pathConnection; }
+        get { return WorldCoordinateMap.GetWorldExitPathConnection(this); }
         set { _pathConnection = value; }
     }
 
@@ -41,33 +41,6 @@ public class WorldExit
     {
         this.borderDirection = borderDirection;
         this.borderIndex = index;
-        this.Initialize();
-    }
-
-    public void Initialize()
-    {
-        _coordinate = WorldCoordinateMap.GetCoordinateAtWorldExit(this);
-        if (_coordinate != null)
-        {
-            _coordinate.type = WorldCoordinate.TYPE.EXIT;
-            _pathConnection = WorldCoordinateMap.GetWorldExitPathConnection(this);
-
-            WorldChunk chunk = WorldChunkMap.GetChunkAtCoordinate(_coordinate);
-            if (chunk != null) { chunk.groundHeight = exitHeight; }
-        }
-        IsInitialized();
-    }
-
-    public bool IsInitialized() {
-
-        // Check if exits and path are initialized
-        if (_coordinate != null) 
-        { 
-            _initialized = true; 
-        }
-        else { _initialized = false; }
-
-        return _initialized; 
     }
 }
 

@@ -1,10 +1,15 @@
+using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 public class WorldCoordinate
 {
     public enum TYPE { NULL, BORDER, EXIT, PATH, ZONE, CLOSED }
-    public TYPE type;
+    public TYPE type { 
+        get { return WorldCoordinateMap.GetTypeAtCoord(this); } 
+        set { WorldCoordinateMap.SetMapCoordinateToType(this, value); }
+    }
     public WorldDirection borderEdgeDirection;
 
     public Vector2Int Coordinate { get; private set; }
@@ -51,21 +56,27 @@ public class WorldCoordinateMap : MonoBehaviour
     public bool zonesInitialized { get; private set; }
 
     #region == COORDINATE MAP ================================ ////
-    private static List<WorldCoordinate> CoordinateMap = new List<WorldCoordinate>();
+    private static List<WorldCoordinate> CoordinateList = new List<WorldCoordinate>();
+    private static Dictionary<Vector2Int, WorldCoordinate> CoordinateMap = new();
+    private static Dictionary<WorldCoordinate, List<WorldCoordinate>> CoordinateNeighborMap = new();
 
-    public static List<WorldCoordinate> GetCoordinateMap(bool forceReset = false)
+    public static List<WorldCoordinate> GetCoordinateList(bool forceReset = false)
     {
-        if (!forceReset && coordMapInitialized) return CoordinateMap;
+        if (!forceReset && coordMapInitialized) return CoordinateList;
         coordMapInitialized = false;
         InitializeCoordinateMap();
 
-        return CoordinateMap;
+        return CoordinateList;
     }
 
     static void InitializeCoordinateMap()
     {
-        List<WorldCoordinate> newCoordMap = new List<WorldCoordinate>();
-        Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
+
+        List<WorldCoordinate> newCoordList = new List<WorldCoordinate>();
+        Dictionary<Vector2Int, WorldCoordinate> newCoordMap = new();
+
+
+    Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
         Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkAreaSize();
 
         int xCoordCount = Mathf.CeilToInt(realFullWorldSize.x / realChunkAreaSize.x);
@@ -76,11 +87,13 @@ public class WorldCoordinateMap : MonoBehaviour
             for (int y = 0; y < yCoordCount; y++)
             {
                 WorldCoordinate newCoord = new WorldCoordinate(new Vector2Int(x, y));
-                newCoordMap.Add(newCoord);
+                newCoordList.Add(newCoord);
+                newCoordMap[newCoord.Coordinate] = newCoord;
             }
         }
 
         // Set Coordinate Map
+        CoordinateList = newCoordList;
         CoordinateMap = newCoordMap;
 
         coordMapInitialized = true;
@@ -96,7 +109,7 @@ public class WorldCoordinateMap : MonoBehaviour
         int xCoordCount = Mathf.CeilToInt(realFullWorldSize.x / realChunkAreaSize.x);
         int yCoordCount = Mathf.CeilToInt(realFullWorldSize.y / realChunkAreaSize.y);
 
-        List<WorldCoordinate> coordMap = GetCoordinateMap();
+        List<WorldCoordinate> coordMap = GetCoordinateList();
         foreach (WorldCoordinate coord in coordMap)
         {
             int x = coord.Coordinate.x;
@@ -127,34 +140,35 @@ public class WorldCoordinateMap : MonoBehaviour
 
     public void ResetCoordinateMap()
     {
-        GetCoordinateMap(); // Make sure CoordinateMap is initialized
+        GetCoordinateList(); // Make sure CoordinateMap is initialized
 
         // Destroy World Zones
         worldZones = new List<WorldZone>();
+        zonesInitialized = false;
 
         // Destroy World Paths
         worldExitPaths = new List<WorldExitPath>();
+        pathsInitialized = false;
 
         SetAllCoordinateTypesToDefault(); // Set all Coordinates to their default type
     }
 
     public void UpdateCoordinateMap()
     {
-        GetCoordinateMap(); // Make sure CoordinateMap is initialized
-        SetAllCoordinateTypesToDefault(); // Set all Coordinates to their default type
+        // Initialize Random Seed :: IMPORTANT To keep the same results per seed
+        WorldGeneration.InitializeRandomSeed();
 
         UpdateAllWorldZones(); // Update all world zones to new values
         UpdateAllWorldExitPaths(); // Update all world exit paths to new values
     }
 
-
     #endregion
 
-    #region == MANAGE COORDINATES ================================ ////
+    #region == GET COORDINATES ================================ ////
 
     public static List<Vector2> GetCoordinateMapPositions()
     {
-        List<WorldCoordinate> coordMap = GetCoordinateMap();
+        List<WorldCoordinate> coordMap = GetCoordinateList();
         List<Vector2> coordMapPositions = new List<Vector2>();
 
         foreach (WorldCoordinate coord in coordMap) { coordMapPositions.Add(coord.Position); }
@@ -163,19 +177,17 @@ public class WorldCoordinateMap : MonoBehaviour
 
     public static WorldCoordinate GetCoordinate(Vector2Int coordinate)
     {
-        foreach (WorldCoordinate worldCoord in GetCoordinateMap())
+        // Use the dictionary for fast lookups
+        if (CoordinateMap.TryGetValue(coordinate, out WorldCoordinate foundCoord))
         {
-            if (worldCoord.Coordinate == coordinate)
-            {
-                return worldCoord;
-            }
+            return foundCoord;
         }
         return null;
     }
 
     public static WorldCoordinate GetCoordinateAtPosition(Vector2 position)
     {
-        foreach (WorldCoordinate coord in GetCoordinateMap()) { 
+        foreach (WorldCoordinate coord in GetCoordinateList()) { 
             if (coord.Position == position)
             {
                 return coord;
@@ -184,10 +196,15 @@ public class WorldCoordinateMap : MonoBehaviour
         return null;
     }
 
+    public static WorldCoordinate.TYPE GetTypeAtCoord(WorldCoordinate coordinate)
+    {
+        return GetCoordinate(coordinate.Coordinate).type;
+    }
+
     public static List<WorldCoordinate> GetAllCoordinatesOfType(WorldCoordinate.TYPE type)
     {
         List<WorldCoordinate> typeList = new();
-        foreach(WorldCoordinate coord in GetCoordinateMap())
+        foreach(WorldCoordinate coord in GetCoordinateList())
         {
             if (coord.type == type)
             {
@@ -197,11 +214,19 @@ public class WorldCoordinateMap : MonoBehaviour
         return typeList;
     }
 
-    public static List<WorldCoordinate> ConvertCoordinatesToType(List<WorldCoordinate> coords, WorldCoordinate.TYPE conversionType)
+    public static void SetMapCoordinateToType(WorldCoordinate coord, WorldCoordinate.TYPE type)
+    {
+        // Make sure to get the updated coordinate from the map
+        WorldCoordinate mapCoord = GetCoordinate(coord.Coordinate);
+
+        mapCoord.type = type;
+    }
+
+    public static List<WorldCoordinate> SetMapCoordinatesToType(List<WorldCoordinate> coords, WorldCoordinate.TYPE conversionType)
     {
         foreach (WorldCoordinate coordinate in coords)
         {
-            coordinate.type = conversionType;
+            SetMapCoordinateToType(coordinate, conversionType);
         }
         return coords;
     }
@@ -330,9 +355,15 @@ public class WorldCoordinateMap : MonoBehaviour
         return null;
     }
     
-    void UpdateAllWorldExitPaths()
+    public void UpdateAllWorldExitPaths()
     {
-        foreach (WorldExitPath path in worldExitPaths) { path.Update(); }
+
+        foreach (WorldExitPath path in worldExitPaths) 
+        {
+            path.Reset();
+            path.Update(); 
+        }
+        pathsInitialized = true;
     }
 
     #endregion
@@ -355,9 +386,21 @@ public class WorldCoordinateMap : MonoBehaviour
 
     void UpdateAllWorldZones()
     {
-        foreach (WorldZone zone in worldZones) { zone.Update(); }
+        foreach (WorldZone zone in worldZones) { 
+            zone.Reset();
+            zone.Update(); 
+        }
+        zonesInitialized = true;
     }
 
+    public bool IsCoordinateInZone(WorldCoordinate coord)
+    {
+        foreach (WorldZone zone in worldZones)
+        {
+            if (zone.GetZoneCoordinates().Contains(coord)) { return true; }
+        }
+        return false;
+    }
     #endregion
 
     #region == COORDINATE PATHFINDING =================================///

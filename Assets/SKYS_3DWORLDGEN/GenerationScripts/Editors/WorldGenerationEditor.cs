@@ -50,7 +50,6 @@ public class WorldGenerationEditor : Editor
 
     void OnSceneGUI()
     {
-        WorldGeneration.InitializeRandomSeed();
         WorldGeneration worldGen = (WorldGeneration)target;
 
         // >> DRAW BOUNDARY SQUARES
