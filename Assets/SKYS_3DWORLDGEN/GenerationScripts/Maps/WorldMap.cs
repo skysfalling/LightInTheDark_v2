@@ -85,7 +85,7 @@ public class WorldMapEditor : Editor
 
         // Create a flexible layout to start drawing the map
         GUILayout.BeginVertical();
-        for (int y = 0; y < mapHeight; y++)
+        for (int y = mapHeight - 1; y >= 0; y--)
         {
             GUILayout.BeginHorizontal();
             for (int x = 0; x < mapWidth; x++)
