@@ -26,8 +26,7 @@ public class WorldChunkMap : MonoBehaviour
         Dictionary<Vector2Int, WorldChunk> newCoordinateChunkMap = new();
 
         // Create Chunks at each World Coordinate
-        List<WorldCoordinate> coordList = WorldCoordinateMap.CoordinateList;
-        foreach (WorldCoordinate worldCoord in coordList)
+        foreach (WorldCoordinate worldCoord in WorldCoordinateMap.CoordinateList)
         {
             WorldChunk newChunk = new WorldChunk(worldCoord);
 

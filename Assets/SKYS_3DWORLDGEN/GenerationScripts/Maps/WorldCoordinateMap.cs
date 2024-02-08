@@ -306,7 +306,7 @@ public class WorldCoordinateMap : MonoBehaviour
         foreach (WorldExitPath path in worldExitPaths) 
         {
             path.Reset(forceReset);
-            path.Update(); 
+            path.EditorUpdate(); 
         }
 
         // Debug.Log($"Force Paths Reset {forceReset}");

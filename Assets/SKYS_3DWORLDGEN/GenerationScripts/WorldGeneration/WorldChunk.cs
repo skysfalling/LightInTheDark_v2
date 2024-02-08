@@ -12,32 +12,41 @@ public class WorldChunk
     WorldGeneration _worldGeneration;
     string prefix = " [[ WORLD CHUNK ]]";
     bool _initialized = false;
+    Vector2 _realChunkAreaSize { get { return WorldGeneration.GetRealChunkAreaSize(); } }
+    
+    public int groundHeight { get; private set; }
+    int _realChunkHeight { get { return groundHeight * WorldGeneration.CellSize; } }
 
-    /*
-     * EMPTY : 0 walls
-     * WALL : 1 sidewall
-     * HALLWAY : 2 parallel walls
-     * CORNER : 2 perpendicular walls
-     * DEADEND : 3 walls
-     * CLOSED : 4 walls
-     */
-    public enum TYPE { EMPTY, WALL, HALLWAY, CORNER, DEADEND, CLOSED, BORDER, EXIT }
+
+    /// <summary>
+    /// Defines World Chunks based on wall count / location
+    /// </summary>
+    public enum TYPE
+    {
+        /// <summary>No walls present.</summary>
+        EMPTY,
+        /// <summary>One sidewall present.</summary>
+        WALL,
+        /// <summary>Two parallel walls present, forming a hallway.</summary>
+        HALLWAY,
+        /// <summary>Two perpendicular walls present, forming a corner.</summary>
+        CORNER,
+        /// <summary>Three walls present, forming a dead end.</summary>
+        DEADEND,
+        /// <summary>Enclosed by walls on all four sides.</summary>
+        CLOSED,
+        /// <summary>Indicates a boundary limit, set by WorldCoordinateMap.</summary>
+        BORDER,
+        /// <summary>Indicates an exit point, set by WorldExit.</summary>
+        EXIT
+    }
     public TYPE type;
     public WorldCoordinate coordinate;
-    public int groundHeight = 0;
 
-    Vector2 _realChunkAreaSize { get { return WorldGeneration.GetRealChunkAreaSize(); } }
-    int _realChunkHeight { get { return this.groundHeight * WorldGeneration.CellSize; }}
-    public Vector3 GroundPosition { 
-        get { return new Vector3(
-            coordinate.WorldPosition.x, 
-            _realChunkHeight, 
-            coordinate.WorldPosition.z); 
-        } 
-    }
-    public Vector3 GroundMeshDimensions { get { return new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y); } }
 
-    public Vector3 GroundMeshSpawnPosition { get { return new Vector3(GroundPosition.x, _realChunkHeight * 0.5f, GroundPosition.z); } }
+    public static Vector3 GroundPosition { get; private set; }
+    public static Vector3 GroundMeshDimensions { get; private set; }
+    public static Vector3 GroundMeshSpawnPosition { get; private set; }
 
     // Active Edges
     bool _northEdgeActive;
@@ -51,7 +60,32 @@ public class WorldChunk
     public WorldChunk(WorldCoordinate coordinate)
     {
         this.coordinate = coordinate;
+        this.groundHeight = 0;
+        GroundPosition = new Vector3( coordinate.WorldPosition.x, _realChunkHeight, coordinate.WorldPosition.z);
+        GroundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
+        GroundMeshSpawnPosition = new Vector3(GroundPosition.x, _realChunkHeight * 0.5f, GroundPosition.z);
     }
+
+    public void SetGroundHeight(int height)
+    {
+        this.groundHeight = height;
+        RecalcuatePosition();
+    }
+
+    public Vector3 GetGroundWorldPosition() 
+    {
+        RecalcuatePosition();
+        return GroundPosition; 
+    }
+
+    void RecalcuatePosition()
+    {
+        if (coordinate == null) return;
+        GroundPosition = new Vector3(coordinate.WorldPosition.x, _realChunkHeight, coordinate.WorldPosition.z);
+        GroundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
+        GroundMeshSpawnPosition = new Vector3(GroundPosition.x, _realChunkHeight * 0.5f, GroundPosition.z);
+    }
+    
 
     // ================ INITIALIZE WORLD CHUNK ============================= >>
     #region

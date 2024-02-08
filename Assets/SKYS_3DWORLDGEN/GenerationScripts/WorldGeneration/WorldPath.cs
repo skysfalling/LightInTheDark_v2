@@ -49,6 +49,7 @@ public class WorldPath
     Vector2Int _startCoordinate;
     Vector2Int _endCoordinate;
     List<WorldCoordinate> _pathCoords = new List<WorldCoordinate>();
+    List<WorldChunk> _pathChunks = new List<WorldChunk>();
     float _pathRandomness = 0;
     bool _initialized = false;
 
@@ -68,6 +69,7 @@ public class WorldPath
 
         // Get Valid Path
         _pathCoords = WorldCoordinateMap.FindWorldCoordinatePath(_startCoordinate, _endCoordinate, _pathRandomness);
+        _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
 
         // Set Coordinate Path Type
         WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.PATH);
@@ -90,7 +92,10 @@ public class WorldPath
     }
 
 
-    public bool IsInitialized() { return _initialized; }
+    public bool IsInitialized() 
+    { 
+        return _initialized; 
+    }
 
     public List<WorldCoordinate> GetPathCoordinates()
     {
@@ -98,43 +103,46 @@ public class WorldPath
         return _pathCoords;
     }
 
+    public List<WorldChunk> GetPathChunks()
+    {
+        if (!_initialized) { return new List<WorldChunk>(); }
+        return _pathChunks;
+    }
+
     public void DeterminePathChunkHeights(int startHeight, int endHeight, float heightAdjustChance = 1f)
     {
-        if (WorldChunkMap.chunkMapInitialized == false) return;
+        if (WorldChunkMap.chunkMapInitialized == false || _pathChunks.Count == 0) return;
 
-        List<WorldChunk> _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
-        if (_pathChunks.Count == 0 ) return;
 
-        // Assign start/end chunk heights
-        WorldChunk startChunk = _pathChunks[0];
-        WorldChunk endChunk = _pathChunks[_pathChunks.Count - 1];
-        startChunk.groundHeight = startHeight;
-        endChunk.groundHeight = endHeight;
-
-        // Remove start and end chunks from consideration in the loop
-        List<WorldChunk> midpathChunks = new List<WorldChunk>(_pathChunks);
-        midpathChunks.RemoveAt(midpathChunks.Count - 1);
-        midpathChunks.RemoveAt(0);
-
-        int midpathChunkCount = midpathChunks.Count; // full path count
+        // Calculate height difference
         int endpointHeightDifference = endHeight - startHeight;
         int currHeightLevel = startHeight; // current height level starting from the startHeight
+        int heightLeft = endpointHeightDifference; // initialize height left
 
-        // Get Offset List
-        int heightLeft = endpointHeightDifference;
-        for (int i = 0; i < midpathChunkCount; i++)
+        // Iterate through the chunks
+        for (int i = 0; i < _pathChunks.Count; i++)
         {
-            // Determine heightOffset 
-            int heightOffset = 0;
-            if (heightLeft > 0) { heightOffset = 1; }
-            else if (heightLeft < 0) { heightOffset = -1; }
-            else { heightOffset = 0; }
+            // Assign start/end chunk heights & CONTINUE
+            if (i == 0) { _pathChunks[i].SetGroundHeight(startHeight); continue; }
+            else if (i == _pathChunks.Count - 1) { _pathChunks[i].SetGroundHeight(endHeight); continue; }
+            else
+            {
+                // Determine heightOffset 
+                int heightOffset = 0;
+                if (heightLeft > 0) { heightOffset = 1; } // if height left is greater
+                else if (heightLeft < 0) { heightOffset = -1; } // if height left is less than 0
+                else { heightOffset = 0; } // if height left is equal to 0
 
-            // Recalculate heightLeft with the new current height level
-            currHeightLevel += heightOffset;
-            heightLeft = endHeight - currHeightLevel;
+                // Set the new height level
+                currHeightLevel += heightOffset;
+                _pathChunks[i].SetGroundHeight(currHeightLevel);
 
-            midpathChunks[i].groundHeight = currHeightLevel;
+                // Recalculate heightLeft with the new current height level
+                heightLeft = endHeight - currHeightLevel;
+
+            }
+
+
         }
     }
 

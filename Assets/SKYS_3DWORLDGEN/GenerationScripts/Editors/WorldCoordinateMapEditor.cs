@@ -151,15 +151,15 @@ public class WorldCoordinateMapEditor : Editor
             switch (coord.type)
             {
                 case WorldCoordinate.TYPE.NULL:
-                    DrawRectangleAtCoord(coord, Color.clear);
+                    DrawRectangleAtWorldCoordinate(coord, Color.clear);
                     Handles.Label(coord.WorldPosition, new GUIContent($"{coord.Coordinate}"), coordinatelabelStyle);
                     break;
                 case WorldCoordinate.TYPE.BORDER:
-                    DrawRectangleAtCoord(coord, Color.red);
+                    DrawRectangleAtWorldCoordinate(coord, Color.red);
                     Handles.Label(coord.WorldPosition, new GUIContent($"{coord.Coordinate}"), coordinatelabelStyle);
                     break;
                 case WorldCoordinate.TYPE.CLOSED:
-                    DrawRectangleAtCoord(coord, Color.black);
+                    DrawRectangleAtWorldCoordinate(coord, Color.black);
                     Handles.Label(coord.WorldPosition, new GUIContent($"{coord.Coordinate}"), coordinatelabelStyle);
                     break;
             }
@@ -180,25 +180,43 @@ public class WorldCoordinateMapEditor : Editor
 
     }
 
-    void DrawExitPath(WorldExitPath path)
+    void DrawExitPath(WorldExitPath exitPath)
     {
-        if (path == null || !path.IsInitialized()) return;
+        if (exitPath == null || !exitPath.IsInitialized()) return;
 
-        Color pathColorRGBA = path.GetPathColorRGBA();
+        Color pathColorRGBA = exitPath.GetPathColorRGBA();
 
         // Draw Exits
-        WorldCoordinate startExitCoord = path.startExit.Coordinate;
-        WorldCoordinate endExitCoord = path.endExit.Coordinate;
-        DrawRectangleAtCoord(startExitCoord, pathColorRGBA);
-        DrawRectangleAtCoord(endExitCoord, pathColorRGBA);
+        WorldCoordinate startExitCoord = exitPath.startExit.Coordinate;
+        WorldCoordinate endExitCoord = exitPath.endExit.Coordinate;
+        DrawRectangleAtWorldCoordinate(startExitCoord, pathColorRGBA);
+        DrawRectangleAtWorldCoordinate(endExitCoord, pathColorRGBA);
 
         // Draw Paths
+        /*
         List<WorldCoordinate> pathCoords = path.GetPathCoordinates();
         if (pathCoords == null) return;
         foreach (WorldCoordinate coord in pathCoords)
         {
             DrawRectangleAtCoord(coord, pathColorRGBA);
         }
+        */
+
+        if (WorldChunkMap.chunkMapInitialized)
+        {
+            // Draw Exits
+            DrawRectangleAtChunkGround(exitPath.startExit.Chunk, pathColorRGBA);
+            DrawRectangleAtChunkGround(exitPath.endExit.Chunk, pathColorRGBA);
+
+            List<WorldChunk> chunks = exitPath.GetPathChunks();
+            if (chunks == null || chunks.Count == 0) return;
+            foreach (WorldChunk chunk in chunks)
+            {
+                DrawRectangleAtChunkGround(chunk, pathColorRGBA);
+            }
+        }
+
+
     }
 
     void DrawZone(WorldZone zone)
@@ -211,14 +229,30 @@ public class WorldCoordinateMapEditor : Editor
         List<WorldCoordinate> zoneCoords = zone.GetZoneCoordinates();
         foreach (WorldCoordinate coord in zoneCoords)
         {
-            DrawRectangleAtCoord(coord, zoneColorRGBA);
+            DrawRectangleAtWorldCoordinate(coord, zoneColorRGBA);
         }
     }
 
-    private void DrawRectangleAtCoord(WorldCoordinate coord, Color fillColor)
+    private void DrawRectangleAtChunkGround(WorldChunk worldChunk, Color fillColor)
     {
+        if (WorldChunkMap.chunkMapInitialized == false) return;
+
         Handles.color = fillColor;
-        Handles.DrawSolidRectangleWithOutline(GetRectangleVertices(coord.WorldPosition, WorldGeneration.GetRealChunkAreaSize()), fillColor, Color.clear);
+        Handles.DrawSolidRectangleWithOutline(
+            GetRectangleVertices(worldChunk.GetGroundWorldPosition(), 
+            WorldGeneration.GetRealChunkAreaSize()), 
+            fillColor, Color.clear);
+    }
+
+    private void DrawRectangleAtWorldCoordinate(WorldCoordinate coord, Color fillColor)
+    {
+        if (WorldCoordinateMap.coordMapInitialized == false) return;
+
+        Handles.color = fillColor;
+        Handles.DrawSolidRectangleWithOutline(
+            GetRectangleVertices(coord.WorldPosition, 
+            WorldGeneration.GetRealChunkAreaSize()), 
+            fillColor, Color.clear);
     }
 
     private Vector3[] GetRectangleVertices(Vector3 center, Vector2 area)

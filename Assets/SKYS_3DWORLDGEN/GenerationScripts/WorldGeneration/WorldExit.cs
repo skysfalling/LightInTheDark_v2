@@ -1,6 +1,8 @@
 using UnityEngine;
 using Unity.VisualScripting;
 using System.Collections.Generic;
+using System;
+
 
 
 #if UNITY_EDITOR
@@ -15,32 +17,64 @@ public enum WorldDirection { West, East, North, South }
 [System.Serializable]
 public class WorldExit
 {
-    // == INITIALIZE COORDINATES >>
-    WorldCoordinate _coordinate; // Coordinate on border
-    WorldCoordinate _pathConnection; // Connecting Neighbor that is in the playArea
+    WorldDirection _borderDirection;
+    int _borderIndex;
+    int _exitHeight;
     bool _initialized;
 
+    // Coordinate on border
     public WorldCoordinate Coordinate
     {
         get { return WorldCoordinateMap.GetCoordinateAtWorldExit(this); }
-        set { _coordinate = value; }
     }
 
+    // Connecting Neighbor that is in the playArea
     public WorldCoordinate PathConnectionCoord
     {
         get { return WorldCoordinateMap.GetWorldExitPathConnection(this); }
-        set { _pathConnection = value; }
     }
 
-    // == EXIT VALUES >>
-    public WorldDirection borderDirection;
-    public int borderIndex;
-    public int exitHeight;
-
-    public WorldExit(WorldDirection borderDirection, int index)
+    public WorldChunk Chunk
     {
-        this.borderDirection = borderDirection;
-        this.borderIndex = index;
+        get { return WorldChunkMap.GetChunkAt(Coordinate); }
+    }
+
+    // == INSPECTOR VALUES >>
+    public WorldDirection borderDirection = WorldDirection.West;
+    public int borderIndex = 0;
+    public int exitHeight = 0;
+
+    public WorldExit(WorldDirection direction, int index)
+    {
+        borderDirection = direction;
+        borderIndex = index;
+        UpdateValues();
+    }
+
+    void UpdateValues()
+    {
+        _borderDirection = borderDirection;
+        _borderIndex = borderIndex;
+        _exitHeight = exitHeight;
+        Chunk.SetGroundHeight(_exitHeight);
+        _initialized = true;
+    }
+
+    public bool IsInitialized()
+    {
+        // Check if values match
+        if (_borderDirection != borderDirection 
+            || _borderIndex != borderIndex 
+            || _exitHeight != exitHeight
+            || Chunk.groundHeight != exitHeight)
+        {
+            UpdateValues();
+            _initialized = false;
+            return _initialized;
+        }
+
+        _initialized = true;
+        return _initialized;
     }
 }
 
@@ -69,8 +103,13 @@ public class WorldExitPath
         this.pathColor = WorldPath.GetRandomPathColor();
     }
 
-    public void Update()
+    public void EditorUpdate()
     {
+        // Update Exits first
+        bool newStart = startExit.IsInitialized();
+        bool newEnd = endExit.IsInitialized();
+        if (newStart || newEnd) { Reset(true); }
+
         if (_initialized) { return; }
 
         // Update private variables
@@ -95,8 +134,7 @@ public class WorldExitPath
         if (!_initialized) return;
 
         // Check if values are incorrectly initialized
-        if (_pathStart != startExit.PathConnectionCoord
-            || _pathEnd != endExit.PathConnectionCoord
+        if (_pathStart != startExit.PathConnectionCoord || _pathEnd != endExit.PathConnectionCoord
             || _pathRandomness != pathRandomness
             || forceReset)
         {
@@ -112,9 +150,12 @@ public class WorldExitPath
 
     public List<WorldCoordinate> GetPathCoordinates()
     {
-        if (!_initialized) { return new List<WorldCoordinate>(); }
-
         return _worldPath.GetPathCoordinates();
+    }
+
+    public List<WorldChunk> GetPathChunks()
+    {
+        return _worldPath.GetPathChunks();
     }
 
     public Color GetPathColorRGBA()
