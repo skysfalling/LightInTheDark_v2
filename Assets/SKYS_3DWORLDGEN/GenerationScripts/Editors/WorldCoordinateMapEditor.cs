@@ -9,6 +9,7 @@ public class WorldCoordinateMapEditor : Editor
     SerializedObject serializedCoordinateMap;
     private GUIStyle h1Style;
     private GUIStyle h2Style;
+    private GUIStyle worldStyle;
 
     private void OnEnable()
     {
@@ -31,7 +32,13 @@ public class WorldCoordinateMapEditor : Editor
         };
         h2Style.normal.textColor = Color.grey;
 
-        WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
+        worldStyle = new GUIStyle()
+        {
+            fontSize = 12,
+            fontStyle = FontStyle.Bold,
+            alignment = TextAnchor.MiddleCenter,
+        };
+        worldStyle.normal.textColor = Color.black;
     }
 
     public override void OnInspectorGUI()
@@ -204,16 +211,20 @@ public class WorldCoordinateMapEditor : Editor
 
         if (WorldChunkMap.chunkMapInitialized)
         {
-            // Draw Exits
-            DrawRectangleAtChunkGround(exitPath.startExit.Chunk, pathColorRGBA);
-            DrawRectangleAtChunkGround(exitPath.endExit.Chunk, pathColorRGBA);
 
+            // Draw Chunks
             List<WorldChunk> chunks = exitPath.GetPathChunks();
             if (chunks == null || chunks.Count == 0) return;
             foreach (WorldChunk chunk in chunks)
             {
                 DrawRectangleAtChunkGround(chunk, pathColorRGBA);
             }
+
+            // Draw Exits
+            DrawRectangleAtChunkGround(exitPath.startExit.Chunk, pathColorRGBA);
+            DrawRectangleAtChunkGround(exitPath.endExit.Chunk, pathColorRGBA);
+            DrawLabel(exitPath.startExit.Chunk.GetGroundWorldPosition(), $"Path Start", worldStyle, pathColorRGBA);
+            DrawLabel(exitPath.endExit.Chunk.GetGroundWorldPosition(), $"Path Exit", worldStyle, pathColorRGBA);
         }
 
 
@@ -267,6 +278,37 @@ public class WorldCoordinateMapEditor : Editor
         };
 
         return vertices;
+    }
+
+    /// <summary>
+    /// Draws a label in the Scene view with customizable style and optional background.
+    /// </summary>
+    /// <param name="position">The world space position where the label will be drawn.</param>
+    /// <param name="text">The text of the label.</param>
+    /// <param name="labelStyle">The style to be applied to the label.</param>
+    /// <param name="backgroundColor">Optional background color. If null, no background will be drawn.</param>
+    public void DrawLabel(Vector3 position, string text, GUIStyle labelStyle, Color? backgroundColor = null)
+    {
+        Handles.BeginGUI();
+        // Convert world position to GUI position
+        Vector2 guiPosition = HandleUtility.WorldToGUIPoint(position);
+
+        // Calculate the size of the label
+        Vector2 size = labelStyle.CalcSize(new GUIContent(text));
+        Rect rect = new Rect(guiPosition.x, guiPosition.y, size.x, size.y);
+
+        // Draw background if color is specified
+        if (backgroundColor.HasValue)
+        {
+            Color previousColor = GUI.backgroundColor;
+            GUI.backgroundColor = backgroundColor.Value;
+            GUI.Box(new Rect(rect.x - 2, rect.y - 2, rect.width + 4, rect.height + 4), GUIContent.none);
+            GUI.backgroundColor = previousColor;
+        }
+
+        // Draw the label
+        GUI.Label(rect, text, labelStyle);
+        Handles.EndGUI();
     }
 }
 #endif
