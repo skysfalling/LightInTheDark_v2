@@ -182,7 +182,7 @@ public class WorldCoordinateMapEditor : Editor
 
     void DrawExitPath(WorldExitPath path)
     {
-        if (path == null || path.IsInitialized()) return;
+        if (path == null || !path.IsInitialized()) return;
 
         Color pathColorRGBA = path.GetPathColorRGBA();
 
@@ -202,7 +202,7 @@ public class WorldCoordinateMapEditor : Editor
 
     void DrawZone(WorldZone zone)
     {
-        if (zone == null || zone.IsInitialized()) return;
+        if (zone == null || !zone.IsInitialized()) return;
 
         Color zoneColorRGBA = WorldZone.GetRGBAfromZoneColorType(zone.zoneColor);
 

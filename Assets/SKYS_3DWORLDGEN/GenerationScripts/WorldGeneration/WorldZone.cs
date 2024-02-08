@@ -30,18 +30,22 @@ public class WorldZone
         }
     }
 
+    public enum TYPE { FULL, NATURAL, HORIZONTAL, VERTICAL }
+    TYPE _storedZoneType = TYPE.FULL;
     WorldCoordinate _centerCoordinate;
     List<WorldCoordinate> _zoneCoordinates = new List<WorldCoordinate>();
     bool _initialized = false;
 
-    public enum TYPE { FULL, NATURAL, HORIZONTAL, VERTICAL }
-    public TYPE type = TYPE.FULL;
+
+    // INSPECTOR VARIABLES
+    public TYPE zoneType = TYPE.FULL;
     public Vector2Int coordinateVector = Vector2Int.one;
+
 
     public WorldZone()
     {
         this._centerCoordinate = WorldCoordinateMap.GetCoordinate(coordinateVector);
-        this.type = TYPE.FULL;
+        this.zoneType = TYPE.FULL;
         Update();
     }
 
@@ -49,7 +53,7 @@ public class WorldZone
     {
         this._centerCoordinate = centerCoordinate;
         this.coordinateVector = _centerCoordinate.Coordinate;
-        this.type = zoneType;
+        this.zoneType = zoneType;
         Update();
     }
 
@@ -60,9 +64,11 @@ public class WorldZone
 
         if (WorldCoordinateMap.coordMapInitialized == false) { return; }
 
+
+
         // Get affected neighbors
         List<WorldCoordinate> affectedNeighbors = new();
-        switch(this.type)
+        switch(this._storedZoneType)
         {
             case TYPE.FULL:
                 affectedNeighbors = WorldCoordinateMap.GetAllCoordinateNeighbors(_centerCoordinate);
@@ -93,11 +99,15 @@ public class WorldZone
     {
         if (WorldCoordinateMap.coordMapInitialized == false || !_initialized) { return; }
 
-        if (_centerCoordinate == null || _centerCoordinate.Coordinate != coordinateVector)
+        if (_centerCoordinate == null || _centerCoordinate.Coordinate != coordinateVector 
+            || zoneType != _storedZoneType)
         {
             WorldCoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, WorldCoordinate.TYPE.NULL);
             _zoneCoordinates = new();
+
+            // Update private variables
             _centerCoordinate = WorldCoordinateMap.GetCoordinate(coordinateVector);
+            this._storedZoneType = zoneType;
             _initialized = false;
         }
     }
@@ -135,7 +145,7 @@ public class WorldZoneDrawer : PropertyDrawer
         EditorGUI.PropertyField(colorRect, property.FindPropertyRelative("zoneColor"), new GUIContent("Zone Color"));
 
         // Draw the "ZoneType" field
-        EditorGUI.PropertyField(typeRect, property.FindPropertyRelative("type"), new GUIContent("Zone Type"));
+        EditorGUI.PropertyField(typeRect, property.FindPropertyRelative("zoneType"), new GUIContent("Zone Type"));
 
         SerializedProperty coordProp = property.FindPropertyRelative("coordinateVector");
         int x = EditorGUI.IntSlider(coordXRect, new GUIContent("Coord X"), coordProp.vector2IntValue.x, 0, WorldGeneration.PlayZoneArea.x);
