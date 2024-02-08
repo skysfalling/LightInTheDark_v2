@@ -18,6 +18,7 @@ public class WorldMap : MonoBehaviour
         WorldChunkMap worldChunkMap = GetComponent<WorldChunkMap>();
 
         worldCoordinateMap.UpdateCoordinateMap();
+        worldChunkMap.UpdateChunkMap();
     }
 
     public void ResetWorldMap()
@@ -26,6 +27,7 @@ public class WorldMap : MonoBehaviour
         WorldChunkMap worldChunkMap = GetComponent<WorldChunkMap>();
 
         worldCoordinateMap.DestroyCoordinateMap();
+        worldChunkMap.DestroyChunkMap();
     }
 }
 
@@ -90,7 +92,7 @@ public class WorldMapEditor : Editor
             {
                 if (WorldCoordinateMap.coordMapInitialized)
                 {
-                    WorldCoordinate worldCoord = WorldCoordinateMap.GetCoordinate(new Vector2Int(x, y));
+                    WorldCoordinate worldCoord = WorldCoordinateMap.GetCoordinateAt(new Vector2Int(x, y));
                     if (worldCoord != null)
                     {
                         // Draw a box for each type of coordinate with different colors

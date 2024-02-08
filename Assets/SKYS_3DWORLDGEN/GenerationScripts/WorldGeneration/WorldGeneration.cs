@@ -103,7 +103,7 @@ public class WorldGeneration : MonoBehaviour
         if (_worldGenerationObject != null) { Reset(); }
 
         // Get All Chunk Positions
-        List<Vector2> allWorldChunkPositions = WorldCoordinateMap.GetCoordinateMapPositions();
+        //List<Vector2> allWorldChunkPositions = WorldCoordinateMap.GetCoordinateMapPositions();
         yield return new WaitForSeconds(delay);
 
         /*

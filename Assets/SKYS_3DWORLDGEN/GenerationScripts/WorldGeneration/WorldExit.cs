@@ -10,7 +10,7 @@ using UnityEditor;
 public enum WorldDirection { West, East, North, South }
 
 // =================================================================
-//      WORLD EXIT CLASS
+//      WORLD EXIT
 // ========================================================
 [System.Serializable]
 public class WorldExit
@@ -41,6 +41,85 @@ public class WorldExit
     {
         this.borderDirection = borderDirection;
         this.borderIndex = index;
+    }
+}
+
+// =================================================================
+//      WORLD EXIT PATH
+// ========================================================
+[System.Serializable]
+public class WorldExitPath
+{
+    WorldPath _worldPath;
+    bool _initialized = false;
+
+    public WorldPath.PathColor pathColor = WorldPath.PathColor.YELLOW;
+    [Range(0, 1)] public float pathRandomness = 0f;
+    public WorldExit startExit;
+    public WorldExit endExit;
+
+    WorldCoordinate _pathStart;
+    WorldCoordinate _pathEnd;
+    float _pathRandomness;
+
+    public WorldExitPath(WorldExit startExit, WorldExit endExit)
+    {
+        this.startExit = startExit;
+        this.endExit = endExit;
+        this.pathColor = WorldPath.GetRandomPathColor();
+    }
+
+    public void Update()
+    {
+        if (_initialized) { return; }
+
+        // Update private variables
+        _pathStart = startExit.PathConnectionCoord;
+        _pathEnd = endExit.PathConnectionCoord;
+        _pathRandomness = pathRandomness;
+
+        // Get new World Path
+        _worldPath = new WorldPath(_pathStart, _pathEnd, pathColor, pathRandomness);
+
+        // Determine Path Chunk Heights
+        if (_worldPath.IsInitialized() && WorldChunkMap.chunkMapInitialized)
+        {
+            _worldPath.DeterminePathChunkHeights(startExit.exitHeight, endExit.exitHeight);
+        }
+
+        _initialized = true;
+    }
+
+    public void Reset(bool forceReset = false)
+    {
+        if (!_initialized) return;
+
+        // Check if values are incorrectly initialized
+        if (_pathStart != startExit.PathConnectionCoord
+            || _pathEnd != endExit.PathConnectionCoord
+            || _pathRandomness != pathRandomness
+            || forceReset)
+        {
+            _worldPath.Reset();
+            _initialized = false;
+        }
+    }
+
+    public bool IsInitialized()
+    {
+        return _initialized;
+    }
+
+    public List<WorldCoordinate> GetPathCoordinates()
+    {
+        if (!_initialized) { return new List<WorldCoordinate>(); }
+
+        return _worldPath.GetPathCoordinates();
+    }
+
+    public Color GetPathColorRGBA()
+    {
+        return WorldPath.GetRGBAfromPathColorType(pathColor);
     }
 }
 

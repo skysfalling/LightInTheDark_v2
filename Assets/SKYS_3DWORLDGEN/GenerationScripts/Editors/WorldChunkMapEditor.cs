@@ -18,33 +18,13 @@ public class WorldChunkMapEditor : Editor
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
-        // Display each WorldExitPath with a foldout
-        if (zonesProperty != null)
-        {
-            EditorGUILayout.LabelField("World Zones", EditorStyles.boldLabel); // Optional: Add a section label
 
-            for (int i = 0; i < zonesProperty.arraySize; i++)
-            {
-                SerializedProperty zoneProperty = zonesProperty.GetArrayElementAtIndex(i);
-                EditorGUILayout.PropertyField(zoneProperty, new GUIContent($"World Zone {i}"), true);
-            }
+        EditorGUILayout.LabelField($"World Chunk Map Initialized => {WorldChunkMap.chunkMapInitialized}");
+        EditorGUILayout.Space();
 
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Add World Zone"))
-            {
-                zonesProperty.arraySize++;
-            }
-            if (GUILayout.Button("Remove Last"))
-            {
-                if (zonesProperty.arraySize > 0)
-                {
-                    zonesProperty.arraySize--;
-                }
-            }
-            EditorGUILayout.EndHorizontal();
-        }
+        DrawDefaultInspector();
 
-        // Check if any changes were made in the Inspector
+        EditorGUI.BeginChangeCheck();
         if (EditorGUI.EndChangeCheck())
         {
             // If there were changes, apply them to the serialized object
@@ -59,8 +39,6 @@ public class WorldChunkMapEditor : Editor
     private void OnSceneGUI()
     {
         WorldChunkMap map = (WorldChunkMap)target;
-
-        if (map.mapInitialized == false) { return; }
 
     }
 

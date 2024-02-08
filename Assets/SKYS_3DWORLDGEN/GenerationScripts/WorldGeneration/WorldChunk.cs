@@ -25,8 +25,6 @@ public class WorldChunk
     public TYPE type;
     public WorldCoordinate coordinate;
     public int groundHeight = 0;
-    public WorldPath.PathColor pathColor = WorldPath.PathColor.CLEAR;
-    public WorldZone.ZoneColor zoneColor = WorldZone.ZoneColor.CLEAR;
 
     Vector2 _realChunkAreaSize { get { return WorldGeneration.GetRealChunkAreaSize(); } }
     int _realChunkHeight { get { return this.groundHeight * WorldGeneration.CellSize; }}

@@ -44,7 +44,7 @@ public class WorldZone
 
     public WorldZone()
     {
-        this._centerCoordinate = WorldCoordinateMap.GetCoordinate(coordinateVector);
+        this._centerCoordinate = WorldCoordinateMap.GetCoordinateAt(coordinateVector);
         this.zoneType = TYPE.FULL;
         Update();
     }
@@ -106,10 +106,10 @@ public class WorldZone
             || zoneType != _storedZoneType)
         {
             WorldCoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, WorldCoordinate.TYPE.NULL);
-            _zoneCoordinates = new();
+            _zoneCoordinates.Clear();
 
             // Update private variables
-            _centerCoordinate = WorldCoordinateMap.GetCoordinate(coordinateVector);
+            _centerCoordinate = WorldCoordinateMap.GetCoordinateAt(coordinateVector);
             this._storedZoneType = zoneType;
             _initialized = false;
         }
@@ -118,15 +118,21 @@ public class WorldZone
     public List<WorldCoordinate> GetZoneCoordinates() { return _zoneCoordinates; }
 
     public bool IsInitialized() {
-        // Check for treason ...
-        foreach (WorldCoordinate coord in _zoneCoordinates)
+
+        if (_zoneCoordinates.Count > 0)
         {
-            if (coord.type != WorldCoordinate.TYPE.ZONE) { 
-                _initialized = false;
-                Update();
-                break; 
+            // Check for treason ...
+            foreach (WorldCoordinate coord in _zoneCoordinates)
+            {
+                if (coord.type != WorldCoordinate.TYPE.ZONE)
+                {
+                    _initialized = false;
+                    Update();
+                    break;
+                }
             }
         }
+
 
         return _initialized; 
     }

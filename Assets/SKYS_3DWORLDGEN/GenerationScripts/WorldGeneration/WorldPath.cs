@@ -5,18 +5,13 @@ using System.IO;
 using UnityEngine.UIElements;
 using System;
 
-
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-
-
 [System.Serializable]
 public class WorldPath
 {
     public enum PathColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE, CLEAR }
-
     PathColor _pathColor = PathColor.CLEAR;
     public static Color GetRGBAfromPathColorType(PathColor pathColor)
     {
@@ -54,7 +49,6 @@ public class WorldPath
     Vector2Int _startCoordinate;
     Vector2Int _endCoordinate;
     List<WorldCoordinate> _pathCoords = new List<WorldCoordinate>();
-    List<WorldChunk> _pathChunks;
     float _pathRandomness = 0;
     bool _initialized = false;
 
@@ -69,30 +63,21 @@ public class WorldPath
 
     public void Initialize()
     {
-        if (_initialized) return;
+        if (_initialized || !WorldCoordinateMap.coordMapInitialized) return;
         _initialized = false;
 
         // Get Valid Path
-        _pathCoords = WorldCoordinateMap.FindCoordinatePath(_startCoordinate, _endCoordinate, _pathRandomness);
+        _pathCoords = WorldCoordinateMap.FindWorldCoordinatePath(_startCoordinate, _endCoordinate, _pathRandomness);
 
         // Set Coordinate Path Type
         WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.PATH);
-
-        // Set Chunk Path Color
-        /*
-        _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
-        foreach(WorldChunk chunk in _pathChunks)
-        {
-            chunk.pathColor = _pathColor;
-        }
-        */
 
         _initialized = true;
     }
 
     public void Reset()
     {
-        if (!_initialized || WorldCoordinateMap.coordMapInitialized == false) return;
+        if (!_initialized || !WorldCoordinateMap.coordMapInitialized) return;
 
         // Reset Coordinate Path Type
         if (_pathCoords != null && _pathCoords.Count > 0)
@@ -100,11 +85,26 @@ public class WorldPath
             WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.NULL);
             _pathCoords.Clear();
         }
+
         _initialized = false;
+    }
+
+
+    public bool IsInitialized() { return _initialized; }
+
+    public List<WorldCoordinate> GetPathCoordinates()
+    {
+        if (!_initialized) { return new List<WorldCoordinate>(); }
+        return _pathCoords;
     }
 
     public void DeterminePathChunkHeights(int startHeight, int endHeight, float heightAdjustChance = 1f)
     {
+        if (WorldChunkMap.chunkMapInitialized == false) return;
+
+        List<WorldChunk> _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
+        if (_pathChunks.Count == 0 ) return;
+
         // Assign start/end chunk heights
         WorldChunk startChunk = _pathChunks[0];
         WorldChunk endChunk = _pathChunks[_pathChunks.Count - 1];
@@ -116,8 +116,6 @@ public class WorldPath
         midpathChunks.RemoveAt(midpathChunks.Count - 1);
         midpathChunks.RemoveAt(0);
 
-
-
         int midpathChunkCount = midpathChunks.Count; // full path count
         int endpointHeightDifference = endHeight - startHeight;
         int currHeightLevel = startHeight; // current height level starting from the startHeight
@@ -126,9 +124,8 @@ public class WorldPath
         int heightLeft = endpointHeightDifference;
         for (int i = 0; i < midpathChunkCount; i++)
         {
+            // Determine heightOffset 
             int heightOffset = 0;
-
-            // Determine height direction
             if (heightLeft > 0) { heightOffset = 1; }
             else if (heightLeft < 0) { heightOffset = -1; }
             else { heightOffset = 0; }
@@ -139,86 +136,8 @@ public class WorldPath
 
             midpathChunks[i].groundHeight = currHeightLevel;
         }
-
     }
 
-    public bool IsInitialized() { return _initialized; }
-
-    public List<WorldCoordinate> GetPathCoordinates()
-    {
-        if (!_initialized) { return new List<WorldCoordinate>(); }
-        return _pathCoords;
-    }
 }
 
-[System.Serializable]
-public class WorldExitPath
-{
-    WorldPath _worldPath;
-    bool _initialized = false;
 
-    public WorldPath.PathColor pathColor = WorldPath.PathColor.YELLOW;
-    [Range(0, 1)] public float pathRandomness = 0f;
-    public WorldExit startExit;
-    public WorldExit endExit;
-
-    WorldCoordinate _pathStart;
-    WorldCoordinate _pathEnd;
-    float _pathRandomness;
-
-    public WorldExitPath(WorldExit startExit,  WorldExit endExit)
-    {
-        this.startExit = startExit;
-        this.endExit = endExit;
-        this.pathColor = WorldPath.GetRandomPathColor();
-    }
-
-    public void Update()
-    {
-        if (_initialized) { return; }
-
-        _pathStart = startExit.PathConnectionCoord;
-        _pathEnd = endExit.PathConnectionCoord;
-        _pathRandomness = pathRandomness;
-
-        _worldPath = new WorldPath(_pathStart, _pathEnd, pathColor, pathRandomness);
-
-        if (_worldPath.IsInitialized())
-        {
-            //_worldPath.DeterminePathChunkHeights(startExit.exitHeight, endExit.exitHeight);
-        }
-
-        _initialized = true;
-    }
-
-    public void Reset(bool forceReset = false)
-    {
-        if (!_initialized) return;
-
-        // Check if values are incorrectly initialized
-        if (_pathStart != startExit.PathConnectionCoord 
-            || _pathEnd != endExit.PathConnectionCoord
-            || _pathRandomness != pathRandomness
-            || forceReset)
-        {
-            _worldPath.Reset();
-            _initialized = false;
-        }
-    }
-
-    public bool IsInitialized() {
-        return _initialized; 
-    }
-
-    public List<WorldCoordinate> GetPathCoordinates()
-    {
-        if (!_initialized) { return new List<WorldCoordinate>(); }
-
-        return _worldPath.GetPathCoordinates();
-    }
-
-    public Color GetPathColorRGBA()
-    {
-        return WorldPath.GetRGBAfromPathColorType(pathColor);
-    }
-}

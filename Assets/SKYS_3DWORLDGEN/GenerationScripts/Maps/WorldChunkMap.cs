@@ -1,9 +1,4 @@
- using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
-using UnityEditor.U2D.Aseprite;
 using UnityEngine;
 
 public class WorldChunkMap : MonoBehaviour
@@ -15,63 +10,101 @@ public class WorldChunkMap : MonoBehaviour
         if (Instance == null) { Instance = this; }
     }
 
-    public bool mapInitialized { get; private set; }
+    public static bool chunkMapInitialized { get; private set; }
+    public static List<WorldChunk> ChunkList { get; private set; }
+    public static Dictionary<WorldCoordinate, WorldChunk> WorldCoordChunkMap { get; private set; }
+    public static Dictionary<Vector2Int, WorldChunk> CoordinateChunkMap { get; private set; }
 
+    // == HANDLE CHUNK MAP =================================== ///
     public void InitializeChunkMap()
     {
-        GetChunkMap();
-        mapInitialized = true;
+        if (WorldCoordinateMap.coordMapInitialized == false) return;
+        if (chunkMapInitialized == true) return;
+
+        List<WorldChunk> newChunkList = new();
+        Dictionary<WorldCoordinate, WorldChunk> newWorldCoordChunkMap = new();
+        Dictionary<Vector2Int, WorldChunk> newCoordinateChunkMap = new();
+
+        // Create Chunks at each World Coordinate
+        List<WorldCoordinate> coordList = WorldCoordinateMap.CoordinateList;
+        foreach (WorldCoordinate worldCoord in coordList)
+        {
+            WorldChunk newChunk = new WorldChunk(worldCoord);
+
+            newChunkList.Add(newChunk);
+            newWorldCoordChunkMap[worldCoord] = newChunk;
+            newCoordinateChunkMap[worldCoord.Coordinate] = newChunk;
+        }
+
+        ChunkList = newChunkList;
+        WorldCoordChunkMap = newWorldCoordChunkMap;
+        CoordinateChunkMap = newCoordinateChunkMap;
+
+        chunkMapInitialized = true;
     }
-    public void ResetChunkMap()
+
+    public void DestroyChunkMap()
     {
+        ChunkList = new();
+        WorldCoordChunkMap = new();
+        CoordinateChunkMap = new();
+
         // Reset Path Colors
+        /*
         foreach (WorldChunk chunk in GetChunkMap())
         {
             chunk.groundHeight = 0;
             chunk.pathColor = WorldPath.PathColor.CLEAR;
             chunk.zoneColor = WorldZone.ZoneColor.CLEAR;
         }
+        */
+
+        chunkMapInitialized = false;
     }
 
-    #region == CHUNK MAP ======================================== ////
-    private static List<WorldChunk> ChunkMap = new List<WorldChunk>();
-    private static Dictionary<WorldCoordinate, WorldChunk> ChunkCoordMap = new();
-    public static List<WorldChunk> GetChunkMap(bool forceReset = false)
+    public void UpdateChunkMap()
     {
-        if (forceReset == false && ChunkMap != null && ChunkMap.Count > 0) return ChunkMap;
+        InitializeChunkMap(); // Make sure chunk map is initialized
 
-        ChunkMap = new();
-        ChunkCoordMap = new();
+        // Determine path heights
+    }
 
-        List<WorldCoordinate> coordMap = WorldCoordinateMap.CoordinateList;
-        foreach (WorldCoordinate coord in coordMap)
+    #region == GET CHUNKS ======================================== ////
+
+    public static WorldChunk GetChunkAt(Vector2Int coordinate)
+    {
+        if (!chunkMapInitialized) { return null; }
+
+        // Use the dictionary for fast lookups
+        if (CoordinateChunkMap.TryGetValue(coordinate, out WorldChunk foundChunk))
         {
-            WorldChunk newChunk = new WorldChunk(coord);
-
-            ChunkMap.Add(newChunk);
-            ChunkCoordMap[coord] = newChunk;
+            return foundChunk;
         }
-
-        return ChunkMap;
+        return null;
     }
-    public static WorldChunk GetChunkAtCoordinate(WorldCoordinate coord) 
+
+    public static WorldChunk GetChunkAt(WorldCoordinate worldCoord)
     {
-        GetChunkMap();
+        if (!chunkMapInitialized) { return null; }
 
-        WorldChunk value;
-        ChunkCoordMap.TryGetValue(coord, out value);
-
-        return value; 
+        // Use the dictionary for fast lookups
+        if (WorldCoordChunkMap.TryGetValue(worldCoord, out WorldChunk foundChunk))
+        {
+            return foundChunk;
+        }
+        return null;
     }
-    public static List<WorldChunk> GetChunksAtCoordinates(List<WorldCoordinate> coords)
+
+    public static List<WorldChunk> GetChunksAtCoordinates(List<WorldCoordinate> worldCoords)
     {
-        GetChunkMap();
+        if (!chunkMapInitialized) { return new List<WorldChunk>(); }
 
         List<WorldChunk> chunks = new List<WorldChunk>();
-        foreach (WorldCoordinate c in coords)
+        foreach (WorldCoordinate worldCoord in worldCoords)
         {
-            chunks.Add(ChunkCoordMap[c]);
+            chunks.Add(GetChunkAt(worldCoord));
         }
+
         return chunks;
     }
     #endregion

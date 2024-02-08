@@ -15,10 +15,12 @@ public class WorldCoordinateMap : MonoBehaviour
     public static bool coordMapInitialized { get; private set; }
     bool _forceAllPathsReset = false;
 
-    #region == COORDINATE MAP ================================ ////
     public static List<WorldCoordinate> CoordinateList { get; private set; }
     public static Dictionary<Vector2Int, WorldCoordinate> CoordinateMap { get; private set; }
     public static Dictionary<WorldCoordinate, List<WorldCoordinate>> CoordinateNeighborMap { get; private set; }
+
+
+    #region == HANDLE COORDINATE MAP ================================ ////
 
     static void InitializeCoordinateMap(bool forceReset = false)
     {
@@ -124,42 +126,18 @@ public class WorldCoordinateMap : MonoBehaviour
 
     #endregion
 
-    #region == GET COORDINATES ================================ ////
+    #region == GET MAP COORDINATES ================================ ////
 
-    public static List<Vector2> GetCoordinateMapPositions()
-    {
-        List<WorldCoordinate> coordMap = CoordinateList;
-        List<Vector2> coordMapPositions = new List<Vector2>();
-
-        foreach (WorldCoordinate coord in coordMap) { coordMapPositions.Add(coord.Position); }
-        return coordMapPositions;
-    }
-
-    public static WorldCoordinate GetCoordinate(Vector2Int coordinate)
+    public static WorldCoordinate GetCoordinateAt(Vector2Int coordinate)
     {
         if (!coordMapInitialized) { return null; }
+
         // Use the dictionary for fast lookups
         if (CoordinateMap.TryGetValue(coordinate, out WorldCoordinate foundCoord))
         {
             return foundCoord;
         }
         return null;
-    }
-
-    public static WorldCoordinate GetCoordinateAtPosition(Vector2 position)
-    {
-        foreach (WorldCoordinate coord in CoordinateList) { 
-            if (coord.Position == position)
-            {
-                return coord;
-            }
-        }
-        return null;
-    }
-
-    public static WorldCoordinate.TYPE GetTypeAtCoord(WorldCoordinate coordinate)
-    {
-        return GetCoordinate(coordinate.Coordinate).type;
     }
 
     public static List<WorldCoordinate> GetAllCoordinatesOfType(WorldCoordinate.TYPE type)
@@ -175,13 +153,13 @@ public class WorldCoordinateMap : MonoBehaviour
         return typeList;
     }
 
-    public static List<WorldCoordinate> GetCoordinatesOnBorderDirection(WorldDirection edgeDirection)
+    public static List<WorldCoordinate> GetCoordinatesOnBorder(WorldDirection direction)
     {
         List<WorldCoordinate> coordinatesOnEdge = new List<WorldCoordinate>();
         List<WorldCoordinate> borderMap = GetAllCoordinatesOfType(WorldCoordinate.TYPE.BORDER);
         foreach (WorldCoordinate coord in borderMap)
         {
-            if (coord.borderEdgeDirection == edgeDirection)
+            if (coord.borderEdgeDirection == direction)
             {
                 coordinatesOnEdge.Add(coord);
             }
@@ -205,19 +183,19 @@ public class WorldCoordinateMap : MonoBehaviour
         return neighbors;
     }
 
-    public static List<WorldCoordinate> GetCoordinateDiagonalNeighbors(WorldCoordinate coordinate)
+    public static List<WorldCoordinate> GetCoordinateDiagonalNeighbors(WorldCoordinate worldCoord)
     {
-        if (coordinate == null) { return null; }
+        if (worldCoord == null) { return new List<WorldCoordinate>(); }
         int chunkWidth = WorldGeneration.GetRealChunkAreaSize().x;
         int chunkLength = WorldGeneration.GetRealChunkAreaSize().y;
 
         List<WorldCoordinate> neighbors = new List<WorldCoordinate>(new WorldCoordinate[4]);
 
         // Find and assign neighbors in the specific order [Left, Right, Forward, Backward]
-        neighbors[0] = GetCoordinateAtPosition(coordinate.Position + new Vector2(-chunkWidth, -chunkLength)); // SOUTH WEST
-        neighbors[1] = GetCoordinateAtPosition(coordinate.Position + new Vector2(-chunkWidth, chunkLength)); // NORTH WEST
-        neighbors[2] = GetCoordinateAtPosition(coordinate.Position + new Vector2(chunkWidth, -chunkLength)); // SOUTH EAST
-        neighbors[3] = GetCoordinateAtPosition(coordinate.Position + new Vector2(chunkWidth, chunkLength)); // NORTH EAST
+        neighbors[0] = GetCoordinateAt(worldCoord.Coordinate + new Vector2Int(-1, -1)); // SOUTH WEST
+        neighbors[1] = GetCoordinateAt(worldCoord.Coordinate + new Vector2Int(-1, 1)); // NORTH WEST
+        neighbors[2] = GetCoordinateAt(worldCoord.Coordinate + new Vector2Int(1, -1)); // SOUTH EAST
+        neighbors[3] = GetCoordinateAt(worldCoord.Coordinate + new Vector2Int(1, 1)); // NORTH EAST
 
         // Remove null entries if a neighbor is not found
         neighbors.RemoveAll(item => item == null);
@@ -235,23 +213,21 @@ public class WorldCoordinateMap : MonoBehaviour
     public static WorldCoordinate GetCoordinateNeighborInDirection(WorldCoordinate coordinate, WorldDirection direction)
     {
         if (coordinate == null) { return null; }
-        int chunkWidth = WorldGeneration.GetRealChunkAreaSize().x;
-        int chunkLength = WorldGeneration.GetRealChunkAreaSize().y;
 
         WorldCoordinate coord = null;
         switch (direction)
         {
             case WorldDirection.West:
-                coord = GetCoordinateAtPosition(coordinate.Position + new Vector2(-chunkWidth, 0));
+                coord = GetCoordinateAt(coordinate.Coordinate + new Vector2Int(-1, 0));
                 break;
             case WorldDirection.East:
-                coord = GetCoordinateAtPosition(coordinate.Position + new Vector2(chunkWidth, 0));
+                coord = GetCoordinateAt(coordinate.Coordinate + new Vector2Int(1, 0));
                 break;
             case WorldDirection.North:
-                coord = GetCoordinateAtPosition(coordinate.Position + new Vector2(0, chunkLength));
+                coord = GetCoordinateAt(coordinate.Coordinate + new Vector2Int(0, 1));
                 break;
             case WorldDirection.South:
-                coord = GetCoordinateAtPosition(coordinate.Position + new Vector2(0, -chunkLength));
+                coord = GetCoordinateAt(coordinate.Coordinate + new Vector2Int(0, -1));
                 break;
         }
 
@@ -259,24 +235,27 @@ public class WorldCoordinateMap : MonoBehaviour
     }
     #endregion
 
-    #region // SET MAP COORDINATES ================================================================ ///
-    public static void SetMapCoordinateToType(WorldCoordinate coord, WorldCoordinate.TYPE type)
+    #region == SET MAP COORDINATES ================================================================ ///
+    public static bool SetMapCoordinateToType(WorldCoordinate worldCoord, WorldCoordinate.TYPE type)
     {
-        CoordinateMap[coord.Coordinate].type = type;
+        if (!coordMapInitialized || worldCoord == null) { return false; }
+        CoordinateMap[worldCoord.Coordinate].type = type;
+        return true;
     }
-
-    public static List<WorldCoordinate> SetMapCoordinatesToType(List<WorldCoordinate> coords, WorldCoordinate.TYPE conversionType)
+    public static bool SetMapCoordinatesToType(List<WorldCoordinate> coords, WorldCoordinate.TYPE conversionType)
     {
+        if (!coordMapInitialized) { return false; }
         foreach (WorldCoordinate coordinate in coords)
         {
             SetMapCoordinateToType(coordinate, conversionType);
         }
-        return coords;
+        return true;
     }
     #endregion
 
+    // =====================================================================================
 
-    #region == {{ WORLD EXIT PATHS }} ======================================================== ////
+    #region == HANDLE WORLD PATHS ======================================================== ////
     public List<WorldExitPath> worldExitPaths = new List<WorldExitPath>();
 
     public void CreateWorldExitPath()
@@ -314,7 +293,7 @@ public class WorldCoordinateMap : MonoBehaviour
         WorldDirection direction = worldExit.borderDirection;
         int index = worldExit.borderIndex;
 
-        List<WorldCoordinate> borderCoords = GetCoordinatesOnBorderDirection(direction);
+        List<WorldCoordinate> borderCoords = GetCoordinatesOnBorder(direction);
         if (borderCoords.Count > index)
         {
             return borderCoords[index];
@@ -330,13 +309,11 @@ public class WorldCoordinateMap : MonoBehaviour
             path.Update(); 
         }
 
-        Debug.Log($"Force Paths Reset {forceReset}");
+        // Debug.Log($"Force Paths Reset {forceReset}");
         _forceAllPathsReset = false; // Paths have been reset
     }
 
     #endregion
-
-    // =====================================================================================
 
     #region == WORLD ZONES ==================================== ////
     public List<WorldZone> worldZones = new List<WorldZone>();
@@ -351,7 +328,7 @@ public class WorldCoordinateMap : MonoBehaviour
         // Get Center Coordinate
         int centerX = Mathf.CeilToInt(WorldGeneration.GetFullWorldArea().x / 2);
         int centerY = Mathf.CeilToInt(WorldGeneration.GetFullWorldArea().y / 2);
-        WorldCoordinate centerCoordinate = GetCoordinate(new Vector2Int(centerX, centerY));
+        WorldCoordinate centerCoordinate = GetCoordinateAt(new Vector2Int(centerX, centerY));
 
         Debug.Log($"Create Zone at {centerCoordinate.Coordinate}");
         worldZones.Add(new WorldZone(centerCoordinate, WorldZone.TYPE.NATURAL));
@@ -380,14 +357,14 @@ public class WorldCoordinateMap : MonoBehaviour
     #endregion
 
     #region == COORDINATE PATHFINDING =================================///
-    /* A* Pathfinding implementation
-    * - gCost is the known cost from the starting node
-    * - hCost is the estimated distance to the end node
-    * - fCost is gCost + hCost
-    */
 
-    public static List<WorldCoordinate> FindCoordinatePath(Vector2Int startCoord, Vector2Int endCoord, float pathRandomness = 0)
+    public static List<WorldCoordinate> FindWorldCoordinatePath(Vector2Int startCoord, Vector2Int endCoord, float pathRandomness = 0)
     {
+        // A* Pathfinding implementation
+        // gCost is the known cost from the starting node
+        // hCost is the estimated distance to the end node
+        // fCost is gCost + hCost
+
         // Initialize the open set with the start coordinate
         List<Vector2Int> openSet = new List<Vector2Int> { startCoord };
         // Initialize the closed set as an empty collection of Vector2Int
