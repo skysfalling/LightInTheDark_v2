@@ -25,7 +25,7 @@ public class WorldMap : MonoBehaviour
         WorldCoordinateMap worldCoordinateMap = GetComponent<WorldCoordinateMap>();
         WorldChunkMap worldChunkMap = GetComponent<WorldChunkMap>();
 
-        worldCoordinateMap.ResetCoordinateMap();
+        worldCoordinateMap.DestroyCoordinateMap();
     }
 }
 
@@ -49,15 +49,17 @@ public class WorldMapEditor : Editor
 
         UpdateGUIWorldMap();
 
+        EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("Update"))
         {
             worldMap.UpdateWorldMap();
         }
 
-        if (GUILayout.Button("Reset"))
+        if (GUILayout.Button("Full Reset"))
         {
             worldMap.ResetWorldMap();
         }
+        EditorGUILayout.EndHorizontal();
 
         // ================================================= >>
 

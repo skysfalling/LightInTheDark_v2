@@ -194,6 +194,7 @@ public class WorldCoordinateMapEditor : Editor
 
         // Draw Paths
         List<WorldCoordinate> pathCoords = path.GetPathCoordinates();
+        if (pathCoords == null) return;
         foreach (WorldCoordinate coord in pathCoords)
         {
             DrawRectangleAtCoord(coord, pathColorRGBA);

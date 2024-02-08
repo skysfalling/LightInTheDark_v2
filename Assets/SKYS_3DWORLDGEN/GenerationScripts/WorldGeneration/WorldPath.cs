@@ -79,11 +79,13 @@ public class WorldPath
         WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.PATH);
 
         // Set Chunk Path Color
+        /*
         _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
         foreach(WorldChunk chunk in _pathChunks)
         {
             chunk.pathColor = _pathColor;
         }
+        */
 
         _initialized = true;
     }
@@ -189,14 +191,15 @@ public class WorldExitPath
         _initialized = true;
     }
 
-    public void Reset()
+    public void Reset(bool forceReset = false)
     {
         if (!_initialized) return;
 
         // Check if values are incorrectly initialized
         if (_pathStart != startExit.PathConnectionCoord 
             || _pathEnd != endExit.PathConnectionCoord
-            || _pathRandomness != pathRandomness)
+            || _pathRandomness != pathRandomness
+            || forceReset)
         {
             _worldPath.Reset();
             _initialized = false;

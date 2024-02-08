@@ -59,12 +59,14 @@ public class WorldZone
 
     public void Update()
     {
+        // Reassign the coordinate types
+        if (_zoneCoordinates.Count > 0) { WorldCoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, WorldCoordinate.TYPE.ZONE); }
+
+        // << INITIALIZE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         if ( _initialized ) { return; }
         _initialized = false;
 
         if (WorldCoordinateMap.coordMapInitialized == false) { return; }
-
-
 
         // Get affected neighbors
         List<WorldCoordinate> affectedNeighbors = new();
@@ -99,6 +101,7 @@ public class WorldZone
     {
         if (WorldCoordinateMap.coordMapInitialized == false || !_initialized) { return; }
 
+        // IF VALUES CHANGED
         if (_centerCoordinate == null || _centerCoordinate.Coordinate != coordinateVector 
             || zoneType != _storedZoneType)
         {
@@ -114,7 +117,19 @@ public class WorldZone
 
     public List<WorldCoordinate> GetZoneCoordinates() { return _zoneCoordinates; }
 
-    public bool IsInitialized() { return _initialized; }
+    public bool IsInitialized() {
+        // Check for treason ...
+        foreach (WorldCoordinate coord in _zoneCoordinates)
+        {
+            if (coord.type != WorldCoordinate.TYPE.ZONE) { 
+                _initialized = false;
+                Update();
+                break; 
+            }
+        }
+
+        return _initialized; 
+    }
 }
 
 // =================================================================
