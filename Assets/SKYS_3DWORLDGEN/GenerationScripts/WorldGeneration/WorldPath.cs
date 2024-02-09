@@ -64,6 +64,17 @@ public class WorldPath
 
     public void Initialize()
     {
+        // Check that all coords are valid
+        foreach (WorldCoordinate coord in _pathCoords)
+        {
+            if (coord.type != WorldCoordinate.TYPE.PATH)
+            {
+                _initialized = false;
+                return;
+            }
+        }
+
+        // Initialize
         if (_initialized || !WorldCoordinateMap.coordMapInitialized) return;
         _initialized = false;
 
@@ -84,11 +95,13 @@ public class WorldPath
         // Reset Coordinate Path Type
         if (_pathCoords != null && _pathCoords.Count > 0)
         {
+
+
             WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.NULL);
             _pathCoords.Clear();
-        }
 
-        _initialized = false;
+            _initialized = false;
+        }
     }
 
 

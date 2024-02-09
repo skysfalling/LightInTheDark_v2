@@ -70,7 +70,7 @@ public class WorldGeneration : MonoBehaviour
     #region == INITIALIZE ======
     private void Start()
     {
-        StartGeneration();
+        //StartGeneration();
     }
 
     public void StartGeneration()
@@ -102,24 +102,7 @@ public class WorldGeneration : MonoBehaviour
         generation_finished = false;
         if (_worldGenerationObject != null) { Reset(); }
 
-        // Get All Chunk Positions
-        //List<Vector2> allWorldChunkPositions = WorldCoordinateMap.GetCoordinateMapPositions();
         yield return new WaitForSeconds(delay);
-
-        /*
-        // [[ GENERATE PLAY AREA CHUNKS ]] ========================================== >>
-        foreach (Vector2 position in allPlayAreaChunkPositions)
-        {
-            WorldChunk newChunk = new WorldChunk(position);
-            _worldChunks.Add(newChunk);
-        }
-
-        // [[ GENERATE BORDER CHUNKS ]] ========================================== >>
-        foreach (Vector2 position in allBorderChunkPositions)
-        {
-            WorldChunk newChunk = new WorldChunk(position);
-            _borderChunks.Add(newChunk);
-        }
 
         // [[ GENERATE COMBINED MESHES ]] ========================================== >>
         // Create Combined Mesh of world chunks
@@ -135,7 +118,7 @@ public class WorldGeneration : MonoBehaviour
         _worldBorderObject = CreateCombinedMeshObject(combinedBorderMesh, WorldMaterialLibrary.chunkMaterial);
         _worldBorderObject.transform.parent = transform;
         _worldBorderObject.name = "(WORLD GENERATION) Combined Ground Border";
-        */
+        
 
         #region [[ INITIALIZE MAPS ]] ============================================= >>
         /*

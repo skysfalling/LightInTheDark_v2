@@ -124,7 +124,7 @@ public class WorldZone
             // Check for treason ...
             foreach (WorldCoordinate coord in _zoneCoordinates)
             {
-                if (coord.type != WorldCoordinate.TYPE.ZONE)
+                if (coord != null && coord.type != WorldCoordinate.TYPE.ZONE)
                 {
                     _initialized = false;
                     Update();

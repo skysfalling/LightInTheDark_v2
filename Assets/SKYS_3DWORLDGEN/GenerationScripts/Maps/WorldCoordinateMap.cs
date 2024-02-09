@@ -394,9 +394,7 @@ public class WorldCoordinateMap : MonoBehaviour
             {
                 Vector2Int candidate = openSet[i];
                 // Convert FCost and HCost checks to work with Vector2Int by accessing WorldCoordinate properties
-                if (fCost[candidate] <= fCost[current] &&
-                    CoordinateMap[current].type == WorldCoordinate.TYPE.NULL &&
-                    UnityEngine.Random.Range(0f, 1f) <= pathRandomness)
+                if (fCost[candidate] <= fCost[current] && UnityEngine.Random.Range(0f, 1f) <= pathRandomness)
                 {
                     current = openSet[i];
                 }
@@ -413,8 +411,14 @@ public class WorldCoordinateMap : MonoBehaviour
 
             foreach (WorldCoordinate neighbor in GetCoordinateNaturalNeighbors(CoordinateMap[current]))
             {
-                if (closedSet.Contains(neighbor.Coordinate) || CoordinateMap[neighbor.Coordinate].type != WorldCoordinate.TYPE.NULL) // Remove invalid neighbors
-                    continue; // Skip non-traversable neighbors and those already evaluated
+                WorldCoordinate.TYPE neighborType = GetCoordinateAt(neighbor.Coordinate).type;
+
+                if (closedSet.Contains(neighbor.Coordinate) ||
+                    neighborType == WorldCoordinate.TYPE.BORDER ||
+                    neighborType == WorldCoordinate.TYPE.EXIT ||
+                    neighborType == WorldCoordinate.TYPE.CLOSED ||
+                    neighborType == WorldCoordinate.TYPE.ZONE)
+                        continue; // Skip non-traversable neighbors and those already evaluated
 
                 float tentativeGCost = gCost[current] + Vector2Int.Distance(current, neighbor.Coordinate);
 
