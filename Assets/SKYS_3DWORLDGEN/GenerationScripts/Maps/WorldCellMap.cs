@@ -24,7 +24,7 @@ public class WorldCellMap : MonoBehaviour
 
         _worldGeneration = WorldGeneration.Instance;
         _worldPathfinder = _worldGeneration.GetComponent<WorldPathfinder>();
-        _worldCells = _worldGeneration.GetCells();
+        //_worldCells = _worldGeneration.GetCells();
         _cellFullNeighborMap.Clear();
 
         // SET CELL NEIGHBORS
@@ -200,6 +200,7 @@ public class WorldCellMap : MonoBehaviour
         float minDistance = float.MaxValue;
         WorldCell closestCell = null;
 
+        /*
         // Iterate over each cell in WorldGeneration
         foreach (WorldCell cell in _worldGeneration.GetCells())
         {
@@ -217,6 +218,7 @@ public class WorldCellMap : MonoBehaviour
             //Debug.Log("Closest cell found at: " + closestCell.position);
             return closestCell;
         }
+        */
 
         return null;
     }

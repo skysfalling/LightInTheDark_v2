@@ -95,8 +95,6 @@ public class WorldPath
         // Reset Coordinate Path Type
         if (_pathCoords != null && _pathCoords.Count > 0)
         {
-
-
             WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.NULL);
             _pathCoords.Clear();
 

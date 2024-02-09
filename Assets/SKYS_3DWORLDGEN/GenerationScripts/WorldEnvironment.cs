@@ -65,6 +65,7 @@ public class WorldEnvironment : MonoBehaviour
         _worldChunkEnvParentMap.Clear();
         _borderChunkEnvParentMap.Clear();
 
+        /*
         // << CREATE ENV PARENTS >>
         if (environmentObjects.Count == 0) { return; }
         foreach (WorldChunk chunk in _worldGeneration.GetChunks())
@@ -102,6 +103,7 @@ public class WorldEnvironment : MonoBehaviour
             borderChunk.Initialize();
             CreateChunkEnvironment(borderChunk, borderObjects, _borderChunkEnvParentMap);
         }
+        */
 
         generation_finished = true;
     }

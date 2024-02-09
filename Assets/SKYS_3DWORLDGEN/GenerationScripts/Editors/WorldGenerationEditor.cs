@@ -33,6 +33,13 @@ public class WorldGenerationEditor : Editor
         EditorGUILayout.LabelField("Real Chunk Area Size {in Units}", WorldGeneration.GetRealChunkAreaSize().ToString());
         EditorGUILayout.LabelField("Real Full World Size {in Units}", WorldGeneration.GetRealFullWorldSize().ToString());
 
+        EditorGUILayout.Space();
+        if (GUILayout.Button("Start Generation"))
+        {
+            WorldGeneration worldGeneration = (WorldGeneration)target;
+            worldGeneration.StartGeneration();
+        }
+
         // Check if any changes were made in the Inspector
         if (EditorGUI.EndChangeCheck())
         {

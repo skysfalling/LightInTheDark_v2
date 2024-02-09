@@ -22,6 +22,7 @@ public class WorldSpawnMap : MonoBehaviour
         _worldGeneration = FindObjectOfType<WorldGeneration>();
         _worldChunkMap = FindObjectOfType<WorldChunkMap>();
 
+        /*
         // Sort the chunks by type
         foreach (WorldChunk chunk in _worldGeneration.GetChunks())
         {
@@ -37,6 +38,7 @@ public class WorldSpawnMap : MonoBehaviour
             // Add the chunk to the appropriate list
             _chunkTypeMap[chunkType].Add(chunk);
         }
+        */
 
         initialized = true;
     }

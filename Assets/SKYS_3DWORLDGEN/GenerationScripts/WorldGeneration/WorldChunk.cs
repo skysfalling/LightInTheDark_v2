@@ -83,22 +83,24 @@ public class WorldChunk
         if (coordinate == null) return;
         GroundPosition = new Vector3(coordinate.WorldPosition.x, _realChunkHeight, coordinate.WorldPosition.z);
         GroundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
-        GroundMeshSpawnPosition = new Vector3(GroundPosition.x, _realChunkHeight * 0.5f, GroundPosition.z);
+        GroundMeshSpawnPosition = new Vector3(GroundPosition.x, GroundPosition.y * 0.5f, GroundPosition.z);
     }
-    
 
-    // ================ INITIALIZE WORLD CHUNK ============================= >>
-    #region
+
+    #region ================ INITIALIZE WORLD CHUNK ============================= >>
     public void Initialize()
     {
         _initialized = false;
 
         CreateMesh();
-        OffsetMesh(this.coordinate.WorldPosition);
+
+        /*
+        OffsetMesh(GroundMeshSpawnPosition);
         CreateCells();
         DetermineChunkEdges();
         SetChunkType();
         CreateCellTypeMap();
+        */
 
         _initialized = true;
     }
@@ -352,12 +354,12 @@ public class WorldChunk
             }
         }
     }
-    void OffsetMesh(Vector2 chunkPosition)
+    void OffsetMesh(Vector3 chunkWorldPosition)
     {
         Vector3[] vertices = mesh.vertices;
         for (int i = 0; i < vertices.Length; i++)
         {
-            vertices[i] += new Vector3(chunkPosition.x, 0, chunkPosition.y);
+            vertices[i] += chunkWorldPosition;
         }
         mesh.vertices = vertices;
     }
