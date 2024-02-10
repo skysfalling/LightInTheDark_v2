@@ -98,7 +98,7 @@ public class WorldChunk
     void CreateMesh()
     {
         int cellSize = WorldGeneration.CellSize;
-        Vector3Int chunkDimensions = WorldGeneration.GetChunkDimensions();
+        Vector3Int chunkDimensions = WorldGeneration.GetChunkDimensions() + (Vector3Int.up * groundHeight);
 
         Mesh newMesh = new Mesh();
         List<Vector3> vertices = new List<Vector3>();
