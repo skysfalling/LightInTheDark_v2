@@ -88,8 +88,6 @@ public class WorldPath
             if (type != WorldCoordinate.TYPE.PATH && type != WorldCoordinate.TYPE.NULL)
             {
                 typesAreValid = false;
-                //Debug.Log($"Found Invalid Path Type of {type} , ReInitializing");
-                Initialize();
             }
         }
 

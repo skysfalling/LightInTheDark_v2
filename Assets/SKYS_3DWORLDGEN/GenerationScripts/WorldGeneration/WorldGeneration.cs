@@ -95,25 +95,27 @@ public class WorldGeneration : MonoBehaviour
 
         yield return new WaitForSeconds(delay);
 
+
+        Debug.Log($"BEGIN WORLD GENERATION");
         FindObjectOfType<WorldMap>().UpdateWorldMap();
 
         yield return new WaitUntil(() => WorldCoordinateMap.coordMapInitialized);
         yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);
+        Debug.Log($"WORLD GENERATION :: MAPS INITIALIZED");
+
+        WorldCoordinateMap worldCoordMap = FindObjectOfType<WorldCoordinateMap>();
+        yield return new WaitUntil(() => worldCoordMap.exitPathsInitialized);
+        Debug.Log($"WORLD GENERATION :: PATHS INITIALIZED");
+
+        yield return new WaitUntil(() => worldCoordMap.zonesInitialized);
+        Debug.Log($"WORLD GENERATION :: ZONES INITIALIZED");
+
+
 
         Debug.Log($"WORLD GENERATION :: INITIALIZE {WorldChunkMap.ChunkList.Count} CHUNKS");
         foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
         {
             chunk.Initialize();
-
-            /*
-            GameObject newChunkObject = new GameObject($"Chunk {chunk.coordinate.WorldPosition}");
-            newChunkObject.transform.position = chunk.coordinate.WorldPosition;
-
-            MeshFilter filter = newChunkObject.AddComponent<MeshFilter>();
-            MeshRenderer meshRenderer = newChunkObject.AddComponent<MeshRenderer>();
-            filter.mesh = chunk.mesh;
-            meshRenderer.material = WorldMaterialLibrary.Instance.chunkMaterial;
-            */
         }
 
         // [[ GENERATE COMBINED MESHES ]] ========================================== >>
@@ -169,7 +171,7 @@ public class WorldGeneration : MonoBehaviour
         #endregion
 
         generation_finished = true;
-
+        _worldGenerationRoutine = null;
     }
     #endregion
 

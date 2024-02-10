@@ -121,7 +121,8 @@ public class WorldExitPath
         if (!_initialized) return;
 
         // Check if values are incorrectly initialized
-        if (_pathStart != startExit.PathConnectionCoord || _pathEnd != endExit.PathConnectionCoord
+        if (_pathStart != startExit.PathConnectionCoord 
+            || _pathEnd != endExit.PathConnectionCoord
             || _pathRandomness != pathRandomness
             || forceReset)
         {

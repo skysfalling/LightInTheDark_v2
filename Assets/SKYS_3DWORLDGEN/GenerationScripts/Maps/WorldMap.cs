@@ -39,6 +39,12 @@ public class WorldMapEditor : Editor
     private bool showWorldChunkMap = true;
     private Vector2 scrollPosition;
 
+    public void OnEnable()
+    {
+        WorldMap worldMap = (WorldMap)target;
+        worldMap.ResetWorldMap();
+    }
+
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
@@ -47,7 +53,7 @@ public class WorldMapEditor : Editor
         WorldCoordinateMap worldCoordinateMap = worldMap.GetComponent<WorldCoordinateMap>();
         WorldChunkMap worldChunkMap = worldMap.GetComponent<WorldChunkMap>();
 
-        WorldGeneration worldGenertion = FindObjectOfType<WorldGeneration>();
+        WorldGeneration worldGeneration = FindObjectOfType<WorldGeneration>();
 
         // ================================================= >>
 
@@ -55,6 +61,11 @@ public class WorldMapEditor : Editor
 
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("Generate"))
+        {
+            worldGeneration.StartGeneration();
+        }
+
+        if (GUILayout.Button("Update Map"))
         {
             worldMap.UpdateWorldMap();
         }

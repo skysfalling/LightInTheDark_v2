@@ -126,8 +126,6 @@ public class WorldZone
 
             _initialized = false;
 
-            // Auto Update
-            Update();
         }
     }
 

@@ -175,15 +175,15 @@ public class WorldCoordinateMapEditor : Editor
         // Draw the chunks
         foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
         {
-            switch (chunk.worldCoord.type)
+            switch (chunk.worldCoordinate.type)
             {
                 case WorldCoordinate.TYPE.PATH:
                     DrawRectangleAtChunkGround(chunk, Color.red);
-                    Handles.Label(chunk.groundPosition, new GUIContent($"{chunk.worldCoord.Coordinate}"), coordinatelabelStyle);
+                    Handles.Label(chunk.groundPosition, new GUIContent($"{chunk.coordinate}"), coordinatelabelStyle);
                     break;
                 case WorldCoordinate.TYPE.ZONE:
                     DrawRectangleAtChunkGround(chunk, Color.green);
-                    Handles.Label(chunk.groundPosition, new GUIContent($"{chunk.worldCoord.Coordinate}"), coordinatelabelStyle);
+                    Handles.Label(chunk.groundPosition, new GUIContent($"{chunk.coordinate}"), coordinatelabelStyle);
                     break;
             }
         }

@@ -1,10 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.UIElements;
-using UnityEngine.XR;
 
 [System.Serializable]
 public class WorldChunk
@@ -41,9 +37,9 @@ public class WorldChunk
         EXIT
     }
     public TYPE type;
-    public WorldCoordinate worldCoord;
+    public Vector2Int coordinate;
 
-
+    public WorldCoordinate worldCoordinate { get { return WorldCoordinateMap.CoordinateMap[coordinate]; } }
     public Vector3 groundPosition { get; private set; }
     public Vector3 groundMeshDimensions { get; private set; }
 
@@ -56,11 +52,11 @@ public class WorldChunk
     // Mesh
     [HideInInspector] public Mesh mesh;
 
-    public WorldChunk(WorldCoordinate coordinate)
+    public WorldChunk(WorldCoordinate worldCoord)
     {
-        this.worldCoord = coordinate;
+        this.coordinate = worldCoord.Coordinate;
         this.groundHeight = 0;
-        groundPosition = new Vector3( coordinate.WorldPosition.x, _realChunkHeight, coordinate.WorldPosition.z);
+        groundPosition = new Vector3(worldCoord.WorldPosition.x, _realChunkHeight, worldCoord.WorldPosition.z);
         groundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
     }
 
@@ -78,8 +74,8 @@ public class WorldChunk
 
     void RecalcuatePosition()
     {
-        if (worldCoord == null) return;
-        groundPosition = new Vector3(worldCoord.WorldPosition.x, _realChunkHeight, worldCoord.WorldPosition.z);
+        if (coordinate == null) return;
+        groundPosition = new Vector3(worldCoordinate.WorldPosition.x, _realChunkHeight, worldCoordinate.WorldPosition.z);
         groundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
     }
 
@@ -89,6 +85,7 @@ public class WorldChunk
     {
         _initialized = false;
 
+        DetermineChunkHeightFromNeighbors();
         CreateMesh();
         OffsetMesh(groundPosition);
         CreateCells();
@@ -301,7 +298,30 @@ public class WorldChunk
         if (activeEdgeCount == 1) { type = TYPE.WALL; return; }
         if (activeEdgeCount == 0) { type = TYPE.EMPTY; return; }
     }
+    public void DetermineChunkHeightFromNeighbors()
+    {
+        if (WorldCoordinateMap.CoordinateMap[coordinate].type != WorldCoordinate.TYPE.NULL) { return; }
 
+        List<WorldCoordinate> neighbors = WorldCoordinateMap.GetAllCoordinateNeighbors(coordinate);
+        if (neighbors.Count == 0) return; // Exit if there are no neighbors
+
+        int totalHeight = 0;
+
+        foreach (WorldCoordinate neighborCoord in neighbors)
+        {
+            WorldChunk neighbor = WorldChunkMap.GetChunkAt(neighborCoord);
+            if (neighbor != null)
+            {
+                totalHeight += neighbor.groundHeight;
+            }
+        }
+
+        int averageHeight = Mathf.RoundToInt(totalHeight / neighbors.Count);
+
+        // Optionally, you might want to round the average height or apply other logic
+        // For simplicity, we're directly setting the average height
+        SetGroundHeight(averageHeight);
+    }
     #endregion
 
     // ================ CREATE & INITIALIZE WORLD CELLS ============================== >>

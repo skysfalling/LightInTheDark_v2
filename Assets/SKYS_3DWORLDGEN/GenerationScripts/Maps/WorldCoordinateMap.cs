@@ -13,6 +13,11 @@ public class WorldCoordinateMap : MonoBehaviour
     }
 
     public static bool coordMapInitialized { get; private set; }
+    public bool exitPathsInitialized = false;
+    public bool zonesInitialized = false;
+
+
+
     bool _forceAllPathsReset = false;
 
     public static List<WorldCoordinate> CoordinateList { get; private set; }
@@ -121,13 +126,16 @@ public class WorldCoordinateMap : MonoBehaviour
     {
         InitializeCoordinateMap(); // Make sure CoordinateMap is initialized
 
-        yield return new WaitUntil(() => WorldCoordinateMap.coordMapInitialized);
+        yield return new WaitUntil(() => coordMapInitialized);
 
         // Initialize Random Seed :: IMPORTANT To keep the same results per seed
         WorldGeneration.InitializeRandomSeed();
 
-        // Set Borders to defaults
-        ResetAllCoordinatesToDefault();
+        if (!exitPathsInitialized || !zonesInitialized)
+        {
+            // Set all coordinate to default values
+            ResetAllCoordinatesToDefault();
+        }
 
         UpdateAllWorldZones(); // Update all world zones to new values
 
@@ -231,6 +239,14 @@ public class WorldCoordinateMap : MonoBehaviour
         return neighbors;
     }
 
+    public static List<WorldCoordinate> GetAllCoordinateNeighbors(Vector2Int coordinate)
+    {
+        WorldCoordinate coord = CoordinateMap[coordinate];
+        List<WorldCoordinate> neighbors = GetCoordinateNaturalNeighbors(coord);
+        neighbors.AddRange(GetCoordinateDiagonalNeighbors(coord));
+        return neighbors;
+    }
+
     public static WorldCoordinate GetCoordinateNeighborInDirection(WorldCoordinate coordinate, WorldDirection direction)
     {
         if (coordinate == null) { return null; }
@@ -326,31 +342,32 @@ public class WorldCoordinateMap : MonoBehaviour
 
     public void UpdateAllWorldExitPaths(bool forceReset = false)
     {
-
         Debug.Log($"Update All Paths :: forceReset {forceReset}");
-        bool pathAutoUpdate = false;
 
+
+        bool pathsAreInitialized = true;
         foreach (WorldExitPath path in worldExitPaths) 
         {
             path.Reset(forceReset);
+            path.EditorUpdate();
 
-            if (!forceReset)
+            // Check if the path is initialized
+            if (path.IsInitialized() == false)
             {
-                path.EditorUpdate();
-                if (path.IsInitialized() == false)
-                {
-                    pathAutoUpdate = true;
-                }
+                pathsAreInitialized = false;
             }
-
         }
 
-        // Debug.Log($"Force Paths Reset {forceReset}");
-        _forceAllPathsReset = false; // Paths have been reset
-
-        if (pathAutoUpdate )
+        if (pathsAreInitialized == false)
         {
-            UpdateAllWorldExitPaths(_forceAllPathsReset);
+            exitPathsInitialized = false;
+            UpdateAllWorldExitPaths(true);
+        }
+        else
+        {
+            // Debug.Log($"Force Paths Reset {forceReset}");
+            _forceAllPathsReset = false; // Paths have been reset
+            exitPathsInitialized = true;
         }
     }
 
@@ -377,13 +394,26 @@ public class WorldCoordinateMap : MonoBehaviour
 
     void UpdateAllWorldZones()
     {
+        bool zonesAreInitialized = true;
         foreach (WorldZone zone in worldZones) {
             zone.Reset();
+            zone.Update();
 
-            // Force Reset Paths
-            if (zone.IsInitialized() == false) { _forceAllPathsReset = true; }
 
-            zone.Update(); 
+            // Check if the zone is initialized
+            if (zone.IsInitialized() == false) 
+            { 
+                zonesAreInitialized = false; 
+            }
+
+        }
+
+        if (zonesAreInitialized == false) { 
+            _forceAllPathsReset = true;
+            zonesInitialized = false;
+        }
+        else { 
+            zonesInitialized = true; 
         }
     }
 
