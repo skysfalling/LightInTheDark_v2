@@ -44,9 +44,8 @@ public class WorldChunk
     public WorldCoordinate coordinate;
 
 
-    public static Vector3 GroundPosition { get; private set; }
-    public static Vector3 GroundMeshDimensions { get; private set; }
-    public static Vector3 GroundMeshSpawnPosition { get; private set; }
+    public Vector3 groundPosition { get; private set; }
+    public Vector3 groundMeshDimensions { get; private set; }
 
     // Active Edges
     bool _northEdgeActive;
@@ -61,9 +60,8 @@ public class WorldChunk
     {
         this.coordinate = coordinate;
         this.groundHeight = 0;
-        GroundPosition = new Vector3( coordinate.WorldPosition.x, _realChunkHeight, coordinate.WorldPosition.z);
-        GroundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
-        GroundMeshSpawnPosition = new Vector3(GroundPosition.x, _realChunkHeight * 0.5f, GroundPosition.z);
+        groundPosition = new Vector3( coordinate.WorldPosition.x, _realChunkHeight, coordinate.WorldPosition.z);
+        groundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
     }
 
     public void SetGroundHeight(int height)
@@ -75,15 +73,14 @@ public class WorldChunk
     public Vector3 GetGroundWorldPosition() 
     {
         RecalcuatePosition();
-        return GroundPosition; 
+        return groundPosition; 
     }
 
     void RecalcuatePosition()
     {
         if (coordinate == null) return;
-        GroundPosition = new Vector3(coordinate.WorldPosition.x, _realChunkHeight, coordinate.WorldPosition.z);
-        GroundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
-        GroundMeshSpawnPosition = new Vector3(GroundPosition.x, GroundPosition.y * 0.5f, GroundPosition.z);
+        groundPosition = new Vector3(coordinate.WorldPosition.x, _realChunkHeight, coordinate.WorldPosition.z);
+        groundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
     }
 
 
@@ -93,21 +90,18 @@ public class WorldChunk
         _initialized = false;
 
         CreateMesh();
-
-        /*
-        OffsetMesh(GroundMeshSpawnPosition);
+        OffsetMesh(groundPosition);
         CreateCells();
         DetermineChunkEdges();
         SetChunkType();
         CreateCellTypeMap();
-        */
 
         _initialized = true;
     }
     void CreateMesh()
     {
         int cellSize = WorldGeneration.CellSize;
-        Vector3Int chunkDimensions = WorldGeneration.GetRealChunkDimensions();
+        Vector3Int chunkDimensions = WorldGeneration.GetChunkDimensions();
 
         Mesh newMesh = new Mesh();
         List<Vector3> vertices = new List<Vector3>();
@@ -233,6 +227,15 @@ public class WorldChunk
 
         this.mesh = newMesh;
     }
+    void OffsetMesh(Vector3 chunkWorldPosition)
+    {
+        Vector3[] vertices = mesh.vertices;
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            vertices[i] += chunkWorldPosition;
+        }
+        mesh.vertices = vertices;
+    }
     void DetermineChunkEdges()
     {
         // Initialize all edges as active
@@ -354,15 +357,7 @@ public class WorldChunk
             }
         }
     }
-    void OffsetMesh(Vector3 chunkWorldPosition)
-    {
-        Vector3[] vertices = mesh.vertices;
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            vertices[i] += chunkWorldPosition;
-        }
-        mesh.vertices = vertices;
-    }
+
     void CreateCellTypeMap()
     {
         _cellTypeMap.Clear();

@@ -68,7 +68,7 @@ public class WorldGeneration : MonoBehaviour
     #region == INITIALIZE ======
     private void Start()
     {
-        //StartGeneration();
+        StartGeneration();
     }
 
     public void StartGeneration()
@@ -84,8 +84,6 @@ public class WorldGeneration : MonoBehaviour
     {
         Destroy(_worldGenerationObject);
         Destroy(_worldBorderObject);
-
-        FindObjectOfType<WorldMap>().ResetWorldMap();
     }
     #endregion
 
@@ -106,16 +104,29 @@ public class WorldGeneration : MonoBehaviour
         foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
         {
             chunk.Initialize();
+
+            /*
+            GameObject newChunkObject = new GameObject($"Chunk {chunk.coordinate.WorldPosition}");
+            newChunkObject.transform.position = chunk.coordinate.WorldPosition;
+
+            MeshFilter filter = newChunkObject.AddComponent<MeshFilter>();
+            MeshRenderer meshRenderer = newChunkObject.AddComponent<MeshRenderer>();
+            filter.mesh = chunk.mesh;
+            meshRenderer.material = WorldMaterialLibrary.Instance.chunkMaterial;
+            */
         }
 
         // [[ GENERATE COMBINED MESHES ]] ========================================== >>
+
+        
         // Create Combined Mesh of world chunks
         Mesh combinedMesh = CombineChunks(WorldChunkMap.ChunkList);
-        _worldGenerationObject = CreateCombinedMeshObject(combinedMesh, WorldMaterialLibrary.chunkMaterial);
+        _worldGenerationObject = CreateCombinedMeshObject(combinedMesh, WorldMaterialLibrary.Instance.chunkMaterial);
         _worldGenerationObject.transform.parent = transform;
         _worldGenerationObject.name = "(WORLD GENERATION) Combined Ground Mesh";
         MeshCollider collider = _worldGenerationObject.AddComponent<MeshCollider>();
         collider.sharedMesh = combinedMesh;
+        
 
         /*
         // Create Combined Mesh

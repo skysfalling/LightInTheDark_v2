@@ -47,14 +47,17 @@ public class WorldMapEditor : Editor
         WorldCoordinateMap worldCoordinateMap = worldMap.GetComponent<WorldCoordinateMap>();
         WorldChunkMap worldChunkMap = worldMap.GetComponent<WorldChunkMap>();
 
+        WorldGeneration worldGenertion = FindObjectOfType<WorldGeneration>();
+
         // ================================================= >>
 
         UpdateGUIWorldMap();
 
         EditorGUILayout.BeginHorizontal();
-        if (GUILayout.Button("Update"))
+        if (GUILayout.Button("Generate"))
         {
             worldMap.UpdateWorldMap();
+            worldGenertion.StartGeneration();
         }
 
         if (GUILayout.Button("Full Reset"))

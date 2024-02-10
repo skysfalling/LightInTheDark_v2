@@ -28,7 +28,7 @@ public class WorldGenerationEditor : Editor
         EditorGUILayout.LabelField("============");
         EditorGUILayout.LabelField("CurrentSeed", WorldGeneration.CurrentSeed.ToString());
         EditorGUILayout.LabelField("Cell Size {in Units}", WorldGeneration.CellSize.ToString());
-        EditorGUILayout.LabelField("Chunk Dimensions {in Cells}", WorldGeneration.ChunkArea.ToString());
+        EditorGUILayout.LabelField("Chunk Dimensions {in Cells}", WorldGeneration.GetChunkDimensions().ToString());
         EditorGUILayout.LabelField("Play Zone Area {in Chunks}", WorldGeneration.PlayZoneArea.ToString());
         EditorGUILayout.LabelField("Real Chunk Area Size {in Units}", WorldGeneration.GetRealChunkAreaSize().ToString());
         EditorGUILayout.LabelField("Real Full World Size {in Units}", WorldGeneration.GetRealFullWorldSize().ToString());

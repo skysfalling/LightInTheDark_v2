@@ -22,7 +22,7 @@ public class WorldMaterialLibrary : MonoBehaviour
     public Material cursor_hoverOver;
 
     [Space(10), Header("Materials")]
-    public static Material chunkMaterial; // Assign a material in the inspector
+    public Material chunkMaterial; // Assign a material in the inspector
     public Material borderChunkMaterial; // Assign a material in the inspector
 
     public Material GetMaterialOfCellType(WorldCell.TYPE type)
