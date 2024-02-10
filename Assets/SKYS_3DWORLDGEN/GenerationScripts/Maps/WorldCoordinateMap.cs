@@ -18,6 +18,7 @@ public class WorldCoordinateMap : MonoBehaviour
     public static List<WorldCoordinate> CoordinateList { get; private set; }
     public static Dictionary<Vector2Int, WorldCoordinate> CoordinateMap { get; private set; }
     public static Dictionary<WorldCoordinate, List<WorldCoordinate>> CoordinateNeighborMap { get; private set; }
+    public static Dictionary<WorldCoordinate.TYPE, List<WorldCoordinate>> CoordinateTypeMap { get; private set; }
 
 
     #region == HANDLE COORDINATE MAP ================================ ////
@@ -54,7 +55,7 @@ public class WorldCoordinateMap : MonoBehaviour
         SetAllCoordinateTypesToDefault();
     }
 
-    static void ResetBorderCoordinatesToDefault()
+    static void ResetAllCoordinatesToDefault()
     {
         Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
         Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkAreaSize();
@@ -83,6 +84,10 @@ public class WorldCoordinateMap : MonoBehaviour
                     if (x == xCoordCount - 1) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.East; }
                     if (y == yCoordCount - 1) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.North; }
                 }
+                else
+                {
+                    CoordinateMap[coordinateVector].type = WorldCoordinate.TYPE.NULL;
+                }
             }
         }
     }
@@ -91,7 +96,7 @@ public class WorldCoordinateMap : MonoBehaviour
     {
         CoordinateMap.ToList().ForEach(entry => entry.Value.type = WorldCoordinate.TYPE.NULL);
 
-        ResetBorderCoordinatesToDefault();
+        ResetAllCoordinatesToDefault();
     }
 
     public void DestroyCoordinateMap()
@@ -109,20 +114,26 @@ public class WorldCoordinateMap : MonoBehaviour
 
     public void UpdateCoordinateMap()
     {
+        StartCoroutine(UpdateRoutine());
+    }
+
+    IEnumerator UpdateRoutine()
+    {
         InitializeCoordinateMap(); // Make sure CoordinateMap is initialized
+
+        yield return new WaitUntil(() => WorldCoordinateMap.coordMapInitialized);
 
         // Initialize Random Seed :: IMPORTANT To keep the same results per seed
         WorldGeneration.InitializeRandomSeed();
 
-        ResetBorderCoordinatesToDefault();
+        // Set Borders to defaults
+        ResetAllCoordinatesToDefault();
 
         UpdateAllWorldZones(); // Update all world zones to new values
 
-        Invoke("DelayedPathsUpdate", 1);
-        
+        yield return new WaitForSeconds(0.25f);
+        UpdateAllWorldExitPaths(_forceAllPathsReset);
     }
-
-    void DelayedPathsUpdate() { UpdateAllWorldExitPaths(_forceAllPathsReset); }
 
     #endregion
 
@@ -149,6 +160,16 @@ public class WorldCoordinateMap : MonoBehaviour
             {
                 typeList.Add(coord);
             }
+        }
+        return typeList;
+    }
+
+    public static List<WorldCoordinate.TYPE> GetCoordinateTypesFromList(List<WorldCoordinate> worldCoords)
+    {
+        List<WorldCoordinate.TYPE> typeList = new();
+        foreach (WorldCoordinate coord in worldCoords)
+        {
+            typeList.Add(CoordinateMap[coord.Coordinate].type); // Get type from map
         }
         return typeList;
     }
@@ -233,6 +254,8 @@ public class WorldCoordinateMap : MonoBehaviour
 
         return coord;
     }
+
+
     #endregion
 
     #region == SET MAP COORDINATES ================================================================ ///
@@ -300,17 +323,35 @@ public class WorldCoordinateMap : MonoBehaviour
         }
         return null;
     }
-    
+
     public void UpdateAllWorldExitPaths(bool forceReset = false)
     {
+
+        Debug.Log($"Update All Paths :: forceReset {forceReset}");
+        bool pathAutoUpdate = false;
+
         foreach (WorldExitPath path in worldExitPaths) 
         {
             path.Reset(forceReset);
-            path.EditorUpdate(); 
+
+            if (!forceReset)
+            {
+                path.EditorUpdate();
+                if (path.IsInitialized() == false)
+                {
+                    pathAutoUpdate = true;
+                }
+            }
+
         }
 
         // Debug.Log($"Force Paths Reset {forceReset}");
         _forceAllPathsReset = false; // Paths have been reset
+
+        if (pathAutoUpdate )
+        {
+            UpdateAllWorldExitPaths(_forceAllPathsReset);
+        }
     }
 
     #endregion
@@ -336,7 +377,7 @@ public class WorldCoordinateMap : MonoBehaviour
 
     void UpdateAllWorldZones()
     {
-        foreach (WorldZone zone in worldZones) { 
+        foreach (WorldZone zone in worldZones) {
             zone.Reset();
 
             // Force Reset Paths
@@ -394,7 +435,9 @@ public class WorldCoordinateMap : MonoBehaviour
             {
                 Vector2Int candidate = openSet[i];
                 // Convert FCost and HCost checks to work with Vector2Int by accessing WorldCoordinate properties
-                if (fCost[candidate] <= fCost[current] && UnityEngine.Random.Range(0f, 1f) <= pathRandomness)
+                if (fCost[candidate] <= fCost[current] &&
+                    IsCoordinateValidForPathfinding(candidate) &&
+                    UnityEngine.Random.Range(0f, 1f) <= pathRandomness)
                 {
                     current = openSet[i];
                 }
@@ -411,13 +454,7 @@ public class WorldCoordinateMap : MonoBehaviour
 
             foreach (WorldCoordinate neighbor in GetCoordinateNaturalNeighbors(CoordinateMap[current]))
             {
-                WorldCoordinate.TYPE neighborType = GetCoordinateAt(neighbor.Coordinate).type;
-
-                if (closedSet.Contains(neighbor.Coordinate) ||
-                    neighborType == WorldCoordinate.TYPE.BORDER ||
-                    neighborType == WorldCoordinate.TYPE.EXIT ||
-                    neighborType == WorldCoordinate.TYPE.CLOSED ||
-                    neighborType == WorldCoordinate.TYPE.ZONE)
+                if (closedSet.Contains(neighbor.Coordinate) || !IsCoordinateValidForPathfinding(neighbor.Coordinate))
                         continue; // Skip non-traversable neighbors and those already evaluated
 
                 float tentativeGCost = gCost[current] + Vector2Int.Distance(current, neighbor.Coordinate);
@@ -461,6 +498,18 @@ public class WorldCoordinateMap : MonoBehaviour
         // This link has more heuristics :: https://www.enjoyalgorithms.com/blog/a-star-search-algorithm
         return Vector2.Distance(a.Position, b.Position);
     }
+
+    public static bool IsCoordinateValidForPathfinding(Vector2Int candidate)
+    {
+        // Check Types
+        if (CoordinateMap[candidate] != null && 
+           (CoordinateMap[candidate].type == WorldCoordinate.TYPE.NULL || CoordinateMap[candidate].type == WorldCoordinate.TYPE.PATH ))
+        {
+            return true;
+        }
+        return false;
+    }
+
     #endregion
 
 

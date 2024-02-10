@@ -80,12 +80,30 @@ public class WorldPath
 
         // Get Valid Path
         _pathCoords = WorldCoordinateMap.FindWorldCoordinatePath(_startCoordinate, _endCoordinate, _pathRandomness);
-        _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
+        List<WorldCoordinate.TYPE> types = WorldCoordinateMap.GetCoordinateTypesFromList(_pathCoords);
+        bool typesAreValid = true;
+        foreach (WorldCoordinate.TYPE type in types)
+        {
+            // If Coordinate Type does not match
+            if (type != WorldCoordinate.TYPE.PATH && type != WorldCoordinate.TYPE.NULL)
+            {
+                typesAreValid = false;
+                //Debug.Log($"Found Invalid Path Type of {type} , ReInitializing");
+                Initialize();
+            }
+        }
 
-        // Set Coordinate Path Type
-        WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.PATH);
+        if (typesAreValid)
+        {
+            //Debug.Log($"Found Valid Path");
 
-        _initialized = true;
+            _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
+
+            // Set Coordinate Path Type
+            WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.PATH);
+
+            _initialized = true;
+        }
     }
 
     public void Reset()
@@ -95,7 +113,6 @@ public class WorldPath
         // Reset Coordinate Path Type
         if (_pathCoords != null && _pathCoords.Count > 0)
         {
-            WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.NULL);
             _pathCoords.Clear();
 
             _initialized = false;

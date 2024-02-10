@@ -20,7 +20,7 @@ public class WorldExit
     WorldDirection _borderDirection;
     int _borderIndex;
     int _exitHeight;
-    bool _initialized;
+    bool _initialized = false;
 
     // Coordinate on border
     public WorldCoordinate Coordinate
@@ -62,18 +62,6 @@ public class WorldExit
 
     public bool IsInitialized()
     {
-        // Check if values match
-        if (_borderDirection != borderDirection 
-            || _borderIndex != borderIndex 
-            || _exitHeight != exitHeight
-            || Chunk.groundHeight != exitHeight)
-        {
-            UpdateValues();
-            _initialized = false;
-            return _initialized;
-        }
-
-        _initialized = true;
         return _initialized;
     }
 }
@@ -124,9 +112,8 @@ public class WorldExitPath
         if (_worldPath.IsInitialized() && WorldChunkMap.chunkMapInitialized)
         {
             _worldPath.DeterminePathChunkHeights(startExit.exitHeight, endExit.exitHeight);
+            _initialized = true;
         }
-
-        _initialized = true;
     }
 
     public void Reset(bool forceReset = false)

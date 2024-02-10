@@ -140,7 +140,7 @@ public class WorldCoordinateMapEditor : Editor
 
     private void DrawMap()
     {
-        if (WorldCoordinateMap.coordMapInitialized == false) { return; }
+        if (WorldCoordinateMap.coordMapInitialized == false || WorldChunkMap.chunkMapInitialized == false) { return; }
 
         List<WorldCoordinate> coordList = WorldCoordinateMap.CoordinateList;
         Vector3 realChunkDimensions = WorldGeneration.GetRealChunkDimensions();
@@ -172,19 +172,21 @@ public class WorldCoordinateMapEditor : Editor
             }
         }
 
-        // DRAW PATHS
-        WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
-        foreach (WorldExitPath path in worldCoordMap.worldExitPaths)
+        // Draw the chunks
+        foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
         {
-            DrawExitPath(path);
+            switch (chunk.worldCoord.type)
+            {
+                case WorldCoordinate.TYPE.PATH:
+                    DrawRectangleAtChunkGround(chunk, Color.red);
+                    Handles.Label(chunk.groundPosition, new GUIContent($"{chunk.worldCoord.Coordinate}"), coordinatelabelStyle);
+                    break;
+                case WorldCoordinate.TYPE.ZONE:
+                    DrawRectangleAtChunkGround(chunk, Color.green);
+                    Handles.Label(chunk.groundPosition, new GUIContent($"{chunk.worldCoord.Coordinate}"), coordinatelabelStyle);
+                    break;
+            }
         }
-
-        // DRAW ZONES
-        foreach (WorldZone zone in worldCoordMap.worldZones)
-        {
-            DrawZone(zone);
-        }
-
     }
 
     void DrawExitPath(WorldExitPath exitPath)
@@ -198,16 +200,6 @@ public class WorldCoordinateMapEditor : Editor
         WorldCoordinate endExitCoord = exitPath.endExit.Coordinate;
         DrawRectangleAtWorldCoordinate(startExitCoord, pathColorRGBA);
         DrawRectangleAtWorldCoordinate(endExitCoord, pathColorRGBA);
-
-        // Draw Paths
-        /*
-        List<WorldCoordinate> pathCoords = path.GetPathCoordinates();
-        if (pathCoords == null) return;
-        foreach (WorldCoordinate coord in pathCoords)
-        {
-            DrawRectangleAtCoord(coord, pathColorRGBA);
-        }
-        */
 
         if (WorldChunkMap.chunkMapInitialized)
         {
@@ -237,16 +229,16 @@ public class WorldCoordinateMapEditor : Editor
         Color zoneColorRGBA = WorldZone.GetRGBAfromZoneColorType(zone.zoneColor);
 
         // Draw Zones
-        List<WorldCoordinate> zoneCoords = zone.GetZoneCoordinates();
-        foreach (WorldCoordinate coord in zoneCoords)
+        List<WorldChunk> zoneChunks = zone.GetZoneChunks();
+        foreach (WorldChunk chunk in zoneChunks)
         {
-            DrawRectangleAtWorldCoordinate(coord, zoneColorRGBA);
+            DrawRectangleAtChunkGround(chunk, zoneColorRGBA);
         }
     }
 
     private void DrawRectangleAtChunkGround(WorldChunk worldChunk, Color fillColor)
     {
-        if (WorldChunkMap.chunkMapInitialized == false) return;
+        if (WorldChunkMap.chunkMapInitialized == false || worldChunk == null) return;
 
         Handles.color = fillColor;
         Handles.DrawSolidRectangleWithOutline(
@@ -257,7 +249,7 @@ public class WorldCoordinateMapEditor : Editor
 
     private void DrawRectangleAtWorldCoordinate(WorldCoordinate coord, Color fillColor)
     {
-        if (WorldCoordinateMap.coordMapInitialized == false) return;
+        if (WorldCoordinateMap.coordMapInitialized == false || coord == null) return;
 
         Handles.color = fillColor;
         Handles.DrawSolidRectangleWithOutline(

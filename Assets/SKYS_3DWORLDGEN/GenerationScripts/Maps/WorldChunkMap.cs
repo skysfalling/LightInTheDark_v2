@@ -84,7 +84,7 @@ public class WorldChunkMap : MonoBehaviour
 
     public static WorldChunk GetChunkAt(WorldCoordinate worldCoord)
     {
-        if (!chunkMapInitialized) { return null; }
+        if (!chunkMapInitialized || worldCoord == null) { return null; }
 
         // Use the dictionary for fast lookups
         if (WorldCoordChunkMap.TryGetValue(worldCoord, out WorldChunk foundChunk))
@@ -109,6 +109,25 @@ public class WorldChunkMap : MonoBehaviour
     #endregion
 
 
+    #region == SET CHUNKS =====================================////
 
+    public static void SetChunksToHeight(List<WorldChunk> worldChunk, int chunkHeight)
+    {
+        foreach (WorldChunk chunk in worldChunk)
+        {
+            chunk.SetGroundHeight(chunkHeight);
+        }
+    }
 
+    public static void SetChunksToHeightFromCoordinates(List<WorldCoordinate> worldCoords, int chunkHeight)
+    {
+        foreach (WorldCoordinate coord in worldCoords)
+        {
+            WorldChunk chunk = GetChunkAt(coord);
+            if (chunk != null)
+                chunk.SetGroundHeight(chunkHeight);
+        }
+    }
+
+    #endregion
 }

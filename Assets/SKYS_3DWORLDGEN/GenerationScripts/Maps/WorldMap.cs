@@ -57,7 +57,6 @@ public class WorldMapEditor : Editor
         if (GUILayout.Button("Generate"))
         {
             worldMap.UpdateWorldMap();
-            worldGenertion.StartGeneration();
         }
 
         if (GUILayout.Button("Full Reset"))

@@ -41,7 +41,7 @@ public class WorldChunk
         EXIT
     }
     public TYPE type;
-    public WorldCoordinate coordinate;
+    public WorldCoordinate worldCoord;
 
 
     public Vector3 groundPosition { get; private set; }
@@ -58,7 +58,7 @@ public class WorldChunk
 
     public WorldChunk(WorldCoordinate coordinate)
     {
-        this.coordinate = coordinate;
+        this.worldCoord = coordinate;
         this.groundHeight = 0;
         groundPosition = new Vector3( coordinate.WorldPosition.x, _realChunkHeight, coordinate.WorldPosition.z);
         groundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
@@ -78,8 +78,8 @@ public class WorldChunk
 
     void RecalcuatePosition()
     {
-        if (coordinate == null) return;
-        groundPosition = new Vector3(coordinate.WorldPosition.x, _realChunkHeight, coordinate.WorldPosition.z);
+        if (worldCoord == null) return;
+        groundPosition = new Vector3(worldCoord.WorldPosition.x, _realChunkHeight, worldCoord.WorldPosition.z);
         groundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
     }
 
