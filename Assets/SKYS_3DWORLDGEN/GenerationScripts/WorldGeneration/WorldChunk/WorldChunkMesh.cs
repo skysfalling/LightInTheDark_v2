@@ -26,7 +26,7 @@ public class MeshQuad
 public class WorldChunkMesh
 {
     int _cellSize = WorldGeneration.CellSize;
-    Vector3Int _chunkDimensions = WorldGeneration.GetChunkDimensions();
+    Vector3Int real_chunkMeshDimensions;
 
     Dictionary<FaceType, List<Vector3>> _meshVertices = new();
     Dictionary<FaceType, List<Vector2>> _meshUVs = new();
@@ -43,7 +43,7 @@ public class WorldChunkMesh
     Mesh CreateMesh(int groundHeight)
     {
         int cellSize = WorldGeneration.CellSize;
-        Vector3Int chunkDimensions = WorldGeneration.GetChunkDimensions() + (Vector3Int.up * groundHeight);
+        real_chunkMeshDimensions = WorldGeneration.GetChunkDimensions() + (Vector3Int.up * groundHeight);
         Mesh newMesh = new Mesh();
 
         List<Vector3> vertices = new();
@@ -127,13 +127,25 @@ public class WorldChunkMesh
 
                         // Track the quad
                         Vector2Int faceCoordinate = new Vector2Int(j, i);
-                        List<Vector3> quadVertices = new List<Vector3>
+                        List<Vector3> quadVertices = new();
+                        try
                         {
-                            vertices[bottomLeft],
-                            vertices[bottomRight],
-                            vertices[topRight],
-                            vertices[topLeft]
-                        };
+                            quadVertices = new List<Vector3>
+                            {
+                                vertices[bottomLeft],
+                                vertices[bottomRight],
+                                vertices[topRight],
+                                vertices[topLeft]
+                            };
+                        }
+                        catch
+                        {
+                            Debug.LogError($"Quad Creation Failed. " +
+                                $"\n\tCurrent Vertice count {vertices.Count}" +
+                                $"\n\tBottomLeft index {bottomLeft} || BottomRight index {topRight}" +
+                                $"\n\tTopLeft index {topLeft} || TopRight index {topRight}");
+                        }
+
 
                         MeshQuad quad = new MeshQuad(faceType, faceCoordinate, quadVertices);
                         meshQuads.Add(quad);
@@ -152,12 +164,12 @@ public class WorldChunkMesh
                     case FaceType.Back:
                     case FaceType.Right:
                     case FaceType.Left:
-                        currentVertexIndex += (chunkDimensions.x + 1) * (chunkDimensions.y + 1);
+                        currentVertexIndex += (real_chunkMeshDimensions.x + 1) * (real_chunkMeshDimensions.y + 1);
                         break;
                     // Top Faces XZ plane
                     case FaceType.Top:
                     case FaceType.Bottom:
-                        currentVertexIndex += (chunkDimensions.x + 1) * (chunkDimensions.z + 1);
+                        currentVertexIndex += (real_chunkMeshDimensions.x + 1) * (real_chunkMeshDimensions.z + 1);
                         break;
                 }
             }
@@ -193,7 +205,7 @@ public class WorldChunkMesh
         }
 
         // full size of the chunks in Unity units
-        Vector3Int fullsize_chunkDimensions = _chunkDimensions * _cellSize;
+        Vector3Int fullsize_chunkDimensions = real_chunkMeshDimensions * _cellSize;
 
         // center and adjust y of the mesh appropriately
         Vector3 newFaceStartOffset = new Vector3((fullsize_chunkDimensions.x) * 0.5f, -(fullsize_chunkDimensions.y), (fullsize_chunkDimensions.z) * 0.5f);
@@ -239,19 +251,19 @@ public class WorldChunkMesh
             // Side Faces XY plane
             case FaceType.Front:
             case FaceType.Back:
-                uDivisions = _chunkDimensions.x;
-                vDivisions = _chunkDimensions.y;
+                uDivisions = real_chunkMeshDimensions.x;
+                vDivisions = real_chunkMeshDimensions.y;
                 break;
             case FaceType.Right:
             case FaceType.Left:
-                uDivisions = _chunkDimensions.z;
-                vDivisions = _chunkDimensions.y;
+                uDivisions = real_chunkMeshDimensions.z;
+                vDivisions = real_chunkMeshDimensions.y;
                 break;
             // Top Faces XZ plane
             case FaceType.Top:
             case FaceType.Bottom:
-                uDivisions = _chunkDimensions.x;
-                vDivisions = _chunkDimensions.z;
+                uDivisions = real_chunkMeshDimensions.x;
+                vDivisions = real_chunkMeshDimensions.z;
                 break;
 
         }

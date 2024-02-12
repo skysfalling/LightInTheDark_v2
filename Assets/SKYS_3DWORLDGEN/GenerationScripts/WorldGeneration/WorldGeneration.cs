@@ -110,13 +110,20 @@ public class WorldGeneration : MonoBehaviour
         yield return new WaitUntil(() => worldCoordMap.zonesInitialized);
         Debug.Log($"WORLD GENERATION :: ZONES INITIALIZED");
 
-        Debug.Log($"WORLD GENERATION :: INITIALIZE {WorldChunkMap.ChunkList.Count} CHUNKS");
         foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
         {
             chunk.Initialize();
+            yield return new WaitUntil(() => chunk.initialized);
+
+            CreateMeshObject($"Chunk {chunk.coordinate}", chunk.chunkMesh.mesh, WorldMaterialLibrary.Instance.chunkMaterial);            
+
         }
+        yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);
+        Debug.Log($"WORLD GENERATION :: INITIALIZED {WorldChunkMap.ChunkList.Count} CHUNKS");
+
 
         // [[ GENERATE COMBINED MESHES ]] ========================================== >>
+        /*
         // Create Combined Mesh of world chunks
         Mesh combinedMesh = CombineChunks(WorldChunkMap.ChunkList);
         _worldGenerationObject = CreateCombinedMeshObject(combinedMesh, WorldMaterialLibrary.Instance.chunkMaterial);
@@ -124,6 +131,7 @@ public class WorldGeneration : MonoBehaviour
         _worldGenerationObject.name = "(WORLD GENERATION) Combined Ground Mesh";
         MeshCollider collider = _worldGenerationObject.AddComponent<MeshCollider>();
         collider.sharedMesh = combinedMesh;
+        */
         
         /*
         // Create Combined Mesh
@@ -206,15 +214,13 @@ public class WorldGeneration : MonoBehaviour
         return combinedMesh;
     }
 
-    /// <summary>
-    /// Creates a GameObject to represent the combined mesh in the scene, attaching necessary components like MeshFilter and MeshRenderer.
-    /// </summary>
-    /// <param name="combinedMesh">The combined Mesh to be represented.</param>
-    GameObject CreateCombinedMeshObject(Mesh combinedMesh, Material material)
+
+    GameObject CreateMeshObject(string name, Mesh mesh, Material material)
     {
-        GameObject worldObject = new GameObject("CombinedChunk");
-        worldObject.AddComponent<MeshFilter>().mesh = combinedMesh;
+        GameObject worldObject = new GameObject(name);
+        worldObject.AddComponent<MeshFilter>().mesh = mesh;
         worldObject.AddComponent<MeshRenderer>().material = material;
+        worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
 
         return worldObject;
     }

@@ -47,17 +47,6 @@ public class WorldChunkMap : MonoBehaviour
         ChunkList = new();
         WorldCoordChunkMap = new();
         CoordinateChunkMap = new();
-
-        // Reset Path Colors
-        /*
-        foreach (WorldChunk chunk in GetChunkMap())
-        {
-            chunk.groundHeight = 0;
-            chunk.pathColor = WorldPath.PathColor.CLEAR;
-            chunk.zoneColor = WorldZone.ZoneColor.CLEAR;
-        }
-        */
-
         chunkMapInitialized = false;
     }
 

@@ -10,7 +10,6 @@ public class WorldChunk
 
     WorldGeneration _worldGeneration;
     string prefix = " [[ WORLD CHUNK ]]";
-    bool _initialized = false;
     Vector2 _realChunkAreaSize { get { return WorldGeneration.GetRealChunkAreaSize(); } }
 
     public WorldChunkMesh chunkMesh;
@@ -42,6 +41,7 @@ public class WorldChunk
     }
     public TYPE type;
     public Vector2Int coordinate;
+    public bool initialized = false;
 
     public WorldCoordinate worldCoordinate { get { return WorldCoordinateMap.CoordinateMap[coordinate]; } }
     public Vector3 groundPosition { get; private set; }
@@ -84,7 +84,7 @@ public class WorldChunk
     #region ================ INITIALIZE WORLD CHUNK ============================= >>
     public void Initialize()
     {
-        _initialized = false;
+        initialized = false;
 
         DetermineChunkHeightFromNeighbors();
 
@@ -97,7 +97,7 @@ public class WorldChunk
         SetChunkType();
         CreateCellTypeMap();
 
-        _initialized = true;
+        initialized = true;
     }
 
 
@@ -323,14 +323,14 @@ public class WorldChunk
     // ================= HELPER FUNCTIONS ============================== >>
     public List<WorldCell> GetCellsOfType(WorldCell.TYPE cellType)
     {
-        if (!_initialized) { return new List<WorldCell>(); }
+        if (!initialized) { return new List<WorldCell>(); }
         if (!_cellTypeMap.ContainsKey(cellType)) { _cellTypeMap[cellType] = new List<WorldCell>(); }
         return _cellTypeMap[cellType];
     }
 
     public WorldCell GetRandomCellOfType(WorldCell.TYPE cellType)
     {
-        if (!_initialized) { return null; }
+        if (!initialized) { return null; }
         List<WorldCell> cells = GetCellsOfType(cellType);
         return cells[UnityEngine.Random.Range(0, cells.Count)];
     }

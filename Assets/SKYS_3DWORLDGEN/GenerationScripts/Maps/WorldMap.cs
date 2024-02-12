@@ -142,5 +142,97 @@ public class WorldMapEditor : Editor
 
         EditorGUILayout.EndScrollView();
     }
+
+    private void OnSceneGUI()
+    {
+
+        DrawWorldMap();
+    }
+
+    private void DrawCoordinateMap()
+    {
+
+    }
+
+    private void DrawWorldMap()
+    {
+        if (WorldCoordinateMap.coordMapInitialized == false || WorldChunkMap.chunkMapInitialized == false) { return; }
+
+        // Start by defining a GUIStyle for your labels
+        GUIStyle coordinatelabelStyle = new GUIStyle();
+        coordinatelabelStyle.fontSize = 10; // Adjust font size
+        coordinatelabelStyle.normal.textColor = Color.black; // Text color
+        coordinatelabelStyle.alignment = TextAnchor.MiddleCenter; // Center the text
+
+        // << DRAW BASE COORDINATE MAP >>
+        List<WorldCoordinate> coordList = WorldCoordinateMap.CoordinateList;
+        foreach (WorldCoordinate coord in coordList)
+        {
+            switch (coord.type)
+            {
+                case WorldCoordinate.TYPE.NULL:
+                case WorldCoordinate.TYPE.BORDER:
+                case WorldCoordinate.TYPE.CLOSED:
+                    DrawRectangleAtWorldCoordinate(coord, coord.debugColor);
+                    break;
+            }
+        }
+
+        // << DRAW CHUNK MAP >>
+        foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
+        {
+            switch (chunk.worldCoordinate.type)
+            {
+                case WorldCoordinate.TYPE.PATH:
+                    DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
+                    Handles.Label(chunk.groundPosition, new GUIContent($"PATH {chunk.coordinate}"), coordinatelabelStyle);
+                    break;
+                case WorldCoordinate.TYPE.ZONE:
+                    DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
+                    Handles.Label(chunk.groundPosition, new GUIContent($"ZONE {chunk.coordinate}"), coordinatelabelStyle);
+                    break;
+                case WorldCoordinate.TYPE.EXIT:
+                    DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
+                    Handles.Label(chunk.groundPosition, new GUIContent($"EXIT {chunk.coordinate}"), coordinatelabelStyle);
+                    break;
+            }
+        }
+    }
+
+    private void DrawRectangleAtChunkGround(WorldChunk worldChunk, Color fillColor)
+    {
+        if (WorldChunkMap.chunkMapInitialized == false || worldChunk == null) return;
+
+        Handles.color = fillColor;
+        Handles.DrawSolidRectangleWithOutline(
+            GetRectangleVertices(worldChunk.GetGroundWorldPosition(),
+            WorldGeneration.GetRealChunkAreaSize()),
+            fillColor, Color.clear);
+    }
+
+    private void DrawRectangleAtWorldCoordinate(WorldCoordinate coord, Color fillColor)
+    {
+        if (WorldCoordinateMap.coordMapInitialized == false || coord == null) return;
+
+        Handles.color = fillColor;
+        Handles.DrawSolidRectangleWithOutline(
+            GetRectangleVertices(coord.WorldPosition,
+            WorldGeneration.GetRealChunkAreaSize()),
+            fillColor, Color.clear);
+    }
+
+    private Vector3[] GetRectangleVertices(Vector3 center, Vector2 area)
+    {
+        Vector2 halfArea = area * 0.5f;
+        Vector3[] vertices = new Vector3[4]
+        {
+            center + new Vector3(-halfArea.x, 0, -halfArea.y),
+            center + new Vector3(halfArea.x, 0, -halfArea.y),
+            center + new Vector3(halfArea.x, 0, halfArea.y),
+            center + new Vector3(-halfArea.x, 0, halfArea.y)
+        };
+
+        return vertices;
+    }
 }
 #endif

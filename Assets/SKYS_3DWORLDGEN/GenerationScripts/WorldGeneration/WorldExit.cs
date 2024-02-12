@@ -23,21 +23,13 @@ public class WorldExit
     bool _initialized = false;
 
     // Coordinate on border
-    public WorldCoordinate WorldCoordinate
-    {
-        get { return WorldCoordinateMap.GetCoordinateAtWorldExit(this); }
-    }
+    public WorldCoordinate worldCoordinate;
 
     // Connecting Neighbor that is in the playArea
-    public WorldCoordinate PathConnection
-    {
-        get { return WorldCoordinateMap.GetWorldExitPathConnection(this); }
-    }
+    public WorldCoordinate pathConnection;
 
-    public WorldChunk Chunk
-    {
-        get { return WorldChunkMap.GetChunkAt(WorldCoordinate); }
-    }
+    // World Chunk
+    public WorldChunk chunk;
 
     // == INSPECTOR VALUES >>
     public WorldDirection borderDirection = WorldDirection.West;
@@ -53,6 +45,10 @@ public class WorldExit
         borderDirection = direction;
         borderIndex = index;
 
+        worldCoordinate = WorldCoordinateMap.GetCoordinateAtWorldExit(this);
+        pathConnection = WorldCoordinateMap.GetWorldExitPathConnection(this);
+        chunk = WorldChunkMap.GetChunkAt(worldCoordinate);
+
         UpdateValues();
     }
 
@@ -61,7 +57,13 @@ public class WorldExit
         _borderDirection = borderDirection;
         _borderIndex = borderIndex;
         _exitHeight = exitHeight;
-        Chunk.SetGroundHeight(_exitHeight);
+
+        if (!WorldCoordinateMap.coordMapInitialized || !WorldChunkMap.chunkMapInitialized) return;
+        worldCoordinate = WorldCoordinateMap.GetCoordinateAtWorldExit(this); 
+        pathConnection = WorldCoordinateMap.GetWorldExitPathConnection(this);
+        chunk = WorldChunkMap.GetChunkAt(worldCoordinate);
+
+        chunk.SetGroundHeight(_exitHeight);
         _initialized = true;
     }
 
@@ -105,12 +107,9 @@ public class WorldExitPath
         if (newStart || newEnd) { Reset(true); }
         if (_initialized) { return; }
 
-        startExit.WorldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
-        endExit.WorldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
-
         // Update private variables
-        _pathStart = startExit.PathConnection;
-        _pathEnd = endExit.PathConnection;
+        _pathStart = startExit.pathConnection;
+        _pathEnd = endExit.pathConnection;
         _pathRandomness = pathRandomness;
 
         // Get new World Path
@@ -122,6 +121,17 @@ public class WorldExitPath
             _worldPath.DeterminePathChunkHeights(startExit.exitHeight, endExit.exitHeight);
             _initialized = true;
         }
+
+
+        // Update Exit Values
+        startExit.worldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
+        endExit.worldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
+
+        WorldCoordinateMap.SetMapCoordinateToType(startExit.worldCoordinate, WorldCoordinate.TYPE.EXIT);
+        WorldCoordinateMap.SetMapCoordinateToType(endExit.worldCoordinate, WorldCoordinate.TYPE.EXIT);
+
+        startExit.chunk.SetGroundHeight(startExit.exitHeight);
+        endExit.chunk.SetGroundHeight(endExit.exitHeight);
     }
 
     public void Reset(bool forceReset = false)
@@ -129,8 +139,8 @@ public class WorldExitPath
         if (!_initialized) return;
 
         // Check if values are incorrectly initialized
-        if (_pathStart != startExit.PathConnection 
-            || _pathEnd != endExit.PathConnection
+        if (_pathStart != startExit.pathConnection 
+            || _pathEnd != endExit.pathConnection
             || _pathRandomness != pathRandomness
             || forceReset)
         {

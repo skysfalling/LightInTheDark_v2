@@ -320,13 +320,13 @@ public class WorldCoordinateMap : MonoBehaviour
         switch (exit.borderDirection)
         {
             case WorldDirection.West:
-                return GetCoordinateNeighborInDirection(exit.WorldCoordinate, WorldDirection.East);
+                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.East);
             case WorldDirection.East:
-                return GetCoordinateNeighborInDirection(exit.WorldCoordinate, WorldDirection.West);
+                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.West);
             case WorldDirection.North:
-                return GetCoordinateNeighborInDirection(exit.WorldCoordinate, WorldDirection.South);
+                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.South);
             case WorldDirection.South:
-                return GetCoordinateNeighborInDirection(exit.WorldCoordinate, WorldDirection.North);
+                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.North);
         }
 
         return null;
@@ -538,7 +538,9 @@ public class WorldCoordinateMap : MonoBehaviour
     {
         // Check Types
         if (CoordinateMap[candidate] != null && 
-           (CoordinateMap[candidate].type == WorldCoordinate.TYPE.NULL || CoordinateMap[candidate].type == WorldCoordinate.TYPE.PATH ))
+           (CoordinateMap[candidate].type == WorldCoordinate.TYPE.NULL 
+           || CoordinateMap[candidate].type == WorldCoordinate.TYPE.PATH
+           || CoordinateMap[candidate].type == WorldCoordinate.TYPE.EXIT))
         {
             return true;
         }
