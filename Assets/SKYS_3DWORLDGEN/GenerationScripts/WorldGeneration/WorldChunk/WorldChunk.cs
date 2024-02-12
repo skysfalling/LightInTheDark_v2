@@ -97,13 +97,6 @@ public class WorldChunk
         SetChunkType();
         CreateCellTypeMap();
 
-
-        foreach (WorldCell cell in localCells)
-        {
-            if (cell == null) continue;
-            cell.ShowDebugCube();
-        }
-
         _initialized = true;
     }
 
@@ -208,8 +201,12 @@ public class WorldChunk
 
         foreach(MeshQuad quad in chunkMesh.meshQuads)
         {
-            WorldCell newCell = new WorldCell(this, quad);
-            localCells.Add(newCell);
+            // Spawn top face cells
+            if (quad.faceType == FaceType.Top)
+            {
+                WorldCell newCell = new WorldCell(this, quad);
+                localCells.Add(newCell);
+            }
         }
     }
 

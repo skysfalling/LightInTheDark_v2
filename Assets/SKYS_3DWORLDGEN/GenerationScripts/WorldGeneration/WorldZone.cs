@@ -6,23 +6,22 @@ using UnityEngine;
 [System.Serializable]
 public class WorldZone
 {
-    public enum ZoneColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE, CLEAR }
-    public ZoneColor zoneColor = ZoneColor.GREEN;
-    public static Color GetRGBAfromZoneColorType(ZoneColor pathColor)
+    public DebugColor zoneColor = DebugColor.GREEN;
+    public static Color GetRGBAfromDebugColor(DebugColor zoneColor)
     {
-        switch (pathColor)
+        switch (zoneColor)
         {
-            case ZoneColor.BLACK:
+            case DebugColor.BLACK:
                 return Color.black;
-            case ZoneColor.WHITE:
+            case DebugColor.WHITE:
                 return Color.white;
-            case ZoneColor.RED:
+            case DebugColor.RED:
                 return Color.red;
-            case ZoneColor.YELLOW:
+            case DebugColor.YELLOW:
                 return Color.yellow;
-            case ZoneColor.GREEN:
+            case DebugColor.GREEN:
                 return Color.green;
-            case ZoneColor.BLUE:
+            case DebugColor.BLUE:
                 return Color.blue;
             default:
                 return Color.clear;
@@ -101,7 +100,7 @@ public class WorldZone
         _zoneCoordinates.AddRange(affectedNeighbors);
 
         // Assign Zone TYPE
-        WorldCoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, WorldCoordinate.TYPE.ZONE);
+        WorldCoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, WorldCoordinate.TYPE.ZONE, GetRGBAfromDebugColor(zoneColor));
 
         // Assign Chunk Heights
         WorldChunkMap.SetChunksToHeightFromCoordinates(_zoneCoordinates, zoneHeight);

@@ -11,38 +11,38 @@ using UnityEditor;
 [System.Serializable]
 public class WorldPath
 {
-    public enum PathColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE, CLEAR }
-    PathColor _pathColor = PathColor.CLEAR;
-    public static Color GetRGBAfromPathColorType(PathColor pathColor)
+    DebugColor _pathColor = DebugColor.CLEAR;
+    public static Color GetRGBAFromDebugColor(DebugColor pathColor)
     {
         switch (pathColor)
         {
-            case PathColor.BLACK:
+            case DebugColor.BLACK:
                 return Color.black;
-            case PathColor.WHITE:
+            case DebugColor.WHITE:
                 return Color.white;
-            case PathColor.RED:
+            case DebugColor.RED:
                 return Color.red;
-            case PathColor.YELLOW:
+            case DebugColor.YELLOW:
                 return Color.yellow;
-            case PathColor.GREEN:
+            case DebugColor.GREEN:
                 return Color.green;
-            case PathColor.BLUE:
+            case DebugColor.BLUE:
                 return Color.blue;
             default:
                 return Color.clear;
         }
     }
-    public static PathColor GetRandomPathColor()
+
+    public static DebugColor GetRandomPathColor()
     {
         // Get all values of the PathColor enum
-        Array values = Enum.GetValues(typeof(PathColor));
+        Array values = Enum.GetValues(typeof(DebugColor));
 
         // Select a random index
         int randomIndex = UnityEngine.Random.Range(0, values.Length);
 
         // Return the random PathColor
-        return (PathColor)values.GetValue(randomIndex);
+        return (DebugColor)values.GetValue(randomIndex);
     }
 
 
@@ -53,7 +53,7 @@ public class WorldPath
     float _pathRandomness = 0;
     bool _initialized = false;
 
-    public WorldPath(WorldCoordinate startCoord, WorldCoordinate endCoord, PathColor pathColor, float pathRandomness = 0)
+    public WorldPath(WorldCoordinate startCoord, WorldCoordinate endCoord, DebugColor pathColor, float pathRandomness = 0)
     {
         this._startCoordinate = startCoord.Coordinate;
         this._endCoordinate = endCoord.Coordinate;
@@ -98,7 +98,7 @@ public class WorldPath
             _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
 
             // Set Coordinate Path Type
-            WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.PATH);
+            WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.PATH, GetRGBAFromDebugColor(_pathColor));
 
             _initialized = true;
         }

@@ -4,6 +4,9 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
+
+public enum DebugColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE, CLEAR }
+
 public class WorldCoordinateMap : MonoBehaviour
 {
     public static WorldCoordinateMap Instance;
@@ -70,17 +73,21 @@ public class WorldCoordinateMap : MonoBehaviour
             for (int y = 0; y < yCoordCount; y++)
             {
                 Vector2Int coordinateVector = new Vector2Int(x, y);
+                WorldCoordinate worldCoordinate = CoordinateMap[coordinateVector];
 
                 // Check if the position is in a corner & close it
                 if ((x == 0 && y == 0) || (x == xCoordCount - 1 && y == 0) ||
                     (x == 0 && y == yCoordCount - 1) || (x == xCoordCount - 1 && y == yCoordCount - 1))
                 {
-                    CoordinateMap[coordinateVector].type = WorldCoordinate.TYPE.CLOSED;
+                    worldCoordinate.type = WorldCoordinate.TYPE.CLOSED;
+                    worldCoordinate.debugColor = Color.black;
                 }
                 // Check if the position is on the border
                 else if (x == 0 || y == 0 || x == xCoordCount - 1 || y == yCoordCount - 1)
                 {
-                    CoordinateMap[coordinateVector].type = WorldCoordinate.TYPE.BORDER;
+                    worldCoordinate.type = WorldCoordinate.TYPE.BORDER;
+                    worldCoordinate.debugColor = Color.black;
+
                     if (x == 0) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.West; }
                     if (y == 0) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.South; }
                     if (x == xCoordCount - 1) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.East; }
@@ -88,7 +95,8 @@ public class WorldCoordinateMap : MonoBehaviour
                 }
                 else
                 {
-                    CoordinateMap[coordinateVector].type = WorldCoordinate.TYPE.NULL;
+                    worldCoordinate.type = WorldCoordinate.TYPE.NULL;
+                    worldCoordinate.debugColor = Color.grey;
                 }
             }
         }
@@ -128,11 +136,8 @@ public class WorldCoordinateMap : MonoBehaviour
         // Initialize Random Seed :: IMPORTANT To keep the same results per seed
         WorldGeneration.InitializeRandomSeed();
 
-        if (!exitPathsInitialized || !zonesInitialized)
-        {
-            // Set all coordinate to default values
-            ResetAllCoordinatesToDefault();
-        }
+        // Set all coordinate to default values
+        ResetAllCoordinatesToDefault();
 
         UpdateAllWorldZones(); // Update all world zones to new values
 
@@ -272,18 +277,21 @@ public class WorldCoordinateMap : MonoBehaviour
     #endregion
 
     #region == SET MAP COORDINATES ================================================================ ///
-    public static bool SetMapCoordinateToType(WorldCoordinate worldCoord, WorldCoordinate.TYPE type)
+    public static bool SetMapCoordinateToType(WorldCoordinate worldCoord, WorldCoordinate.TYPE type, Color? debugColor = null)
     {
         if (!coordMapInitialized || worldCoord == null) { return false; }
         CoordinateMap[worldCoord.Coordinate].type = type;
+
+        if (debugColor.HasValue) { worldCoord.debugColor = debugColor.Value; }
+
         return true;
     }
-    public static bool SetMapCoordinatesToType(List<WorldCoordinate> coords, WorldCoordinate.TYPE conversionType)
+    public static bool SetMapCoordinatesToType(List<WorldCoordinate> coords, WorldCoordinate.TYPE conversionType, Color? debugColor = null)
     {
         if (!coordMapInitialized) { return false; }
         foreach (WorldCoordinate coordinate in coords)
         {
-            SetMapCoordinateToType(coordinate, conversionType);
+            SetMapCoordinateToType(coordinate, conversionType, debugColor);
         }
         return true;
     }
@@ -302,8 +310,8 @@ public class WorldCoordinateMap : MonoBehaviour
             return;
         }
 
-        WorldExit defaultStart = new WorldExit(WorldDirection.West, 5);
-        WorldExit defaultEnd = new WorldExit(WorldDirection.East, 5);
+        WorldExit defaultStart = new WorldExit(WorldDirection.West, 0);
+        WorldExit defaultEnd = new WorldExit(WorldDirection.East, 9);
         worldExitPaths.Add(new WorldExitPath(defaultStart, defaultEnd));
     }
 
@@ -312,13 +320,13 @@ public class WorldCoordinateMap : MonoBehaviour
         switch (exit.borderDirection)
         {
             case WorldDirection.West:
-                return GetCoordinateNeighborInDirection(exit.Coordinate, WorldDirection.East);
+                return GetCoordinateNeighborInDirection(exit.WorldCoordinate, WorldDirection.East);
             case WorldDirection.East:
-                return GetCoordinateNeighborInDirection(exit.Coordinate, WorldDirection.West);
+                return GetCoordinateNeighborInDirection(exit.WorldCoordinate, WorldDirection.West);
             case WorldDirection.North:
-                return GetCoordinateNeighborInDirection(exit.Coordinate, WorldDirection.South);
+                return GetCoordinateNeighborInDirection(exit.WorldCoordinate, WorldDirection.South);
             case WorldDirection.South:
-                return GetCoordinateNeighborInDirection(exit.Coordinate, WorldDirection.North);
+                return GetCoordinateNeighborInDirection(exit.WorldCoordinate, WorldDirection.North);
         }
 
         return null;

@@ -158,15 +158,9 @@ public class WorldCoordinateMapEditor : Editor
             switch (coord.type)
             {
                 case WorldCoordinate.TYPE.NULL:
-                    DrawRectangleAtWorldCoordinate(coord, Color.clear);
-                    Handles.Label(coord.WorldPosition, new GUIContent($"{coord.Coordinate}"), coordinatelabelStyle);
-                    break;
                 case WorldCoordinate.TYPE.BORDER:
-                    DrawRectangleAtWorldCoordinate(coord, Color.red);
-                    Handles.Label(coord.WorldPosition, new GUIContent($"{coord.Coordinate}"), coordinatelabelStyle);
-                    break;
                 case WorldCoordinate.TYPE.CLOSED:
-                    DrawRectangleAtWorldCoordinate(coord, Color.black);
+                    DrawRectangleAtWorldCoordinate(coord, coord.debugColor);
                     Handles.Label(coord.WorldPosition, new GUIContent($"{coord.Coordinate}"), coordinatelabelStyle);
                     break;
             }
@@ -178,11 +172,8 @@ public class WorldCoordinateMapEditor : Editor
             switch (chunk.worldCoordinate.type)
             {
                 case WorldCoordinate.TYPE.PATH:
-                    DrawRectangleAtChunkGround(chunk, Color.red);
-                    Handles.Label(chunk.groundPosition, new GUIContent($"{chunk.coordinate}"), coordinatelabelStyle);
-                    break;
                 case WorldCoordinate.TYPE.ZONE:
-                    DrawRectangleAtChunkGround(chunk, Color.green);
+                    DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
                     Handles.Label(chunk.groundPosition, new GUIContent($"{chunk.coordinate}"), coordinatelabelStyle);
                     break;
             }
@@ -196,8 +187,8 @@ public class WorldCoordinateMapEditor : Editor
         Color pathColorRGBA = exitPath.GetPathColorRGBA();
 
         // Draw Exits
-        WorldCoordinate startExitCoord = exitPath.startExit.Coordinate;
-        WorldCoordinate endExitCoord = exitPath.endExit.Coordinate;
+        WorldCoordinate startExitCoord = exitPath.startExit.WorldCoordinate;
+        WorldCoordinate endExitCoord = exitPath.endExit.WorldCoordinate;
         DrawRectangleAtWorldCoordinate(startExitCoord, pathColorRGBA);
         DrawRectangleAtWorldCoordinate(endExitCoord, pathColorRGBA);
 
@@ -226,7 +217,7 @@ public class WorldCoordinateMapEditor : Editor
     {
         if (zone == null || !zone.IsInitialized()) return;
 
-        Color zoneColorRGBA = WorldZone.GetRGBAfromZoneColorType(zone.zoneColor);
+        Color zoneColorRGBA = WorldZone.GetRGBAfromDebugColor(zone.zoneColor);
 
         // Draw Zones
         List<WorldChunk> zoneChunks = zone.GetZoneChunks();

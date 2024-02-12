@@ -35,7 +35,7 @@ public class WorldGeneration : MonoBehaviour
     public static int CellSize = 4; // Size of each WorldCell // Size of each WorldCell { in Unity Units }
     public static Vector2Int ChunkArea = new Vector2Int(5, 5); // Area of each WorldChunk { in WorldCell Units }
     public static int ChunkDepth = 3;
-    public static Vector2Int PlayZoneArea = new Vector2Int(1, 1); // Default size of PlayArea { in WorldChunk Units }
+    public static Vector2Int PlayZoneArea = new Vector2Int(10, 10); // Default size of PlayArea { in WorldChunk Units }
     public static int BoundaryOffset = 1; // Boundary offset value 
     public static int MaxChunkHeight = 10; // Maximum chunk height
 
@@ -135,19 +135,6 @@ public class WorldGeneration : MonoBehaviour
 
         #region [[ INITIALIZE MAPS ]] ============================================= >>
         /*
-        // Initialize Cell Map
-        WorldCellMap worldCellMap = FindObjectOfType<WorldCellMap>();
-        worldCellMap.InitializeCellMap();
-        yield return new WaitUntil(() => worldCellMap.initialized);
-        Debug.Log(_prefix + "COMPLETE : Initialized World Cell Map");
-
-        // Initialize Chunk Map
-        WorldChunkMap worldChunkMap = FindObjectOfType<WorldChunkMap>();
-        FindObjectOfType<WorldChunkMap>().GetChunkMap();
-        yield return new WaitUntil(() => worldChunkMap.initialized);
-        Debug.Log(_prefix + "COMPLETE : Initialized World Chunk Map");
-        */
-
         // Initialize Spawn Map
         /*
         WorldSpawnMap worldSpawnMap = FindObjectOfType<WorldSpawnMap>();

@@ -63,10 +63,17 @@ public class WorldMapEditor : Editor
         UpdateGUIWorldMap();
 
         EditorGUILayout.BeginHorizontal();
-        if (GUILayout.Button("Generate"))
+        // Check if the editor is not in play mode
+        if (!EditorApplication.isPlaying)
+        {
+            // Display an error message or perform your checks here
+            EditorGUILayout.HelpBox("You can only generate in Play Mode.", MessageType.Error);
+        }
+        else if (GUILayout.Button("Generate"))
         {
             worldGeneration.StartGeneration();
         }
+
 
         if (GUILayout.Button("Update Map"))
         {
@@ -99,6 +106,10 @@ public class WorldMapEditor : Editor
         // Begin a scroll view to handle maps that won't fit in the inspector window
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.Width(mapWidth * (mapGUIBoxSize * 1.5f)), GUILayout.Height(mapHeight * (mapGUIBoxSize * 1.5f)));
 
+        // Attempt to center the map grid horizontally
+        GUILayout.BeginHorizontal();
+        GUILayout.FlexibleSpace(); // Add space before to center the content
+
         // Create a flexible layout to start drawing the map
         GUILayout.BeginVertical();
         for (int y = mapHeight - 1; y >= 0; y--)
@@ -112,7 +123,7 @@ public class WorldMapEditor : Editor
                     if (worldCoord != null)
                     {
                         // Draw a box for each type of coordinate with different colors
-                        Color color = GetColorForCoordinateType(worldCoord.type);
+                        Color color = worldCoord.debugColor;
                         Rect rect = EditorGUILayout.GetControlRect(GUILayout.Width(mapGUIBoxSize), GUILayout.Height(mapGUIBoxSize));
                         EditorGUI.DrawRect(rect, color);
                         continue; // continue to next coordinate
@@ -125,21 +136,11 @@ public class WorldMapEditor : Editor
             GUILayout.EndHorizontal();
         }
         GUILayout.EndVertical();
+
+        GUILayout.FlexibleSpace();
+        GUILayout.EndHorizontal();
+
         EditorGUILayout.EndScrollView();
     }
-
-    private Color GetColorForCoordinateType(WorldCoordinate.TYPE type)
-    {
-        return type switch
-        {
-            WorldCoordinate.TYPE.NULL => Color.grey,
-            WorldCoordinate.TYPE.PATH => Color.yellow,
-            WorldCoordinate.TYPE.ZONE => Color.green,
-            WorldCoordinate.TYPE.BORDER => Color.red,
-            WorldCoordinate.TYPE.CLOSED => Color.black,
-            _ => Color.white,
-        };
-    }
-
 }
 #endif

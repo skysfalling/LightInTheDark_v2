@@ -7,6 +7,7 @@ public class WorldCoordinate
     public enum TYPE { NULL, BORDER, EXIT, PATH, ZONE, CLOSED }
     public TYPE type;
     public WorldDirection borderEdgeDirection;
+    public Color debugColor = Color.clear;
 
     public Vector2Int Coordinate { get; private set; }
     public Vector2 Position { get; private set; }

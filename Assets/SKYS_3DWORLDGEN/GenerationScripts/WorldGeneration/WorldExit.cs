@@ -23,20 +23,20 @@ public class WorldExit
     bool _initialized = false;
 
     // Coordinate on border
-    public WorldCoordinate Coordinate
+    public WorldCoordinate WorldCoordinate
     {
         get { return WorldCoordinateMap.GetCoordinateAtWorldExit(this); }
     }
 
     // Connecting Neighbor that is in the playArea
-    public WorldCoordinate PathConnectionCoord
+    public WorldCoordinate PathConnection
     {
         get { return WorldCoordinateMap.GetWorldExitPathConnection(this); }
     }
 
     public WorldChunk Chunk
     {
-        get { return WorldChunkMap.GetChunkAt(Coordinate); }
+        get { return WorldChunkMap.GetChunkAt(WorldCoordinate); }
     }
 
     // == INSPECTOR VALUES >>
@@ -46,8 +46,13 @@ public class WorldExit
 
     public WorldExit(WorldDirection direction, int index)
     {
+        this._borderDirection = direction;
+        this._borderIndex = index;
+        this._exitHeight = exitHeight;
+
         borderDirection = direction;
         borderIndex = index;
+
         UpdateValues();
     }
 
@@ -75,7 +80,7 @@ public class WorldExitPath
     WorldPath _worldPath;
     bool _initialized = false;
 
-    public WorldPath.PathColor pathColor = WorldPath.PathColor.YELLOW;
+    public DebugColor pathColor = DebugColor.YELLOW;
     [Range(0, 1)] public float pathRandomness = 0f;
     public WorldExit startExit;
     public WorldExit endExit;
@@ -89,6 +94,7 @@ public class WorldExitPath
         this.startExit = startExit;
         this.endExit = endExit;
         this.pathColor = WorldPath.GetRandomPathColor();
+        this.pathRandomness = 1;
     }
 
     public void EditorUpdate()
@@ -97,12 +103,14 @@ public class WorldExitPath
         bool newStart = startExit.IsInitialized();
         bool newEnd = endExit.IsInitialized();
         if (newStart || newEnd) { Reset(true); }
-
         if (_initialized) { return; }
 
+        startExit.WorldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
+        endExit.WorldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
+
         // Update private variables
-        _pathStart = startExit.PathConnectionCoord;
-        _pathEnd = endExit.PathConnectionCoord;
+        _pathStart = startExit.PathConnection;
+        _pathEnd = endExit.PathConnection;
         _pathRandomness = pathRandomness;
 
         // Get new World Path
@@ -121,8 +129,8 @@ public class WorldExitPath
         if (!_initialized) return;
 
         // Check if values are incorrectly initialized
-        if (_pathStart != startExit.PathConnectionCoord 
-            || _pathEnd != endExit.PathConnectionCoord
+        if (_pathStart != startExit.PathConnection 
+            || _pathEnd != endExit.PathConnection
             || _pathRandomness != pathRandomness
             || forceReset)
         {
@@ -148,7 +156,7 @@ public class WorldExitPath
 
     public Color GetPathColorRGBA()
     {
-        return WorldPath.GetRGBAfromPathColorType(pathColor);
+        return WorldPath.GetRGBAFromDebugColor(pathColor);
     }
 }
 
