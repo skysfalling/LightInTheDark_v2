@@ -25,9 +25,12 @@ public class WorldMap : MonoBehaviour
     {
         WorldCoordinateMap worldCoordinateMap = GetComponent<WorldCoordinateMap>();
         WorldChunkMap worldChunkMap = GetComponent<WorldChunkMap>();
+        WorldCellMap worldCellMap = GetComponent<WorldCellMap>();
 
         worldCoordinateMap.DestroyCoordinateMap();
         worldChunkMap.DestroyChunkMap();
+        worldCellMap.Reset();
+
     }
 }
 

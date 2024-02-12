@@ -119,6 +119,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97b232c10588f6a499c0ca26e13742c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  exitPathsInitialized: 0
+  zonesInitialized: 0
   worldExitPaths: []
   worldZones: []
 --- !u!114 &4652889822070907782

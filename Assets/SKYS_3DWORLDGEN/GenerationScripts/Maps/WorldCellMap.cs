@@ -41,6 +41,7 @@ public class WorldCellMap : MonoBehaviour
 
         initialized = true;
     }
+
     public void Reset()
     {
         _worldCells.Clear();

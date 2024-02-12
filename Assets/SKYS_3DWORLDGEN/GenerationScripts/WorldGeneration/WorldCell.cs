@@ -21,6 +21,7 @@ public class WorldCell
     WorldChunk _chunkParent;
     int _chunkCellIndex;
     WorldMaterialLibrary _materialLibrary;
+    MeshQuad _meshQuad;
 
     [HideInInspector] public float astar_fCost;
     [HideInInspector] public float astar_gCost;
@@ -30,18 +31,21 @@ public class WorldCell
     GameObject _debugCubeObject;
     float _defaultRelativeScale = 0.25f;
     float _debugCubeRelativeScale = 0.25f; // percentage of the WorldGeneration cellSize
-    public Vector3[] vertices; // Corners of the cell
+
+    public Vector3[] vertices; // Corners of the cell  
     public Vector3 position;     // Center position of the cell
 
-    public WorldCell(WorldChunk chunkParent, int chunkCellIndex, Vector3[] vertices)
+    public WorldCell(WorldChunk chunkParent, MeshQuad meshQuad)
     {
         this._generation = WorldGeneration.Instance;
         this._chunkParent = chunkParent;
-        this._chunkCellIndex = chunkCellIndex;
         this._materialLibrary = WorldMaterialLibrary.Instance;
+        this._meshQuad = meshQuad;
 
-        this.vertices = vertices;
-        position = (vertices[0] + vertices[1] + vertices[2] + vertices[3]) / 4;
+
+        // Set Position [[ parent position offset + center of corresponding quad ]]
+        this.position = chunkParent.groundPosition + meshQuad.GetCenterPosition();
+
     }
 
     public void SetCellType(TYPE type)
@@ -55,7 +59,7 @@ public class WorldCell
     }
 
     public void CreateDebugCube()
-    {
+    {  
         float relativeSize = WorldGeneration.CellSize * _debugCubeRelativeScale;
 
         this._debugCubeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -63,6 +67,7 @@ public class WorldCell
         this._debugCubeObject.transform.position = position + (Vector3.up * relativeSize * 0.5f); // adjust height offset
         this._debugCubeObject.transform.localScale = Vector3.one * relativeSize; // adjust scale
         this._debugCubeObject.GetComponent<MeshRenderer>().material = _materialLibrary.GetMaterialOfCellType(type); // set material
+        this._debugCubeObject.name = $"WorldCell {_meshQuad.faceType} {_meshQuad.faceCoord} at Chunk {_chunkParent.coordinate}";
     }
 
     public GameObject GetDebugCube()

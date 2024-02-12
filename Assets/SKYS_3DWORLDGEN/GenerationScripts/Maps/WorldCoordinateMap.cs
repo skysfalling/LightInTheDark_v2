@@ -15,9 +15,6 @@ public class WorldCoordinateMap : MonoBehaviour
     public static bool coordMapInitialized { get; private set; }
     public bool exitPathsInitialized = false;
     public bool zonesInitialized = false;
-
-
-
     bool _forceAllPathsReset = false;
 
     public static List<WorldCoordinate> CoordinateList { get; private set; }

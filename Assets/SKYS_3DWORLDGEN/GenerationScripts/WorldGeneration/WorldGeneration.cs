@@ -35,7 +35,7 @@ public class WorldGeneration : MonoBehaviour
     public static int CellSize = 4; // Size of each WorldCell // Size of each WorldCell { in Unity Units }
     public static Vector2Int ChunkArea = new Vector2Int(5, 5); // Area of each WorldChunk { in WorldCell Units }
     public static int ChunkDepth = 3;
-    public static Vector2Int PlayZoneArea = new Vector2Int(10, 10); // Default size of PlayArea { in WorldChunk Units }
+    public static Vector2Int PlayZoneArea = new Vector2Int(1, 1); // Default size of PlayArea { in WorldChunk Units }
     public static int BoundaryOffset = 1; // Boundary offset value 
     public static int MaxChunkHeight = 10; // Maximum chunk height
 
@@ -68,7 +68,7 @@ public class WorldGeneration : MonoBehaviour
     #region == INITIALIZE ======
     private void Start()
     {
-        StartGeneration();
+        //StartGeneration();
     }
 
     public void StartGeneration()
@@ -110,8 +110,6 @@ public class WorldGeneration : MonoBehaviour
         yield return new WaitUntil(() => worldCoordMap.zonesInitialized);
         Debug.Log($"WORLD GENERATION :: ZONES INITIALIZED");
 
-
-
         Debug.Log($"WORLD GENERATION :: INITIALIZE {WorldChunkMap.ChunkList.Count} CHUNKS");
         foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
         {
@@ -119,8 +117,6 @@ public class WorldGeneration : MonoBehaviour
         }
 
         // [[ GENERATE COMBINED MESHES ]] ========================================== >>
-
-        
         // Create Combined Mesh of world chunks
         Mesh combinedMesh = CombineChunks(WorldChunkMap.ChunkList);
         _worldGenerationObject = CreateCombinedMeshObject(combinedMesh, WorldMaterialLibrary.Instance.chunkMaterial);
@@ -129,13 +125,12 @@ public class WorldGeneration : MonoBehaviour
         MeshCollider collider = _worldGenerationObject.AddComponent<MeshCollider>();
         collider.sharedMesh = combinedMesh;
         
-
         /*
         // Create Combined Mesh
         Mesh combinedBorderMesh = CombineChunks(_borderChunks);
         _worldBorderObject = CreateCombinedMeshObject(combinedBorderMesh, WorldMaterialLibrary.chunkMaterial);
         _worldBorderObject.transform.parent = transform;
-        _worldBorderObject.name = "(WORLD GENERATION) Combined Ground Border";
+        _worldBorderObject.name = "(WORLD GENERATION) Combined Ground Border";  
         */
 
         #region [[ INITIALIZE MAPS ]] ============================================= >>
@@ -187,7 +182,7 @@ public class WorldGeneration : MonoBehaviour
         List<Mesh> meshes = new List<Mesh>();
         foreach (WorldChunk chunk in chunks)
         {
-            meshes.Add(chunk.mesh);
+            meshes.Add(chunk.chunkMesh.mesh);
         }
 
         List<Vector3> newVertices = new List<Vector3>();
