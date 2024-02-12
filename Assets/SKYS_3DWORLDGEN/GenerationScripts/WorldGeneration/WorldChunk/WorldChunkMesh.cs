@@ -28,19 +28,27 @@ public class WorldChunkMesh
     int _cellSize = WorldGeneration.CellSize;
     Vector3Int real_chunkMeshDimensions;
 
+    WorldChunk chunk;
     Dictionary<FaceType, List<Vector3>> _meshVertices = new();
     Dictionary<FaceType, List<Vector2>> _meshUVs = new();
     public List<MeshQuad> meshQuads = new();
 
     public Mesh mesh;
 
-    public WorldChunkMesh(int groundHeight, Vector3 groundPosition)
+    public WorldChunkMesh(WorldChunk chunk, int groundHeight, Vector3 groundPosition)
     {
-        this.mesh = CreateMesh(groundHeight);
+        List<FaceType> facesToGenerate = new List<FaceType>()
+        {
+            FaceType.Front , FaceType.Back ,
+            FaceType.Left, FaceType.Right, 
+            FaceType.Top, FaceType.Bottom
+        };
+
+        this.mesh = CreateMesh(groundHeight, facesToGenerate);
         OffsetMesh(groundPosition);
     }
 
-    Mesh CreateMesh(int groundHeight)
+    Mesh CreateMesh(int groundHeight, List<FaceType> facesToGenerate)
     {
         int cellSize = WorldGeneration.CellSize;
         real_chunkMeshDimensions = WorldGeneration.GetChunkDimensions() + (Vector3Int.up * groundHeight);
@@ -50,10 +58,6 @@ public class WorldChunkMesh
         List<Vector2> uvs = new();
         List<int> triangles = new();
 
-        List<FaceType> facesToGenerate = new List<FaceType>() 
-        { 
-            FaceType.Front , FaceType.Back ,FaceType.Right, FaceType.Left, FaceType.Top, FaceType.Bottom
-        };
 
         // << CREATE MESH FACES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         // Updates meshVertices dictionary with < FaceType , List<Vector3> vertices >
@@ -162,8 +166,8 @@ public class WorldChunkMesh
                     // Side Faces XY plane
                     case FaceType.Front:
                     case FaceType.Back:
-                    case FaceType.Right:
                     case FaceType.Left:
+                    case FaceType.Right:
                         currentVertexIndex += (real_chunkMeshDimensions.x + 1) * (real_chunkMeshDimensions.y + 1);
                         break;
                     // Top Faces XZ plane
@@ -216,9 +220,9 @@ public class WorldChunkMesh
                 return MultiplyVectors(newFaceStartOffset, new Vector3(-1, 1, 1));
             case FaceType.Back:
                 return MultiplyVectors(newFaceStartOffset, new Vector3(1, 1, -1));
-            case FaceType.Right:
-                return MultiplyVectors(newFaceStartOffset, new Vector3(-1, 1, -1));
             case FaceType.Left:
+                return MultiplyVectors(newFaceStartOffset, new Vector3(-1, 1, -1));
+            case FaceType.Right:
                 return MultiplyVectors(newFaceStartOffset, new Vector3(1, 1, 1));
             case FaceType.Top:
                 return MultiplyVectors(newFaceStartOffset, new Vector3(1, 0, -1));
@@ -235,8 +239,8 @@ public class WorldChunkMesh
         {
             case FaceType.Front: return Vector3.forward;
             case FaceType.Back: return Vector3.back;
-            case FaceType.Right: return Vector3.right;
             case FaceType.Left: return Vector3.left;
+            case FaceType.Right: return Vector3.right;
             case FaceType.Top: return Vector3.up;
             case FaceType.Bottom: return Vector3.down;
             default: return Vector3.zero;
@@ -254,8 +258,8 @@ public class WorldChunkMesh
                 uDivisions = real_chunkMeshDimensions.x;
                 vDivisions = real_chunkMeshDimensions.y;
                 break;
-            case FaceType.Right:
             case FaceType.Left:
+            case FaceType.Right:
                 uDivisions = real_chunkMeshDimensions.z;
                 vDivisions = real_chunkMeshDimensions.y;
                 break;
@@ -285,11 +289,11 @@ public class WorldChunkMesh
                 u = Vector3.left;
                 v = Vector3.up;
                 break;
-            case FaceType.Right:
+            case FaceType.Left:
                 u = Vector3.forward;
                 v = Vector3.up;
                 break;
-            case FaceType.Left:
+            case FaceType.Right:
                 u = Vector3.back;
                 v = Vector3.up;
                 break;

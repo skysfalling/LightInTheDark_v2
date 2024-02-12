@@ -5,7 +5,7 @@ using UnityEngine;
 [System.Serializable]
 public class WorldChunk
 {
-    public enum FaceType{ Front, Back, Right, Left, Top, Bottom }
+    public enum FaceType{ Front, Back, Left, Right, Top, Bottom }
 
 
     WorldGeneration _worldGeneration;
@@ -88,7 +88,7 @@ public class WorldChunk
 
         DetermineChunkHeightFromNeighbors();
 
-        chunkMesh = new WorldChunkMesh(groundHeight, groundPosition);
+        chunkMesh = new WorldChunkMesh(this, groundHeight, groundPosition);
 
 
         CreateCells();
@@ -168,7 +168,7 @@ public class WorldChunk
     }
     public void DetermineChunkHeightFromNeighbors()
     {
-        if (WorldCoordinateMap.CoordinateMap[coordinate].type != WorldCoordinate.TYPE.NULL) { return; }
+        if (WorldCoordinateMap.GetCoordinateAt(coordinate).type != WorldCoordinate.TYPE.NULL) { return; }
 
         List<WorldCoordinate> neighbors = WorldCoordinateMap.GetAllCoordinateNeighbors(coordinate);
         if (neighbors.Count == 0) return; // Exit if there are no neighbors
@@ -202,10 +202,12 @@ public class WorldChunk
         foreach(MeshQuad quad in chunkMesh.meshQuads)
         {
             // Spawn top face cells
-            if (quad.faceType == FaceType.Top)
+            if (quad.faceType != FaceType.Bottom)
             {
                 WorldCell newCell = new WorldCell(this, quad);
                 localCells.Add(newCell);
+
+                newCell.ShowDebugCube();
             }
         }
     }

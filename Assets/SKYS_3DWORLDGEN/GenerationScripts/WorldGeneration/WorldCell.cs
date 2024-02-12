@@ -64,7 +64,7 @@ public class WorldCell
 
         this._debugCubeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
         this._debugCubeObject.transform.parent = WorldCellMap.Instance.transform;
-        this._debugCubeObject.transform.position = position + (Vector3.up * relativeSize * 0.5f); // adjust height offset
+        this._debugCubeObject.transform.position = position;
         this._debugCubeObject.transform.localScale = Vector3.one * relativeSize; // adjust scale
         this._debugCubeObject.GetComponent<MeshRenderer>().material = _materialLibrary.GetMaterialOfCellType(type); // set material
         this._debugCubeObject.name = $"WorldCell {_meshQuad.faceType} {_meshQuad.faceCoord} at Chunk {_chunkParent.coordinate}";

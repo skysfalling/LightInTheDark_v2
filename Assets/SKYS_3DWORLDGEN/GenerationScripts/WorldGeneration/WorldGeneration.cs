@@ -218,7 +218,12 @@ public class WorldGeneration : MonoBehaviour
     GameObject CreateMeshObject(string name, Mesh mesh, Material material)
     {
         GameObject worldObject = new GameObject(name);
-        worldObject.AddComponent<MeshFilter>().mesh = mesh;
+
+        MeshFilter meshFilter = worldObject.AddComponent<MeshFilter>();
+        meshFilter.sharedMesh = mesh;
+        meshFilter.sharedMesh.RecalculateBounds();
+        meshFilter.sharedMesh.RecalculateNormals();
+
         worldObject.AddComponent<MeshRenderer>().material = material;
         worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
 
