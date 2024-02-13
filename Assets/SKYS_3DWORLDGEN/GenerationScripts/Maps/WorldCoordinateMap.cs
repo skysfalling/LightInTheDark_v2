@@ -26,6 +26,8 @@ public class WorldCoordinateMap : MonoBehaviour
     public static Dictionary<WorldCoordinate, List<WorldCoordinate>> CoordinateNeighborMap { get; private set; }
     public static Dictionary<WorldCoordinate.TYPE, List<WorldCoordinate>> CoordinateTypeMap { get; private set; }
 
+    public List<WorldExitPath> worldExitPaths = new List<WorldExitPath>();
+    public List<WorldZone> worldZones = new List<WorldZone>();
 
     #region == HANDLE COORDINATE MAP ================================ ////
 
@@ -131,11 +133,11 @@ public class WorldCoordinateMap : MonoBehaviour
 
     IEnumerator UpdateRoutine()
     {
-        InitializeCoordinateMap(); // Make sure CoordinateMap is initialized
-        yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);
-
         zonesInitialized = false;
         exitPathsInitialized = false;
+
+        InitializeCoordinateMap(); // Make sure CoordinateMap is initialized
+        yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);
 
         // Initialize Random Seed :: IMPORTANT To keep the same results per seed
         WorldGeneration.InitializeRandomSeed();
@@ -326,7 +328,6 @@ public class WorldCoordinateMap : MonoBehaviour
     // =====================================================================================
 
     #region == HANDLE WORLD PATHS ======================================================== ////
-    public List<WorldExitPath> worldExitPaths = new List<WorldExitPath>();
 
     public void CreateWorldExitPath()
     {
@@ -382,7 +383,6 @@ public class WorldCoordinateMap : MonoBehaviour
     #endregion
 
     #region == HANDLE WORLD ZONES ==================================== ////
-    public List<WorldZone> worldZones = new List<WorldZone>();
     public void CreateWorldZone()
     {
         if (coordMapInitialized == false)

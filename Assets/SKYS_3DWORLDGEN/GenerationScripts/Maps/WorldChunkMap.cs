@@ -20,7 +20,6 @@ public class WorldChunkMap : MonoBehaviour
     // == HANDLE CHUNK MAP =================================== ///
     public IEnumerator InitializeChunkMap()
     {
-        if (chunkMapInitialized) yield return null;
         yield return new WaitUntil(() => WorldCoordinateMap.coordMapInitialized);
 
         List<WorldChunk> newChunkList = new();
@@ -56,6 +55,8 @@ public class WorldChunkMap : MonoBehaviour
 
     public void UpdateChunkMap()
     {
+        if (chunkMapInitialized) return;
+
         StartCoroutine(InitializeChunkMap()); // Make sure chunk map is initialized
     }
 

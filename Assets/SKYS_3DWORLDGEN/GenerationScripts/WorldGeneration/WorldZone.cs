@@ -96,12 +96,11 @@ public class WorldZone
         Debug.Log($"Initialized WORLD ZONE : {_coordinateVector} : height {zoneHeight}");
     }
 
-    public List<WorldCoordinate> GetZoneCoordinates() { return _zoneCoordinates; }
-    public List<WorldChunk> GetZoneChunks() 
-    { 
-        if (_zoneCoordinates == null || _zoneCoordinates.Count == 0 ) { return new List<WorldChunk>(); }
-        return WorldChunkMap.GetChunksAtCoordinates(_zoneCoordinates);
+    public void Reset()
+    {
+        _initialized = false;
     }
+
     public bool IsInitialized() {
 
         // Check private variables
@@ -136,6 +135,14 @@ public class WorldZone
             $"\n_zoneCoordinates {_zoneCoordinates.Count}");
 
         return _initialized; 
+    }
+
+
+    public List<WorldCoordinate> GetZoneCoordinates() { return _zoneCoordinates; }
+    public List<WorldChunk> GetZoneChunks()
+    {
+        if (_zoneCoordinates == null || _zoneCoordinates.Count == 0) { return new List<WorldChunk>(); }
+        return WorldChunkMap.GetChunksAtCoordinates(_zoneCoordinates);
     }
 }
 
