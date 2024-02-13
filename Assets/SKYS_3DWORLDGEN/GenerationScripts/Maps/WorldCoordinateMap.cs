@@ -55,9 +55,10 @@ public class WorldCoordinateMap : MonoBehaviour
         CoordinateList = newCoordList;
         CoordinateMap = newCoordMap;
 
-        coordMapInitialized = true;
-
         SetAllCoordinateTypesToDefault();
+
+        coordMapInitialized = true;
+        Debug.Log("Coord Map initialized");
     }
 
     static void ResetAllCoordinatesToDefault()
@@ -141,7 +142,7 @@ public class WorldCoordinateMap : MonoBehaviour
 
         UpdateAllWorldZones(); // Update all world zones to new values
 
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(0.5f);
         UpdateAllWorldExitPaths(_forceAllPathsReset);
     }
 
@@ -332,11 +333,8 @@ public class WorldCoordinateMap : MonoBehaviour
         return null;
     }
 
-    public static WorldCoordinate GetCoordinateAtWorldExit(WorldExit worldExit)
+    public static WorldCoordinate GetCoordinateAtWorldExit(WorldDirection direction, int index)
     {
-        WorldDirection direction = worldExit.borderDirection;
-        int index = worldExit.borderIndex;
-
         List<WorldCoordinate> borderCoords = GetCoordinatesOnBorder(direction);
         if (borderCoords.Count > index)
         {
@@ -539,8 +537,7 @@ public class WorldCoordinateMap : MonoBehaviour
         // Check Types
         if (CoordinateMap[candidate] != null && 
            (CoordinateMap[candidate].type == WorldCoordinate.TYPE.NULL 
-           || CoordinateMap[candidate].type == WorldCoordinate.TYPE.PATH
-           || CoordinateMap[candidate].type == WorldCoordinate.TYPE.EXIT))
+           || CoordinateMap[candidate].type == WorldCoordinate.TYPE.PATH ))
         {
             return true;
         }

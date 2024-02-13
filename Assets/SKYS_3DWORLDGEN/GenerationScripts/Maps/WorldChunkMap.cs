@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,10 +17,9 @@ public class WorldChunkMap : MonoBehaviour
     public static Dictionary<Vector2Int, WorldChunk> CoordinateChunkMap { get; private set; }
 
     // == HANDLE CHUNK MAP =================================== ///
-    public void InitializeChunkMap()
+    public IEnumerator InitializeChunkMap()
     {
-        if (WorldCoordinateMap.coordMapInitialized == false) return;
-        if (chunkMapInitialized == true) return;
+        yield return new WaitUntil(() => WorldCoordinateMap.coordMapInitialized);
 
         List<WorldChunk> newChunkList = new();
         Dictionary<WorldCoordinate, WorldChunk> newWorldCoordChunkMap = new();
@@ -40,6 +40,7 @@ public class WorldChunkMap : MonoBehaviour
         CoordinateChunkMap = newCoordinateChunkMap;
 
         chunkMapInitialized = true;
+        Debug.Log("Chunk Map initialized");
     }
 
     public void DestroyChunkMap()
@@ -52,7 +53,7 @@ public class WorldChunkMap : MonoBehaviour
 
     public void UpdateChunkMap()
     {
-        InitializeChunkMap(); // Make sure chunk map is initialized
+        StartCoroutine(InitializeChunkMap()); // Make sure chunk map is initialized
 
         // Determine path heights
     }

@@ -88,12 +88,14 @@ public class WorldPath
             if (type != WorldCoordinate.TYPE.PATH && type != WorldCoordinate.TYPE.NULL)
             {
                 typesAreValid = false;
+                Debug.Log($"Path contains invalid types");
+                break;
             }
         }
 
         if (typesAreValid)
         {
-            //Debug.Log($"Found Valid Path");
+            Debug.Log($"Found Valid Path");
 
             _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
 
@@ -120,6 +122,9 @@ public class WorldPath
 
     public bool IsInitialized() 
     { 
+
+
+
         return _initialized; 
     }
 

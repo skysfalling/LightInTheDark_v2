@@ -17,9 +17,6 @@ public enum WorldDirection { West, East, North, South }
 [System.Serializable]
 public class WorldExit
 {
-    WorldDirection _borderDirection;
-    int _borderIndex;
-    int _exitHeight;
     bool _initialized = false;
 
     // Coordinate on border
@@ -28,9 +25,6 @@ public class WorldExit
     // Connecting Neighbor that is in the playArea
     public WorldCoordinate pathConnection;
 
-    // World Chunk
-    public WorldChunk chunk;
-
     // == INSPECTOR VALUES >>
     public WorldDirection borderDirection = WorldDirection.West;
     public int borderIndex = 0;
@@ -38,33 +32,28 @@ public class WorldExit
 
     public WorldExit(WorldDirection direction, int index)
     {
-        this._borderDirection = direction;
-        this._borderIndex = index;
-        this._exitHeight = exitHeight;
-
         borderDirection = direction;
         borderIndex = index;
-
-        worldCoordinate = WorldCoordinateMap.GetCoordinateAtWorldExit(this);
-        pathConnection = WorldCoordinateMap.GetWorldExitPathConnection(this);
-        chunk = WorldChunkMap.GetChunkAt(worldCoordinate);
 
         UpdateValues();
     }
 
-    void UpdateValues()
+    public void UpdateValues()
     {
-        _borderDirection = borderDirection;
-        _borderIndex = borderIndex;
-        _exitHeight = exitHeight;
+        if (_initialized || !WorldCoordinateMap.coordMapInitialized || !WorldChunkMap.chunkMapInitialized) return;
 
-        if (!WorldCoordinateMap.coordMapInitialized || !WorldChunkMap.chunkMapInitialized) return;
-        worldCoordinate = WorldCoordinateMap.GetCoordinateAtWorldExit(this); 
+        worldCoordinate = WorldCoordinateMap.GetCoordinateAtWorldExit(borderDirection, borderIndex);
         pathConnection = WorldCoordinateMap.GetWorldExitPathConnection(this);
-        chunk = WorldChunkMap.GetChunkAt(worldCoordinate);
 
-        chunk.SetGroundHeight(_exitHeight);
+        WorldChunk chunk = WorldChunkMap.GetChunkAt(worldCoordinate);
+        chunk.SetGroundHeight(exitHeight);
         _initialized = true;
+    }
+
+    public void Reset()
+    {
+        WorldCoordinateMap.SetMapCoordinateToType(worldCoordinate, WorldCoordinate.TYPE.BORDER);
+        _initialized = false;
     }
 
     public bool IsInitialized()
@@ -112,6 +101,8 @@ public class WorldExitPath
         _pathEnd = endExit.pathConnection;
         _pathRandomness = pathRandomness;
 
+        if (_pathStart == null || _pathEnd == null) return;
+
         // Get new World Path
         _worldPath = new WorldPath(_pathStart, _pathEnd, pathColor, pathRandomness);
 
@@ -119,24 +110,29 @@ public class WorldExitPath
         if (_worldPath.IsInitialized() && WorldChunkMap.chunkMapInitialized)
         {
             _worldPath.DeterminePathChunkHeights(startExit.exitHeight, endExit.exitHeight);
+
+            // Update Exit Values
+            startExit.worldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
+            endExit.worldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
+
+            WorldCoordinateMap.SetMapCoordinateToType(startExit.worldCoordinate, WorldCoordinate.TYPE.EXIT);
+            WorldCoordinateMap.SetMapCoordinateToType(endExit.worldCoordinate, WorldCoordinate.TYPE.EXIT);
+
             _initialized = true;
         }
-
-
-        // Update Exit Values
-        startExit.worldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
-        endExit.worldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
-
-        WorldCoordinateMap.SetMapCoordinateToType(startExit.worldCoordinate, WorldCoordinate.TYPE.EXIT);
-        WorldCoordinateMap.SetMapCoordinateToType(endExit.worldCoordinate, WorldCoordinate.TYPE.EXIT);
-
-        startExit.chunk.SetGroundHeight(startExit.exitHeight);
-        endExit.chunk.SetGroundHeight(endExit.exitHeight);
     }
 
     public void Reset(bool forceReset = false)
     {
         if (!_initialized) return;
+        if (WorldCoordinateMap.coordMapInitialized == false) { _initialized = false; return; }
+        if (WorldChunkMap.chunkMapInitialized == false) { _initialized = false; return; }
+
+        startExit.Reset();
+        endExit.Reset();
+
+        startExit.UpdateValues();
+        endExit.UpdateValues();
 
         // Check if values are incorrectly initialized
         if (_pathStart != startExit.pathConnection 
