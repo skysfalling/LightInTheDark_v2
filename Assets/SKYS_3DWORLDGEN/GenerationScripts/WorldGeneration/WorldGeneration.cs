@@ -33,18 +33,18 @@ public class WorldGeneration : MonoBehaviour
 
     // STATIC GENERATION DIMENSIONS ==================================== ///
     public static int CellSize = 4; // Size of each WorldCell // Size of each WorldCell { in Unity Units }
-    public static Vector2Int ChunkArea = new Vector2Int(5, 5); // Area of each WorldChunk { in WorldCell Units }
+    public static Vector2Int ChunkWidth = new Vector2Int(5, 5); // Area of each WorldChunk { in WorldCell Units }
     public static int ChunkDepth = 3;
-    public static Vector2Int PlayZoneArea = new Vector2Int(10, 10); // Default size of PlayArea { in WorldChunk Units }
+    public static Vector2Int PlayableArea = new Vector2Int(10, 10); // Default size of PlayArea { in WorldChunk Units }
     public static int BoundaryOffset = 1; // Boundary offset value 
-    public static int MaxChunkHeight = 10; // Maximum chunk height
+    public static int MaxGroundHeight = 10; // Maximum chunk height
 
-    public static Vector2Int GetFullWorldArea() { return PlayZoneArea + (BoundaryOffset * 2 * Vector2Int.one); } // Include BoundaryOffset on both sides
-    public static Vector3Int GetChunkDimensions() { return new Vector3Int(ChunkArea.x, ChunkDepth, ChunkArea.y); }
-    public static Vector2Int GetRealChunkAreaSize() { return ChunkArea * CellSize; }
+    public static Vector2Int GetFullWorldArea() { return PlayableArea + (BoundaryOffset * 2 * Vector2Int.one); } // Include BoundaryOffset on both sides
+    public static Vector3Int GetChunkDimensions() { return new Vector3Int(ChunkWidth.x, ChunkDepth, ChunkWidth.y); }
+    public static Vector2Int GetRealChunkAreaSize() { return ChunkWidth * CellSize; }
     public static int GetRealChunkDepth() { return ChunkDepth * CellSize; }
-    public static Vector3Int GetRealChunkDimensions() { return new Vector3Int(ChunkArea.x, ChunkDepth, ChunkArea.y) * CellSize; }
-    public static Vector2Int GetRealPlayAreaSize() { return PlayZoneArea * GetRealChunkAreaSize(); }
+    public static Vector3Int GetRealChunkDimensions() { return new Vector3Int(ChunkWidth.x, ChunkDepth, ChunkWidth.y) * CellSize; }
+    public static Vector2Int GetRealPlayAreaSize() { return PlayableArea * GetRealChunkAreaSize(); }
     public static Vector2Int GetRealFullWorldSize() { return GetFullWorldArea() * GetRealChunkAreaSize(); }
 
     string _prefix = "[ WORLD GENERATION ] ";

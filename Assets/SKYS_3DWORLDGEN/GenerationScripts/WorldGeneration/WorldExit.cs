@@ -219,12 +219,12 @@ public class WorldExitDrawer : PropertyDrawer
 
         // Draw the "Border Index" slider
         SerializedProperty borderIndexProp = property.FindPropertyRelative("borderIndex");
-        int maxIndex = Mathf.Max(0, WorldGeneration.PlayZoneArea.x - 1);
+        int maxIndex = Mathf.Max(0, WorldGeneration.PlayableArea.x - 1);
         borderIndexProp.intValue = EditorGUI.IntSlider(indexRect, new GUIContent("borderIndex"), borderIndexProp.intValue, 0, maxIndex);
 
         // Draw the "Chunk Height" slider
         SerializedProperty exitHeightProp = property.FindPropertyRelative("exitHeight");
-        int maxHeight = Mathf.Max(0, WorldGeneration.MaxChunkHeight);
+        int maxHeight = Mathf.Max(0, WorldGeneration.MaxGroundHeight);
         exitHeightProp.intValue = EditorGUI.IntSlider(exitHeightRect, new GUIContent("exitHeight"), exitHeightProp.intValue, 0, maxHeight);
         EditorGUI.EndProperty();
     }

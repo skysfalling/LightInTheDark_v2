@@ -181,13 +181,13 @@ public class WorldZoneDrawer : PropertyDrawer
 
         // Coordinate Vector
         SerializedProperty coordProp = property.FindPropertyRelative("coordinateVector");
-        int x = EditorGUI.IntSlider(coordXRect, new GUIContent("Coord X"), coordProp.vector2IntValue.x, 0, WorldGeneration.PlayZoneArea.x);
-        int y = EditorGUI.IntSlider(coordYRect, new GUIContent("Coord Y"), coordProp.vector2IntValue.y, 0, WorldGeneration.PlayZoneArea.y);
+        int x = EditorGUI.IntSlider(coordXRect, new GUIContent("Coord X"), coordProp.vector2IntValue.x, 0, WorldGeneration.PlayableArea.x);
+        int y = EditorGUI.IntSlider(coordYRect, new GUIContent("Coord Y"), coordProp.vector2IntValue.y, 0, WorldGeneration.PlayableArea.y);
         coordProp.vector2IntValue = new Vector2Int(x, y);
 
         // Chunk Height
         SerializedProperty chunkHeightProp = property.FindPropertyRelative("zoneHeight");
-        chunkHeightProp.intValue = EditorGUI.IntSlider(chunkHeightRect, new GUIContent("Zone Height"), chunkHeightProp.intValue, 0, WorldGeneration.PlayZoneArea.x);
+        chunkHeightProp.intValue = EditorGUI.IntSlider(chunkHeightRect, new GUIContent("Zone Height"), chunkHeightProp.intValue, 0, WorldGeneration.PlayableArea.x);
 
         EditorGUI.EndProperty();
 

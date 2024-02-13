@@ -55,7 +55,7 @@ public class WorldChunkCursor : MonoBehaviour
         // Create New Cursor
         cursor = Instantiate(cursorPrefab, chunk.groundPosition, Quaternion.identity);
 
-        int chunkCursorWidth = (WorldGeneration.ChunkArea.x + 1) * WorldGeneration.CellSize;
+        int chunkCursorWidth = (WorldGeneration.ChunkWidth.x + 1) * WorldGeneration.CellSize;
         cursor.transform.localScale = new Vector3(chunkCursorWidth, 1, chunkCursorWidth);
 
         cursor.name = $"{cursorPrefab.name} :: Chunk {chunk.coordinate}";
