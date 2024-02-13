@@ -86,7 +86,10 @@ public class WorldChunk
     {
         initialized = false;
 
-        DetermineChunkHeightFromNeighbors();
+        if (worldCoordinate.type == WorldCoordinate.TYPE.NULL)
+        {
+            //DetermineChunkHeightFromNeighbors();
+        }
 
         chunkMesh = new WorldChunkMesh(this, groundHeight, groundPosition);
 
@@ -168,9 +171,7 @@ public class WorldChunk
     }
     public void DetermineChunkHeightFromNeighbors()
     {
-        if (WorldCoordinateMap.GetCoordinateAt(coordinate).type != WorldCoordinate.TYPE.NULL) { return; }
-
-        List<WorldCoordinate> neighbors = WorldCoordinateMap.GetAllCoordinateNeighbors(coordinate);
+        List<WorldCoordinate> neighbors = WorldCoordinateMap.GetAllCoordinateNeighbors(worldCoordinate);
         if (neighbors.Count == 0) return; // Exit if there are no neighbors
 
         int totalHeight = 0;
@@ -207,7 +208,7 @@ public class WorldChunk
                 WorldCell newCell = new WorldCell(this, quad);
                 localCells.Add(newCell);
 
-                newCell.ShowDebugCube();
+                //newCell.ShowDebugCube();
             }
         }
     }

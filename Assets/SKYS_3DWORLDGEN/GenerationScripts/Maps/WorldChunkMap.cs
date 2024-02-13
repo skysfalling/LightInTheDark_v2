@@ -115,7 +115,9 @@ public class WorldChunkMap : MonoBehaviour
         {
             WorldChunk chunk = GetChunkAt(coord);
             if (chunk != null)
+            {
                 chunk.SetGroundHeight(chunkHeight);
+            }
         }
     }
 

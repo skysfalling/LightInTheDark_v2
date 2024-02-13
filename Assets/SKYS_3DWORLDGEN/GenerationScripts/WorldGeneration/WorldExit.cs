@@ -16,6 +16,10 @@ using UnityEditor;
 public class WorldExit
 {
     bool _initialized = false;
+    WorldChunk _chunk;
+    WorldDirection _borderDirection;
+    int _borderIndex;
+    int _exitHeight;
 
     // Coordinate on border
     public WorldCoordinate worldCoordinate;
@@ -33,18 +37,24 @@ public class WorldExit
         borderDirection = direction;
         borderIndex = index;
 
-        UpdateValues();
+        Initialize();
     }
 
-    public void UpdateValues()
+    public void Initialize()
     {
         if (_initialized || !WorldCoordinateMap.coordMapInitialized || !WorldChunkMap.chunkMapInitialized) return;
 
-        worldCoordinate = WorldCoordinateMap.GetCoordinateAtWorldExit(borderDirection, borderIndex);
-        pathConnection = WorldCoordinateMap.GetWorldExitPathConnection(this);
+        _borderDirection = borderDirection;
+        _borderIndex = borderIndex;
+        _exitHeight = exitHeight;
 
-        WorldChunk chunk = WorldChunkMap.GetChunkAt(worldCoordinate);
-        chunk.SetGroundHeight(exitHeight);
+        worldCoordinate = WorldCoordinateMap.GetCoordinateAtWorldExit(borderDirection, borderIndex);
+        pathConnection = WorldCoordinateMap.GetNeighborInOppositeDirection(worldCoordinate, borderDirection);
+
+        _chunk = WorldChunkMap.GetChunkAt(worldCoordinate);
+        _chunk.SetGroundHeight(exitHeight);
+
+        //Debug.Log($"WORLDEXIT : Initialized at {worldCoordinate.Coordinate} with exitHeight {exitHeight}");
         _initialized = true;
     }
 
@@ -56,6 +66,11 @@ public class WorldExit
 
     public bool IsInitialized()
     {
+        if (_borderDirection != borderDirection
+            || _borderIndex != borderIndex
+            || _exitHeight != exitHeight) 
+        { _initialized = false; }
+
         return _initialized;
     }
 }
@@ -74,6 +89,9 @@ public class WorldExitPath
     public WorldExit startExit;
     public WorldExit endExit;
 
+    int _startHeight;
+    int _endHeight;
+
     WorldCoordinate _pathStart;
     WorldCoordinate _pathEnd;
     float _pathRandomness;
@@ -82,39 +100,47 @@ public class WorldExitPath
     {
         this.startExit = startExit;
         this.endExit = endExit;
+
+        _startHeight = startExit.exitHeight;
+        _endHeight = endExit.exitHeight;
+
         this.pathColor = WorldPath.GetRandomPathColor();
         this.pathRandomness = 1;
     }
 
     public void EditorUpdate()
     {
-        // Update Exits first
-        bool newStart = startExit.IsInitialized();
-        bool newEnd = endExit.IsInitialized();
-        if (newStart || newEnd) { Reset(true); }
+        startExit.Initialize();
+        endExit.Initialize();
+
+        if (!startExit.IsInitialized() || !endExit.IsInitialized()) { Reset(); }
         if (_initialized) { return; }
+        _initialized = false;
 
         // Update private variables
         _pathStart = startExit.pathConnection;
         _pathEnd = endExit.pathConnection;
+
+        _startHeight = startExit.exitHeight;
+        _endHeight = endExit.exitHeight;
+
         _pathRandomness = pathRandomness;
 
-        if (_pathStart == null || _pathEnd == null) return;
-
         // Get new World Path
-        _worldPath = new WorldPath(_pathStart, _pathEnd, pathColor, pathRandomness);
+        _worldPath = new WorldPath(_pathStart, _startHeight, _pathEnd, _endHeight, pathColor, pathRandomness);
 
-        // Determine Path Chunk Heights
+        // Update Exit Values
         if (_worldPath.IsInitialized() && WorldChunkMap.chunkMapInitialized)
         {
-            _worldPath.DeterminePathChunkHeights(startExit.exitHeight, endExit.exitHeight);
-
-            // Update Exit Values
             startExit.worldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
             endExit.worldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
 
             WorldCoordinateMap.SetMapCoordinateToType(startExit.worldCoordinate, WorldCoordinate.TYPE.EXIT);
             WorldCoordinateMap.SetMapCoordinateToType(endExit.worldCoordinate, WorldCoordinate.TYPE.EXIT);
+
+            WorldChunkMap.GetChunkAt(startExit.worldCoordinate).SetGroundHeight(_startHeight);
+            WorldChunkMap.GetChunkAt(endExit.worldCoordinate).SetGroundHeight(_endHeight);
+
 
             _initialized = true;
         }
@@ -128,23 +154,23 @@ public class WorldExitPath
 
         startExit.Reset();
         endExit.Reset();
+        _worldPath.Reset();
 
-        startExit.UpdateValues();
-        endExit.UpdateValues();
-
-        // Check if values are incorrectly initialized
-        if (_pathStart != startExit.pathConnection 
-            || _pathEnd != endExit.pathConnection
-            || _pathRandomness != pathRandomness
-            || forceReset)
-        {
-            _worldPath.Reset();
-            _initialized = false;
-        }
+        _initialized = false;
     }
 
     public bool IsInitialized()
     {
+        if (_pathStart != startExit.pathConnection
+        || _pathEnd != endExit.pathConnection
+        || _startHeight != startExit.exitHeight
+        || _endHeight != endExit.exitHeight
+        || _pathRandomness != pathRandomness)
+        {
+            Reset();
+            _initialized = false;
+        }
+
         return _initialized;
     }
 

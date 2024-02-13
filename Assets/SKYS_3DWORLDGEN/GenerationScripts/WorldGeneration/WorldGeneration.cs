@@ -115,7 +115,7 @@ public class WorldGeneration : MonoBehaviour
             chunk.Initialize();
             yield return new WaitUntil(() => chunk.initialized);
 
-            CreateMeshObject($"Chunk {chunk.coordinate}", chunk.chunkMesh.mesh, WorldMaterialLibrary.Instance.chunkMaterial);            
+            CreateMeshObject($"Chunk {chunk.coordinate} :: height {chunk.groundHeight}", chunk.chunkMesh.mesh, WorldMaterialLibrary.Instance.chunkMaterial);            
 
         }
         yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);

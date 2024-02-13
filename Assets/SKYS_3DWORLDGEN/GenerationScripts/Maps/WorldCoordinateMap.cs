@@ -272,6 +272,30 @@ public class WorldCoordinateMap : MonoBehaviour
         return neighbors;
     }
 
+    public static WorldCoordinate GetNeighborInOppositeDirection(WorldCoordinate worldCoord, WorldDirection direction)
+    {
+        switch (direction)
+        {
+            case WorldDirection.WEST:
+                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.EAST);
+            case WorldDirection.EAST:
+                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.WEST);
+            case WorldDirection.NORTH:
+                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.SOUTH);
+            case WorldDirection.SOUTH:
+                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.NORTH);
+            case WorldDirection.NORTHWEST:
+                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.SOUTHEAST);
+            case WorldDirection.NORTHEAST:
+                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.SOUTHWEST);
+            case WorldDirection.SOUTHWEST:
+                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.NORTHEAST);
+            case WorldDirection.SOUTHEAST:
+                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.NORTHWEST);
+        }
+
+        return null;
+    }
 
 
 
@@ -316,22 +340,7 @@ public class WorldCoordinateMap : MonoBehaviour
         worldExitPaths.Add(new WorldExitPath(defaultStart, defaultEnd));
     }
 
-    public static WorldCoordinate GetWorldExitPathConnection(WorldExit exit)
-    {
-        switch (exit.borderDirection)
-        {
-            case WorldDirection.WEST:
-                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.EAST);
-            case WorldDirection.EAST:
-                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.WEST);
-            case WorldDirection.NORTH:
-                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.SOUTH);
-            case WorldDirection.SOUTH:
-                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.NORTH);
-        }
 
-        return null;
-    }
 
     public static WorldCoordinate GetCoordinateAtWorldExit(WorldDirection direction, int index)
     {
@@ -345,8 +354,7 @@ public class WorldCoordinateMap : MonoBehaviour
 
     public void UpdateAllWorldExitPaths(bool forceReset = false)
     {
-        Debug.Log($"Update All Paths :: forceReset {forceReset}");
-
+        //Debug.Log($"Update All Paths :: forceReset {forceReset}");
 
         bool pathsAreInitialized = true;
         foreach (WorldExitPath path in worldExitPaths) 
@@ -364,11 +372,10 @@ public class WorldCoordinateMap : MonoBehaviour
         if (pathsAreInitialized == false)
         {
             exitPathsInitialized = false;
-            UpdateAllWorldExitPaths(true);
+            UpdateAllWorldExitPaths(true); // Force 
         }
         else
         {
-            // Debug.Log($"Force Paths Reset {forceReset}");
             _forceAllPathsReset = false; // Paths have been reset
             exitPathsInitialized = true;
         }

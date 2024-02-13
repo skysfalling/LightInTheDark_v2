@@ -11,7 +11,7 @@ using UnityEditor;
 [System.Serializable]
 public class WorldPath
 {
-    DebugColor _pathColor = DebugColor.CLEAR;
+    DebugColor _pathColor = DebugColor.WHITE;
     public static Color GetRGBAFromDebugColor(DebugColor pathColor)
     {
         switch (pathColor)
@@ -48,15 +48,23 @@ public class WorldPath
 
     Vector2Int _startCoordinate;
     Vector2Int _endCoordinate;
+
+    int _startHeight;
+    int _endHeight;
+
     List<WorldCoordinate> _pathCoords = new List<WorldCoordinate>();
     List<WorldChunk> _pathChunks = new List<WorldChunk>();
     float _pathRandomness = 0;
     bool _initialized = false;
 
-    public WorldPath(WorldCoordinate startCoord, WorldCoordinate endCoord, DebugColor pathColor, float pathRandomness = 0)
+    public WorldPath(WorldCoordinate startCoord, int startHeight, WorldCoordinate endCoord, int endHeight, DebugColor pathColor, float pathRandomness = 0)
     {
         this._startCoordinate = startCoord.Coordinate;
         this._endCoordinate = endCoord.Coordinate;
+
+        this._startHeight = startHeight;
+        this._endHeight = endHeight;
+
         this._pathColor = pathColor;
         this._pathRandomness = pathRandomness;
         Initialize();
@@ -78,7 +86,7 @@ public class WorldPath
         if (_initialized || !WorldCoordinateMap.coordMapInitialized) return;
         _initialized = false;
 
-        // Get Valid Path
+        // << CREATE PATH >>
         _pathCoords = WorldCoordinateMap.FindWorldCoordinatePath(_startCoordinate, _endCoordinate, _pathRandomness);
         List<WorldCoordinate.TYPE> types = WorldCoordinateMap.GetCoordinateTypesFromList(_pathCoords);
         bool typesAreValid = true;
@@ -95,9 +103,13 @@ public class WorldPath
 
         if (typesAreValid)
         {
-            Debug.Log($"Found Valid Path");
+            Debug.Log($"Found Valid Path from {_startCoordinate} -> {_endCoordinate}");
 
             _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
+
+            WorldChunk startChunk = WorldChunkMap.GetChunkAt(_startCoordinate);
+            WorldChunk endChunk = WorldChunkMap.GetChunkAt(_endCoordinate);
+            DeterminePathChunkHeights(_startHeight, _endHeight);
 
             // Set Coordinate Path Type
             WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.PATH, GetRGBAFromDebugColor(_pathColor));
@@ -122,9 +134,6 @@ public class WorldPath
 
     public bool IsInitialized() 
     { 
-
-
-
         return _initialized; 
     }
 

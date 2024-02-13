@@ -64,8 +64,6 @@ public class WorldChunkMesh
 
         // << UPDATE DIMENSIONS >>
         current_chunkMeshDimensions = default_chunkMeshDimensions + (Vector3Int.up * groundHeight); // Add ground height to default dimensions
-        current_chunkMeshDimensions *= cellSize; // Multiply by cellSize to get real size
-
 
         // << CREATE MESH FACES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         // Updates meshVertices dictionary with < FaceType , List<Vector3> vertices >
@@ -207,7 +205,73 @@ public class WorldChunkMesh
     }
 
     // [[[[ FACES ]]]] 
-    // note** :: starts the faces at -fullsized_chunkDimensions.y so that top of chunk is at y=0
+
+    (int, int) GetFaceUVDivisions(FaceType faceType)
+    {
+        // [[ GET VISIBLE DIVISIONS ]]
+        // based on neighbors
+        int GetVisibleVDivisions(FaceType type)
+        {
+            int faceHeight = current_chunkMeshDimensions.y; // Get current height
+            WorldCoordinate neighborCoord = null;
+
+            switch (type)
+            {
+                case FaceType.Front:
+                    neighborCoord = WorldCoordinateMap.GetCoordinateNeighborInDirection(worldCoordinate, WorldDirection.NORTH);
+                    break;
+                case FaceType.Back:
+                    neighborCoord = WorldCoordinateMap.GetCoordinateNeighborInDirection(worldCoordinate, WorldDirection.SOUTH);
+                    break;
+                case FaceType.Left:
+                    neighborCoord = WorldCoordinateMap.GetCoordinateNeighborInDirection(worldCoordinate, WorldDirection.WEST);
+                    break;
+                case FaceType.Right:
+                    neighborCoord = WorldCoordinateMap.GetCoordinateNeighborInDirection(worldCoordinate, WorldDirection.EAST);
+                    break;
+                case FaceType.Top:
+                case FaceType.Bottom:
+                    break;
+            }
+
+            if (neighborCoord != null)
+            {
+                WorldChunk neighborChunk = WorldChunkMap.GetChunkAt(neighborCoord);
+                faceHeight -= neighborChunk.groundHeight; // 
+            }
+
+            return faceHeight;
+        }
+
+        int uDivisions = 0;
+        int vDivisions = 0;
+        switch (faceType)
+        {
+            // Side Faces XY plane
+            case FaceType.Front:
+            case FaceType.Back:
+                uDivisions = current_chunkMeshDimensions.x;
+                vDivisions = current_chunkMeshDimensions.y;
+                break;
+            // Side Faces ZY plane
+            case FaceType.Left:
+            case FaceType.Right:
+                uDivisions = current_chunkMeshDimensions.z;
+                vDivisions = current_chunkMeshDimensions.y;
+                break;
+            // Top Faces XZ plane
+            case FaceType.Top:
+            case FaceType.Bottom:
+                uDivisions = current_chunkMeshDimensions.x;
+                vDivisions = current_chunkMeshDimensions.z;
+                break;
+
+        }
+
+        return (uDivisions, vDivisions);
+    }
+
+    // note** :: starts the faces at -visibleDimensions.y so that top of chunk is at y=0
     // -- the chunks will be treated as a 'Generated Ground' to build upon
     Vector3 GetFaceStartVertex(FaceType faceType, int vDivisions)
     {
@@ -217,10 +281,10 @@ public class WorldChunkMesh
         }
 
         // full size of the chunks in Unity units
-        Vector3Int fullsize_chunkDimensions = current_chunkMeshDimensions * _cellSize;
+        Vector3 visibleDimensions = new Vector3(current_chunkMeshDimensions.x, vDivisions, current_chunkMeshDimensions.z ) * _cellSize;
 
         // center and adjust y of the mesh appropriately
-        Vector3 newFaceStartOffset = new Vector3((fullsize_chunkDimensions.x) * 0.5f, -(vDivisions), (fullsize_chunkDimensions.z) * 0.5f);
+        Vector3 newFaceStartOffset = new Vector3((visibleDimensions.x) * 0.5f, -(visibleDimensions.y), (visibleDimensions.z) * 0.5f);
 
         switch (faceType)
         {
@@ -256,71 +320,7 @@ public class WorldChunkMesh
         }
     }
 
-    (int, int) GetFaceUVDivisions(FaceType faceType)
-    {
-        // [[ GET VISIBLE DIVISIONS ]]
-        // based on neighbors
-        int GetVisibleVDivisions(FaceType type)
-        {
-            int faceHeight = current_chunkMeshDimensions.y; // Get current height
-            WorldCoordinate neighborCoord = null;
-            WorldChunk neighborChunk = null;
 
-            switch (type)
-            {
-                case FaceType.Front:
-                    neighborCoord = WorldCoordinateMap.GetCoordinateNeighborInDirection(worldCoordinate, WorldDirection.NORTH);
-                    break;
-                case FaceType.Back:
-                    neighborCoord = WorldCoordinateMap.GetCoordinateNeighborInDirection(worldCoordinate, WorldDirection.SOUTH);
-                    break;
-                case FaceType.Left:
-                    neighborCoord = WorldCoordinateMap.GetCoordinateNeighborInDirection(worldCoordinate, WorldDirection.WEST);
-                    break;
-                case FaceType.Right:
-                    neighborCoord = WorldCoordinateMap.GetCoordinateNeighborInDirection(worldCoordinate, WorldDirection.EAST);
-                    break;
-                case FaceType.Top:
-                case FaceType.Bottom:
-                    break;
-            }
-
-            if (neighborCoord != null)
-            {
-                neighborChunk = WorldChunkMap.GetChunkAt(neighborCoord);
-                faceHeight -= neighborChunk.groundHeight; // 
-            }
-
-            return faceHeight;
-        }
-
-        int uDivisions = 0;
-        int vDivisions = 0;
-        switch (faceType)
-        {
-            // Side Faces XY plane
-            case FaceType.Front:
-            case FaceType.Back:
-                uDivisions = current_chunkMeshDimensions.x;
-                vDivisions = GetVisibleVDivisions(faceType);
-                break;
-            // Side Faces ZY plane
-            case FaceType.Left:
-            case FaceType.Right:
-                uDivisions = current_chunkMeshDimensions.z;
-                vDivisions = GetVisibleVDivisions(faceType);
-                break;
-            // Top Faces XZ plane
-            case FaceType.Top:
-            case FaceType.Bottom:
-                uDivisions = current_chunkMeshDimensions.x;
-                vDivisions = current_chunkMeshDimensions.z;
-                break;
-
-        }
-
-        return (uDivisions, vDivisions);
-    }
 
 
 
