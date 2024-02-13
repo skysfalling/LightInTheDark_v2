@@ -12,6 +12,7 @@ public class WorldChunkMap : MonoBehaviour
     }
 
     public static bool chunkMapInitialized { get; private set; }
+
     public static List<WorldChunk> ChunkList { get; private set; }
     public static Dictionary<WorldCoordinate, WorldChunk> WorldCoordChunkMap { get; private set; }
     public static Dictionary<Vector2Int, WorldChunk> CoordinateChunkMap { get; private set; }
@@ -19,6 +20,7 @@ public class WorldChunkMap : MonoBehaviour
     // == HANDLE CHUNK MAP =================================== ///
     public IEnumerator InitializeChunkMap()
     {
+        if (chunkMapInitialized) yield return null;
         yield return new WaitUntil(() => WorldCoordinateMap.coordMapInitialized);
 
         List<WorldChunk> newChunkList = new();
@@ -48,15 +50,16 @@ public class WorldChunkMap : MonoBehaviour
         ChunkList = new();
         WorldCoordChunkMap = new();
         CoordinateChunkMap = new();
+
         chunkMapInitialized = false;
     }
 
     public void UpdateChunkMap()
     {
         StartCoroutine(InitializeChunkMap()); // Make sure chunk map is initialized
-
-        // Determine path heights
     }
+
+
 
     #region == GET CHUNKS ======================================== ////
 

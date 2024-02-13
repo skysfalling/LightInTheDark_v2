@@ -29,10 +29,13 @@ public class WorldZone
     }
 
     public enum TYPE { FULL, NATURAL, HORIZONTAL, VERTICAL }
-    TYPE _storedZoneType = TYPE.FULL;
-    WorldCoordinate _centerCoordinate;
-    List<WorldCoordinate> _zoneCoordinates = new List<WorldCoordinate>();
+
     bool _initialized = false;
+    TYPE _zoneType;
+    WorldCoordinate _centerCoordinate;
+    Vector2Int _coordinateVector;
+    int _zoneHeight;
+    List<WorldCoordinate> _zoneCoordinates = new List<WorldCoordinate>();
 
 
     // PUBLIC INSPECTOR VARIABLES
@@ -40,101 +43,98 @@ public class WorldZone
     public Vector2Int coordinateVector = Vector2Int.one;
     public int zoneHeight = 0;
 
-    public WorldZone()
-    {
-        this._centerCoordinate = WorldCoordinateMap.GetCoordinateAt(coordinateVector);
-        this.zoneType = TYPE.FULL;
-        Update();
-    }
-
     public WorldZone( WorldCoordinate centerCoordinate, TYPE zoneType )
     {
-        this._centerCoordinate = centerCoordinate;
-        this.coordinateVector = _centerCoordinate.Coordinate;
+        this.coordinateVector = centerCoordinate.Coordinate;
         this.zoneType = zoneType;
-        Update();
+
+        Initialize();
     }
 
-    public void Update()
+    public void Initialize()
     {
-        if (WorldCoordinateMap.coordMapInitialized == false) { return; }
-
-        // Reassign the coordinate types
-        if (_zoneCoordinates.Count > 0) {
-            // Check for treason ...
-            foreach (WorldCoordinate coord in _zoneCoordinates)
-            {
-                if ((coord.type != WorldCoordinate.TYPE.ZONE 
-                    || WorldChunkMap.GetChunkAt(coord).groundHeight != zoneHeight))
-                {
-                    _initialized = false;
-                }
-            }
-        }
-
-        // << INITIALIZE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        if ( _initialized ) { return; }
+        if (_initialized ) { return; }
         _initialized = false;
 
+        // Update private variables
+        _coordinateVector = coordinateVector;
+        _centerCoordinate = WorldCoordinateMap.GetCoordinateAt(coordinateVector);
+        _zoneType = zoneType;
+        _zoneHeight = zoneHeight;
+
         // Get affected neighbors
-        List<WorldCoordinate> affectedNeighbors = new();
-        switch(this._storedZoneType)
+        List<WorldCoordinate> neighborsInZone = new();
+        switch(_zoneType)
         {
             case TYPE.FULL:
-                affectedNeighbors = WorldCoordinateMap.GetAllCoordinateNeighbors(_centerCoordinate);
+                neighborsInZone = WorldCoordinateMap.GetAllCoordinateNeighbors(_centerCoordinate);
                 break;
             case TYPE.NATURAL:
-                affectedNeighbors = WorldCoordinateMap.GetCoordinateNaturalNeighbors(_centerCoordinate);
+                neighborsInZone = WorldCoordinateMap.GetCoordinateNaturalNeighbors(_centerCoordinate);
                 break;
             case TYPE.HORIZONTAL:
-                affectedNeighbors.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.WEST));
-                affectedNeighbors.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.EAST));
+                neighborsInZone.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.WEST));
+                neighborsInZone.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.EAST));
                 break;
             case TYPE.VERTICAL:
-                affectedNeighbors.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.NORTH));
-                affectedNeighbors.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.SOUTH));
+                neighborsInZone.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.NORTH));
+                neighborsInZone.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.SOUTH));
                 break;
         }
 
+        // Assign Zone Coordinates
         _zoneCoordinates = new List<WorldCoordinate> { _centerCoordinate };
-        _zoneCoordinates.AddRange(affectedNeighbors);
-
-        // Assign Zone TYPE
-        WorldCoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, WorldCoordinate.TYPE.ZONE, GetRGBAfromDebugColor(zoneColor));
+        _zoneCoordinates.AddRange(neighborsInZone);
 
         // Assign Chunk Heights
         WorldChunkMap.SetChunksToHeightFromCoordinates(_zoneCoordinates, zoneHeight);
 
+        // Assign Zone TYPE
+        WorldCoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, WorldCoordinate.TYPE.ZONE, GetRGBAfromDebugColor(zoneColor));
+
         _initialized = true;
-    }
-
-    public void Reset()
-    {
-        if (WorldCoordinateMap.coordMapInitialized == false || !_initialized) { return; }
-
-        // IF VALUES CHANGED
-        if (_centerCoordinate == null || _centerCoordinate.Coordinate != coordinateVector 
-            || zoneType != _storedZoneType )
-        {
-            // Reset
-            _zoneCoordinates.Clear();
-
-            // Update private variables
-            _centerCoordinate = WorldCoordinateMap.GetCoordinateAt(coordinateVector);
-            this._storedZoneType = zoneType;
-
-            _initialized = false;
-
-        }
+        Debug.Log($"Initialized WORLD ZONE : {_coordinateVector} : height {zoneHeight}");
     }
 
     public List<WorldCoordinate> GetZoneCoordinates() { return _zoneCoordinates; }
     public List<WorldChunk> GetZoneChunks() 
     { 
-        if (_zoneCoordinates == null || _zoneCoordinates.Count ==0 ) { return new List<WorldChunk>(); }
+        if (_zoneCoordinates == null || _zoneCoordinates.Count == 0 ) { return new List<WorldChunk>(); }
         return WorldChunkMap.GetChunksAtCoordinates(_zoneCoordinates);
     }
     public bool IsInitialized() {
+
+        // Check private variables
+        if ( _centerCoordinate.Coordinate != coordinateVector
+            || _coordinateVector != coordinateVector
+            || _zoneHeight != zoneHeight
+            || _zoneType != zoneType
+            || _zoneCoordinates.Count == 0)
+        {
+            _initialized = false;
+        }
+        else if (_zoneCoordinates.Count > 0)
+        {
+            foreach (WorldCoordinate coord in _zoneCoordinates)
+            {
+                if (WorldCoordinateMap.GetCoordinateAt(coord.Coordinate).type != WorldCoordinate.TYPE.ZONE)
+                {
+                    _initialized = false;
+                }
+            }
+        }
+        else
+        {
+            _initialized = true;
+        }
+
+        Debug.Log($">> World Zones isInitialized? : {_initialized}" +
+            $"\n_centerCoordinate {_centerCoordinate.Coordinate}" +
+            $"\n_coordinateVector {_coordinateVector}" +
+            $"\n_zoneHeight {_zoneHeight}" +
+            $"\n_zoneType {_zoneType}" +
+            $"\n_zoneCoordinates {_zoneCoordinates.Count}");
+
         return _initialized; 
     }
 }

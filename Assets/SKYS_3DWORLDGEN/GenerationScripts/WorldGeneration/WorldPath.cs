@@ -179,10 +179,7 @@ public class WorldPath
 
                 // Recalculate heightLeft with the new current height level
                 heightLeft = endHeight - currHeightLevel;
-
             }
-
-
         }
     }
 

@@ -281,10 +281,10 @@ public class WorldChunkMesh
         }
 
         // full size of the chunks in Unity units
-        Vector3 visibleDimensions = new Vector3(current_chunkMeshDimensions.x, vDivisions, current_chunkMeshDimensions.z ) * _cellSize;
+        Vector3 visibleDimensions = new Vector3(current_chunkMeshDimensions.x, -current_chunkMeshDimensions.y, current_chunkMeshDimensions.z ) * _cellSize;
 
         // center and adjust y of the mesh appropriately
-        Vector3 newFaceStartOffset = new Vector3((visibleDimensions.x) * 0.5f, -(visibleDimensions.y), (visibleDimensions.z) * 0.5f);
+        Vector3 newFaceStartOffset = new Vector3(visibleDimensions.x * 0.5f, visibleDimensions.y, visibleDimensions.z * 0.5f);
 
         switch (faceType)
         {

@@ -146,7 +146,7 @@ public class WorldExitPath
         }
     }
 
-    public void Reset(bool forceReset = false)
+    public void Reset()
     {
         if (!_initialized) return;
         if (WorldCoordinateMap.coordMapInitialized == false) { _initialized = false; return; }

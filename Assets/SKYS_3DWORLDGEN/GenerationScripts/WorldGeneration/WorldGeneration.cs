@@ -66,18 +66,17 @@ public class WorldGeneration : MonoBehaviour
     }
 
     #region == INITIALIZE ======
-    private void Start()
-    {
-        //StartGeneration();
-    }
-
     public void StartGeneration()
     {
-        Reset();
+        // Reset Generation
+        if (generation_finished)
+        {
+            Reset();
+            if (_worldGenerationRoutine != null) { StopCoroutine(_worldGenerationRoutine); }
+        }
 
-        if (_worldGenerationRoutine != null) { StopCoroutine(_worldGenerationRoutine); }
+        // Start Routine
         _worldGenerationRoutine = StartCoroutine(Generate());
-
     }
 
     public void Reset()
@@ -90,36 +89,46 @@ public class WorldGeneration : MonoBehaviour
     #region == GENERATE CHUNKS ================================================ ///
     IEnumerator Generate(float delay = 0.25f)
     {
+
         generation_finished = false;
         if (_worldGenerationObject != null) { Reset(); }
 
-        yield return new WaitForSeconds(delay);
+        WorldCoordinateMap worldCoordMap = FindObjectOfType<WorldCoordinateMap>();
 
+        float startTime = Time.realtimeSinceStartup;
+        Debug.Log($"WORLD GENERATION :: START GENERATION");
 
-        Debug.Log($"BEGIN WORLD GENERATION");
+        // [[ STAGE 0 ]] ==> INITIALIZE MAPS
         FindObjectOfType<WorldMap>().UpdateWorldMap();
-
         yield return new WaitUntil(() => WorldCoordinateMap.coordMapInitialized);
         yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);
-        Debug.Log($"WORLD GENERATION :: MAPS INITIALIZED");
 
-        WorldCoordinateMap worldCoordMap = FindObjectOfType<WorldCoordinateMap>();
-        yield return new WaitUntil(() => worldCoordMap.exitPathsInitialized);
-        Debug.Log($"WORLD GENERATION :: PATHS INITIALIZED");
+        float stage0Time = Time.realtimeSinceStartup - startTime;
+        Debug.Log($"WORLD GENERATION :: MAPS INITIALIZED :: Stage Duration {stage0Time}");
 
-        yield return new WaitUntil(() => worldCoordMap.zonesInitialized);
-        Debug.Log($"WORLD GENERATION :: ZONES INITIALIZED");
+        // [[ STAGE 1 ]] ==> INITIALIZE ZONES
+        yield return new WaitUntil(() => WorldCoordinateMap.zonesInitialized);
+        float stage1Time = Time.realtimeSinceStartup - stage0Time;
+        Debug.Log($"WORLD GENERATION :: ZONES INITIALIZED :: Stage Duration {stage1Time}");
 
+        // [[ STAGE 2 ]] ==> INITIALIZE PATHS
+        yield return new WaitUntil(() => WorldCoordinateMap.exitPathsInitialized);
+        float stage2Time = Time.realtimeSinceStartup - stage1Time;
+        Debug.Log($"WORLD GENERATION :: PATHS INITIALIZED :: Stage Duration {stage2Time}");
+
+        // [[ STAGE 3 ]] ==> INITIALIZE CHUNKS
         foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
         {
-            chunk.Initialize();
-            yield return new WaitUntil(() => chunk.initialized);
+            // Generate individual chunk
+            chunk.Generate();
+            yield return new WaitUntil(() => chunk.generation_finished);
 
-            CreateMeshObject($"Chunk {chunk.coordinate} :: height {chunk.groundHeight}", chunk.chunkMesh.mesh, WorldMaterialLibrary.Instance.chunkMaterial);            
-
+            CreateMeshObject($"Chunk {chunk.coordinate} :: height {chunk.groundHeight}",
+                chunk.chunkMesh.mesh, WorldMaterialLibrary.Instance.chunkMaterial);
         }
-        yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);
-        Debug.Log($"WORLD GENERATION :: INITIALIZED {WorldChunkMap.ChunkList.Count} CHUNKS");
+        float stage3Time = Time.realtimeSinceStartup - stage2Time;
+        Debug.Log($"WORLD GENERATION :: CHUNK MESH CREATED :: Stage Duration {stage2Time}" +
+            $"\n -> {WorldChunkMap.ChunkList.Count} CHUNKS");
 
 
         // [[ GENERATE COMBINED MESHES ]] ========================================== >>
@@ -214,8 +223,7 @@ public class WorldGeneration : MonoBehaviour
         return combinedMesh;
     }
 
-
-    GameObject CreateMeshObject(string name, Mesh mesh, Material material)
+    public static GameObject CreateMeshObject(string name, Mesh mesh, Material material)
     {
         GameObject worldObject = new GameObject(name);
 

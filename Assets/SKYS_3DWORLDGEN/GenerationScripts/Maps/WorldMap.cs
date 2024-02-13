@@ -161,8 +161,9 @@ public class WorldMapEditor : Editor
         // Start by defining a GUIStyle for your labels
         GUIStyle coordinatelabelStyle = new GUIStyle();
         coordinatelabelStyle.fontSize = 10; // Adjust font size
-        coordinatelabelStyle.normal.textColor = Color.black; // Text color
+        coordinatelabelStyle.normal.textColor = Color.white; // Text color
         coordinatelabelStyle.alignment = TextAnchor.MiddleCenter; // Center the text
+        coordinatelabelStyle.fontStyle = FontStyle.Bold;
 
         // << DRAW BASE COORDINATE MAP >>
         List<WorldCoordinate> coordList = WorldCoordinateMap.CoordinateList;
@@ -181,21 +182,24 @@ public class WorldMapEditor : Editor
         // << DRAW CHUNK MAP >>
         foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
         {
+
             switch (chunk.worldCoordinate.type)
             {
                 case WorldCoordinate.TYPE.PATH:
                     DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
-                    Handles.Label(chunk.groundPosition, new GUIContent($"PATH {chunk.coordinate}"), coordinatelabelStyle);
                     break;
                 case WorldCoordinate.TYPE.ZONE:
                     DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
-                    Handles.Label(chunk.groundPosition, new GUIContent($"ZONE {chunk.coordinate}"), coordinatelabelStyle);
                     break;
                 case WorldCoordinate.TYPE.EXIT:
                     DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
-                    Handles.Label(chunk.groundPosition, new GUIContent($"EXIT {chunk.coordinate}"), coordinatelabelStyle);
                     break;
             }
+
+            Handles.Label(chunk.groundPosition,
+                new GUIContent($"{chunk.worldCoordinate.type}" +
+                $"\nheight: {chunk.groundHeight}"),
+                coordinatelabelStyle);
         }
     }
 
