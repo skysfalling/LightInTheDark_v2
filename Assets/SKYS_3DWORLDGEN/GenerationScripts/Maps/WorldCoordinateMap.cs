@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 public enum DebugColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE, CLEAR }
+public enum WorldDirection { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
+
 
 public class WorldCoordinateMap : MonoBehaviour
 {
@@ -89,10 +91,10 @@ public class WorldCoordinateMap : MonoBehaviour
                     worldCoordinate.type = WorldCoordinate.TYPE.BORDER;
                     worldCoordinate.debugColor = Color.black;
 
-                    if (x == 0) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.West; }
-                    if (y == 0) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.South; }
-                    if (x == xCoordCount - 1) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.East; }
-                    if (y == yCoordCount - 1) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.North; }
+                    if (x == 0) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.WEST; }
+                    if (y == 0) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.SOUTH; }
+                    if (x == xCoordCount - 1) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.EAST; }
+                    if (y == yCoordCount - 1) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.NORTH; }
                 }
                 else
                 {
@@ -199,15 +201,39 @@ public class WorldCoordinateMap : MonoBehaviour
         return coordinatesOnEdge;
     }
 
-    public static List<WorldCoordinate> GetCoordinateNaturalNeighbors(WorldCoordinate coordinate)
+    public static WorldCoordinate GetCoordinateNeighborInDirection(WorldCoordinate worldCoordinate, WorldDirection direction)
+    {
+        if (worldCoordinate == null) { return null; }
+
+        WorldCoordinate neighborCoordinate = null;
+        Vector2Int directionVector = new Vector2Int(0, 0);
+
+        switch (direction)
+        {
+            case WorldDirection.NORTH: directionVector = Vector2Int.up; break;
+            case WorldDirection.SOUTH: directionVector = Vector2Int.down; break;
+            case WorldDirection.EAST: directionVector = Vector2Int.right; break;
+            case WorldDirection.WEST: directionVector = Vector2Int.left; break;
+            case WorldDirection.NORTHEAST: directionVector = new Vector2Int(1, 1); break;
+            case WorldDirection.NORTHWEST: directionVector = new Vector2Int(-1, 1); break;
+            case WorldDirection.SOUTHEAST: directionVector = new Vector2Int(1, -1); break;
+            case WorldDirection.SOUTHWEST: directionVector = new Vector2Int(-1, -1); break;
+        }
+
+        neighborCoordinate = GetCoordinateAt(worldCoordinate.Coordinate + directionVector);
+
+        return neighborCoordinate;
+    }
+
+    public static List<WorldCoordinate> GetCoordinateNaturalNeighbors(WorldCoordinate worldCoord)
     {
         List<WorldCoordinate> neighbors = new List<WorldCoordinate>(new WorldCoordinate[4]);
 
         // Find and assign neighbors in the specific order [Left, Right, Forward, Backward]
-        neighbors[0] = GetCoordinateNeighborInDirection(coordinate, WorldDirection.West);
-        neighbors[1] = GetCoordinateNeighborInDirection(coordinate, WorldDirection.East);
-        neighbors[2] = GetCoordinateNeighborInDirection(coordinate, WorldDirection.North);
-        neighbors[3] = GetCoordinateNeighborInDirection(coordinate, WorldDirection.South);
+        neighbors[0] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.WEST);
+        neighbors[1] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.EAST);
+        neighbors[2] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.NORTH);
+        neighbors[3] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.SOUTH);
 
         // Remove null entries if a neighbor is not found
         neighbors.RemoveAll(item => item == null);
@@ -217,17 +243,13 @@ public class WorldCoordinateMap : MonoBehaviour
 
     public static List<WorldCoordinate> GetCoordinateDiagonalNeighbors(WorldCoordinate worldCoord)
     {
-        if (worldCoord == null) { return new List<WorldCoordinate>(); }
-        int chunkWidth = WorldGeneration.GetRealChunkAreaSize().x;
-        int chunkLength = WorldGeneration.GetRealChunkAreaSize().y;
-
         List<WorldCoordinate> neighbors = new List<WorldCoordinate>(new WorldCoordinate[4]);
 
         // Find and assign neighbors in the specific order [Left, Right, Forward, Backward]
-        neighbors[0] = GetCoordinateAt(worldCoord.Coordinate + new Vector2Int(-1, -1)); // SOUTH WEST
-        neighbors[1] = GetCoordinateAt(worldCoord.Coordinate + new Vector2Int(-1, 1)); // NORTH WEST
-        neighbors[2] = GetCoordinateAt(worldCoord.Coordinate + new Vector2Int(1, -1)); // SOUTH EAST
-        neighbors[3] = GetCoordinateAt(worldCoord.Coordinate + new Vector2Int(1, 1)); // NORTH EAST
+        neighbors[0] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.NORTHEAST);
+        neighbors[1] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.NORTHWEST);
+        neighbors[2] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.SOUTHEAST);
+        neighbors[3] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.SOUTHWEST);
 
         // Remove null entries if a neighbor is not found
         neighbors.RemoveAll(item => item == null);
@@ -250,29 +272,7 @@ public class WorldCoordinateMap : MonoBehaviour
         return neighbors;
     }
 
-    public static WorldCoordinate GetCoordinateNeighborInDirection(WorldCoordinate coordinate, WorldDirection direction)
-    {
-        if (coordinate == null) { return null; }
 
-        WorldCoordinate coord = null;
-        switch (direction)
-        {
-            case WorldDirection.West:
-                coord = GetCoordinateAt(coordinate.Coordinate + new Vector2Int(-1, 0));
-                break;
-            case WorldDirection.East:
-                coord = GetCoordinateAt(coordinate.Coordinate + new Vector2Int(1, 0));
-                break;
-            case WorldDirection.North:
-                coord = GetCoordinateAt(coordinate.Coordinate + new Vector2Int(0, 1));
-                break;
-            case WorldDirection.South:
-                coord = GetCoordinateAt(coordinate.Coordinate + new Vector2Int(0, -1));
-                break;
-        }
-
-        return coord;
-    }
 
 
     #endregion
@@ -311,8 +311,8 @@ public class WorldCoordinateMap : MonoBehaviour
             return;
         }
 
-        WorldExit defaultStart = new WorldExit(WorldDirection.West, 0);
-        WorldExit defaultEnd = new WorldExit(WorldDirection.East, 9);
+        WorldExit defaultStart = new WorldExit(WorldDirection.WEST, 0);
+        WorldExit defaultEnd = new WorldExit(WorldDirection.EAST, 9);
         worldExitPaths.Add(new WorldExitPath(defaultStart, defaultEnd));
     }
 
@@ -320,14 +320,14 @@ public class WorldCoordinateMap : MonoBehaviour
     {
         switch (exit.borderDirection)
         {
-            case WorldDirection.West:
-                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.East);
-            case WorldDirection.East:
-                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.West);
-            case WorldDirection.North:
-                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.South);
-            case WorldDirection.South:
-                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.North);
+            case WorldDirection.WEST:
+                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.EAST);
+            case WorldDirection.EAST:
+                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.WEST);
+            case WorldDirection.NORTH:
+                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.SOUTH);
+            case WorldDirection.SOUTH:
+                return GetCoordinateNeighborInDirection(exit.worldCoordinate, WorldDirection.NORTH);
         }
 
         return null;

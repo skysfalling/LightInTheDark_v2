@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using static WorldChunk;
 using FaceType = WorldChunk.FaceType;
 
 public class MeshQuad
@@ -26,9 +27,10 @@ public class MeshQuad
 public class WorldChunkMesh
 {
     int _cellSize = WorldGeneration.CellSize;
-    Vector3Int real_chunkMeshDimensions;
-
+    Vector3Int default_chunkMeshDimensions = WorldGeneration.GetChunkDimensions();
+    Vector3Int current_chunkMeshDimensions;
     WorldChunk chunk;
+    WorldCoordinate worldCoordinate;
     Dictionary<FaceType, List<Vector3>> _meshVertices = new();
     Dictionary<FaceType, List<Vector2>> _meshUVs = new();
     public List<MeshQuad> meshQuads = new();
@@ -37,6 +39,9 @@ public class WorldChunkMesh
 
     public WorldChunkMesh(WorldChunk chunk, int groundHeight, Vector3 groundPosition)
     {
+        this.chunk = chunk;
+        this.worldCoordinate = chunk.worldCoordinate;
+
         List<FaceType> facesToGenerate = new List<FaceType>()
         {
             FaceType.Front , FaceType.Back ,
@@ -51,12 +56,15 @@ public class WorldChunkMesh
     Mesh CreateMesh(int groundHeight, List<FaceType> facesToGenerate)
     {
         int cellSize = WorldGeneration.CellSize;
-        real_chunkMeshDimensions = WorldGeneration.GetChunkDimensions() + (Vector3Int.up * groundHeight);
         Mesh newMesh = new Mesh();
-
         List<Vector3> vertices = new();
         List<Vector2> uvs = new();
         List<int> triangles = new();
+
+
+        // << UPDATE DIMENSIONS >>
+        current_chunkMeshDimensions = default_chunkMeshDimensions + (Vector3Int.up * groundHeight); // Add ground height to default dimensions
+        current_chunkMeshDimensions *= cellSize; // Multiply by cellSize to get real size
 
 
         // << CREATE MESH FACES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -66,12 +74,12 @@ public class WorldChunkMesh
         {
             for (int faceIndex = 0; faceIndex < facesToGenerate.Count; faceIndex++)
             {
-                FaceType faceType = facesToGenerate[faceIndex];
-                Vector3 startVertex = GetFaceStartVertex(faceType); // Start Vertex
-
                 // Determine face plane values
-                (Vector3 u, Vector3 v) = GetFaceUVVectors(faceType);
-                (int uDivisions, int vDivisions) = GetFaceUVDivisions(faceType);
+                FaceType faceType = facesToGenerate[faceIndex];
+
+                (Vector3 u, Vector3 v) = GetFaceUVDirectionalVectors(faceType); // Directional Vectors
+                (int uDivisions, int vDivisions) = GetFaceUVDivisions(faceType); // Divisions of Plane
+                Vector3 startVertex = GetFaceStartVertex(faceType, vDivisions); // Start Vertex
 
                 // Create Vertices & paired UVs
                 List<Vector3> faceVerticesList = new List<Vector3>();
@@ -168,12 +176,12 @@ public class WorldChunkMesh
                     case FaceType.Back:
                     case FaceType.Left:
                     case FaceType.Right:
-                        currentVertexIndex += (real_chunkMeshDimensions.x + 1) * (real_chunkMeshDimensions.y + 1);
+                        currentVertexIndex += (current_chunkMeshDimensions.x + 1) * (current_chunkMeshDimensions.y + 1);
                         break;
                     // Top Faces XZ plane
                     case FaceType.Top:
                     case FaceType.Bottom:
-                        currentVertexIndex += (real_chunkMeshDimensions.x + 1) * (real_chunkMeshDimensions.z + 1);
+                        currentVertexIndex += (current_chunkMeshDimensions.x + 1) * (current_chunkMeshDimensions.z + 1);
                         break;
                 }
             }
@@ -201,7 +209,7 @@ public class WorldChunkMesh
     // [[[[ FACES ]]]] 
     // note** :: starts the faces at -fullsized_chunkDimensions.y so that top of chunk is at y=0
     // -- the chunks will be treated as a 'Generated Ground' to build upon
-    Vector3 GetFaceStartVertex(FaceType faceType)
+    Vector3 GetFaceStartVertex(FaceType faceType, int vDivisions)
     {
         Vector3 MultiplyVectors(Vector3 a, Vector3 b)
         {
@@ -209,10 +217,10 @@ public class WorldChunkMesh
         }
 
         // full size of the chunks in Unity units
-        Vector3Int fullsize_chunkDimensions = real_chunkMeshDimensions * _cellSize;
+        Vector3Int fullsize_chunkDimensions = current_chunkMeshDimensions * _cellSize;
 
         // center and adjust y of the mesh appropriately
-        Vector3 newFaceStartOffset = new Vector3((fullsize_chunkDimensions.x) * 0.5f, -(fullsize_chunkDimensions.y), (fullsize_chunkDimensions.z) * 0.5f);
+        Vector3 newFaceStartOffset = new Vector3((fullsize_chunkDimensions.x) * 0.5f, -(vDivisions), (fullsize_chunkDimensions.z) * 0.5f);
 
         switch (faceType)
         {
@@ -233,6 +241,7 @@ public class WorldChunkMesh
         }
 
     }
+
     Vector3 GetFaceNormal(FaceType faceType)
     {
         switch (faceType)
@@ -246,8 +255,45 @@ public class WorldChunkMesh
             default: return Vector3.zero;
         }
     }
+
     (int, int) GetFaceUVDivisions(FaceType faceType)
     {
+        // [[ GET VISIBLE DIVISIONS ]]
+        // based on neighbors
+        int GetVisibleVDivisions(FaceType type)
+        {
+            int faceHeight = current_chunkMeshDimensions.y; // Get current height
+            WorldCoordinate neighborCoord = null;
+            WorldChunk neighborChunk = null;
+
+            switch (type)
+            {
+                case FaceType.Front:
+                    neighborCoord = WorldCoordinateMap.GetCoordinateNeighborInDirection(worldCoordinate, WorldDirection.NORTH);
+                    break;
+                case FaceType.Back:
+                    neighborCoord = WorldCoordinateMap.GetCoordinateNeighborInDirection(worldCoordinate, WorldDirection.SOUTH);
+                    break;
+                case FaceType.Left:
+                    neighborCoord = WorldCoordinateMap.GetCoordinateNeighborInDirection(worldCoordinate, WorldDirection.WEST);
+                    break;
+                case FaceType.Right:
+                    neighborCoord = WorldCoordinateMap.GetCoordinateNeighborInDirection(worldCoordinate, WorldDirection.EAST);
+                    break;
+                case FaceType.Top:
+                case FaceType.Bottom:
+                    break;
+            }
+
+            if (neighborCoord != null)
+            {
+                neighborChunk = WorldChunkMap.GetChunkAt(neighborCoord);
+                faceHeight -= neighborChunk.groundHeight; // 
+            }
+
+            return faceHeight;
+        }
+
         int uDivisions = 0;
         int vDivisions = 0;
         switch (faceType)
@@ -255,26 +301,30 @@ public class WorldChunkMesh
             // Side Faces XY plane
             case FaceType.Front:
             case FaceType.Back:
-                uDivisions = real_chunkMeshDimensions.x;
-                vDivisions = real_chunkMeshDimensions.y;
+                uDivisions = current_chunkMeshDimensions.x;
+                vDivisions = GetVisibleVDivisions(faceType);
                 break;
+            // Side Faces ZY plane
             case FaceType.Left:
             case FaceType.Right:
-                uDivisions = real_chunkMeshDimensions.z;
-                vDivisions = real_chunkMeshDimensions.y;
+                uDivisions = current_chunkMeshDimensions.z;
+                vDivisions = GetVisibleVDivisions(faceType);
                 break;
             // Top Faces XZ plane
             case FaceType.Top:
             case FaceType.Bottom:
-                uDivisions = real_chunkMeshDimensions.x;
-                vDivisions = real_chunkMeshDimensions.z;
+                uDivisions = current_chunkMeshDimensions.x;
+                vDivisions = current_chunkMeshDimensions.z;
                 break;
 
         }
 
         return (uDivisions, vDivisions);
     }
-    (Vector3, Vector3) GetFaceUVVectors(FaceType faceType)
+
+
+
+    (Vector3, Vector3) GetFaceUVDirectionalVectors(FaceType faceType)
     {
         Vector3 u = Vector3.zero;
         Vector3 v = Vector3.zero;
@@ -319,5 +369,6 @@ public class WorldChunkMesh
         }
         mesh.vertices = vertices;
     }
+
 }
 

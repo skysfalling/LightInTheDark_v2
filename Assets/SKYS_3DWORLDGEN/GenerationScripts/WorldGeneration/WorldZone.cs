@@ -87,12 +87,12 @@ public class WorldZone
                 affectedNeighbors = WorldCoordinateMap.GetCoordinateNaturalNeighbors(_centerCoordinate);
                 break;
             case TYPE.HORIZONTAL:
-                affectedNeighbors.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.West));
-                affectedNeighbors.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.East));
+                affectedNeighbors.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.WEST));
+                affectedNeighbors.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.EAST));
                 break;
             case TYPE.VERTICAL:
-                affectedNeighbors.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.North));
-                affectedNeighbors.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.South));
+                affectedNeighbors.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.NORTH));
+                affectedNeighbors.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.SOUTH));
                 break;
         }
 

@@ -9,8 +9,6 @@ using System;
 using UnityEditor;
 #endif
 
-public enum WorldDirection { West, East, North, South }
-
 // =================================================================
 //      WORLD EXIT
 // ========================================================
@@ -26,7 +24,7 @@ public class WorldExit
     public WorldCoordinate pathConnection;
 
     // == INSPECTOR VALUES >>
-    public WorldDirection borderDirection = WorldDirection.West;
+    public WorldDirection borderDirection = WorldDirection.WEST;
     public int borderIndex = 0;
     public int exitHeight = 0;
 
