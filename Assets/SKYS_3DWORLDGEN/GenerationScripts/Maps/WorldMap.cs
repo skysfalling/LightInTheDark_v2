@@ -31,6 +31,7 @@ public class WorldMap : MonoBehaviour
         worldChunkMap.DestroyChunkMap();
         worldCellMap.Reset();
 
+        UpdateWorldMap();
     }
 }
 
@@ -60,31 +61,79 @@ public class WorldMapEditor : Editor
 
         // ================================================= >>
 
-        UpdateGUIWorldMap();
+        GUIStyle titleHeaderStyle = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            fontSize = 24,
+            fontStyle = FontStyle.Bold
+        };
 
+
+        #region DRAW GUI WORLD MAP ===============================================
+
+        EditorGUILayout.LabelField("World Map", titleHeaderStyle, GUILayout.Height(25));
+        EditorGUILayout.Space();
+
+        EditorGUILayout.BeginVertical(); // Start a vertical group
+        GUILayout.FlexibleSpace(); // Push everything after this down
+
+            EditorGUILayout.BeginHorizontal(); // Start a horizontal group
+            GUILayout.FlexibleSpace(); // Push everything after this to the right, centering the content
+
+            UpdateGUIWorldMap();
+
+            GUILayout.FlexibleSpace(); // Push everything before this to the left, ensuring centering
+            EditorGUILayout.EndHorizontal(); // End the horizontal group
+
+        GUILayout.FlexibleSpace(); // Push everything before this up, creating space at the bottom
+
+
+        // GENERATE BUTTON >>>>>>>>>>>>>>>>>
         EditorGUILayout.BeginHorizontal();
-        // Check if the editor is not in play mode
-        if (!EditorApplication.isPlaying)
-        {
-            // Display an error message or perform your checks here
-            EditorGUILayout.HelpBox("You can only generate in Play Mode.", MessageType.Error);
-        }
-        else if (GUILayout.Button("Generate"))
-        {
-            worldGeneration.StartGeneration();
-        }
+        GUILayout.FlexibleSpace();
 
-
-        if (GUILayout.Button("Update Map"))
+        if (EditorApplication.isPlaying)
         {
-            worldMap.UpdateWorldMap();
+            if (GUILayout.Button("Generate"))
+                worldGeneration.StartGeneration();
         }
+        else { EditorGUILayout.HelpBox("You can only generate in Play Mode.", MessageType.Error); }
 
+        // RESET BUTTON >>>>>>>>>>>>>>>>>>>>
         if (GUILayout.Button("Full Reset"))
         {
             worldMap.ResetWorldMap();
         }
+
+        GUILayout.FlexibleSpace();
         EditorGUILayout.EndHorizontal();
+
+
+        EditorGUILayout.EndVertical(); // End the vertical group
+        #endregion
+
+        #region INITIALIZATION LAYOUT ===============================================
+
+        EditorGUI.BeginDisabledGroup(true);
+        EditorGUILayout.BeginHorizontal();
+
+        // Column 1 -> WORLD COORDINATE MAP
+        EditorGUILayout.BeginVertical();
+        EditorGUILayout.Toggle("World Coordinate Map", WorldCoordinateMap.coordMapInitialized);
+        EditorGUILayout.Toggle("Zones", WorldCoordinateMap.zonesInitialized);
+        EditorGUILayout.Toggle("Exit Paths", WorldCoordinateMap.exitPathsInitialized);
+
+        EditorGUILayout.EndVertical();
+
+        // Column 2 -> WORLD CHUNK MAP
+        EditorGUILayout.BeginVertical();
+        EditorGUILayout.Toggle("World Chunk Map", WorldChunkMap.chunkMapInitialized);
+        EditorGUILayout.EndVertical();
+
+        EditorGUILayout.EndHorizontal();
+        EditorGUI.EndDisabledGroup();
+
+        #endregion ==============================================================
 
         // ================================================= >>
 
@@ -98,13 +147,14 @@ public class WorldMapEditor : Editor
 
     private void UpdateGUIWorldMap()
     {
+
         // Control the size of each box representing a coordinate
-        float mapGUIBoxSize = 10f;
+        float mapGUIBoxSize = 20f;
         int mapWidth = WorldGeneration.GetFullWorldArea().x;
         int mapHeight = WorldGeneration.GetFullWorldArea().y;
 
         // Begin a scroll view to handle maps that won't fit in the inspector window
-        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.Width(mapWidth * (mapGUIBoxSize * 1.5f)), GUILayout.Height(mapHeight * (mapGUIBoxSize * 1.5f)));
+        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.Width(mapWidth * (mapGUIBoxSize * 1.15f)), GUILayout.Height(mapHeight * (mapGUIBoxSize * 1.15f)));
 
         // Attempt to center the map grid horizontally
         GUILayout.BeginHorizontal();
@@ -145,13 +195,7 @@ public class WorldMapEditor : Editor
 
     private void OnSceneGUI()
     {
-
         DrawWorldMap();
-    }
-
-    private void DrawCoordinateMap()
-    {
-
     }
 
     private void DrawWorldMap()

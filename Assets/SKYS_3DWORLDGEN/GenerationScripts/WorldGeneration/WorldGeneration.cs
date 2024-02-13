@@ -99,7 +99,11 @@ public class WorldGeneration : MonoBehaviour
         Debug.Log($"WORLD GENERATION :: START GENERATION");
 
         // [[ STAGE 0 ]] ==> INITIALIZE MAPS
-        FindObjectOfType<WorldMap>().UpdateWorldMap();
+
+        if (!WorldCoordinateMap.coordMapInitialized || !WorldChunkMap.chunkMapInitialized)
+        {
+            FindObjectOfType<WorldMap>().UpdateWorldMap();
+        }
         yield return new WaitUntil(() => WorldCoordinateMap.coordMapInitialized);
         yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);
 

@@ -41,7 +41,7 @@ public class WorldChunkMap : MonoBehaviour
         CoordinateChunkMap = newCoordinateChunkMap;
 
         chunkMapInitialized = true;
-        Debug.Log("Chunk Map initialized");
+        //Debug.Log("Chunk Map initialized");
     }
 
     public void DestroyChunkMap()

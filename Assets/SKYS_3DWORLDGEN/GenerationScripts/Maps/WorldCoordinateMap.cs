@@ -61,7 +61,7 @@ public class WorldCoordinateMap : MonoBehaviour
         SetAllCoordinateTypesToDefault();
 
         coordMapInitialized = true;
-        Debug.Log("Coord Map initialized");
+        //Debug.Log("Coord Map initialized");
     }
 
     static void ResetAllCoordinatesToDefault()
@@ -421,7 +421,6 @@ public class WorldCoordinateMap : MonoBehaviour
         else 
         { 
             zonesInitialized = true;
-            Debug.Log($">> World Zones CONFIRM INITIALIZATION");
         }
     }
 
@@ -443,6 +442,9 @@ public class WorldCoordinateMap : MonoBehaviour
         // gCost is the known cost from the starting node
         // hCost is the estimated distance to the end node
         // fCost is gCost + hCost
+
+        // Initialize Random Seed :: IMPORTANT To keep the same results per seed
+        WorldGeneration.InitializeRandomSeed();
 
         // Initialize the open set with the start coordinate
         List<Vector2Int> openSet = new List<Vector2Int> { startCoord };

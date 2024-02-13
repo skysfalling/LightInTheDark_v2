@@ -103,7 +103,7 @@ public class WorldPath
 
         if (typesAreValid)
         {
-            Debug.Log($"Found Valid Path from {_startCoordinate} -> {_endCoordinate}");
+            //Debug.Log($"Found Valid Path from {_startCoordinate} -> {_endCoordinate}");
 
             _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
 

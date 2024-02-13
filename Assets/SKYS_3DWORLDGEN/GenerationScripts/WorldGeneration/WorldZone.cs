@@ -127,12 +127,14 @@ public class WorldZone
             _initialized = true;
         }
 
+        /*
         Debug.Log($">> World Zones isInitialized? : {_initialized}" +
             $"\n_centerCoordinate {_centerCoordinate.Coordinate}" +
             $"\n_coordinateVector {_coordinateVector}" +
             $"\n_zoneHeight {_zoneHeight}" +
             $"\n_zoneType {_zoneType}" +
             $"\n_zoneCoordinates {_zoneCoordinates.Count}");
+        */
 
         return _initialized; 
     }
