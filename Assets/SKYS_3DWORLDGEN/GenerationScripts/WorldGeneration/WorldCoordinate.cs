@@ -24,7 +24,7 @@ public class WorldCoordinate
         private set { }
     }
 
-    public Dictionary<WorldDirection, Vector2Int> NeighborMap { get; private set; }
+    public Dictionary<WorldDirection, Vector2Int> NeighborCoordinateMap { get; private set; }
 
     public WorldCoordinate(Vector2Int coord)
     {
@@ -45,12 +45,12 @@ public class WorldCoordinate
     public void InitializeNeighborMap()
     {
         // Set Neighbors
-        NeighborMap = new Dictionary<WorldDirection, Vector2Int>();
+        NeighborCoordinateMap = new Dictionary<WorldDirection, Vector2Int>();
 
         foreach (WorldDirection direction in Enum.GetValues(typeof(WorldDirection)))
         {
             // Get neighbor in direction
-            NeighborMap[direction] = Coordinate + GetDirectionVector(direction);
+            NeighborCoordinateMap[direction] = Coordinate + GetDirectionVector(direction);
         }
 
         foundNeighbors = true;
@@ -76,7 +76,7 @@ public class WorldCoordinate
     public WorldCoordinate GetNeighborInDirection(WorldDirection direction)
     {
         if (!foundNeighbors) return null;
-        return WorldCoordinateMap.GetCoordinateAt(NeighborMap[direction]);
+        return WorldCoordinateMap.GetCoordinateAt(NeighborCoordinateMap[direction]);
     }
 
     public List<WorldCoordinate> GetValidNaturalNeighbors()
@@ -84,10 +84,10 @@ public class WorldCoordinate
         if (!foundNeighbors) return new();
 
         List<WorldCoordinate> neighbors = new List<WorldCoordinate> {
-            WorldCoordinateMap.GetCoordinateAt(NeighborMap[WorldDirection.WEST]),
-            WorldCoordinateMap.GetCoordinateAt(NeighborMap[WorldDirection.EAST]),
-            WorldCoordinateMap.GetCoordinateAt(NeighborMap[WorldDirection.NORTH]),
-            WorldCoordinateMap.GetCoordinateAt(NeighborMap[WorldDirection.SOUTH])
+            WorldCoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.WEST]),
+            WorldCoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.EAST]),
+            WorldCoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTH]),
+            WorldCoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTH])
         };
         neighbors.RemoveAll(item => item == null);
         return neighbors;
@@ -98,10 +98,10 @@ public class WorldCoordinate
         if (!foundNeighbors) return new();
 
         List<WorldCoordinate> neighbors = new List<WorldCoordinate> {
-            WorldCoordinateMap.GetCoordinateAt(NeighborMap[WorldDirection.NORTHWEST]),
-            WorldCoordinateMap.GetCoordinateAt(NeighborMap[WorldDirection.NORTHEAST]),
-            WorldCoordinateMap.GetCoordinateAt(NeighborMap[WorldDirection.SOUTHWEST]),
-            WorldCoordinateMap.GetCoordinateAt(NeighborMap[WorldDirection.SOUTHEAST])
+            WorldCoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTHWEST]),
+            WorldCoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTHEAST]),
+            WorldCoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTHWEST]),
+            WorldCoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTHEAST])
         };
         neighbors.RemoveAll(item => item == null);
         return neighbors;
@@ -141,6 +141,39 @@ public class WorldCoordinate
         }
 
         return null;
+    }
+
+    public List<Vector2Int> GetValidNaturalNeighborCoordinates()
+    {
+        if (!foundNeighbors) return new();
+
+        List<Vector2Int> neighbors = new List<Vector2Int> {
+            NeighborCoordinateMap[WorldDirection.WEST],
+            NeighborCoordinateMap[WorldDirection.EAST],
+            NeighborCoordinateMap[WorldDirection.NORTH],
+            NeighborCoordinateMap[WorldDirection.SOUTH],
+        };
+        neighbors.RemoveAll(item => item == null);
+        return neighbors;
+    }
+
+    public List<Vector2Int> GetValidDiagonalNeighborCoordinates()
+    {
+        if (!foundNeighbors) return new();
+
+        List<Vector2Int> neighbors = new List<Vector2Int> {
+            NeighborCoordinateMap[WorldDirection.NORTHWEST],
+            NeighborCoordinateMap[WorldDirection.NORTHEAST],
+            NeighborCoordinateMap[WorldDirection.SOUTHWEST],
+            NeighborCoordinateMap[WorldDirection.SOUTHEAST],
+        };
+        neighbors.RemoveAll(item => item == null);
+        return neighbors;
+    }
+
+    public bool IsCoordinateInNaturalNeighbors(Vector2Int coordinate)
+    {
+        return GetValidDiagonalNeighborCoordinates().Contains(coordinate);
     }
 }
 

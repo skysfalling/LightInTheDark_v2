@@ -58,7 +58,7 @@ public class WorldMapEditor : Editor
 {
     bool _showDebugSettingsFoldout = false;
     bool _showSelectedChunkFoldout = false;
-    bool _showInitializationFoldout = false;
+    bool _showInitializationFoldout = true;
     Vector2 scrollPosition;
 
     GUIStyle titleHeaderStyle;
@@ -307,7 +307,7 @@ public class WorldMapEditor : Editor
                 string chunkParameters =
                     $"Coordinate => {worldCoord.Coordinate}" +
                     $"\nCoordinate Type => {worldCoord.type}" +
-                    $"\nCoordinate Neighbors => {worldCoord.NeighborMap.Values.ToList().Count()}" +
+                    $"\nCoordinate Neighbors => {worldCoord.NeighborCoordinateMap.Values.ToList().Count()}" +
                     $"\n" +
                     $"\nChunk GroundHeight => {selectedChunk.groundHeight}" +
                     $"\nChunk Mesh Dimensions => {selectedChunk.groundMeshDimensions}";
@@ -402,6 +402,7 @@ public class WorldMapEditor : Editor
             switch (worldChunkMapDebug)
             {
                 case WorldChunkMapDebug.ALL_CHUNKS:
+
                     DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
                     break;
             }
@@ -451,22 +452,51 @@ public class WorldMapEditor : Editor
                     WorldChunk worldChunk = WorldChunkMap.GetChunkAt(worldCoord);
                     if (worldCoord != null)
                     {
-                        // Make the color brighter by interpolating towards white
+
+                        // << SET WORLD CHUNK COLOR >>
                         GUI.backgroundColor = worldCoord.debugColor;
-                        if (selectedChunk == worldChunk)
+
+                        // << SET SELECTED CHUNK COLOR >>
+                        if (selectedChunk != null)
                         {
-                            GUI.backgroundColor = Color.Lerp(worldCoord.debugColor, Color.white, 0.75f);
+                            // Make the color brighter by interpolating towards white
+                            if (selectedChunk == worldChunk)
+                            {
+                                GUI.backgroundColor = Color.Lerp(worldCoord.debugColor, Color.white, 0.75f);
+                            }
+                            else if (WorldCoordinateMap.coordNeighborsInitialized)
+                            {
+                                List<Vector2Int> naturalNeighbors = selectedChunk.worldCoordinate.GetValidNaturalNeighborCoordinates();
+                                List<Vector2Int> diagonalNeighbors = selectedChunk.worldCoordinate.GetValidDiagonalNeighborCoordinates();
+
+                                // Draw Natural Neighbors
+                                if (naturalNeighbors.Contains(worldChunk.worldCoordinate.Coordinate))
+                                {
+                                    GUI.backgroundColor = Color.Lerp(worldCoord.debugColor, Color.white, 0.5f);
+                                }
+
+                                // Draw Diagonal Neighbors
+                                else if (diagonalNeighbors.Contains(worldChunk.worldCoordinate.Coordinate))
+                                {
+                                    GUI.backgroundColor = Color.Lerp(worldCoord.debugColor, Color.white, 0.25f);
+                                }
+
+                            }
                         }
 
+
+                        // Create Button
                         if (GUILayout.Button("", GUILayout.Width(mapGUIBoxSize), GUILayout.Height(mapGUIBoxSize)))
                         {
-                            selectedChunk = worldChunk;
+                            SelectChunk(worldChunk);
                         }
 
                         GUI.backgroundColor = Color.white; // Reset color to default
 
                         continue; // continue to next coordinate
                     }
+
+
                 }
             }
             GUILayout.EndHorizontal();
@@ -477,6 +507,11 @@ public class WorldMapEditor : Editor
         GUILayout.EndHorizontal();
 
         EditorGUILayout.EndScrollView();
+    }
+
+    private void SelectChunk(WorldChunk worldChunk)
+    {
+        selectedChunk = worldChunk;
     }
 
     private void DrawRectangleAtChunkGround(WorldChunk worldChunk, Color fillColor, float scaleMultiplier = 1)
@@ -526,13 +561,6 @@ public class WorldMapEditor : Editor
         return vertices;
     }
     #endregion
-
-
-    // DRAW CHUNK
-
-
-    // DRAW CELL
-
 
 
     // ================ HELPER FUNCTIONS ========================================================= ////

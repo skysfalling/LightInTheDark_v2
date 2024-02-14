@@ -190,6 +190,31 @@ public class WorldChunk
     }
     #endregion
 
+
+    public List<WorldChunk> GetNaturalChunkNeighbors()
+    {
+        List<WorldChunk> chunkNeighbors = new();
+        List<WorldCoordinate> neighborCoords = worldCoordinate.GetValidNaturalNeighbors();
+        foreach (WorldCoordinate neighborCoord in neighborCoords)
+        {
+            chunkNeighbors.Add(WorldChunkMap.GetChunkAt(neighborCoord.Coordinate));
+        }
+        return chunkNeighbors;
+    }
+
+    public List<WorldChunk> GetDiagonalChunkNeighbors()
+    {
+        List<WorldChunk> chunkNeighbors = new();
+        List<WorldCoordinate> neighborCoords = worldCoordinate.GetValidDiagonalNeighbors();
+        foreach (WorldCoordinate neighborCoord in neighborCoords)
+        {
+            chunkNeighbors.Add(WorldChunkMap.GetChunkAt(neighborCoord.Coordinate));
+        }
+        return chunkNeighbors;
+    }
+
+
+
     // ================ CREATE & INITIALIZE WORLD CELLS ============================== >>
     public List<WorldCell> localCells = new List<WorldCell>();
     Dictionary<WorldCell.TYPE, List<WorldCell>> _cellTypeMap = new Dictionary<WorldCell.TYPE, List<WorldCell>>();
