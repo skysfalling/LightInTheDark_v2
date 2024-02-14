@@ -44,8 +44,7 @@ public class WorldCell
 
 
         // Set Position [[ parent position offset + center of corresponding quad ]]
-        this.position = chunkParent.groundPosition + meshQuad.GetCenterPosition();
-
+ 
     }
 
     public void SetCellType(TYPE type)

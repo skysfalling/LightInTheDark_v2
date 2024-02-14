@@ -53,7 +53,7 @@ public class WorldZone
 
     public void Initialize()
     {
-        if (_initialized ) { return; }
+        if (_initialized || !WorldCoordinateMap.coordMapInitialized) { return; }
         _initialized = false;
 
         // Update private variables
@@ -104,7 +104,8 @@ public class WorldZone
     public bool IsInitialized() {
 
         // Check private variables
-        if ( _centerCoordinate.Coordinate != coordinateVector
+        if ( _centerCoordinate == null
+            || _centerCoordinate.Coordinate != coordinateVector
             || _coordinateVector != coordinateVector
             || _zoneHeight != zoneHeight
             || _zoneType != zoneType

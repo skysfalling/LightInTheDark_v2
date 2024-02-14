@@ -137,12 +137,6 @@ public class WorldCoordinateMap : MonoBehaviour
         CoordinateList = new();
         CoordinateMap = new();
         coordMapInitialized = false;
-
-        // Destroy World Zones
-        worldZones = new List<WorldZone>();
-
-        // Destroy World Paths
-        worldExitPaths = new List<WorldExitPath>();
     }
 
     public void UpdateCoordinateMap()
@@ -156,6 +150,7 @@ public class WorldCoordinateMap : MonoBehaviour
         exitPathsInitialized = false;
 
         InitializeCoordinateMap(); // Make sure CoordinateMap is initialized
+        yield return new WaitUntil(() => coordMapInitialized);
         yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);
 
         // Initialize Random Seed :: IMPORTANT To keep the same results per seed

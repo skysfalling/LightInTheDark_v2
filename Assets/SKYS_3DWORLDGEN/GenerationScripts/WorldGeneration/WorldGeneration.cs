@@ -121,11 +121,8 @@ public class WorldGeneration : MonoBehaviour
         Debug.Log($"WORLD GENERATION :: PATHS INITIALIZED :: Stage Duration {stage2Time}");
 
         // [[ STAGE 3 ]] ==> INITIALIZE CHUNKS
-        /*
         foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
         {
-            // Generate individual chunk
-            chunk.Generate();
             yield return new WaitUntil(() => chunk.generation_finished);
 
             CreateMeshObject($"Chunk {chunk.coordinate} :: height {chunk.groundHeight}",
@@ -134,8 +131,6 @@ public class WorldGeneration : MonoBehaviour
         float stage3Time = Time.realtimeSinceStartup - stage2Time;
         Debug.Log($"WORLD GENERATION :: CHUNK MESH CREATED :: Stage Duration {stage2Time}" +
             $"\n -> {WorldChunkMap.ChunkList.Count} CHUNKS");
-        */
-
 
         // [[ GENERATE COMBINED MESHES ]] ========================================== >>
         /*
