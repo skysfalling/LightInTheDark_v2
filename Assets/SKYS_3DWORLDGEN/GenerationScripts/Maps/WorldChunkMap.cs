@@ -15,7 +15,6 @@ public class WorldChunkMap : MonoBehaviour
     public static bool chunkMeshInitialized { get; private set; }
 
     public static List<WorldChunk> ChunkList { get; private set; }
-    public static Dictionary<WorldCoordinate, WorldChunk> WorldCoordChunkMap { get; private set; }
     public static Dictionary<Vector2Int, WorldChunk> CoordinateChunkMap { get; private set; }
 
     // == HANDLE CHUNK MAP =================================== ///
@@ -31,7 +30,6 @@ public class WorldChunkMap : MonoBehaviour
         yield return new WaitUntil(() => WorldCoordinateMap.coordMapInitialized);
 
         List<WorldChunk> newChunkList = new();
-        Dictionary<WorldCoordinate, WorldChunk> newWorldCoordChunkMap = new();
         Dictionary<Vector2Int, WorldChunk> newCoordinateChunkMap = new();
 
         // Create Chunks at each World Coordinate
@@ -40,12 +38,10 @@ public class WorldChunkMap : MonoBehaviour
             WorldChunk newChunk = new WorldChunk(worldCoord);
 
             newChunkList.Add(newChunk);
-            newWorldCoordChunkMap[worldCoord] = newChunk;
             newCoordinateChunkMap[worldCoord.Coordinate] = newChunk;
         }
 
         ChunkList = newChunkList;
-        WorldCoordChunkMap = newWorldCoordChunkMap;
         CoordinateChunkMap = newCoordinateChunkMap;
 
         chunkMapInitialized = true;
@@ -54,7 +50,6 @@ public class WorldChunkMap : MonoBehaviour
     public void DestroyChunkMap()
     {
         ChunkList = new();
-        WorldCoordChunkMap = new();
         CoordinateChunkMap = new();
 
         chunkMapInitialized = false;
@@ -102,7 +97,7 @@ public class WorldChunkMap : MonoBehaviour
         if (!chunkMapInitialized || worldCoord == null) { return null; }
 
         // Use the dictionary for fast lookups
-        if (WorldCoordChunkMap.TryGetValue(worldCoord, out WorldChunk foundChunk))
+        if (CoordinateChunkMap.TryGetValue(worldCoord.Coordinate, out WorldChunk foundChunk))
         {
             return foundChunk;
         }
