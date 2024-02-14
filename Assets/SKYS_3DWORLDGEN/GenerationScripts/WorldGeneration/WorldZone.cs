@@ -93,7 +93,7 @@ public class WorldZone
         WorldCoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, WorldCoordinate.TYPE.ZONE, GetRGBAfromDebugColor(zoneColor));
 
         _initialized = true;
-        Debug.Log($"Initialized WORLD ZONE : {_coordinateVector} : height {zoneHeight}");
+        //Debug.Log($"Initialized WORLD ZONE : {_coordinateVector} : height {zoneHeight}");
     }
 
     public void Reset()

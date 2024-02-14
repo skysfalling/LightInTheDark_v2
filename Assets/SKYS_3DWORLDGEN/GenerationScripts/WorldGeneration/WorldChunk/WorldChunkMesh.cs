@@ -286,26 +286,28 @@ public class WorldChunkMesh
             return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
         }
 
-        // full size of the chunks in Unity units
-        Vector3 visibleDimensions = new Vector3(current_chunkMeshDimensions.x, -vDivisions, current_chunkMeshDimensions.z ) * _cellSize;
+        // Get starting vertex of visible vDivisions
+        Vector3 visibleSideFaceStartVertex = new Vector3(current_chunkMeshDimensions.x, -vDivisions, current_chunkMeshDimensions.z ) * _cellSize;
+        Vector3 newSideFaceStartOffset = new Vector3(visibleSideFaceStartVertex.x * 0.5f, visibleSideFaceStartVertex.y, visibleSideFaceStartVertex.z * 0.5f);
 
-        // center and adjust y of the mesh appropriately
-        Vector3 newFaceStartOffset = new Vector3(visibleDimensions.x * 0.5f, visibleDimensions.y, visibleDimensions.z * 0.5f);
+        // Use current chunk mesh height for bottom and top faces
+        Vector3 verticalFaceStartVertex = new Vector3(current_chunkMeshDimensions.x, -current_chunkMeshDimensions.y, current_chunkMeshDimensions.z) * _cellSize;
+        Vector3 newVerticalFaceStartOffset = new Vector3(verticalFaceStartVertex.x * 0.5f, verticalFaceStartVertex.y, verticalFaceStartVertex.z * 0.5f);
 
         switch (faceType)
         {
             case FaceType.Front:
-                return MultiplyVectors(newFaceStartOffset, new Vector3(-1, 1, 1));
+                return MultiplyVectors(newSideFaceStartOffset, new Vector3(-1, 1, 1));
             case FaceType.Back:
-                return MultiplyVectors(newFaceStartOffset, new Vector3(1, 1, -1));
+                return MultiplyVectors(newSideFaceStartOffset, new Vector3(1, 1, -1));
             case FaceType.Left:
-                return MultiplyVectors(newFaceStartOffset, new Vector3(-1, 1, -1));
+                return MultiplyVectors(newSideFaceStartOffset, new Vector3(-1, 1, -1));
             case FaceType.Right:
-                return MultiplyVectors(newFaceStartOffset, new Vector3(1, 1, 1));
+                return MultiplyVectors(newSideFaceStartOffset, new Vector3(1, 1, 1));
             case FaceType.Top:
-                return MultiplyVectors(newFaceStartOffset, new Vector3(1, 0, -1));
+                return MultiplyVectors(newVerticalFaceStartOffset, new Vector3(1, 0, -1));
             case FaceType.Bottom:
-                return MultiplyVectors(newFaceStartOffset, new Vector3(-1, 1, -1));
+                return MultiplyVectors(newVerticalFaceStartOffset, new Vector3(-1, 1, -1));
             default:
                 return Vector3.zero;
         }
@@ -325,9 +327,6 @@ public class WorldChunkMesh
             default: return Vector3.zero;
         }
     }
-
-
-
 
 
     (Vector3, Vector3) GetFaceUVDirectionalVectors(FaceType faceType)

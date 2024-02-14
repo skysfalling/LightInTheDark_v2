@@ -86,12 +86,6 @@ public class WorldChunk
     {
         generation_finished = false;
 
-        // Assign height
-        if (worldCoordinate.type == WorldCoordinate.TYPE.NULL)
-        {
-            //DetermineChunkHeightFromNeighbors();
-        }
-
         // Create chunkMesh
         chunkMesh = new WorldChunkMesh(this, groundHeight, groundPosition);
 

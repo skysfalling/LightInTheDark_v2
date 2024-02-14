@@ -45,6 +45,8 @@ public class WorldMapEditor : Editor
     GUIStyle titleHeaderStyle;
     GUIStyle centeredStyle;
 
+    WorldChunk selectedChunk;
+
     public void OnEnable()
     {
         WorldMap worldMap = (WorldMap)target;
@@ -75,10 +77,29 @@ public class WorldMapEditor : Editor
             alignment = TextAnchor.MiddleCenter
         };
 
-        #region DRAW GUI WORLD MAP ===============================================
+        GUIStyle h1Style = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.UpperLeft,
+            fontSize = 18,
+            fontStyle = FontStyle.Bold,
+            fixedHeight = 20
+        };
+        GUIStyle pStyle = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.UpperLeft,
+            fontSize = 12,
+            fontStyle = FontStyle.Normal,
+            fixedHeight = 100
+        };
+
 
         EditorGUILayout.LabelField("World Map", titleHeaderStyle, GUILayout.Height(25));
         EditorGUILayout.Space();
+
+        EditorGUILayout.BeginVertical();
+        EditorGUILayout.BeginHorizontal();
+
+        #region DRAW GUI WORLD MAP ===============================================
 
         EditorGUILayout.BeginVertical(); // Start a vertical group
         GUILayout.FlexibleSpace(); // Push everything after this down
@@ -92,7 +113,6 @@ public class WorldMapEditor : Editor
             EditorGUILayout.EndHorizontal(); // End the horizontal group
 
         GUILayout.FlexibleSpace(); // Push everything before this up, creating space at the bottom
-
 
         // GENERATE BUTTON >>>>>>>>>>>>>>>>>
         EditorGUILayout.BeginHorizontal();
@@ -113,11 +133,38 @@ public class WorldMapEditor : Editor
 
         GUILayout.FlexibleSpace();
         EditorGUILayout.EndHorizontal();
-
-
         EditorGUILayout.EndVertical(); // End the vertical group
         #endregion
 
+        EditorGUILayout.BeginVertical();
+        EditorGUILayout.LabelField("Selected Chunk", h1Style);
+
+        if (selectedChunk == null)
+        {
+            EditorGUILayout.LabelField($"NULL. \n Select chunk from map. \n <--");
+        }
+        else
+        {
+            WorldCoordinate worldCoord = selectedChunk.worldCoordinate;
+
+            string chunkParameters = 
+                $"Coordinate => {worldCoord.Coordinate}" +
+                $"\nCoordinate Type => {worldCoord.type}" +
+                $"\nCoordinate Neighbors => {WorldCoordinateMap.CoordinateNeighborMap[worldCoord].Count}" +
+                $"\n" +
+                $"\nChunk GroundHeight => {selectedChunk.groundHeight}" +
+                $"\nChunk Mesh Dimensions => {selectedChunk.groundMeshDimensions}";
+
+            GUILayout.Box(chunkParameters, pStyle);
+            GUILayout.FlexibleSpace();
+        }
+
+
+        EditorGUILayout.EndVertical();
+        GUILayout.FlexibleSpace();
+
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.EndVertical();
 
         #region GENERATION PARAMETERS ===========================================
 
@@ -239,10 +286,12 @@ public class WorldMapEditor : Editor
                     break;
             }
 
+            /*
             Handles.Label(chunk.groundPosition,
                 new GUIContent($"{chunk.worldCoordinate.type}" +
                 $"\nheight: {chunk.groundHeight}"),
                 coordinatelabelStyle);
+            */
         }
     }
     private void DrawGUIWorldMap()
@@ -270,22 +319,24 @@ public class WorldMapEditor : Editor
                 if (WorldCoordinateMap.coordMapInitialized)
                 {
                     WorldCoordinate worldCoord = WorldCoordinateMap.GetCoordinateAt(new Vector2Int(x, y));
+                    WorldChunk worldChunk = WorldChunkMap.GetChunkAt(worldCoord);
                     if (worldCoord != null)
                     {
-                        /*
-                        // Draw a box for each type of coordinate with different colors
-                        Color color = worldCoord.debugColor;
-                        Rect rect = EditorGUILayout.GetControlRect(GUILayout.Width(mapGUIBoxSize), GUILayout.Height(mapGUIBoxSize));
-                        EditorGUI.DrawRect(rect, color);
-                        */
+
 
                         // Make the color brighter by interpolating towards white
                         GUI.backgroundColor = worldCoord.debugColor;
+                        if (selectedChunk == worldChunk)
+                        {
+                            GUI.backgroundColor = Color.Lerp(worldCoord.debugColor, Color.white, 0.75f);
+                        }
 
                         if (GUILayout.Button("", GUILayout.Width(mapGUIBoxSize), GUILayout.Height(mapGUIBoxSize)))
                         {
-                            WorldCoordinate worldCoordinate = WorldCoordinateMap.GetCoordinateAt(new Vector2Int(x, y));
-                            Debug.Log($"Clicked Coordinate: {worldCoordinate.Coordinate} >> TYPE {worldCoordinate.type}");
+
+                            selectedChunk = worldChunk;
+
+                            Debug.Log($"Selected Chunk: {selectedChunk.worldCoordinate.Coordinate} >> TYPE {selectedChunk.type}");
                         }
 
                         GUI.backgroundColor = Color.white; // Reset color to default

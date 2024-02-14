@@ -18,13 +18,14 @@ public class WorldCoordinateMap : MonoBehaviour
     }
 
     public static bool coordMapInitialized { get; private set; }
+    public static bool coordNeighborMapInitialized { get; private set; }
     public static bool exitPathsInitialized { get; private set; }
     public static bool zonesInitialized { get; private set; }
 
     public static List<WorldCoordinate> CoordinateList { get; private set; }
     public static Dictionary<Vector2Int, WorldCoordinate> CoordinateMap { get; private set; }
     public static Dictionary<WorldCoordinate, List<WorldCoordinate>> CoordinateNeighborMap { get; private set; }
-    public static Dictionary<WorldCoordinate.TYPE, List<WorldCoordinate>> CoordinateTypeMap { get; private set; }
+
 
     public List<WorldExitPath> worldExitPaths = new List<WorldExitPath>();
     public List<WorldZone> worldZones = new List<WorldZone>();
@@ -58,11 +59,35 @@ public class WorldCoordinateMap : MonoBehaviour
         CoordinateList = newCoordList;
         CoordinateMap = newCoordMap;
 
+        // Set Coordinate Map Type Defaults
         SetAllCoordinateTypesToDefault();
 
         coordMapInitialized = true;
-        //Debug.Log("Coord Map initialized");
+
+        // Set Coordinate Neighbors
+        InitializeCoordinateNeighborMap();
+
     }
+
+    static void InitializeCoordinateNeighborMap()
+    {
+        Dictionary<WorldCoordinate, List<WorldCoordinate>> newCoordinateNeighborMap = new();
+        foreach(WorldCoordinate worldCoord in CoordinateList)
+        {
+            newCoordinateNeighborMap[worldCoord] = GetAllCoordinateNeighbors(worldCoord);
+        }
+        CoordinateNeighborMap = newCoordinateNeighborMap;
+
+        coordNeighborMapInitialized = true;
+    }
+
+    static void SetAllCoordinateTypesToDefault()
+    {
+        CoordinateMap.ToList().ForEach(entry => entry.Value.type = WorldCoordinate.TYPE.NULL);
+
+        ResetAllCoordinatesToDefault();
+    }
+
 
     static void ResetAllCoordinatesToDefault()
     {
@@ -106,12 +131,6 @@ public class WorldCoordinateMap : MonoBehaviour
         }
     }
 
-    static void SetAllCoordinateTypesToDefault()
-    {
-        CoordinateMap.ToList().ForEach(entry => entry.Value.type = WorldCoordinate.TYPE.NULL);
-
-        ResetAllCoordinatesToDefault();
-    }
 
     public void DestroyCoordinateMap()
     {
