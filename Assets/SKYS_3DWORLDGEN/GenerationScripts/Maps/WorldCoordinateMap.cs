@@ -338,7 +338,7 @@ public class WorldCoordinateMap : MonoBehaviour
         }
 
         WorldExit defaultStart = new WorldExit(WorldDirection.WEST, 0);
-        WorldExit defaultEnd = new WorldExit(WorldDirection.EAST, 9);
+        WorldExit defaultEnd = new WorldExit(WorldDirection.EAST, 0);
         worldExitPaths.Add(new WorldExitPath(defaultStart, defaultEnd));
     }
 
