@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
 using UnityEngine.UIElements;
+using System.Linq;
+
 
 
 #if UNITY_EDITOR
@@ -242,8 +244,7 @@ public class WorldMapEditor : Editor
             EditorGUI.BeginDisabledGroup(true);
 
             CreateToggle("Coordinate Map", WorldCoordinateMap.coordMapInitialized);
-
-
+            CreateToggle("Coordinate Neighbors", WorldCoordinateMap.coordNeighborsInitialized);
             CreateToggle("Zones", WorldCoordinateMap.zonesInitialized);
             CreateToggle("Exit Paths", WorldCoordinateMap.exitPathsInitialized);
             CreateToggle("World Chunk Map", WorldChunkMap.chunkMapInitialized);
@@ -306,7 +307,7 @@ public class WorldMapEditor : Editor
                 string chunkParameters =
                     $"Coordinate => {worldCoord.Coordinate}" +
                     $"\nCoordinate Type => {worldCoord.type}" +
-                    $"\nCoordinate Neighbors => {WorldCoordinateMap.CoordinateNeighborMap[worldCoord].Count}" +
+                    $"\nCoordinate Neighbors => {worldCoord.NeighborMap.Values.ToList().Count()}" +
                     $"\n" +
                     $"\nChunk GroundHeight => {selectedChunk.groundHeight}" +
                     $"\nChunk Mesh Dimensions => {selectedChunk.groundMeshDimensions}";

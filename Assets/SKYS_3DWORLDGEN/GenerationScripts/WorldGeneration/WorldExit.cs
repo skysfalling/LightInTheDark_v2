@@ -42,14 +42,17 @@ public class WorldExit
 
     public void Initialize()
     {
-        if (_initialized || !WorldCoordinateMap.coordMapInitialized || !WorldChunkMap.chunkMapInitialized) return;
+        if (_initialized 
+            || !WorldCoordinateMap.coordMapInitialized 
+            || !WorldCoordinateMap.coordNeighborsInitialized
+            || !WorldChunkMap.chunkMapInitialized) return;
 
         _borderDirection = borderDirection;
         _borderIndex = borderIndex;
         _exitHeight = exitHeight;
 
         worldCoordinate = WorldCoordinateMap.GetCoordinateAtWorldExit(borderDirection, borderIndex);
-        pathConnection = WorldCoordinateMap.GetNeighborInOppositeDirection(worldCoordinate, borderDirection);
+        pathConnection = worldCoordinate.GetNeighborInOppositeDirection(borderDirection);
 
         _chunk = WorldChunkMap.GetChunkAt(worldCoordinate);
         _chunk.SetGroundHeight(exitHeight);
@@ -66,10 +69,14 @@ public class WorldExit
 
     public bool IsInitialized()
     {
-        if (_borderDirection != borderDirection
+        if (worldCoordinate == null
+            || pathConnection == null
+            || _borderDirection != borderDirection
             || _borderIndex != borderIndex
             || _exitHeight != exitHeight) 
-        { _initialized = false; }
+        { 
+            _initialized = false; 
+        }
 
         return _initialized;
     }
@@ -86,9 +93,8 @@ public class WorldExitPath
 
     public DebugColor pathColor = DebugColor.YELLOW;
     [Range(0, 1)] public float pathRandomness = 0f;
-    public WorldExit startExit;
-    public WorldExit endExit;
-
+    public WorldExit startExit = new WorldExit(WorldDirection.NORTH, 0);
+    public WorldExit endExit = new WorldExit(WorldDirection.SOUTH, 0);
     int _startHeight;
     int _endHeight;
 
@@ -120,11 +126,13 @@ public class WorldExitPath
         // Update private variables
         _pathStart = startExit.pathConnection;
         _pathEnd = endExit.pathConnection;
+        if (_pathStart == null || _pathEnd == null) return;
 
         _startHeight = startExit.exitHeight;
         _endHeight = endExit.exitHeight;
 
         _pathRandomness = pathRandomness;
+
 
         // Get new World Path
         _worldPath = new WorldPath(_pathStart, _startHeight, _pathEnd, _endHeight, pathColor, pathRandomness);

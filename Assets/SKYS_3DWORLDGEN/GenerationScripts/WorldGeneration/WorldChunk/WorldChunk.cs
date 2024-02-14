@@ -168,7 +168,7 @@ public class WorldChunk
     }
     public void DetermineChunkHeightFromNeighbors()
     {
-        List<WorldCoordinate> neighbors = WorldCoordinateMap.GetAllCoordinateNeighbors(worldCoordinate);
+        List<WorldCoordinate> neighbors = worldCoordinate.GetValidNaturalNeighbors();
         if (neighbors.Count == 0) return; // Exit if there are no neighbors
 
         int totalHeight = 0;

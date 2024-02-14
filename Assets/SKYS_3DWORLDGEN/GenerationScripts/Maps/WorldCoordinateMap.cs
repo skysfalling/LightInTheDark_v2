@@ -8,7 +8,6 @@ using UnityEngine.UIElements;
 public enum DebugColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE, CLEAR }
 public enum WorldDirection { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
 
-
 public class WorldCoordinateMap : MonoBehaviour
 {
     public static WorldCoordinateMap Instance;
@@ -18,23 +17,51 @@ public class WorldCoordinateMap : MonoBehaviour
     }
 
     public static bool coordMapInitialized { get; private set; }
-    public static bool coordNeighborMapInitialized { get; private set; }
+    public static bool coordNeighborsInitialized { get; private set; }
     public static bool exitPathsInitialized { get; private set; }
     public static bool zonesInitialized { get; private set; }
 
     public static List<WorldCoordinate> CoordinateList { get; private set; }
     public static Dictionary<Vector2Int, WorldCoordinate> CoordinateMap { get; private set; }
-    public static Dictionary<WorldCoordinate, List<WorldCoordinate>> CoordinateNeighborMap { get; private set; }
-
 
     public List<WorldExitPath> worldExitPaths = new List<WorldExitPath>();
     public List<WorldZone> worldZones = new List<WorldZone>();
 
     #region == HANDLE COORDINATE MAP ================================ ////
 
-    static void InitializeCoordinateMap(bool forceReset = false)
+    public void UpdateCoordinateMap()
     {
-        if (coordMapInitialized) return;
+        StartCoroutine(UpdateRoutine());
+    }
+
+    IEnumerator UpdateRoutine()
+    {
+        zonesInitialized = false;
+        exitPathsInitialized = false;
+
+        if (!coordMapInitialized)
+        {
+            StartCoroutine(InitializationRoutine()); // Make sure CoordinateMap is initialized
+        }
+        yield return new WaitUntil(() => coordMapInitialized);
+        yield return new WaitUntil(() => coordNeighborsInitialized);
+        yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);
+
+        // Initialize Random Seed :: IMPORTANT To keep the same results per seed
+        WorldGeneration.InitializeRandomSeed();
+
+        ResetAllCoordinatesToDefault(); // Set all world coordinates to default values
+
+        UpdateAllWorldZones(); // Update all world zones to new values
+
+        yield return new WaitUntil(() => zonesInitialized);
+        yield return new WaitForSeconds(0.5f);
+        UpdateAllWorldExitPaths(); // Update all world paths to new values
+    }
+
+    static IEnumerator InitializationRoutine(bool forceReset = false)
+    {
+        if (coordMapInitialized) yield return null;
 
         List<WorldCoordinate> newCoordList = new List<WorldCoordinate>();
         Dictionary<Vector2Int, WorldCoordinate> newCoordMap = new();
@@ -64,21 +91,15 @@ public class WorldCoordinateMap : MonoBehaviour
 
         coordMapInitialized = true;
 
-        // Set Coordinate Neighbors
-        InitializeCoordinateNeighborMap();
 
-    }
-
-    static void InitializeCoordinateNeighborMap()
-    {
-        Dictionary<WorldCoordinate, List<WorldCoordinate>> newCoordinateNeighborMap = new();
-        foreach(WorldCoordinate worldCoord in CoordinateList)
-        {
-            newCoordinateNeighborMap[worldCoord] = GetAllCoordinateNeighbors(worldCoord);
+        // Initialize individual Coordinates
+        foreach (WorldCoordinate coord in CoordinateList) 
+        { 
+            coord.InitializeNeighborMap();
+            yield return new WaitUntil(() => coord.foundNeighbors);
         }
-        CoordinateNeighborMap = newCoordinateNeighborMap;
 
-        coordNeighborMapInitialized = true;
+        coordNeighborsInitialized = true;
     }
 
     static void SetAllCoordinateTypesToDefault()
@@ -136,34 +157,12 @@ public class WorldCoordinateMap : MonoBehaviour
     {
         CoordinateList = new();
         CoordinateMap = new();
+
         coordMapInitialized = false;
+        coordNeighborsInitialized = false;
     }
 
-    public void UpdateCoordinateMap()
-    {
-        StartCoroutine(UpdateRoutine());
-    }
 
-    IEnumerator UpdateRoutine()
-    {
-        zonesInitialized = false;
-        exitPathsInitialized = false;
-
-        InitializeCoordinateMap(); // Make sure CoordinateMap is initialized
-        yield return new WaitUntil(() => coordMapInitialized);
-        yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);
-
-        // Initialize Random Seed :: IMPORTANT To keep the same results per seed
-        WorldGeneration.InitializeRandomSeed();
-
-        ResetAllCoordinatesToDefault(); // Set all world coordinates to default values
-
-        UpdateAllWorldZones(); // Update all world zones to new values
-
-        yield return new WaitUntil(() => zonesInitialized);
-        yield return new WaitForSeconds(0.5f);
-        UpdateAllWorldExitPaths(); // Update all world paths to new values
-    }
 
     #endregion
 
@@ -220,101 +219,7 @@ public class WorldCoordinateMap : MonoBehaviour
 
 
     // << GET NEIGHBORS >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    public static WorldCoordinate GetCoordinateNeighborInDirection(WorldCoordinate worldCoordinate, WorldDirection direction)
-    {
-        if (worldCoordinate == null) { return null; }
 
-        WorldCoordinate neighborCoordinate = null;
-        Vector2Int directionVector = new Vector2Int(0, 0);
-
-        switch (direction)
-        {
-            case WorldDirection.NORTH: directionVector = Vector2Int.up; break;
-            case WorldDirection.SOUTH: directionVector = Vector2Int.down; break;
-            case WorldDirection.EAST: directionVector = Vector2Int.right; break;
-            case WorldDirection.WEST: directionVector = Vector2Int.left; break;
-            case WorldDirection.NORTHEAST: directionVector = new Vector2Int(1, 1); break;
-            case WorldDirection.NORTHWEST: directionVector = new Vector2Int(-1, 1); break;
-            case WorldDirection.SOUTHEAST: directionVector = new Vector2Int(1, -1); break;
-            case WorldDirection.SOUTHWEST: directionVector = new Vector2Int(-1, -1); break;
-        }
-
-        neighborCoordinate = GetCoordinateAt(worldCoordinate.Coordinate + directionVector);
-
-        return neighborCoordinate;
-    }
-
-    public static List<WorldCoordinate> GetCoordinateNaturalNeighbors(WorldCoordinate worldCoord)
-    {
-        List<WorldCoordinate> neighbors = new List<WorldCoordinate>(new WorldCoordinate[4]);
-
-        // Find and assign neighbors in the specific order [Left, Right, Forward, Backward]
-        neighbors[0] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.WEST);
-        neighbors[1] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.EAST);
-        neighbors[2] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.NORTH);
-        neighbors[3] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.SOUTH);
-
-        // Remove null entries if a neighbor is not found
-        neighbors.RemoveAll(item => item == null);
-
-        return neighbors;
-    }
-
-    public static List<WorldCoordinate> GetCoordinateDiagonalNeighbors(WorldCoordinate worldCoord)
-    {
-        List<WorldCoordinate> neighbors = new List<WorldCoordinate>(new WorldCoordinate[4]);
-
-        // Find and assign neighbors in the specific order [Left, Right, Forward, Backward]
-        neighbors[0] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.NORTHEAST);
-        neighbors[1] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.NORTHWEST);
-        neighbors[2] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.SOUTHEAST);
-        neighbors[3] = GetCoordinateNeighborInDirection(worldCoord, WorldDirection.SOUTHWEST);
-
-        // Remove null entries if a neighbor is not found
-        neighbors.RemoveAll(item => item == null);
-
-        return neighbors;
-    }
-
-    public static List<WorldCoordinate> GetAllCoordinateNeighbors(WorldCoordinate coordinate)
-    {
-        List<WorldCoordinate> neighbors = GetCoordinateNaturalNeighbors(coordinate);
-        neighbors.AddRange(GetCoordinateDiagonalNeighbors(coordinate));
-        return neighbors;
-    }
-
-    public static List<WorldCoordinate> GetAllCoordinateNeighbors(Vector2Int coordinate)
-    {
-        WorldCoordinate coord = CoordinateMap[coordinate];
-        List<WorldCoordinate> neighbors = GetCoordinateNaturalNeighbors(coord);
-        neighbors.AddRange(GetCoordinateDiagonalNeighbors(coord));
-        return neighbors;
-    }
-
-    public static WorldCoordinate GetNeighborInOppositeDirection(WorldCoordinate worldCoord, WorldDirection direction)
-    {
-        switch (direction)
-        {
-            case WorldDirection.WEST:
-                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.EAST);
-            case WorldDirection.EAST:
-                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.WEST);
-            case WorldDirection.NORTH:
-                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.SOUTH);
-            case WorldDirection.SOUTH:
-                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.NORTH);
-            case WorldDirection.NORTHWEST:
-                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.SOUTHEAST);
-            case WorldDirection.NORTHEAST:
-                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.SOUTHWEST);
-            case WorldDirection.SOUTHWEST:
-                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.NORTHEAST);
-            case WorldDirection.SOUTHEAST:
-                return GetCoordinateNeighborInDirection(worldCoord, WorldDirection.NORTHWEST);
-        }
-
-        return null;
-    }
 
     #endregion
 
@@ -411,7 +316,7 @@ public class WorldCoordinateMap : MonoBehaviour
         WorldCoordinate centerCoordinate = GetCoordinateAt(new Vector2Int(centerX, centerY));
 
         Debug.Log($"Create Zone at {centerCoordinate.Coordinate}");
-        worldZones.Add(new WorldZone(centerCoordinate, WorldZone.TYPE.NATURAL));
+        worldZones.Add(new WorldZone(centerCoordinate, WorldZone.TYPE.NATURAL_CROSS));
     }
 
     void UpdateAllWorldZones()
@@ -506,7 +411,7 @@ public class WorldCoordinateMap : MonoBehaviour
             openSet.Remove(current);
             closedSet.Add(current);
 
-            foreach (WorldCoordinate neighbor in GetCoordinateNaturalNeighbors(CoordinateMap[current]))
+            foreach (WorldCoordinate neighbor in CoordinateMap[current].GetAllValidNeighbors())
             {
                 if (closedSet.Contains(neighbor.Coordinate) || !IsCoordinateValidForPathfinding(neighbor.Coordinate))
                         continue; // Skip non-traversable neighbors and those already evaluated

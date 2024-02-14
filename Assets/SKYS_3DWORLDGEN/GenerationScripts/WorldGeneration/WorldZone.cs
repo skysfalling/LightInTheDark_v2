@@ -28,7 +28,7 @@ public class WorldZone
         }
     }
 
-    public enum TYPE { FULL, NATURAL, HORIZONTAL, VERTICAL }
+    public enum TYPE { FULL, NATURAL_CROSS, DIAGONAL_CROSS, HORIZONTAL, VERTICAL }
 
     bool _initialized = false;
     TYPE _zoneType;
@@ -67,18 +67,21 @@ public class WorldZone
         switch(_zoneType)
         {
             case TYPE.FULL:
-                neighborsInZone = WorldCoordinateMap.GetAllCoordinateNeighbors(_centerCoordinate);
+                neighborsInZone = _centerCoordinate.GetAllValidNeighbors();
                 break;
-            case TYPE.NATURAL:
-                neighborsInZone = WorldCoordinateMap.GetCoordinateNaturalNeighbors(_centerCoordinate);
+            case TYPE.NATURAL_CROSS:
+                neighborsInZone = _centerCoordinate.GetValidNaturalNeighbors();
+                break;
+            case TYPE.DIAGONAL_CROSS:
+                neighborsInZone = _centerCoordinate.GetValidDiagonalNeighbors();
                 break;
             case TYPE.HORIZONTAL:
-                neighborsInZone.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.WEST));
-                neighborsInZone.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.EAST));
+                neighborsInZone.Add(_centerCoordinate.GetNeighborInDirection(WorldDirection.WEST));
+                neighborsInZone.Add(_centerCoordinate.GetNeighborInDirection(WorldDirection.EAST));
                 break;
             case TYPE.VERTICAL:
-                neighborsInZone.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.NORTH));
-                neighborsInZone.Add(WorldCoordinateMap.GetCoordinateNeighborInDirection(_centerCoordinate, WorldDirection.SOUTH));
+                neighborsInZone.Add(_centerCoordinate.GetNeighborInDirection(WorldDirection.NORTH));
+                neighborsInZone.Add(_centerCoordinate.GetNeighborInDirection(WorldDirection.SOUTH));
                 break;
         }
 
