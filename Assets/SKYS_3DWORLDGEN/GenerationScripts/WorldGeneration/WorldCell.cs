@@ -57,54 +57,5 @@ public class WorldCell
     {
         return this._chunkParent;
     }
-
-    public void CreateDebugCube()
-    {  
-        float relativeSize = WorldGeneration.CellSize * _debugCubeRelativeScale;
-
-        this._debugCubeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        this._debugCubeObject.transform.parent = WorldCellMap.Instance.transform;
-        this._debugCubeObject.transform.position = position;
-        this._debugCubeObject.transform.localScale = Vector3.one * relativeSize; // adjust scale
-        this._debugCubeObject.GetComponent<MeshRenderer>().material = _materialLibrary.GetMaterialOfCellType(type); // set material
-        this._debugCubeObject.name = $"WorldCell {_meshQuad.faceType} {_meshQuad.faceCoord} at Chunk {_chunkParent.coordinate}";
-    }
-
-    public GameObject GetDebugCube()
-    {
-        if (this._debugCubeObject != null) { return this._debugCubeObject; }
-        else { return null; }
-    }
-
-    public void ShowDebugCube()
-    {
-        if (this._debugCubeObject == null) { CreateDebugCube(); }
-        this._debugCubeObject.SetActive(true);
-        this._debugCubeObject.GetComponent<MeshRenderer>().material = _materialLibrary.GetMaterialOfCellType(type); // set material
-    }
-
-    // Note : Cannot Destroy debugCube from non - MonoBehaviour class
-    public void HideDebugCube()
-    {
-        if (this._debugCubeObject == null) { return; }
-        this._debugCubeObject.SetActive(false);
-        ResetDebugRelativeScale();
-    }
-
-    public void RemoveDebugCube()
-    {
-        this._debugCubeObject = null;
-        ResetDebugRelativeScale();
-    }
-
-    public void SetDebugRelativeScale(float relativeScale)
-    {
-        _debugCubeRelativeScale = relativeScale;
-    }
-
-    public void ResetDebugRelativeScale()
-    {
-        _debugCubeRelativeScale = _defaultRelativeScale;
-    }
 }
 

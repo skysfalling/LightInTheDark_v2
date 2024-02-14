@@ -12,6 +12,7 @@ public class WorldChunkMap : MonoBehaviour
     }
 
     public static bool chunkMapInitialized { get; private set; }
+    public static bool chunkMeshInitialized { get; private set; }
 
     public static List<WorldChunk> ChunkList { get; private set; }
     public static Dictionary<WorldCoordinate, WorldChunk> WorldCoordChunkMap { get; private set; }
@@ -41,7 +42,6 @@ public class WorldChunkMap : MonoBehaviour
         CoordinateChunkMap = newCoordinateChunkMap;
 
         chunkMapInitialized = true;
-        //Debug.Log("Chunk Map initialized");
     }
 
     public void DestroyChunkMap()
@@ -60,7 +60,23 @@ public class WorldChunkMap : MonoBehaviour
         StartCoroutine(InitializeChunkMap()); // Make sure chunk map is initialized
     }
 
+    public void InitializeChunkMesh()
+    {
+        StartCoroutine(InitializeChunkMeshRoutine());
+    }
 
+     IEnumerator InitializeChunkMeshRoutine()
+     {
+
+        foreach (WorldChunk chunk in ChunkList)
+        {
+            // Generate individual chunk
+            chunk.GenerateChunkMesh();
+            yield return new WaitUntil(() => chunk.generation_finished);
+        }
+
+        chunkMeshInitialized = true;
+     }
 
     #region == GET CHUNKS ======================================== ////
 

@@ -33,14 +33,12 @@ public class WorldChunkCursor : MonoBehaviour
         {
             // Remove old active chunk
             RemoveCursorAt(_activeChunk);
-            WorldCellMap.Instance.Debug_DestroyChunkLocalCells(_activeChunk);
         }
 
         // New active chunk
         _activeChunk = chunk;
         transform.position = _activeChunk.groundPosition;
         CreateCursorAt(_activeChunk);
-        WorldCellMap.Instance.Debug_ShowChunkLocalCells(_activeChunk);
     }
 
     void CreateCursorAt(WorldChunk chunk)

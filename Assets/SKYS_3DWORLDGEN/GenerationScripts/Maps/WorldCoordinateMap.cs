@@ -40,7 +40,7 @@ public class WorldCoordinateMap : MonoBehaviour
         Dictionary<Vector2Int, WorldCoordinate> newCoordMap = new();
 
         Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
-        Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkAreaSize();
+        Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkArea();
 
         int xCoordCount = Mathf.CeilToInt(realFullWorldSize.x / realChunkAreaSize.x);
         int yCoordCount = Mathf.CeilToInt(realFullWorldSize.y / realChunkAreaSize.y);
@@ -92,7 +92,7 @@ public class WorldCoordinateMap : MonoBehaviour
     static void ResetAllCoordinatesToDefault()
     {
         Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
-        Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkAreaSize();
+        Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkArea();
 
         int xCoordCount = Mathf.CeilToInt(realFullWorldSize.x / realChunkAreaSize.x);
         int yCoordCount = Mathf.CeilToInt(realFullWorldSize.y / realChunkAreaSize.y);

@@ -12,6 +12,8 @@ using UnityEditor;
 [RequireComponent(typeof(WorldCoordinateMap), typeof(WorldChunkMap), typeof(WorldCellMap))]
 public class WorldMap : MonoBehaviour
 {
+    public static bool worldMapInitialized { get; private set; }
+
     public void UpdateWorldMap()
     {
         WorldCoordinateMap worldCoordinateMap = GetComponent<WorldCoordinateMap>();
@@ -19,6 +21,17 @@ public class WorldMap : MonoBehaviour
 
         worldCoordinateMap.UpdateCoordinateMap();
         worldChunkMap.UpdateChunkMap();
+
+        worldMapInitialized = true;
+    }
+
+    public void GenerateWorldCellMap()
+    {
+        WorldChunkMap worldChunkMap = GetComponent<WorldChunkMap>();
+        worldChunkMap.InitializeChunkMesh();
+
+        WorldCellMap worldCellMap = GetComponent<WorldCellMap>();
+        //worldCellMap.UpdateCellMap();
     }
 
     public void ResetWorldMap()
@@ -31,6 +44,8 @@ public class WorldMap : MonoBehaviour
         worldChunkMap.DestroyChunkMap();
         worldCellMap.Reset();
 
+        worldMapInitialized = false;
+
         UpdateWorldMap();
     }
 }
@@ -39,18 +54,69 @@ public class WorldMap : MonoBehaviour
 [CustomEditor(typeof(WorldMap))]
 public class WorldMapEditor : Editor
 {
-    private bool _showInitializationFoldout = false;
-    private Vector2 scrollPosition;
+    bool _showDebugSettingsFoldout = false;
+    bool _showSelectedChunkFoldout = false;
+    bool _showInitializationFoldout = false;
+    Vector2 scrollPosition;
 
     GUIStyle titleHeaderStyle;
     GUIStyle centeredStyle;
 
+    bool _showWorldMapBoundaries = false;
+
+    enum WorldCoordinateMapDebug { NONE, COORDINATE, TYPE }
+    WorldCoordinateMapDebug worldCoordinateMapDebug = WorldCoordinateMapDebug.NONE;
+
+    enum WorldChunkMapDebug { NONE, ALL_CHUNKS }
+    WorldChunkMapDebug worldChunkMapDebug = WorldChunkMapDebug.NONE;
+
     WorldChunk selectedChunk;
+
+    Color transparentWhite = new Color(255, 255, 255, 0.5f);
+
 
     public void OnEnable()
     {
         WorldMap worldMap = (WorldMap)target;
         worldMap.ResetWorldMap();
+    }
+
+    private void OnSceneGUI()
+    {
+        WorldMap worldMap = (WorldMap)target;
+        if (WorldMap.worldMapInitialized)
+        {
+            DrawWorldMap();
+
+            if (selectedChunk != null)
+            {
+                if (selectedChunk.generation_finished)
+                {
+                    foreach (WorldCell cell in selectedChunk.localCells)
+                    {
+                        DrawRectangleAtCell(cell, transparentWhite, 0.75f);
+                    }
+                }
+                else
+                {
+                    DrawRectangleAtChunkGround(selectedChunk, transparentWhite, 0.75f);
+                }
+            }
+        }
+        else
+        {
+            selectedChunk = null;
+        }
+
+        if (_showWorldMapBoundaries)
+        {
+            // >> DRAW BOUNDARY SQUARES
+            Handles.color = Color.white;
+            Handles.DrawWireCube(worldMap.transform.position, new Vector3(WorldGeneration.GetRealPlayAreaSize().x, 0, WorldGeneration.GetRealPlayAreaSize().y));
+
+            Handles.color = Color.red;
+            Handles.DrawWireCube(worldMap.transform.position, new Vector3(WorldGeneration.GetRealFullWorldSize().x, 0, WorldGeneration.GetRealFullWorldSize().y));
+        }
     }
 
     public override void OnInspectorGUI()
@@ -80,25 +146,32 @@ public class WorldMapEditor : Editor
         GUIStyle h1Style = new GUIStyle(GUI.skin.label)
         {
             alignment = TextAnchor.UpperLeft,
-            fontSize = 18,
+            fontSize = 20,
             fontStyle = FontStyle.Bold,
-            fixedHeight = 20
+            fixedHeight = 22
         };
         GUIStyle pStyle = new GUIStyle(GUI.skin.label)
         {
             alignment = TextAnchor.UpperLeft,
             fontSize = 12,
             fontStyle = FontStyle.Normal,
-            fixedHeight = 100
         };
+        pStyle.margin.left = 20;
 
+        GUIStyle foldoutStyle = new GUIStyle(EditorStyles.foldout);
+        foldoutStyle.fontStyle = FontStyle.Bold;
+        foldoutStyle.margin.left = 5;
+        foldoutStyle.margin.bottom = 5;
 
         EditorGUILayout.LabelField("World Map", titleHeaderStyle, GUILayout.Height(25));
         EditorGUILayout.Space();
 
+
+        // [[ BEGIN DOUBLE COLUMN ]] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         EditorGUILayout.BeginVertical();
         EditorGUILayout.BeginHorizontal();
 
+        // == COLUMN #1 =================================== ))
         #region DRAW GUI WORLD MAP ===============================================
 
         EditorGUILayout.BeginVertical(); // Start a vertical group
@@ -120,50 +193,115 @@ public class WorldMapEditor : Editor
 
         if (EditorApplication.isPlaying)
         {
-            if (GUILayout.Button("Generate"))
+            if (GUILayout.Button("Generate World"))
                 worldGeneration.StartGeneration();
         }
-        else { EditorGUILayout.HelpBox("You can only generate in Play Mode.", MessageType.Error); }
+        else { EditorGUILayout.HelpBox("World Generation requires Play Mode.", MessageType.Error); }
+        GUILayout.FlexibleSpace();
+        EditorGUILayout.EndHorizontal();
 
         // RESET BUTTON >>>>>>>>>>>>>>>>>>>>
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.FlexibleSpace();
+        if (GUILayout.Button("Generate Cell Map"))
+        {
+            worldMap.GenerateWorldCellMap();
+        }
+
         if (GUILayout.Button("Full Reset"))
         {
             worldMap.ResetWorldMap();
         }
-
         GUILayout.FlexibleSpace();
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.EndVertical(); // End the vertical group
-        #endregion
+        #endregion ===================================================================
 
+        EditorGUILayout.Space(50);
+
+        // == COLUMN #2 =================================== ))
         EditorGUILayout.BeginVertical();
-        EditorGUILayout.LabelField("Selected Chunk", h1Style);
 
-        if (selectedChunk == null)
+        // << DEBUG TYPES >>
+        int debugLabelWidth = 200;
+        int debugEnumWidth = 100;
+
+        EditorGUILayout.BeginHorizontal(GUILayout.Width(400));
+        EditorGUILayout.BeginVertical();
+
+        // >>>> Debug Settings Foldout
+        _showDebugSettingsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(_showDebugSettingsFoldout, new GUIContent("Debug Settings"), foldoutStyle);
+        if (_showDebugSettingsFoldout)
         {
-            EditorGUILayout.LabelField($"NULL. \n Select chunk from map. \n <--");
-        }
-        else
-        {
-            WorldCoordinate worldCoord = selectedChunk.worldCoordinate;
+            // World Map
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Show Boundaries =>", GUILayout.Width(debugLabelWidth));
+            _showWorldMapBoundaries = EditorGUILayout.Toggle(_showWorldMapBoundaries); ;
+            EditorGUILayout.EndHorizontal();
 
-            string chunkParameters = 
-                $"Coordinate => {worldCoord.Coordinate}" +
-                $"\nCoordinate Type => {worldCoord.type}" +
-                $"\nCoordinate Neighbors => {WorldCoordinateMap.CoordinateNeighborMap[worldCoord].Count}" +
-                $"\n" +
-                $"\nChunk GroundHeight => {selectedChunk.groundHeight}" +
-                $"\nChunk Mesh Dimensions => {selectedChunk.groundMeshDimensions}";
-
-            GUILayout.Box(chunkParameters, pStyle);
+            // WorldCoordinateMap
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("CoordinateMap  =>", GUILayout.Width(debugLabelWidth));
+            worldCoordinateMapDebug = (WorldCoordinateMapDebug)EditorGUILayout.EnumPopup(worldCoordinateMapDebug, GUILayout.Width(debugEnumWidth));
             GUILayout.FlexibleSpace();
+            EditorGUILayout.EndHorizontal();
+
+            // WorldChunkMap
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("ChunkMap =>", GUILayout.Width(debugLabelWidth));
+            worldChunkMapDebug = (WorldChunkMapDebug)EditorGUILayout.EnumPopup(worldChunkMapDebug, GUILayout.Width(debugEnumWidth));
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndHorizontal();
         }
+        EditorGUILayout.EndFoldoutHeaderGroup();
+
+        EditorGUILayout.Space(50);
+
+        // >>>> Selected Chunk Foldout
+        _showSelectedChunkFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(_showSelectedChunkFoldout, new GUIContent("Selected Chunk"), foldoutStyle);
+        if (_showSelectedChunkFoldout)
+        {
+            EditorGUILayout.BeginHorizontal();
+            if (selectedChunk == null)
+            {
+                EditorGUILayout.Space(10);
+                EditorGUILayout.LabelField($"Selected chunk is NULL" +
+                                         $"\nSelect chunk from map." +
+                                         $"\n<---------------------", GUILayout.Height(50));
+            }
+            else
+            {
+                WorldCoordinate worldCoord = selectedChunk.worldCoordinate;
+
+                string chunkParameters =
+                    $"Coordinate => {worldCoord.Coordinate}" +
+                    $"\nCoordinate Type => {worldCoord.type}" +
+                    $"\nCoordinate Neighbors => {WorldCoordinateMap.CoordinateNeighborMap[worldCoord].Count}" +
+                    $"\n" +
+                    $"\nChunk GroundHeight => {selectedChunk.groundHeight}" +
+                    $"\nChunk Mesh Dimensions => {selectedChunk.groundMeshDimensions}" +
+                    $"\nChunk LocalCells => {selectedChunk.localCells.Count}";
+
+                GUILayout.Box(chunkParameters, pStyle, GUILayout.Height(200));
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+        EditorGUILayout.EndFoldoutHeaderGroup();
 
 
         EditorGUILayout.EndVertical();
+        EditorGUILayout.EndHorizontal();
+
+
+
+
+        // == end COLUMN #2 ========================================== ))
+        EditorGUILayout.EndVertical();
+
+        // [[ END DOUBLE COLUMN ]] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        EditorGUILayout.EndHorizontal();
         GUILayout.FlexibleSpace();
 
-        EditorGUILayout.EndHorizontal();
         EditorGUILayout.EndVertical();
 
         #region GENERATION PARAMETERS ===========================================
@@ -214,6 +352,7 @@ public class WorldMapEditor : Editor
             // Column 2 -> WORLD CHUNK MAP
             EditorGUILayout.BeginVertical();
             EditorGUILayout.Toggle("World Chunk Map", WorldChunkMap.chunkMapInitialized);
+            EditorGUILayout.Toggle("World Chunk Mesh", WorldChunkMap.chunkMeshInitialized);
             EditorGUILayout.EndVertical();
 
             EditorGUI.EndDisabledGroup();
@@ -238,10 +377,6 @@ public class WorldMapEditor : Editor
     }
 
 
-    private void OnSceneGUI()
-    {
-        DrawWorldMap();
-    }
 
     #region == DRAW WORLD MAP ============================================== >>>>
     private void DrawWorldMap()
@@ -255,44 +390,35 @@ public class WorldMapEditor : Editor
         coordinatelabelStyle.alignment = TextAnchor.MiddleCenter; // Center the text
         coordinatelabelStyle.fontStyle = FontStyle.Bold;
 
+        // << DRAW CHUNK MAP >>
+        foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
+        {
+            switch (worldChunkMapDebug)
+            {
+                case WorldChunkMapDebug.ALL_CHUNKS:
+                    DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
+                    break;
+            }
+        }
+
         // << DRAW BASE COORDINATE MAP >>
         List<WorldCoordinate> coordList = WorldCoordinateMap.CoordinateList;
         foreach (WorldCoordinate coord in coordList)
         {
-            switch (coord.type)
+
+            switch(worldCoordinateMapDebug)
             {
-                case WorldCoordinate.TYPE.NULL:
-                case WorldCoordinate.TYPE.BORDER:
-                case WorldCoordinate.TYPE.CLOSED:
-                    DrawRectangleAtWorldCoordinate(coord, coord.debugColor);
+                case WorldCoordinateMapDebug.COORDINATE:
+                    Handles.Label(coord.WorldPosition, new GUIContent($"{coord.Coordinate}"), coordinatelabelStyle);
                     break;
+                case WorldCoordinateMapDebug.TYPE:
+                    Handles.Label(coord.WorldPosition, new GUIContent($"{coord.type}"), coordinatelabelStyle);
+                    break;
+
             }
         }
 
-        // << DRAW CHUNK MAP >>
-        foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
-        {
 
-            switch (chunk.worldCoordinate.type)
-            {
-                case WorldCoordinate.TYPE.PATH:
-                    DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
-                    break;
-                case WorldCoordinate.TYPE.ZONE:
-                    DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
-                    break;
-                case WorldCoordinate.TYPE.EXIT:
-                    DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
-                    break;
-            }
-
-            /*
-            Handles.Label(chunk.groundPosition,
-                new GUIContent($"{chunk.worldCoordinate.type}" +
-                $"\nheight: {chunk.groundHeight}"),
-                coordinatelabelStyle);
-            */
-        }
     }
     private void DrawGUIWorldMap()
     {
@@ -361,14 +487,25 @@ public class WorldMapEditor : Editor
         EditorGUILayout.EndScrollView();
     }
 
-    private void DrawRectangleAtChunkGround(WorldChunk worldChunk, Color fillColor)
+    private void DrawRectangleAtChunkGround(WorldChunk worldChunk, Color fillColor, float scaleMultiplier = 1)
     {
         if (WorldChunkMap.chunkMapInitialized == false || worldChunk == null) return;
 
         Handles.color = fillColor;
         Handles.DrawSolidRectangleWithOutline(
             GetRectangleVertices(worldChunk.GetGroundWorldPosition(),
-            WorldGeneration.GetRealChunkAreaSize()),
+            (Vector2)WorldGeneration.GetRealChunkArea() * scaleMultiplier),
+            fillColor, Color.clear);
+    }
+
+    private void DrawRectangleAtCell(WorldCell worldCell, Color fillColor, float scaleMultiplier = 1)
+    {
+        if (WorldChunkMap.chunkMapInitialized == false || worldCell == null) return;
+
+        Handles.color = fillColor;
+        Handles.DrawSolidRectangleWithOutline(
+            GetRectangleVertices(worldCell.position,
+            Vector2.one * WorldGeneration.CellSize * scaleMultiplier),
             fillColor, Color.clear);
     }
 
@@ -379,7 +516,7 @@ public class WorldMapEditor : Editor
         Handles.color = fillColor;
         Handles.DrawSolidRectangleWithOutline(
             GetRectangleVertices(coord.WorldPosition,
-            WorldGeneration.GetRealChunkAreaSize()),
+            WorldGeneration.GetRealChunkArea()),
             fillColor, Color.clear);
     }
 
@@ -399,6 +536,14 @@ public class WorldMapEditor : Editor
     #endregion
 
 
+    // DRAW CHUNK
+
+
+    // DRAW CELL
+
+
+
+    // ================ HELPER FUNCTIONS ========================================================= ////
     void CreateIntegerControl(string title, int currentValue, int minValue, int maxValue, System.Action<int> setValue)
     {
         WorldMap worldMap = (WorldMap)target;

@@ -41,11 +41,11 @@ public class WorldGeneration : MonoBehaviour
 
     public static Vector2Int GetFullWorldArea() { return PlayableArea + (BoundaryOffset * 2 * Vector2Int.one); } // Include BoundaryOffset on both sides
     public static Vector3Int GetChunkDimensions() { return new Vector3Int(ChunkWidth.x, ChunkDepth, ChunkWidth.y); }
-    public static Vector2Int GetRealChunkAreaSize() { return ChunkWidth * CellSize; }
+    public static Vector2Int GetRealChunkArea() { return ChunkWidth * CellSize; }
     public static int GetRealChunkDepth() { return ChunkDepth * CellSize; }
     public static Vector3Int GetRealChunkDimensions() { return new Vector3Int(ChunkWidth.x, ChunkDepth, ChunkWidth.y) * CellSize; }
-    public static Vector2Int GetRealPlayAreaSize() { return PlayableArea * GetRealChunkAreaSize(); }
-    public static Vector2Int GetRealFullWorldSize() { return GetFullWorldArea() * GetRealChunkAreaSize(); }
+    public static Vector2Int GetRealPlayAreaSize() { return PlayableArea * GetRealChunkArea(); }
+    public static Vector2Int GetRealFullWorldSize() { return GetFullWorldArea() * GetRealChunkArea(); }
 
     string _prefix = "[ WORLD GENERATION ] ";
     [HideInInspector] public bool generation_finished = false;
@@ -121,6 +121,7 @@ public class WorldGeneration : MonoBehaviour
         Debug.Log($"WORLD GENERATION :: PATHS INITIALIZED :: Stage Duration {stage2Time}");
 
         // [[ STAGE 3 ]] ==> INITIALIZE CHUNKS
+        /*
         foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
         {
             // Generate individual chunk
@@ -133,6 +134,7 @@ public class WorldGeneration : MonoBehaviour
         float stage3Time = Time.realtimeSinceStartup - stage2Time;
         Debug.Log($"WORLD GENERATION :: CHUNK MESH CREATED :: Stage Duration {stage2Time}" +
             $"\n -> {WorldChunkMap.ChunkList.Count} CHUNKS");
+        */
 
 
         // [[ GENERATE COMBINED MESHES ]] ========================================== >>

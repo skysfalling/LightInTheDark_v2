@@ -25,7 +25,7 @@ public class WorldCoordinate
         Coordinate = coord;
 
         // Calculate position
-        Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkAreaSize();
+        Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkArea();
         Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
         Vector2 half_FullWorldSize = realFullWorldSize * 0.5f;
         Vector2 newPos = new Vector2(coord.x * realChunkAreaSize.x, coord.y * realChunkAreaSize.y);

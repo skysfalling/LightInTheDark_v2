@@ -35,21 +35,18 @@ public class Entity : MonoBehaviour
 
     void TickUpdate()
     {
-        if (_cellMap.initialized == false) { return; }
         if (_currentCell == null) { _currentCell = _cellMap.FindClosestCellTo(transform.position); }
 
         // if still following path .. update
         if (_currPathIndex < _movePath.Count)
         {
             _currentCell = _movePath[_currPathIndex];
-            _cellMap.Debug_ShowCellList(_movePath);
 
             _currPathIndex++;
         }
         else 
         {
             _currPathIndex = 0;
-            _cellMap.Debug_DestroyCellList(_movePath);
             _movePath = new List<WorldCell>();
         }
     }
@@ -71,10 +68,8 @@ public class Entity : MonoBehaviour
         if (_currentCell == null) return;
         if (targetCell == null) return;
         _currPathIndex = 0;
-        _cellMap.Debug_DestroyCellList(_movePath);
 
         _targetCell = targetCell;
         _movePath = WorldPathfinder.Instance.FindPath(_currentCell, _targetCell);
-        _cellMap.Debug_ShowCellList(_movePath);
     }
 }

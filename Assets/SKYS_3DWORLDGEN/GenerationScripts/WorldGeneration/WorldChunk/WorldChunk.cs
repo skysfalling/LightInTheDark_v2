@@ -10,7 +10,7 @@ public class WorldChunk
 
     WorldGeneration _worldGeneration;
     string prefix = " [[ WORLD CHUNK ]]";
-    Vector2 _realChunkAreaSize { get { return WorldGeneration.GetRealChunkAreaSize(); } }
+    Vector2 _realChunkAreaSize { get { return WorldGeneration.GetRealChunkArea(); } }
 
     public WorldChunkMesh chunkMesh;
     public int groundHeight { get; private set; }
@@ -82,8 +82,10 @@ public class WorldChunk
 
 
     #region ================ INITIALIZE WORLD CHUNK ============================= >>
-    public void Generate()
+    public void GenerateChunkMesh()
     {
+        if (generation_finished) return;
+
         generation_finished = false;
 
         // Create chunkMesh
