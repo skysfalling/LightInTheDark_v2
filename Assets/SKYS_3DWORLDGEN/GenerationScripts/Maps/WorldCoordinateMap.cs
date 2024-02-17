@@ -53,10 +53,14 @@ public class WorldCoordinateMap : MonoBehaviour
         ResetAllCoordinatesToDefault(); // Set all world coordinates to default values
 
         UpdateAllWorldZones(); // Update all world zones to new values
-
         yield return new WaitUntil(() => zonesInitialized);
         yield return new WaitForSeconds(0.5f);
+
         UpdateAllWorldExitPaths(); // Update all world paths to new values
+        yield return new WaitUntil(() => exitPathsInitialized);
+
+
+
     }
 
     static IEnumerator InitializationRoutine(bool forceReset = false)
@@ -411,7 +415,7 @@ public class WorldCoordinateMap : MonoBehaviour
             openSet.Remove(current);
             closedSet.Add(current);
 
-            foreach (WorldCoordinate neighbor in CoordinateMap[current].GetAllValidNeighbors())
+            foreach (WorldCoordinate neighbor in CoordinateMap[current].GetValidNaturalNeighbors())
             {
                 if (closedSet.Contains(neighbor.Coordinate) || !IsCoordinateValidForPathfinding(neighbor.Coordinate))
                         continue; // Skip non-traversable neighbors and those already evaluated

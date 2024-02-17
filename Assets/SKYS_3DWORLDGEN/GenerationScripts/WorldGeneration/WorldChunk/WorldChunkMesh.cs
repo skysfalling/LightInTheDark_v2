@@ -222,16 +222,16 @@ public class WorldChunkMesh
             switch (type)
             {
                 case FaceType.Front:
-                    neighborCoord = worldCoordinate.GetNeighborInDirection(WorldDirection.SOUTH);
+                    neighborCoord = worldCoordinate.GetNeighborInDirection(WorldDirection.NORTH);
                     break;
                 case FaceType.Back:
                     neighborCoord = worldCoordinate.GetNeighborInDirection(WorldDirection.SOUTH);
                     break;
                 case FaceType.Left:
-                    neighborCoord = worldCoordinate.GetNeighborInDirection(WorldDirection.SOUTH);
+                    neighborCoord = worldCoordinate.GetNeighborInDirection(WorldDirection.WEST);
                     break;
                 case FaceType.Right:
-                    neighborCoord = worldCoordinate.GetNeighborInDirection(WorldDirection.SOUTH);
+                    neighborCoord = worldCoordinate.GetNeighborInDirection(WorldDirection.EAST);
                     break;
                 case FaceType.Top:
                 case FaceType.Bottom:

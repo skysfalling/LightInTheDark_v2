@@ -56,7 +56,8 @@ public class WorldChunk
     public WorldChunk(WorldCoordinate worldCoord)
     {
         this.coordinate = worldCoord.Coordinate;
-        this.groundHeight = 0;
+        this.groundHeight = PerlinNoise.CalculateHeightFromNoise(this.coordinate);
+
         groundPosition = new Vector3(worldCoord.WorldPosition.x, _realChunkHeight, worldCoord.WorldPosition.z);
         groundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
     }

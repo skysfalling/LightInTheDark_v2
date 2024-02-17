@@ -68,7 +68,7 @@ public class WorldMapEditor : Editor
 
     int _labelWidth = 125;
 
-    enum WorldCoordinateMapDebug { NONE, COORDINATE, TYPE }
+    enum WorldCoordinateMapDebug { NONE, COORDINATE, TYPE, CHUNK_HEIGHT }
     WorldCoordinateMapDebug worldCoordinateMapDebug = WorldCoordinateMapDebug.NONE;
 
     enum WorldChunkMapDebug { NONE, ALL_CHUNKS }
@@ -420,6 +420,10 @@ public class WorldMapEditor : Editor
                 case WorldCoordinateMapDebug.TYPE:
                     Handles.Label(coord.WorldPosition, new GUIContent($"{coord.type}"), coordinatelabelStyle);
                     break;
+                case WorldCoordinateMapDebug.CHUNK_HEIGHT:
+                    WorldChunk chunk = WorldChunkMap.GetChunkAt(coord);
+                    Handles.Label(coord.WorldPosition, new GUIContent($"{chunk.groundHeight}"), coordinatelabelStyle);
+                    break;
             }
         }
     }
@@ -428,7 +432,7 @@ public class WorldMapEditor : Editor
     {
 
         // Control the size of each box representing a coordinate
-        float mapGUIBoxSize = 20f;
+        float mapGUIBoxSize = 10f;
         int mapWidth = WorldGeneration.GetFullWorldArea().x;
         int mapHeight = WorldGeneration.GetFullWorldArea().y;
 
