@@ -33,7 +33,7 @@ public class WorldMap : MonoBehaviour
         worldChunkMap.InitializeChunkMesh();
 
         WorldCellMap worldCellMap = GetComponent<WorldCellMap>();
-        //worldCellMap.UpdateCellMap();
+        worldCellMap.UpdateCellMap();
     }
 
     public void ResetWorldMap()
@@ -56,8 +56,8 @@ public class WorldMap : MonoBehaviour
 [CustomEditor(typeof(WorldMap))]
 public class WorldMapEditor : Editor
 {
-    bool _showDebugSettingsFoldout = false;
-    bool _showSelectedChunkFoldout = false;
+    bool _showDebugSettingsFoldout = true;
+    bool _showSelectedChunkFoldout = true;
     bool _showInitializationFoldout = true;
     Vector2 scrollPosition;
 
@@ -244,10 +244,12 @@ public class WorldMapEditor : Editor
             EditorGUI.BeginDisabledGroup(true);
 
             CreateToggle("Coordinate Map", WorldCoordinateMap.coordMapInitialized);
+            CreateToggle("Chunk Map", WorldChunkMap.chunkMapInitialized);
+            CreateToggle("Cell Map", WorldCellMap.cellMapInitialized);
+
             CreateToggle("Coordinate Neighbors", WorldCoordinateMap.coordNeighborsInitialized);
             CreateToggle("Zones", WorldCoordinateMap.zonesInitialized);
             CreateToggle("Exit Paths", WorldCoordinateMap.exitPathsInitialized);
-            CreateToggle("World Chunk Map", WorldChunkMap.chunkMapInitialized);
             CreateToggle("World Chunk Mesh", WorldChunkMap.chunkMeshInitialized);
 
             EditorGUI.EndDisabledGroup();
@@ -303,28 +305,37 @@ public class WorldMapEditor : Editor
             else
             {
                 WorldCoordinate worldCoord = selectedChunk.worldCoordinate;
-
-                string chunkParameters =
-                    $"Coordinate => {worldCoord.Coordinate}" +
-                    $"\nCoordinate Type => {worldCoord.type}" +
-                    $"\nCoordinate Neighbors => {worldCoord.NeighborCoordinateMap.Values.ToList().Count()}" +
-                    $"\n" +
-                    $"\nChunk GroundHeight => {selectedChunk.groundHeight}" +
-                    $"\nChunk Mesh Dimensions => {selectedChunk.groundMeshDimensions}";
-
-                if (WorldCellMap.cellMapInitialized)
+                try
                 {
-                    chunkParameters += "\n" +
-                        $"\nChunk LocalCells => {selectedChunk.localCells.Count}";
+                    string chunkParameters =
+                        $"Coordinate => {worldCoord.Coordinate}" +
+                        $"\nCoordinate Type => {worldCoord.type}" +
+                        $"\nCoordinate Neighbors => {worldCoord.NeighborCoordinateMap.Values.ToList().Count()}" +
+                        $"\n" +
+                        $"\nChunk GroundHeight => {selectedChunk.groundHeight}" +
+                        $"\nChunk Mesh Dimensions => {selectedChunk.groundMeshDimensions}";
+
+                    if (WorldCellMap.cellMapInitialized)
+                    {
+                        chunkParameters += "\n" +
+                            $"\nChunk LocalCells => {selectedChunk.localCells.Count}";
+                    }
+                    else
+                    {
+                        chunkParameters += "\n" +
+                            "\nCell Map not initialized";
+                    }
+                    GUILayout.Box(chunkParameters, pStyle, GUILayout.Height(200));
+
                 }
-                else
+                catch
                 {
-                    chunkParameters += "\n" +
-                        "\nCell Map not initialized";
+                    Debug.LogWarning("Could not access selected chunk, setting to null");
+                    selectedChunk = null;
                 }
 
 
-                GUILayout.Box(chunkParameters, pStyle, GUILayout.Height(200));
+
             }
             EditorGUILayout.EndHorizontal();
         }
@@ -345,6 +356,7 @@ public class WorldMapEditor : Editor
 
         #region GENERATION PARAMETERS ===========================================
 
+        /*
         EditorGUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
 
@@ -368,6 +380,7 @@ public class WorldMapEditor : Editor
 
         GUILayout.FlexibleSpace();
         EditorGUILayout.EndHorizontal();
+        */
 
         #endregion
 
@@ -437,7 +450,7 @@ public class WorldMapEditor : Editor
         int mapHeight = WorldGeneration.GetFullWorldArea().y;
 
         // Begin a scroll view to handle maps that won't fit in the inspector window
-        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.Width(mapWidth * (mapGUIBoxSize * 1.15f)), GUILayout.Height(mapHeight * (mapGUIBoxSize * 1.15f)));
+        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.Width(mapWidth * (mapGUIBoxSize * 1.5f)), GUILayout.Height(mapHeight * (mapGUIBoxSize * 1.5f)));
 
         // Attempt to center the map grid horizontally
         GUILayout.BeginHorizontal();
@@ -524,8 +537,7 @@ public class WorldMapEditor : Editor
 
         Handles.color = fillColor;
         Handles.DrawSolidRectangleWithOutline(
-            GetRectangleVertices(worldChunk.GetGroundWorldPosition(),
-            (Vector2)WorldGeneration.GetRealChunkArea() * scaleMultiplier),
+            GetRectangleVertices(worldChunk.GetGroundWorldPosition(), (Vector2)WorldGeneration.GetRealChunkArea() * scaleMultiplier, Vector3.up),
             fillColor, Color.clear);
     }
 
@@ -535,8 +547,7 @@ public class WorldMapEditor : Editor
 
         Handles.color = fillColor;
         Handles.DrawSolidRectangleWithOutline(
-            GetRectangleVertices(worldCell.position,
-            Vector2.one * WorldGeneration.CellSize * scaleMultiplier),
+            GetRectangleVertices(worldCell.position, Vector2.one * WorldGeneration.CellSize * scaleMultiplier, worldCell.normal),
             fillColor, Color.clear);
     }
 
@@ -546,21 +557,29 @@ public class WorldMapEditor : Editor
 
         Handles.color = fillColor;
         Handles.DrawSolidRectangleWithOutline(
-            GetRectangleVertices(coord.WorldPosition,
-            WorldGeneration.GetRealChunkArea()),
+            GetRectangleVertices(coord.WorldPosition, WorldGeneration.GetRealChunkArea(), Vector3.up),
             fillColor, Color.clear);
     }
 
-    private Vector3[] GetRectangleVertices(Vector3 center, Vector2 area)
+    private Vector3[] GetRectangleVertices(Vector3 center, Vector2 area, Vector3 normalDirection)
     {
         Vector2 halfArea = area * 0.5f;
         Vector3[] vertices = new Vector3[4]
         {
-            center + new Vector3(-halfArea.x, 0, -halfArea.y),
-            center + new Vector3(halfArea.x, 0, -halfArea.y),
-            center + new Vector3(halfArea.x, 0, halfArea.y),
-            center + new Vector3(-halfArea.x, 0, halfArea.y)
+        new Vector3(-halfArea.x, 0, -halfArea.y),
+        new Vector3(halfArea.x, 0, -halfArea.y),
+        new Vector3(halfArea.x, 0, halfArea.y),
+        new Vector3(-halfArea.x, 0, halfArea.y)
         };
+
+        // Calculate the rotation from the up direction to the normal direction
+        Quaternion rotation = Quaternion.FromToRotation(Vector3.up, normalDirection);
+
+        // Apply rotation to each vertex
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            vertices[i] = rotation * vertices[i] + center;
+        }
 
         return vertices;
     }

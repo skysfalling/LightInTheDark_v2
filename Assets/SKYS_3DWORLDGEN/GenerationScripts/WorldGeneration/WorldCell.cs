@@ -34,6 +34,7 @@ public class WorldCell
 
     public Vector3[] vertices; // Corners of the cell  
     public Vector3 position;     // Center position of the cell
+    public Vector3 normal; // Normal Direction of the cell
 
     public WorldCell(WorldChunk chunkParent, MeshQuad meshQuad)
     {
@@ -44,7 +45,8 @@ public class WorldCell
 
 
         // Set Position [[ parent position offset + center of corresponding quad ]]
- 
+        this.position = this._chunkParent.GetGroundWorldPosition() + meshQuad.GetCenterPosition();
+        this.normal = meshQuad.faceNormal;
     }
 
     public void SetCellType(TYPE type)

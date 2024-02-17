@@ -79,6 +79,25 @@ public class WorldCoordinate
         return WorldCoordinateMap.GetCoordinateAt(NeighborCoordinateMap[direction]);
     }
 
+    public WorldDirection? GetDirectionOfNeighbor(WorldCoordinate neighbor)
+    {
+        if (!foundNeighbors) return null;
+
+        // Iterate through each entry in the NeighborCoordinateMap
+        foreach (var entry in NeighborCoordinateMap)
+        {
+            // Check if the neighbor's Coordinate matches the entry's value
+            if (entry.Value == neighbor.Coordinate)
+            {
+                // If so, return the direction
+                return entry.Key;
+            }
+        }
+
+        // If no matching neighbor is found, return null
+        return null;
+    }
+
     public List<WorldCoordinate> GetValidNaturalNeighbors()
     {
         if (!foundNeighbors) return new();

@@ -167,11 +167,26 @@ public class WorldPath
             else if (i == _pathChunks.Count - 1) { _pathChunks[i].SetGroundHeight(endHeight); continue; }
             else
             {
+
                 // Determine heightOffset 
                 int heightOffset = 0;
-                if (heightLeft > 0) { heightOffset = 1; } // if height left is greater
-                else if (heightLeft < 0) { heightOffset = -1; } // if height left is less than 0
-                else { heightOffset = 0; } // if height left is equal to 0
+
+                // Determine the direction of the last & next chunk in path
+                WorldChunk lastChunk = _pathChunks[i - 1];
+                WorldChunk nextChunk = _pathChunks[i + 1];
+                WorldDirection? lastChunkDirection = _pathChunks[i].worldCoordinate.GetDirectionOfNeighbor(lastChunk.worldCoordinate);
+                WorldDirection? nextChunkDirection = _pathChunks[i].worldCoordinate.GetDirectionOfNeighbor(nextChunk.worldCoordinate);
+                if (lastChunkDirection != null && nextChunkDirection != null)
+                {
+                    if (_pathChunks[i].worldCoordinate.GetNeighborInOppositeDirection((WorldDirection)nextChunkDirection) == lastChunk.worldCoordinate)
+                    {
+                        // Valid transition chunk
+                        if (heightLeft > 0) { heightOffset = 1; } // if height left is greater
+                        else if (heightLeft < 0) { heightOffset = -1; } // if height left is less than 0
+                        else { heightOffset = 0; } // if height left is equal to 0
+                    }
+
+                }
 
                 // Set the new height level
                 currHeightLevel += heightOffset;

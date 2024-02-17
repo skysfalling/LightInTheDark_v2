@@ -9,12 +9,14 @@ public class MeshQuad
 {
     public FaceType faceType;
     public Vector2Int faceCoord;
+    public Vector3 faceNormal;
     List<Vector3> vertices = new();
 
-    public MeshQuad(FaceType faceType, Vector2Int faceCoord, List<Vector3> vertices)
+    public MeshQuad(FaceType faceType, Vector2Int faceCoord, Vector3 faceNormal, List<Vector3> vertices)
     {
         this.faceType = faceType;
         this.faceCoord = faceCoord;
+        this.faceNormal = faceNormal;
         this.vertices = vertices;
     }
 
@@ -161,7 +163,7 @@ public class WorldChunkMesh
                         }
 
 
-                        MeshQuad quad = new MeshQuad(faceType, faceCoordinate, quadVertices);
+                        MeshQuad quad = new MeshQuad(faceType, faceCoordinate, GetFaceNormal(faceType), quadVertices);
                         meshQuads.Add(quad);
 
                         // Add two triangles for each square

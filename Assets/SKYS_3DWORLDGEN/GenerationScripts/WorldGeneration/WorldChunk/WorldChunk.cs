@@ -81,8 +81,8 @@ public class WorldChunk
         groundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
     }
 
-
     #region ================ INITIALIZE WORLD CHUNK ============================= >>
+
     public void GenerateChunkMesh()
     {
         if (generation_finished) return;
@@ -100,7 +100,6 @@ public class WorldChunk
 
         generation_finished = true;
     }
-
 
     void DetermineChunkEdges()
     {
@@ -167,30 +166,8 @@ public class WorldChunk
         if (activeEdgeCount == 1) { type = TYPE.WALL; return; }
         if (activeEdgeCount == 0) { type = TYPE.EMPTY; return; }
     }
-    public void DetermineChunkHeightFromNeighbors()
-    {
-        List<WorldCoordinate> neighbors = worldCoordinate.GetValidNaturalNeighbors();
-        if (neighbors.Count == 0) return; // Exit if there are no neighbors
 
-        int totalHeight = 0;
-
-        foreach (WorldCoordinate neighborCoord in neighbors)
-        {
-            WorldChunk neighbor = WorldChunkMap.GetChunkAt(neighborCoord);
-            if (neighbor != null)
-            {
-                totalHeight += neighbor.groundHeight;
-            }
-        }
-
-        int averageHeight = Mathf.RoundToInt(totalHeight / neighbors.Count);
-
-        // Optionally, you might want to round the average height or apply other logic
-        // For simplicity, we're directly setting the average height
-        SetGroundHeight(averageHeight);
-    }
     #endregion
-
 
     public List<WorldChunk> GetNaturalChunkNeighbors()
     {
@@ -230,8 +207,6 @@ public class WorldChunk
             {
                 WorldCell newCell = new WorldCell(this, quad);
                 localCells.Add(newCell);
-
-                //newCell.ShowDebugCube();
             }
         }
     }
