@@ -19,7 +19,6 @@ public class WorldExit
     WorldChunk _chunk;
     WorldDirection _borderDirection;
     int _borderIndex;
-    int _exitHeight;
 
     // Coordinate on border
     public WorldCoordinate worldCoordinate;
@@ -30,7 +29,6 @@ public class WorldExit
     // == INSPECTOR VALUES >>
     public WorldDirection borderDirection = WorldDirection.WEST;
     public int borderIndex = 0;
-    public int exitHeight = 0;
 
     public WorldExit(WorldDirection direction, int index)
     {
@@ -49,13 +47,11 @@ public class WorldExit
 
         _borderDirection = borderDirection;
         _borderIndex = borderIndex;
-        _exitHeight = exitHeight;
 
         worldCoordinate = WorldCoordinateMap.GetCoordinateAtWorldExit(borderDirection, borderIndex);
         pathConnection = worldCoordinate.GetNeighborInOppositeDirection(borderDirection);
 
         _chunk = WorldChunkMap.GetChunkAt(worldCoordinate);
-        _chunk.SetGroundHeight(exitHeight);
 
         //Debug.Log($"WORLDEXIT : Initialized at {worldCoordinate.Coordinate} with exitHeight {exitHeight}");
         _initialized = true;
@@ -72,8 +68,7 @@ public class WorldExit
         if (worldCoordinate == null
             || pathConnection == null
             || _borderDirection != borderDirection
-            || _borderIndex != borderIndex
-            || _exitHeight != exitHeight) 
+            || _borderIndex != borderIndex) 
         { 
             _initialized = false; 
         }
@@ -95,8 +90,6 @@ public class WorldExitPath
     [Range(0, 1)] public float pathRandomness = 0f;
     public WorldExit startExit = new WorldExit(WorldDirection.NORTH, 0);
     public WorldExit endExit = new WorldExit(WorldDirection.SOUTH, 0);
-    int _startHeight;
-    int _endHeight;
 
     WorldCoordinate _pathStart;
     WorldCoordinate _pathEnd;
@@ -106,9 +99,6 @@ public class WorldExitPath
     {
         this.startExit = startExit;
         this.endExit = endExit;
-
-        _startHeight = startExit.exitHeight;
-        _endHeight = endExit.exitHeight;
 
         this.pathColor = WorldPath.GetRandomPathColor();
         this.pathRandomness = 1;
@@ -126,16 +116,17 @@ public class WorldExitPath
         // Update private variables
         _pathStart = startExit.pathConnection;
         _pathEnd = endExit.pathConnection;
-        if (_pathStart == null || _pathEnd == null) return;
 
-        _startHeight = startExit.exitHeight;
-        _endHeight = endExit.exitHeight;
+        int startHeight = WorldChunkMap.GetChunkAt(startExit.worldCoordinate).groundHeight;
+        int endHeight = WorldChunkMap.GetChunkAt(endExit.worldCoordinate).groundHeight;
+
+        if (_pathStart == null || _pathEnd == null) return;
 
         _pathRandomness = pathRandomness;
 
 
         // Get new World Path
-        _worldPath = new WorldPath(_pathStart, _startHeight, _pathEnd, _endHeight, pathColor, pathRandomness);
+        _worldPath = new WorldPath(_pathStart, startHeight, _pathEnd, endHeight, pathColor, pathRandomness);
 
         // Update Exit Values
         if (_worldPath.IsInitialized() && WorldChunkMap.chunkMapInitialized)
@@ -145,10 +136,6 @@ public class WorldExitPath
 
             WorldCoordinateMap.SetMapCoordinateToType(startExit.worldCoordinate, WorldCoordinate.TYPE.EXIT);
             WorldCoordinateMap.SetMapCoordinateToType(endExit.worldCoordinate, WorldCoordinate.TYPE.EXIT);
-
-            WorldChunkMap.GetChunkAt(startExit.worldCoordinate).SetGroundHeight(_startHeight);
-            WorldChunkMap.GetChunkAt(endExit.worldCoordinate).SetGroundHeight(_endHeight);
-
 
             _initialized = true;
         }
@@ -171,8 +158,6 @@ public class WorldExitPath
     {
         if (_pathStart != startExit.pathConnection
         || _pathEnd != endExit.pathConnection
-        || _startHeight != startExit.exitHeight
-        || _endHeight != endExit.exitHeight
         || _pathRandomness != pathRandomness)
         {
             Reset();
@@ -230,10 +215,6 @@ public class WorldExitDrawer : PropertyDrawer
         int maxIndex = Mathf.Max(0, WorldGeneration.PlayableArea.x - 1);
         borderIndexProp.intValue = EditorGUI.IntSlider(indexRect, new GUIContent("borderIndex"), borderIndexProp.intValue, 0, maxIndex);
 
-        // Draw the "Chunk Height" slider
-        SerializedProperty exitHeightProp = property.FindPropertyRelative("exitHeight");
-        int maxHeight = Mathf.Max(0, WorldGeneration.MaxGroundHeight);
-        exitHeightProp.intValue = EditorGUI.IntSlider(exitHeightRect, new GUIContent("exitHeight"), exitHeightProp.intValue, 0, maxHeight);
         EditorGUI.EndProperty();
     }
 
