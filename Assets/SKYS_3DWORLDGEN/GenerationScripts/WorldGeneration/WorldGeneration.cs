@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,23 +20,26 @@ using UnityEngine.XR;
 [RequireComponent(typeof(WorldMaterialLibrary))]
 public class WorldGeneration : MonoBehaviour
 {
-
     // CREATE SINGLETON ==================================== ///
     public static WorldGeneration Instance;
     public void Awake()
     {
         if (Instance != null) { Destroy(Instance); }
         Instance = this;
+
+        Thread mainThread = Thread.CurrentThread;
+        mainThread.Name = "Main Thread";
+        Debug.Log($"{mainThread.Name} say hi! ");
     }
     // STATIC GENERATION VALUES ========================================================= ///
     public static string GameSeed = "Default Game Seed";
     public static int CurrentSeed { get { return GameSeed.GetHashCode(); }}
 
     // STATIC GENERATION DIMENSIONS ==================================== ///
-    public static int CellSize = 4; // Size of each WorldCell // Size of each WorldCell { in Unity Units }
+    public static int CellSize = 5; // Size of each WorldCell // Size of each WorldCell { in Unity Units }
     public static Vector2Int ChunkWidth = new Vector2Int(5, 5); // Area of each WorldChunk { in WorldCell Units }
-    public static int ChunkDepth = 3;
-    public static Vector2Int PlayableArea = new Vector2Int(10, 10); // Default size of PlayArea { in WorldChunk Units }
+    public static int ChunkDepth = 5;
+    public static Vector2Int PlayableArea = new Vector2Int(25, 25); // Default size of PlayArea { in WorldChunk Units }
     public static int BoundaryOffset = 1; // Boundary offset value 
     public static int MaxGroundHeight = 10; // Maximum chunk height
 
@@ -99,7 +103,6 @@ public class WorldGeneration : MonoBehaviour
         Debug.Log($"WORLD GENERATION :: START GENERATION");
 
         // [[ STAGE 0 ]] ==> INITIALIZE MAPS
-
         if (!WorldCoordinateMap.coordMapInitialized || !WorldChunkMap.chunkMapInitialized)
         {
             FindObjectOfType<WorldMap>().UpdateWorldMap();
