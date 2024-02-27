@@ -13,17 +13,17 @@ public class DarklightEditor
         return new Vector3(vec3_a.x * vec3_b.x, vec3_a.y * vec3_b.y, vec3_a.z * vec3_b.z);
     }
 
-    public static void DrawWireRectangle_withWidthLabel(string prefix, Vector3 position, int width)
+    public static void DrawWireRectangle_withLabel(string label, Vector3 position, int size)
     {
         Handles.color = Color.black;
-        Handles.DrawWireCube(position, width * new Vector3(1, 0, 1));
+        Handles.DrawWireCube(position, size * new Vector3(1, 0, 1));
 
         // Calculate the position for the label (midpoint of the top edge)
         Vector3 labelOffset = new Vector3(-0.45f, 0, 0.45f); // Adjust the label position as needed
 
         // Draw the label with the width
-        Vector3 labelPosition = position + (width * labelOffset);
-        Handles.Label(labelPosition, $"{prefix} :: WIDTH {width}");
+        Vector3 labelPosition = position + (size * labelOffset);
+        Handles.Label(labelPosition, label);
 
     }
 

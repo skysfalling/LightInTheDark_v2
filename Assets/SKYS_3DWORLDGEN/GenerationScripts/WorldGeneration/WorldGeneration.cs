@@ -54,15 +54,15 @@ public class WorldGeneration : MonoBehaviour
     public static int PlayRegionWidth_inChunks = 5; // in World Chunks
     public static int PlayRegionBoundaryOffset = 1; // Boundary offset value 
     public static int RegionMaxGroundHeight = 10; // Maximum chunk height
-    public static int GetFullRegionWidth_inChunks() { return PlayRegionWidth_inChunks + (PlayRegionBoundaryOffset * 2); } // Include BoundaryOffset on both sides
     public static int GetPlayRegionWidth_inCells() { return PlayRegionWidth_inChunks * ChunkWidth_inCells; }
-    public static int GetFulRegionWidth_inCells() { return GetFullRegionWidth_inChunks() * ChunkWidth_inCells; }
-    public static int GetFulRegionWidth_inWorldSpace() { return GetFulRegionWidth_inCells() * CellWidth_inWorldSpace; }
+    public static int GetFullRegionWidth_inChunks() { return PlayRegionWidth_inChunks + (PlayRegionBoundaryOffset * 2); } // Include BoundaryOffset on both sides
+    public static int GetFullRegionWidth_inCells() { return GetFullRegionWidth_inChunks() * ChunkWidth_inCells; }
+    public static int GetFullRegionWidth_inWorldSpace() { return GetFullRegionWidth_inChunks() * CellWidth_inWorldSpace; }
 
 
     // >>>> WorldGeneration { in WorldRegion Units }
     public static int WorldWidth_inRegions = 3;
-    public static int GetWorldWidth_inCells() { return WorldWidth_inRegions * GetFulRegionWidth_inCells(); }
+    public static int GetWorldWidth_inCells() { return WorldWidth_inRegions * GetFullRegionWidth_inChunks(); }
     public static int GetWorldWidth_inWorldSpace() { return GetWorldWidth_inCells() * CellWidth_inWorldSpace; }
 
 
@@ -95,11 +95,17 @@ public class WorldGeneration : MonoBehaviour
             for (int y = 0; y < WorldWidth_inRegions; y++)
             {
                 GameObject regionObject = new GameObject($"New Region ({x} , {y})");
+                
                 WorldRegion region = regionObject.AddComponent<WorldRegion>();
-                
-                
+                WorldRegionMap regionMap = regionObject.AddComponent<WorldRegionMap>();
+
+
                 Vector2Int regionCoordinate = new Vector2Int(x, y);
                 region.Initialize(regionCoordinate);
+
+                regionObject.transform.position = region.centerPosition;
+                regionObject.transform.parent = this.transform;
+
 
                 worldRegions.Add(region);
             }

@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 public enum DebugColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE, CLEAR }
 public enum WorldDirection { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
 
-public class WorldCoordinateMap : MonoBehaviour
+public class WorldCoordinateMap: MonoBehaviour
 {
     public static WorldCoordinateMap Instance;
     public void Awake()
@@ -68,11 +68,9 @@ public class WorldCoordinateMap : MonoBehaviour
         List<WorldCoordinate> newCoordList = new List<WorldCoordinate>();
         Dictionary<Vector2Int, WorldCoordinate> newCoordMap = new();
 
-        int fullRegionWidth = WorldGeneration.GetFulRegionWidth_inCells();
-        int chunkWidth = WorldGeneration.ChunkWidth_inCells;
-
-        int xCoordCount = Mathf.CeilToInt(fullRegionWidth / chunkWidth);
-        int yCoordCount = Mathf.CeilToInt(fullRegionWidth / chunkWidth);
+        int fullRegionWidth = WorldGeneration.GetFullRegionWidth_inChunks();
+        int xCoordCount = fullRegionWidth;
+        int yCoordCount = fullRegionWidth;
 
         for (int x = 0; x < xCoordCount; x++)
         {
@@ -114,42 +112,38 @@ public class WorldCoordinateMap : MonoBehaviour
 
     static void ResetAllCoordinatesToDefault()
     {
-        int realFullWorldSize = WorldGeneration.GetFulRegionWidth_inCells();
-        int realChunkAreaSize = WorldGeneration.ChunkWidth_inCells;
-
-        int xCoordCount = Mathf.CeilToInt(realFullWorldSize / realChunkAreaSize);
-        int yCoordCount = Mathf.CeilToInt(realFullWorldSize / realChunkAreaSize);
-
-        for (int x = 0; x < xCoordCount; x++)
+        foreach (WorldCoordinate coord in CoordinateList)
         {
-            for (int y = 0; y < yCoordCount; y++)
+            Vector2Int coordinateVector = coord.Coordinate;
+            WorldCoordinate worldCoordinate = CoordinateMap[coordinateVector];
+
+            int coordMax = WorldGeneration.GetFullRegionWidth_inChunks();
+
+            // Check if the position is in a corner & close it
+            if ((coordinateVector == Vector2Int.zero) 
+                || (coordinateVector == new Vector2Int(coordMax - 1, 0))
+                || coordinateVector == new Vector2Int(0, coordMax - 1) 
+                || coordinateVector == new Vector2Int(coordMax - 1, coordMax - 1))
+                {
+                worldCoordinate.type = WorldCoordinate.TYPE.CLOSED;
+                worldCoordinate.debugColor = Color.black;
+            }
+            // Check if the position is on the border
+            else if (coordinateVector.x == 0 || coordinateVector.y == 0 
+                || coordinateVector.x == coordMax - 1 || coordinateVector.y == coordMax - 1)
             {
-                Vector2Int coordinateVector = new Vector2Int(x, y);
-                WorldCoordinate worldCoordinate = CoordinateMap[coordinateVector];
+                worldCoordinate.type = WorldCoordinate.TYPE.BORDER;
+                worldCoordinate.debugColor = Color.black;
 
-                // Check if the position is in a corner & close it
-                if ((x == 0 && y == 0) || (x == xCoordCount - 1 && y == 0) ||
-                    (x == 0 && y == yCoordCount - 1) || (x == xCoordCount - 1 && y == yCoordCount - 1))
-                {
-                    worldCoordinate.type = WorldCoordinate.TYPE.CLOSED;
-                    worldCoordinate.debugColor = Color.black;
-                }
-                // Check if the position is on the border
-                else if (x == 0 || y == 0 || x == xCoordCount - 1 || y == yCoordCount - 1)
-                {
-                    worldCoordinate.type = WorldCoordinate.TYPE.BORDER;
-                    worldCoordinate.debugColor = Color.black;
-
-                    if (x == 0) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.WEST; }
-                    if (y == 0) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.SOUTH; }
-                    if (x == xCoordCount - 1) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.EAST; }
-                    if (y == yCoordCount - 1) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.NORTH; }
-                }
-                else
-                {
-                    worldCoordinate.type = WorldCoordinate.TYPE.NULL;
-                    worldCoordinate.debugColor = Color.grey;
-                }
+                if (coordinateVector.x == 0) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.WEST; }
+                if (coordinateVector.y == 0) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.SOUTH; }
+                if (coordinateVector.x == coordMax - 1) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.EAST; }
+                if (coordinateVector.y == coordMax - 1) { CoordinateMap[coordinateVector].borderEdgeDirection = WorldDirection.NORTH; }
+            }
+            else
+            {
+                worldCoordinate.type = WorldCoordinate.TYPE.NULL;
+                worldCoordinate.debugColor = Color.grey;
             }
         }
     }

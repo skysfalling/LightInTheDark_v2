@@ -90,7 +90,7 @@ public class WorldGenerationEditor : Editor
             Debug.Log("world gen button pressed");
         };
 
-        DarklightEditor.DrawWireRectangle_withWidthLabel("World Generation", transform.position, WorldGeneration.GetWorldWidth_inWorldSpace());
+        //DarklightEditor.DrawWireRectangle_withLabel("World Generation", transform.position, WorldGeneration.GetWorldWidth_inWorldSpace());
         //DarklightEditor.DrawWireRectangle_withWidthLabel("World Region", transform.position, WorldGeneration.GetFulRegionWidth_inWorldSpace());
         //DarklightEditor.DrawWireRectangle_withWidthLabel("World Chunk", transform.position, WorldGeneration.GetChunkWidth_inWorldSpace());
         //DarklightEditor.DrawWireRectangle_withWidthLabel("World Cell", transform.position, WorldGeneration.CellWidth_inWorldSpace);
@@ -100,7 +100,7 @@ public class WorldGenerationEditor : Editor
         {
             foreach (WorldRegion region in worldGen.worldRegions)
             {
-                DarklightEditor.DrawWireRectangle_withWidthLabel("World Region", region.GetRegionCenter(), WorldGeneration.GetFulRegionWidth_inWorldSpace());
+                DarklightEditor.DrawWireRectangle_withLabel($"World Region {region.regionCoordinate}", region.centerPosition, WorldGeneration.GetFullRegionWidth_inWorldSpace());
             }
         }
 

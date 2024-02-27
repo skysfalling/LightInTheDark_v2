@@ -32,7 +32,7 @@ public class WorldCoordinate
 
         // Calculate position
         int chunkWidth = WorldGeneration.ChunkWidth_inCells;
-        int realFullRegionWidth = WorldGeneration.GetFulRegionWidth_inCells();
+        int realFullRegionWidth = WorldGeneration.GetFullRegionWidth_inChunks();
         float halfRegionWidth = realFullRegionWidth * 0.5f;
         Vector2 newPos = new Vector2(coord.x * chunkWidth, coord.y * chunkWidth);
         newPos -= Vector2.one * halfRegionWidth;

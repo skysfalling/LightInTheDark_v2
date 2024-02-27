@@ -5,8 +5,6 @@ using System.Text;
 using UnityEngine.UIElements;
 using System.Linq;
 
-
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -56,15 +54,15 @@ public class WorldRegionMap : MonoBehaviour
 [CustomEditor(typeof(WorldRegionMap))]
 public class WorldRegionMapEditor : Editor
 {
-    bool _showDebugSettingsFoldout = true;
-    bool _showSelectedChunkFoldout = true;
-    bool _showInitializationFoldout = true;
+    bool _showDebugSettingsFoldout = false;
+    bool _showSelectedChunkFoldout = false;
+    bool _showInitializationFoldout = false;
     Vector2 scrollPosition;
 
     GUIStyle titleHeaderStyle;
     GUIStyle centeredStyle;
 
-    bool _showWorldMapBoundaries = false;
+    bool _showWorldMapBoundaries = true;
 
     int _labelWidth = 125;
 
@@ -81,13 +79,19 @@ public class WorldRegionMapEditor : Editor
 
     public void OnEnable()
     {
-        WorldRegionMap worldMap = (WorldRegionMap)target;
-        worldMap.ResetWorldMap();
+
     }
 
     private void OnSceneGUI()
     {
-        WorldRegionMap worldMap = (WorldRegionMap)target;
+        WorldRegionMap regionMap = (WorldRegionMap)target;
+
+        if (_showWorldMapBoundaries)
+        {
+            WorldRegion region = regionMap.GetComponent<WorldRegion>();
+            DarklightEditor.DrawWireRectangle_withLabel($"Region {region.regionCoordinate}", region.centerPosition, WorldGeneration.GetFullRegionWidth_inWorldSpace());
+        }
+
         if (WorldRegionMap.worldMapInitialized)
         {
             DrawWorldMap();
@@ -110,16 +114,6 @@ public class WorldRegionMapEditor : Editor
         else
         {
             selectedChunk = null;
-        }
-
-        if (_showWorldMapBoundaries)
-        {
-            // >> DRAW BOUNDARY SQUARES
-            Handles.color = Color.white;
-            Handles.DrawWireCube(worldMap.transform.position, new Vector3(WorldGeneration.GetPlayRegionWidth_inCells(), 0, WorldGeneration.GetPlayRegionWidth_inCells()));
-
-            Handles.color = Color.red;
-            Handles.DrawWireCube(worldMap.transform.position, new Vector3(WorldGeneration.GetFulRegionWidth_inCells(), 0, WorldGeneration.GetFulRegionWidth_inCells()));
         }
     }
 
@@ -166,15 +160,9 @@ public class WorldRegionMapEditor : Editor
         foldoutStyle.margin.left = 5;
         foldoutStyle.margin.bottom = 5;
 
-        EditorGUILayout.LabelField("World Map", titleHeaderStyle, GUILayout.Height(25));
+        EditorGUILayout.LabelField("Region Map", titleHeaderStyle, GUILayout.Height(25));
         EditorGUILayout.Space();
 
-
-        // [[[[[[[[[ BEGIN DOUBLE COLUMN ]] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        EditorGUILayout.BeginVertical();
-        EditorGUILayout.BeginHorizontal();
-
-        // == COLUMN #1 =================================== ))
 
         #region DRAW GUI WORLD MAP ===============================================
 
@@ -184,7 +172,7 @@ public class WorldRegionMapEditor : Editor
             EditorGUILayout.BeginHorizontal(); // Start a horizontal group
             GUILayout.FlexibleSpace(); // Push everything after this to the right, centering the content
 
-            DrawGUIWorldMap();
+            // DrawGUIWorldMap();
 
             GUILayout.FlexibleSpace(); // Push everything before this to the left, ensuring centering
             EditorGUILayout.EndHorizontal(); // End the horizontal group
@@ -207,9 +195,9 @@ public class WorldRegionMapEditor : Editor
         // RESET BUTTON >>>>>>>>>>>>>>>>>>>>
         EditorGUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
-        if (GUILayout.Button("Generate Cell Map"))
+        if (GUILayout.Button("Update Region Map"))
         {
-            worldMap.GenerateWorldCellMap();
+            worldMap.UpdateRegionMap();
         }
 
         if (GUILayout.Button("Full Reset"))
@@ -221,11 +209,8 @@ public class WorldRegionMapEditor : Editor
         EditorGUILayout.EndVertical(); // End the vertical group
         #endregion ===================================================================
 
-        // == end COLUMN #1 ========================================== ))
-
         EditorGUILayout.Space(25);
 
-        // == COLUMN #2 =================================== ))
         EditorGUILayout.BeginVertical();
 
         #region DRAW FOLDOUTS =================================================
@@ -346,12 +331,7 @@ public class WorldRegionMapEditor : Editor
         EditorGUILayout.EndHorizontal();
         #endregion ================================================================
 
-        EditorGUILayout.EndVertical();
-        // == end COLUMN #2 ========================================== ))
 
-
-        // [[[[[[[[[ END DOUBLE COLUMN ]] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        EditorGUILayout.EndHorizontal();
         EditorGUILayout.EndVertical();
 
 
@@ -411,6 +391,9 @@ public class WorldRegionMapEditor : Editor
                     break;
             }
         }
+
+
+
     }
 
     private void DrawGUIWorldMap()
@@ -509,8 +492,10 @@ public class WorldRegionMapEditor : Editor
 
         Handles.color = fillColor;
         Handles.DrawSolidRectangleWithOutline(
-            GetRectangleVertices(worldChunk.GetGroundWorldPosition(), WorldGeneration.ChunkWidth_inCells * scaleMultiplier * Vector2.one, Vector3.up),
-            fillColor, Color.clear);
+            GetRectangleVertices(
+                worldChunk.GetGroundWorldPosition(), 
+                WorldGeneration.GetChunkWidth_inWorldSpace() * scaleMultiplier * Vector2.one, Vector3.up),
+                fillColor, Color.clear);
     }
 
     private void DrawRectangleAtCell(WorldCell worldCell, Color fillColor, float scaleMultiplier = 1)

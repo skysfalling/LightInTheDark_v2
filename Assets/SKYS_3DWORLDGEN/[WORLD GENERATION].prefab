@@ -60,91 +60,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gizmoType: 0
   gizmoSelectedTypeChunks: []
---- !u!1 &1220748305561793608
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2832013479746530852}
-  - component: {fileID: 1833113545527821614}
-  - component: {fileID: 8295359213703746231}
-  - component: {fileID: 4652889822070907782}
-  - component: {fileID: 4922368716762689905}
-  m_Layer: 0
-  m_Name: ( REGION MAP )
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2832013479746530852
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1220748305561793608}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5845749257906015333}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1833113545527821614
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1220748305561793608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 20e5b8a4e433e7b4e9ba1b9c10bf4487, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &8295359213703746231
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1220748305561793608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 97b232c10588f6a499c0ca26e13742c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  worldExitPaths: []
-  worldZones: []
---- !u!114 &4652889822070907782
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1220748305561793608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3677fe2dc3f6fda468e449286c891a6b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &4922368716762689905
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1220748305561793608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9703bbe44710b6e409bbe24a1955aaca, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1652254909227268323
 GameObject:
   m_ObjectHideFlags: 0
@@ -354,7 +269,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2832013479746530852}
   - {fileID: 1981935170520572513}
   - {fileID: 5305021860519766170}
   - {fileID: 2625624407440556941}
@@ -376,6 +290,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   generation_finished: 0
   gameSeed: Default Game Seed
+  worldRegions:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!114 &8701923849753727028
 MonoBehaviour:
   m_ObjectHideFlags: 0
