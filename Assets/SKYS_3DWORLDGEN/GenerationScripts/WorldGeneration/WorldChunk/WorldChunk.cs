@@ -10,11 +10,11 @@ public class WorldChunk
 
     WorldGeneration _worldGeneration;
     string prefix = " [[ WORLD CHUNK ]]";
-    Vector2 _realChunkAreaSize { get { return WorldGeneration.GetRealChunkArea(); } }
+    int _chunkWidth { get { return WorldGeneration.ChunkWidth_inCells; } }
 
     public WorldChunkMesh chunkMesh;
     public int groundHeight { get; private set; }
-    int _realChunkHeight { get { return groundHeight * WorldGeneration.CellSize; } }
+    int _realChunkHeight { get { return groundHeight * WorldGeneration.CellWidth_inWorldSpace; } }
 
 
     /// <summary>
@@ -59,7 +59,7 @@ public class WorldChunk
         this.groundHeight = PerlinNoise.CalculateHeightFromNoise(this.coordinate);
 
         groundPosition = new Vector3(worldCoord.WorldPosition.x, _realChunkHeight, worldCoord.WorldPosition.z);
-        groundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
+        groundMeshDimensions = new Vector3(_chunkWidth, _realChunkHeight, _chunkWidth);
     }
 
     public void SetGroundHeight(int height)
@@ -78,7 +78,7 @@ public class WorldChunk
     {
         if (coordinate == null) return;
         groundPosition = new Vector3(worldCoordinate.WorldPosition.x, _realChunkHeight, worldCoordinate.WorldPosition.z);
-        groundMeshDimensions = new Vector3(_realChunkAreaSize.x, _realChunkHeight, _realChunkAreaSize.y);
+        groundMeshDimensions = new Vector3(_chunkWidth, _realChunkHeight, _chunkWidth);
     }
 
     #region ================ INITIALIZE WORLD CHUNK ============================= >>
@@ -287,7 +287,7 @@ public class WorldChunk
     private List<WorldCell> GetCellsInArea(WorldCell startCell, Vector2Int space)
     {
         List<WorldCell> areaCells = new List<WorldCell> ();
-        int cellSize = WorldGeneration.CellSize;
+        int cellSize = WorldGeneration.CellWidth_inWorldSpace;
 
         for (int x = 0; x < space.x; x++)
         {

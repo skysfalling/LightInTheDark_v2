@@ -95,7 +95,7 @@ public class WorldCellMap : MonoBehaviour
         List<WorldCell> naturalNeighbors = new List<WorldCell>(new WorldCell[4]);
         List<WorldCell> diagonalNeighbors = new List<WorldCell>(new WorldCell[4]);
 
-        float cellSize = WorldGeneration.CellSize; // Assuming 'cellSize' is a public field in WorldGeneration
+        float cellSize = WorldGeneration.CellWidth_inWorldSpace; // Assuming 'cellSize' is a public field in WorldGeneration
 
         // Calculate natural neighbor positions
         Vector3 leftPosition = cell.position + new Vector3(-cellSize, 0, 0);

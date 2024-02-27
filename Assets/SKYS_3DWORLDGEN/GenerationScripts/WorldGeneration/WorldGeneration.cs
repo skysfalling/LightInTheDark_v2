@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.XR;
+using Unity.VisualScripting;
 
 /// <summary>
 /// SKYS_3DWORLDGEN : Created by skysfalling @ darklightinteractive 2024
@@ -31,25 +32,39 @@ public class WorldGeneration : MonoBehaviour
         mainThread.Name = "Main Thread";
         Debug.Log($"{mainThread.Name} say hi! ");
     }
+
     // STATIC GENERATION VALUES ========================================================= ///
     public static string GameSeed = "Default Game Seed";
     public static int CurrentSeed { get { return GameSeed.GetHashCode(); }}
 
     // STATIC GENERATION DIMENSIONS ==================================== ///
-    public static int CellSize = 5; // Size of each WorldCell // Size of each WorldCell { in Unity Units }
-    public static Vector2Int ChunkWidth = new Vector2Int(5, 5); // Area of each WorldChunk { in WorldCell Units }
-    public static int ChunkDepth = 5;
-    public static Vector2Int PlayableArea = new Vector2Int(25, 25); // Default size of PlayArea { in WorldChunk Units }
-    public static int BoundaryOffset = 1; // Boundary offset value 
-    public static int MaxGroundHeight = 10; // Maximum chunk height
 
-    public static Vector2Int GetFullWorldArea() { return PlayableArea + (BoundaryOffset * 2 * Vector2Int.one); } // Include BoundaryOffset on both sides
-    public static Vector3Int GetChunkDimensions() { return new Vector3Int(ChunkWidth.x, ChunkDepth, ChunkWidth.y); }
-    public static Vector2Int GetRealChunkArea() { return ChunkWidth * CellSize; }
-    public static int GetRealChunkDepth() { return ChunkDepth * CellSize; }
-    public static Vector3Int GetRealChunkDimensions() { return new Vector3Int(ChunkWidth.x, ChunkDepth, ChunkWidth.y) * CellSize; }
-    public static Vector2Int GetRealPlayAreaSize() { return PlayableArea * GetRealChunkArea(); }
-    public static Vector2Int GetRealFullWorldSize() { return GetFullWorldArea() * GetRealChunkArea(); }
+    // >>>> WorldCell { in Unity Worldspace Units }
+    public static int CellWidth_inWorldSpace = 4; // Size of each WorldCell 
+
+    // >>>> WorldChunk { in WorldCell Units }
+    public static int ChunkWidth_inCells = 10; 
+    public static int ChunkDepth_inCells = 5;
+    public static Vector3Int GetChunkVec3Dimensions() { return new Vector3Int(ChunkWidth_inCells, ChunkDepth_inCells, ChunkWidth_inCells); }
+    public static Vector3Int GetChunkVec3Dimensions_inCells() { return new Vector3Int(ChunkWidth_inCells, ChunkDepth_inCells, ChunkWidth_inCells) * CellWidth_inWorldSpace; }
+    public static int GetChunkWidth_inWorldSpace() { return ChunkWidth_inCells * CellWidth_inWorldSpace; }
+
+
+    // >>>> WorldRegion { in WorldChunk Units }
+    public static int PlayRegionWidth_inChunks = 5; // in World Chunks
+    public static int PlayRegionBoundaryOffset = 1; // Boundary offset value 
+    public static int RegionMaxGroundHeight = 10; // Maximum chunk height
+    public static int GetFullRegionWidth_inChunks() { return PlayRegionWidth_inChunks + (PlayRegionBoundaryOffset * 2); } // Include BoundaryOffset on both sides
+    public static int GetPlayRegionWidth_inCells() { return PlayRegionWidth_inChunks * ChunkWidth_inCells; }
+    public static int GetFulRegionWidth_inCells() { return GetFullRegionWidth_inChunks() * ChunkWidth_inCells; }
+    public static int GetFulRegionWidth_inWorldSpace() { return GetFulRegionWidth_inCells() * CellWidth_inWorldSpace; }
+
+
+    // >>>> WorldGeneration { in WorldRegion Units }
+    public static int WorldWidth_inRegions = 3;
+    public static int GetWorldWidth_inCells() { return WorldWidth_inRegions * GetFulRegionWidth_inCells(); }
+    public static int GetWorldWidth_inWorldSpace() { return GetWorldWidth_inCells() * CellWidth_inWorldSpace; }
+
 
     string _prefix = "[ WORLD GENERATION ] ";
     [HideInInspector] public bool generation_finished = false;
@@ -69,6 +84,28 @@ public class WorldGeneration : MonoBehaviour
         UnityEngine.Random.InitState(CurrentSeed);
     }
 
+
+    public List<WorldRegion> worldRegions = new List<WorldRegion>();
+    public void CreateRegions()
+    {
+        worldRegions = new();
+
+        for (int x = 0; x < WorldWidth_inRegions; x++)
+        {
+            for (int y = 0; y < WorldWidth_inRegions; y++)
+            {
+                GameObject regionObject = new GameObject($"New Region ({x} , {y})");
+                WorldRegion region = regionObject.AddComponent<WorldRegion>();
+                
+                
+                Vector2Int regionCoordinate = new Vector2Int(x, y);
+                region.Initialize(regionCoordinate);
+
+                worldRegions.Add(region);
+            }
+        }
+    }
+
     #region == INITIALIZE ======
     public void StartGeneration()
     {
@@ -80,7 +117,7 @@ public class WorldGeneration : MonoBehaviour
         }
 
         // Start Routine
-        _worldGenerationRoutine = StartCoroutine(Generate());
+        _worldGenerationRoutine = StartCoroutine(GenerateRegionChunks());
     }
 
     public void Reset()
@@ -91,9 +128,8 @@ public class WorldGeneration : MonoBehaviour
     #endregion
 
     #region == GENERATE CHUNKS ================================================ ///
-    IEnumerator Generate(float delay = 0.25f)
+    IEnumerator GenerateRegionChunks(float delay = 0.25f)
     {
-
         generation_finished = false;
         if (_worldGenerationObject != null) { Reset(); }
 
@@ -105,7 +141,7 @@ public class WorldGeneration : MonoBehaviour
         // [[ STAGE 0 ]] ==> INITIALIZE MAPS
         if (!WorldCoordinateMap.coordMapInitialized || !WorldChunkMap.chunkMapInitialized)
         {
-            FindObjectOfType<WorldMap>().UpdateWorldMap();
+            FindObjectOfType<WorldRegionMap>().UpdateRegionMap();
         }
         yield return new WaitUntil(() => WorldCoordinateMap.coordMapInitialized);
         yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);

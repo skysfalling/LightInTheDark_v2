@@ -28,8 +28,8 @@ public class MeshQuad
 
 public class WorldChunkMesh
 {
-    int _cellSize = WorldGeneration.CellSize;
-    Vector3Int default_chunkMeshDimensions = WorldGeneration.GetChunkDimensions();
+    int _cellSize = WorldGeneration.CellWidth_inWorldSpace;
+    Vector3Int default_chunkMeshDimensions = WorldGeneration.GetChunkVec3Dimensions();
     Vector3Int current_chunkMeshDimensions;
     WorldChunk chunk;
     WorldCoordinate worldCoordinate;
@@ -57,7 +57,7 @@ public class WorldChunkMesh
 
     Mesh CreateMesh(int groundHeight, List<FaceType> facesToGenerate)
     {
-        int cellSize = WorldGeneration.CellSize;
+        int cellSize = WorldGeneration.CellWidth_inWorldSpace;
         Mesh newMesh = new Mesh();
         List<Vector3> vertices = new();
         List<Vector2> uvs = new();
@@ -121,10 +121,12 @@ public class WorldChunkMesh
 
                 // SET U & V DIVISIONS
                 (int uDivisions, int vDivisions) = GetFaceUVDivisions(faceType);
-
+                
+                /*
                 Debug.Log($"Chunk Mesh {worldCoordinate.Coordinate} : {faceType}" +
                     $"\n\t chunkMeshDimensions {current_chunkMeshDimensions}" +
                     $"\n\t uDivisions {uDivisions} vDivisions {vDivisions}");
+                */
 
                 // ADD FACE TRIANGLES
                 for (int i = 0; i < vDivisions; i++)

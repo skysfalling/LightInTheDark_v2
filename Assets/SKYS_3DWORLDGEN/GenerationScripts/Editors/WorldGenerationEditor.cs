@@ -1,12 +1,16 @@
+using System;
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
+using UnityEngine.UIElements;
 
 [CustomEditor(typeof(WorldGeneration))]
 public class WorldGenerationEditor : Editor
 {
     private SerializedObject serializedWorldGen;
     private bool toggleBoundaries;
+
+    GUIStyle centeredStyle;
 
     private void OnEnable()
     {
@@ -19,6 +23,12 @@ public class WorldGenerationEditor : Editor
     {
         serializedWorldGen.Update(); // Always start with this call
 
+        centeredStyle = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.MiddleCenter
+        };
+
+        #region GENERATION PARAMETERS ===========================================
         // Store the current state to check for changes later
         EditorGUI.BeginChangeCheck();
 
@@ -29,6 +39,33 @@ public class WorldGenerationEditor : Editor
         EditorGUILayout.LabelField("CurrentSeed", WorldGeneration.CurrentSeed.ToString());
 
 
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.FlexibleSpace();
+
+        EditorGUILayout.BeginVertical();
+
+        DarklightEditor.CreateIntegerControl("Cell Size", WorldGeneration.CellWidth_inWorldSpace, 1, 8, (value) => WorldGeneration.CellWidth_inWorldSpace = value);
+        DarklightEditor.CreateIntegerControl("Chunk Width", WorldGeneration.ChunkWidth_inCells, 1, 10, (value) => WorldGeneration.ChunkWidth_inCells = value);
+        DarklightEditor.CreateIntegerControl("Chunk Depth", WorldGeneration.ChunkDepth_inCells, 1, 10, (value) => WorldGeneration.ChunkDepth_inCells = value);
+
+        DarklightEditor.CreateIntegerControl("Playable Area", WorldGeneration.PlayRegionWidth_inChunks, 1, 10, (value) => WorldGeneration.PlayRegionWidth_inChunks = value);
+        DarklightEditor.CreateIntegerControl("Boundary Offset", WorldGeneration.PlayRegionBoundaryOffset, 1, 10, (value) => WorldGeneration.PlayRegionBoundaryOffset = value);
+        DarklightEditor.CreateIntegerControl("Max Ground Height", WorldGeneration.RegionMaxGroundHeight, 1, 10, (value) => WorldGeneration.RegionMaxGroundHeight = value);
+
+        EditorGUILayout.EndVertical();
+
+        GUILayout.FlexibleSpace();
+        EditorGUILayout.EndHorizontal();
+
+        #endregion
+
+        WorldGeneration worldGen = (WorldGeneration)target;
+
+        if (GUILayout.Button("Create Regions"))
+        {
+            worldGen.CreateRegions();
+        }
+
         // Check if any changes were made in the Inspector
         if (EditorGUI.EndChangeCheck())
         {
@@ -37,7 +74,6 @@ public class WorldGenerationEditor : Editor
 
             WorldGeneration.InitializeRandomSeed(gameSeedProperty.stringValue);
 
-            WorldGeneration worldGen = (WorldGeneration)target;
 
             // Optionally, mark the target object as dirty to ensure the changes are saved
             EditorUtility.SetDirty(target);
@@ -47,5 +83,30 @@ public class WorldGenerationEditor : Editor
     void OnSceneGUI()
     {
         WorldGeneration worldGen = (WorldGeneration)target;
+        Transform transform = worldGen.transform;
+
+        Action onButtonPressed = () => {
+            // Your action to perform when the button is pressed
+            Debug.Log("world gen button pressed");
+        };
+
+        DarklightEditor.DrawWireRectangle_withWidthLabel("World Generation", transform.position, WorldGeneration.GetWorldWidth_inWorldSpace());
+        //DarklightEditor.DrawWireRectangle_withWidthLabel("World Region", transform.position, WorldGeneration.GetFulRegionWidth_inWorldSpace());
+        //DarklightEditor.DrawWireRectangle_withWidthLabel("World Chunk", transform.position, WorldGeneration.GetChunkWidth_inWorldSpace());
+        //DarklightEditor.DrawWireRectangle_withWidthLabel("World Cell", transform.position, WorldGeneration.CellWidth_inWorldSpace);
+
+
+        if (worldGen.worldRegions.Count > 0)
+        {
+            foreach (WorldRegion region in worldGen.worldRegions)
+            {
+                DarklightEditor.DrawWireRectangle_withWidthLabel("World Region", region.GetRegionCenter(), WorldGeneration.GetFulRegionWidth_inWorldSpace());
+            }
+        }
+
+
+
     }
+
+
 }

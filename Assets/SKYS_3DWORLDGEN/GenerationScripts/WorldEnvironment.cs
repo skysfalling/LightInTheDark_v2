@@ -136,7 +136,7 @@ public class WorldEnvironment : MonoBehaviour
         {
             if (cell.type == WorldCell.TYPE.EDGE || cell.type == WorldCell.TYPE.CORNER)
             {
-                SpawnPrefab(wall_0, cell, parentMap[cell.GetChunk()], WorldGeneration.CellSize);
+                SpawnPrefab(wall_0, cell, parentMap[cell.GetChunk()], WorldGeneration.CellWidth_inWorldSpace);
             }
 
             // TRY TO SPAWN ENV OBJECT

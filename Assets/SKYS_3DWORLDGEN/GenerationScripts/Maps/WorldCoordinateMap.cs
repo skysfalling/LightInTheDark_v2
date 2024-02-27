@@ -52,14 +52,12 @@ public class WorldCoordinateMap : MonoBehaviour
 
         ResetAllCoordinatesToDefault(); // Set all world coordinates to default values
 
-        UpdateAllWorldZones(); // Update all world zones to new values
+        //UpdateAllWorldZones(); // Update all world zones to new values
         yield return new WaitUntil(() => zonesInitialized);
         yield return new WaitForSeconds(0.5f);
 
-        UpdateAllWorldExitPaths(); // Update all world paths to new values
+        //UpdateAllWorldExitPaths(); // Update all world paths to new values
         yield return new WaitUntil(() => exitPathsInitialized);
-
-
 
     }
 
@@ -70,11 +68,11 @@ public class WorldCoordinateMap : MonoBehaviour
         List<WorldCoordinate> newCoordList = new List<WorldCoordinate>();
         Dictionary<Vector2Int, WorldCoordinate> newCoordMap = new();
 
-        Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
-        Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkArea();
+        int fullRegionWidth = WorldGeneration.GetFulRegionWidth_inCells();
+        int chunkWidth = WorldGeneration.ChunkWidth_inCells;
 
-        int xCoordCount = Mathf.CeilToInt(realFullWorldSize.x / realChunkAreaSize.x);
-        int yCoordCount = Mathf.CeilToInt(realFullWorldSize.y / realChunkAreaSize.y);
+        int xCoordCount = Mathf.CeilToInt(fullRegionWidth / chunkWidth);
+        int yCoordCount = Mathf.CeilToInt(fullRegionWidth / chunkWidth);
 
         for (int x = 0; x < xCoordCount; x++)
         {
@@ -116,11 +114,11 @@ public class WorldCoordinateMap : MonoBehaviour
 
     static void ResetAllCoordinatesToDefault()
     {
-        Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
-        Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkArea();
+        int realFullWorldSize = WorldGeneration.GetFulRegionWidth_inCells();
+        int realChunkAreaSize = WorldGeneration.ChunkWidth_inCells;
 
-        int xCoordCount = Mathf.CeilToInt(realFullWorldSize.x / realChunkAreaSize.x);
-        int yCoordCount = Mathf.CeilToInt(realFullWorldSize.y / realChunkAreaSize.y);
+        int xCoordCount = Mathf.CeilToInt(realFullWorldSize / realChunkAreaSize);
+        int yCoordCount = Mathf.CeilToInt(realFullWorldSize / realChunkAreaSize);
 
         for (int x = 0; x < xCoordCount; x++)
         {
@@ -315,8 +313,8 @@ public class WorldCoordinateMap : MonoBehaviour
         }
 
         // Get Center Coordinate
-        int centerX = Mathf.CeilToInt(WorldGeneration.GetFullWorldArea().x / 2);
-        int centerY = Mathf.CeilToInt(WorldGeneration.GetFullWorldArea().y / 2);
+        int centerX = Mathf.CeilToInt(WorldGeneration.GetFullRegionWidth_inChunks() / 2);
+        int centerY = Mathf.CeilToInt(WorldGeneration.GetFullRegionWidth_inChunks() / 2);
         WorldCoordinate centerCoordinate = GetCoordinateAt(new Vector2Int(centerX, centerY));
 
         Debug.Log($"Create Zone at {centerCoordinate.Coordinate}");

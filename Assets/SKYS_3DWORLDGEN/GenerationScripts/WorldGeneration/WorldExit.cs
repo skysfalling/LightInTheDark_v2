@@ -212,7 +212,7 @@ public class WorldExitDrawer : PropertyDrawer
 
         // Draw the "Border Index" slider
         SerializedProperty borderIndexProp = property.FindPropertyRelative("borderIndex");
-        int maxIndex = Mathf.Max(0, WorldGeneration.PlayableArea.x - 1);
+        int maxIndex = Mathf.Max(0, WorldGeneration.PlayRegionWidth_inChunks - 1);
         borderIndexProp.intValue = EditorGUI.IntSlider(indexRect, new GUIContent("borderIndex"), borderIndexProp.intValue, 0, maxIndex);
 
         EditorGUI.EndProperty();

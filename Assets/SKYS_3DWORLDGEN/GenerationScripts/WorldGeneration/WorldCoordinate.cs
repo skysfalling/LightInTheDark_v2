@@ -31,12 +31,12 @@ public class WorldCoordinate
         Coordinate = coord;
 
         // Calculate position
-        Vector2Int realChunkAreaSize = WorldGeneration.GetRealChunkArea();
-        Vector2 realFullWorldSize = WorldGeneration.GetRealFullWorldSize();
-        Vector2 half_FullWorldSize = realFullWorldSize * 0.5f;
-        Vector2 newPos = new Vector2(coord.x * realChunkAreaSize.x, coord.y * realChunkAreaSize.y);
-        newPos -= Vector2.one * half_FullWorldSize;
-        newPos += Vector2.one * realChunkAreaSize * 0.5f;
+        int chunkWidth = WorldGeneration.ChunkWidth_inCells;
+        int realFullRegionWidth = WorldGeneration.GetFulRegionWidth_inCells();
+        float halfRegionWidth = realFullRegionWidth * 0.5f;
+        Vector2 newPos = new Vector2(coord.x * chunkWidth, coord.y * chunkWidth);
+        newPos -= Vector2.one * halfRegionWidth;
+        newPos += Vector2.one * chunkWidth * 0.5f;
 
         Position = newPos;
         WorldPosition = new Vector3(Position.x, 0, Position.y);

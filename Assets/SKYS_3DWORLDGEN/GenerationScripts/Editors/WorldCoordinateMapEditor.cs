@@ -45,7 +45,7 @@ public class WorldCoordinateMapEditor : Editor
     {
         serializedCoordinateMap.Update();
         WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
-        WorldMap worldMap = worldCoordMap.GetComponent<WorldMap>();
+        WorldRegionMap worldMap = worldCoordMap.GetComponent<WorldRegionMap>();
 
 
         EditorGUILayout.LabelField($"World Coordinate Map Initialized => {WorldCoordinateMap.coordMapInitialized}");
@@ -127,7 +127,7 @@ public class WorldCoordinateMapEditor : Editor
             // If there were changes, apply them to the serialized object
             serializedCoordinateMap.ApplyModifiedProperties();
 
-            worldMap.UpdateWorldMap();
+            worldMap.UpdateRegionMap();
 
             // Optionally, mark the target object as dirty to ensure the changes are saved
             EditorUtility.SetDirty(target);

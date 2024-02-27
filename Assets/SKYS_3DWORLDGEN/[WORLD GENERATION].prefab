@@ -74,7 +74,7 @@ GameObject:
   - component: {fileID: 4652889822070907782}
   - component: {fileID: 4922368716762689905}
   m_Layer: 0
-  m_Name: ( WORLD MAP )
+  m_Name: ( REGION MAP )
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -119,8 +119,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97b232c10588f6a499c0ca26e13742c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  exitPathsInitialized: 0
-  zonesInitialized: 0
   worldExitPaths: []
   worldZones: []
 --- !u!114 &4652889822070907782
@@ -147,7 +145,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9703bbe44710b6e409bbe24a1955aaca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialized: 0
 --- !u!1 &1652254909227268323
 GameObject:
   m_ObjectHideFlags: 0
@@ -411,6 +408,7 @@ MonoBehaviour:
     astar_hCost: 0
     vertices: []
     position: {x: 0, y: 0, z: 0}
+    normal: {x: 0, y: 0, z: 0}
   selectedEntity: {fileID: 0}
 --- !u!114 &1689068836374433759
 MonoBehaviour:
@@ -629,6 +627,7 @@ MonoBehaviour:
     astar_hCost: 0
     vertices: []
     position: {x: 0, y: 0, z: 0}
+    normal: {x: 0, y: 0, z: 0}
   instantiatedPlayer: {fileID: 0}
   wall_0: {fileID: 2986166503023539567, guid: 96c08d2e01fd52540a29788d18bd682d, type: 3}
   environmentObjects: []

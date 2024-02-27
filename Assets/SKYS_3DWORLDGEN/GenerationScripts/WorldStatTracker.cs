@@ -28,8 +28,8 @@ public class WorldStatTracker : MonoBehaviour
         if (_worldSpawnMap == null || !_worldSpawnMap.initialized) return "[ WORLD GENERATION ] : WorldSpawnMap not initialized.";
 
         string str_out = $"[ WORLD GENERATION ] : #{_currentGeneration}\n";
-        str_out += $"\t>> chunk_dimensions {WorldGeneration.GetChunkDimensions()}\n";
-        str_out += $"\t>> full_chunk_dimensions {WorldGeneration.GetRealChunkDimensions()}\n";
+        str_out += $"\t>> chunk_dimensions {WorldGeneration.GetChunkVec3Dimensions()}\n";
+        str_out += $"\t>> full_chunk_dimensions {WorldGeneration.GetChunkVec3Dimensions_inCells()}\n";
         str_out += $"\t    -- Empty Chunks {_worldSpawnMap.GetAllChunksOfType(WorldChunk.TYPE.EMPTY).Count}\n";
         str_out += $"\t    -- Hallway Chunks {_worldSpawnMap.GetAllChunksOfType(WorldChunk.TYPE.HALLWAY).Count}\n";
         str_out += $"\t    -- Corner Chunks {_worldSpawnMap.GetAllChunksOfType(WorldChunk.TYPE.CORNER).Count}\n";
