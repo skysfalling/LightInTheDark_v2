@@ -85,7 +85,13 @@ public class WorldGenerationEditor : Editor
         WorldGeneration worldGen = (WorldGeneration)target;
         Transform transform = worldGen.transform;
 
-        DarklightGizmos.DrawWireSquare_withLabel("World Generation", transform.position, WorldGeneration.GetWorldWidth_inWorldSpace(), Color.black);
+        GUIStyle labelStyle = new GUIStyle()
+        {
+            fontStyle = FontStyle.Bold, // Example style
+            fontSize = 12, // Example font size
+        };
+
+        DarklightGizmos.DrawWireSquare_withLabel("World Generation", transform.position, WorldGeneration.GetWorldWidth_inWorldSpace(), Color.black, labelStyle);
         //DarklightEditor.DrawWireRectangle_withWidthLabel("World Chunk", transform.position, WorldGeneration.GetChunkWidth_inWorldSpace());
         //DarklightEditor.DrawWireRectangle_withWidthLabel("World Cell", transform.position, WorldGeneration.CellWidth_inWorldSpace);
 
@@ -96,7 +102,7 @@ public class WorldGenerationEditor : Editor
             {
                 if (region != null && region.IsInitialized())
                 {
-                    DarklightGizmos.DrawWireSquare_withLabel($"World Region {region.regionCoordinate}", region.centerPosition, WorldGeneration.GetFullRegionWidth_inWorldSpace(), Color.blue);
+                    DarklightGizmos.DrawWireSquare_withLabel($"World Region {region.regionCoordinate}", region.centerPosition, WorldGeneration.GetFullRegionWidth_inWorldSpace(), Color.blue, labelStyle);
                 }
             }
         }

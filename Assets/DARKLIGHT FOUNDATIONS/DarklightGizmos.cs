@@ -5,7 +5,24 @@ using UnityEditor;
 
 public static class DarklightGizmos
 {
-    public static void DrawWireSquare_withLabel(string label, Vector3 position, int size, Color color)
+
+    public static void DrawWireSquare(Vector3 position, int size, Color color)
+    {
+        if (color == null)
+        {
+            Handles.color = Color.black;
+        }
+        else { Handles.color = color; }
+        Handles.DrawWireCube(position, size * new Vector3(1, 0, 1));
+    }
+
+    public static void DrawLabel(string label, Vector3 position, GUIStyle labelStyle)
+    {
+        //labelStyle.normal = new GUIStyleState { textColor = color }; // Set the text color
+        Handles.Label(position, label, labelStyle);
+    }
+
+    public static void DrawWireSquare_withLabel(string label, Vector3 position, int size, Color color, GUIStyle labelStyle)
     {
         if (color == null)
         {
@@ -14,12 +31,10 @@ public static class DarklightGizmos
         else { Handles.color = color;}
         Handles.DrawWireCube(position, size * new Vector3(1, 0, 1));
 
-        // Calculate the position for the label (midpoint of the top edge)
-        Vector3 labelOffset = new Vector3(-0.45f, 0, 0.45f); // Adjust the label position as needed
-
-        // Draw the label with the width
+        labelStyle.normal = new GUIStyleState { textColor = color }; // Set the text color
+        Vector3 labelOffset = new Vector3(-0.5f, 0, 0.5f); // Adjust the label position as needed
         Vector3 labelPosition = position + (size * labelOffset);
-        Handles.Label(labelPosition, label);
+        Handles.Label(labelPosition, label, labelStyle);
     }
 
     public static void DrawFilledSquareAt(Vector3 position, int size, Vector3 direction, Color fillColor)
@@ -51,5 +66,33 @@ public static class DarklightGizmos
         }
 
         return vertices;
+    }
+
+    // Draws a Handles.Button and executes the given action when clicked.
+    public static void DrawButtonHandle(Vector3 position, Vector3 rotation, float size, Color color, System.Action onClick)
+    {
+        Handles.color = color;
+        if (Handles.Button(position, Quaternion.Euler(rotation), size, size, Handles.DotHandleCap))
+        {
+            onClick?.Invoke(); // Invoke the action if the button is clicked
+        }
+    }
+
+    // Function to draw an arrow in the specified direction
+    public static void DrawArrow(Vector3 position, Vector3 direction, Color color, float arrowHeadLength = 1f, float arrowHeadAngle = 45.0f)
+    {
+        Handles.color = color; // Set the color for the arrow
+
+        // Draw the arrow shaft
+        Handles.DrawLine(position, position + direction);
+
+        // Calculate the right and left vectors for the arrowhead
+        Vector3 right = Quaternion.LookRotation(direction) * Quaternion.Euler(0, 180 + arrowHeadAngle, 0) * new Vector3(0, 0, 1);
+        Vector3 left = Quaternion.LookRotation(direction) * Quaternion.Euler(0, 180 - arrowHeadAngle, 0) * new Vector3(0, 0, 1);
+
+        // Draw the arrowhead
+        Vector3 arrowTip = position + direction;
+        Handles.DrawLine(arrowTip, arrowTip + right * arrowHeadLength);
+        Handles.DrawLine(arrowTip, arrowTip + left * arrowHeadLength);
     }
 }

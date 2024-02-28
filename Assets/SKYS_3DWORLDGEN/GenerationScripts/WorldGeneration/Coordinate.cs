@@ -22,7 +22,7 @@ public class Coordinate
     {
         this.CoordinateMap = coordinateMap;
         LocalCoordinate = coord;
-        Space = WorldSpace.Region;
+        Space = WorldSpace.Chunk; // The Coordinate is in chunk space because it determines where the chunks spawn in the parent region
 
         // Calculate position
         int chunkWidth = WorldGeneration.GetChunkWidth_inWorldSpace();
@@ -51,7 +51,7 @@ public class Coordinate
         foundNeighbors = true;
     }
 
-    static Vector2Int GetDirectionVector(WorldDirection direction)
+    public static Vector2Int GetDirectionVector(WorldDirection direction)
     {
         Vector2Int directionVector = new Vector2Int(0, 0);
         switch (direction)
