@@ -32,7 +32,7 @@ public class WorldChunkMesh
     Vector3Int default_chunkMeshDimensions = WorldGeneration.GetChunkVec3Dimensions();
     Vector3Int current_chunkMeshDimensions;
     WorldChunk chunk;
-    WorldCoordinate worldCoordinate;
+    Coordinate worldCoordinate;
     Dictionary<FaceType, List<Vector3>> _meshVertices = new();
     Dictionary<FaceType, List<Vector2>> _meshUVs = new();
     public List<MeshQuad> meshQuads = new();
@@ -221,7 +221,7 @@ public class WorldChunkMesh
         int GetVisibleVDivisions(FaceType type)
         {
             int faceHeight = current_chunkMeshDimensions.y; // Get current height
-            WorldCoordinate neighborCoord = null;
+            Coordinate neighborCoord = null;
 
             switch (type)
             {

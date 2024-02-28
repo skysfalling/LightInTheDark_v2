@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(WorldCoordinateMap))]
+[CustomEditor(typeof(CoordinateMap))]
 public class WorldCoordinateMapEditor : Editor
 {
     SerializedObject serializedCoordinateMap;
@@ -44,11 +44,11 @@ public class WorldCoordinateMapEditor : Editor
     public override void OnInspectorGUI()
     {
         serializedCoordinateMap.Update();
-        WorldCoordinateMap worldCoordMap = (WorldCoordinateMap)target;
+        CoordinateMap worldCoordMap = (CoordinateMap)target;
         WorldRegionMap worldMap = worldCoordMap.GetComponent<WorldRegionMap>();
 
 
-        EditorGUILayout.LabelField($"World Coordinate Map Initialized => {WorldCoordinateMap.coordMapInitialized}");
+        EditorGUILayout.LabelField($"World Coordinate Map Initialized => {CoordinateMap.coordMapInitialized}");
         EditorGUILayout.Space();
 
         // Store the current state to check for changes later

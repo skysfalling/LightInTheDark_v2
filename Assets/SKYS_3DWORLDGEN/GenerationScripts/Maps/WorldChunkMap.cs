@@ -27,18 +27,18 @@ public class WorldChunkMap : MonoBehaviour
             yield return null;
         }
 
-        yield return new WaitUntil(() => WorldCoordinateMap.coordMapInitialized);
+        yield return new WaitUntil(() => CoordinateMap.coordMapInitialized);
 
         List<WorldChunk> newChunkList = new();
         Dictionary<Vector2Int, WorldChunk> newCoordinateChunkMap = new();
 
         // Create Chunks at each World Coordinate
-        foreach (WorldCoordinate worldCoord in WorldCoordinateMap.CoordinateList)
+        foreach (Coordinate worldCoord in CoordinateMap.CoordinateList)
         {
             WorldChunk newChunk = new WorldChunk(worldCoord);
 
             newChunkList.Add(newChunk);
-            newCoordinateChunkMap[worldCoord.Coordinate] = newChunk;
+            newCoordinateChunkMap[worldCoord.NormalizedCoordinate] = newChunk;
         }
 
         ChunkList = newChunkList;
@@ -92,24 +92,24 @@ public class WorldChunkMap : MonoBehaviour
         return null;
     }
 
-    public static WorldChunk GetChunkAt(WorldCoordinate worldCoord)
+    public static WorldChunk GetChunkAt(Coordinate worldCoord)
     {
         if (!chunkMapInitialized || worldCoord == null) { return null; }
 
         // Use the dictionary for fast lookups
-        if (CoordinateChunkMap.TryGetValue(worldCoord.Coordinate, out WorldChunk foundChunk))
+        if (CoordinateChunkMap.TryGetValue(worldCoord.NormalizedCoordinate, out WorldChunk foundChunk))
         {
             return foundChunk;
         }
         return null;
     }
 
-    public static List<WorldChunk> GetChunksAtCoordinates(List<WorldCoordinate> worldCoords)
+    public static List<WorldChunk> GetChunksAtCoordinates(List<Coordinate> worldCoords)
     {
         if (!chunkMapInitialized) { return new List<WorldChunk>(); }
 
         List<WorldChunk> chunks = new List<WorldChunk>();
-        foreach (WorldCoordinate worldCoord in worldCoords)
+        foreach (Coordinate worldCoord in worldCoords)
         {
             chunks.Add(GetChunkAt(worldCoord));
         }
@@ -137,9 +137,9 @@ public class WorldChunkMap : MonoBehaviour
         }
     }
 
-    public static void SetChunksToHeightFromCoordinates(List<WorldCoordinate> worldCoords, int chunkHeight)
+    public static void SetChunksToHeightFromCoordinates(List<Coordinate> worldCoords, int chunkHeight)
     {
-        foreach (WorldCoordinate coord in worldCoords)
+        foreach (Coordinate coord in worldCoords)
         {
             WorldChunk chunk = GetChunkAt(coord);
             if (chunk != null)

@@ -43,7 +43,7 @@ public class WorldChunk
     public Vector2Int coordinate;
     public bool generation_finished = false;
 
-    public WorldCoordinate worldCoordinate { get { return WorldCoordinateMap.CoordinateMap[coordinate]; } }
+    public Coordinate worldCoordinate { get { return CoordinateMap.CoordinateValueMap[coordinate]; } }
     public Vector3 groundPosition { get; private set; }
     public Vector3 groundMeshDimensions { get; private set; }
 
@@ -53,9 +53,9 @@ public class WorldChunk
     bool _eastEdgeActive;
     bool _westEdgeActive;
 
-    public WorldChunk(WorldCoordinate worldCoord)
+    public WorldChunk(Coordinate worldCoord)
     {
-        this.coordinate = worldCoord.Coordinate;
+        this.coordinate = worldCoord.NormalizedCoordinate;
         this.groundHeight = PerlinNoise.CalculateHeightFromNoise(this.coordinate);
 
         groundPosition = new Vector3(worldCoord.WorldPosition.x, _realChunkHeight, worldCoord.WorldPosition.z);
@@ -172,10 +172,10 @@ public class WorldChunk
     public List<WorldChunk> GetNaturalChunkNeighbors()
     {
         List<WorldChunk> chunkNeighbors = new();
-        List<WorldCoordinate> neighborCoords = worldCoordinate.GetValidNaturalNeighbors();
-        foreach (WorldCoordinate neighborCoord in neighborCoords)
+        List<Coordinate> neighborCoords = worldCoordinate.GetValidNaturalNeighbors();
+        foreach (Coordinate neighborCoord in neighborCoords)
         {
-            chunkNeighbors.Add(WorldChunkMap.GetChunkAt(neighborCoord.Coordinate));
+            chunkNeighbors.Add(WorldChunkMap.GetChunkAt(neighborCoord.NormalizedCoordinate));
         }
         return chunkNeighbors;
     }
@@ -183,10 +183,10 @@ public class WorldChunk
     public List<WorldChunk> GetDiagonalChunkNeighbors()
     {
         List<WorldChunk> chunkNeighbors = new();
-        List<WorldCoordinate> neighborCoords = worldCoordinate.GetValidDiagonalNeighbors();
-        foreach (WorldCoordinate neighborCoord in neighborCoords)
+        List<Coordinate> neighborCoords = worldCoordinate.GetValidDiagonalNeighbors();
+        foreach (Coordinate neighborCoord in neighborCoords)
         {
-            chunkNeighbors.Add(WorldChunkMap.GetChunkAt(neighborCoord.Coordinate));
+            chunkNeighbors.Add(WorldChunkMap.GetChunkAt(neighborCoord.NormalizedCoordinate));
         }
         return chunkNeighbors;
     }

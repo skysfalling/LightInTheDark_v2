@@ -32,10 +32,10 @@ public class WorldZone
 
     bool _initialized = false;
     TYPE _zoneType;
-    WorldCoordinate _centerCoordinate;
+    Coordinate _centerCoordinate;
     Vector2Int _coordinateVector;
     int _zoneHeight;
-    List<WorldCoordinate> _zoneCoordinates = new List<WorldCoordinate>();
+    List<Coordinate> _zoneCoordinates = new List<Coordinate>();
 
 
     // PUBLIC INSPECTOR VARIABLES
@@ -43,9 +43,9 @@ public class WorldZone
     public Vector2Int coordinateVector = Vector2Int.one;
     public int zoneHeight = 0;
 
-    public WorldZone( WorldCoordinate centerCoordinate, TYPE zoneType )
+    public WorldZone( Coordinate centerCoordinate, TYPE zoneType )
     {
-        this.coordinateVector = centerCoordinate.Coordinate;
+        this.coordinateVector = centerCoordinate.NormalizedCoordinate;
         this.zoneType = zoneType;
 
         Initialize();
@@ -53,17 +53,17 @@ public class WorldZone
 
     public void Initialize()
     {
-        if (_initialized || !WorldCoordinateMap.coordMapInitialized) { return; }
+        if (_initialized || !CoordinateMap.coordMapInitialized) { return; }
         _initialized = false;
 
         // Update private variables
         _coordinateVector = coordinateVector;
-        _centerCoordinate = WorldCoordinateMap.GetCoordinateAt(coordinateVector);
+        _centerCoordinate = CoordinateMap.GetCoordinateAt(coordinateVector);
         _zoneType = zoneType;
         _zoneHeight = zoneHeight;
 
         // Get affected neighbors
-        List<WorldCoordinate> neighborsInZone = new();
+        List<Coordinate> neighborsInZone = new();
         switch(_zoneType)
         {
             case TYPE.FULL:
@@ -86,14 +86,14 @@ public class WorldZone
         }
 
         // Assign Zone Coordinates
-        _zoneCoordinates = new List<WorldCoordinate> { _centerCoordinate };
+        _zoneCoordinates = new List<Coordinate> { _centerCoordinate };
         _zoneCoordinates.AddRange(neighborsInZone);
 
         // Assign Chunk Heights
         WorldChunkMap.SetChunksToHeightFromCoordinates(_zoneCoordinates, zoneHeight);
 
         // Assign Zone TYPE
-        WorldCoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, WorldCoordinate.TYPE.ZONE, GetRGBAfromDebugColor(zoneColor));
+        CoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, Coordinate.TYPE.ZONE, GetRGBAfromDebugColor(zoneColor));
 
         _initialized = true;
         //Debug.Log($"Initialized WORLD ZONE : {_coordinateVector} : height {zoneHeight}");
@@ -108,7 +108,7 @@ public class WorldZone
 
         // Check private variables
         if ( _centerCoordinate == null
-            || _centerCoordinate.Coordinate != coordinateVector
+            || _centerCoordinate.NormalizedCoordinate != coordinateVector
             || _coordinateVector != coordinateVector
             || _zoneHeight != zoneHeight
             || _zoneType != zoneType
@@ -118,9 +118,9 @@ public class WorldZone
         }
         else if (_zoneCoordinates.Count > 0)
         {
-            foreach (WorldCoordinate coord in _zoneCoordinates)
+            foreach (Coordinate coord in _zoneCoordinates)
             {
-                if (WorldCoordinateMap.GetCoordinateAt(coord.Coordinate).type != WorldCoordinate.TYPE.ZONE)
+                if (CoordinateMap.GetCoordinateAt(coord.NormalizedCoordinate).type != Coordinate.TYPE.ZONE)
                 {
                     _initialized = false;
                 }
@@ -144,7 +144,7 @@ public class WorldZone
     }
 
 
-    public List<WorldCoordinate> GetZoneCoordinates() { return _zoneCoordinates; }
+    public List<Coordinate> GetZoneCoordinates() { return _zoneCoordinates; }
     public List<WorldChunk> GetZoneChunks()
     {
         if (_zoneCoordinates == null || _zoneCoordinates.Count == 0) { return new List<WorldChunk>(); }

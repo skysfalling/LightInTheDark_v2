@@ -74,10 +74,11 @@ public class WorldGenerationEditor : Editor
 
             WorldGeneration.InitializeRandomSeed(gameSeedProperty.stringValue);
 
-
             // Optionally, mark the target object as dirty to ensure the changes are saved
             EditorUtility.SetDirty(target);
         }
+
+        DrawDefaultInspector();
     }
 
     void OnSceneGUI()
@@ -85,12 +86,7 @@ public class WorldGenerationEditor : Editor
         WorldGeneration worldGen = (WorldGeneration)target;
         Transform transform = worldGen.transform;
 
-        Action onButtonPressed = () => {
-            // Your action to perform when the button is pressed
-            Debug.Log("world gen button pressed");
-        };
 
-        //DarklightEditor.DrawWireRectangle_withLabel("World Generation", transform.position, WorldGeneration.GetWorldWidth_inWorldSpace());
         //DarklightEditor.DrawWireRectangle_withWidthLabel("World Region", transform.position, WorldGeneration.GetFulRegionWidth_inWorldSpace());
         //DarklightEditor.DrawWireRectangle_withWidthLabel("World Chunk", transform.position, WorldGeneration.GetChunkWidth_inWorldSpace());
         //DarklightEditor.DrawWireRectangle_withWidthLabel("World Cell", transform.position, WorldGeneration.CellWidth_inWorldSpace);
@@ -100,12 +96,12 @@ public class WorldGenerationEditor : Editor
         {
             foreach (WorldRegion region in worldGen.worldRegions)
             {
-                DarklightEditor.DrawWireRectangle_withLabel($"World Region {region.regionCoordinate}", region.centerPosition, WorldGeneration.GetFullRegionWidth_inWorldSpace());
+                if (region != null && region.IsInitialized())
+                {
+                    DarklightEditor.DrawWireRectangle_withLabel($"World Region {region.regionCoordinate}", region.centerPosition, WorldGeneration.GetFullRegionWidth_inWorldSpace());
+                }
             }
         }
-
-
-
     }
 
 

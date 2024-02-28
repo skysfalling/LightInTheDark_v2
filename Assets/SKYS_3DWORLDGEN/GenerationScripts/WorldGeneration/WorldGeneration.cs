@@ -97,8 +97,6 @@ public class WorldGeneration : MonoBehaviour
                 GameObject regionObject = new GameObject($"New Region ({x} , {y})");
                 
                 WorldRegion region = regionObject.AddComponent<WorldRegion>();
-                WorldRegionMap regionMap = regionObject.AddComponent<WorldRegionMap>();
-
 
                 Vector2Int regionCoordinate = new Vector2Int(x, y);
                 region.Initialize(regionCoordinate);
@@ -139,29 +137,29 @@ public class WorldGeneration : MonoBehaviour
         generation_finished = false;
         if (_worldGenerationObject != null) { Reset(); }
 
-        WorldCoordinateMap worldCoordMap = FindObjectOfType<WorldCoordinateMap>();
+        CoordinateMap worldCoordMap = FindObjectOfType<CoordinateMap>();
 
         float startTime = Time.realtimeSinceStartup;
         Debug.Log($"WORLD GENERATION :: START GENERATION");
 
         // [[ STAGE 0 ]] ==> INITIALIZE MAPS
-        if (!WorldCoordinateMap.coordMapInitialized || !WorldChunkMap.chunkMapInitialized)
+        if (!CoordinateMap.coordMapInitialized || !WorldChunkMap.chunkMapInitialized)
         {
-            FindObjectOfType<WorldRegionMap>().UpdateRegionMap();
+            //FindObjectOfType<WorldRegionMap>().UpdateRegionMap();
         }
-        yield return new WaitUntil(() => WorldCoordinateMap.coordMapInitialized);
+        yield return new WaitUntil(() => CoordinateMap.coordMapInitialized);
         yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);
 
         float stage0Time = Time.realtimeSinceStartup - startTime;
         Debug.Log($"WORLD GENERATION :: MAPS INITIALIZED :: Stage Duration {stage0Time}");
 
         // [[ STAGE 1 ]] ==> INITIALIZE ZONES
-        yield return new WaitUntil(() => WorldCoordinateMap.zonesInitialized);
+        yield return new WaitUntil(() => CoordinateMap.zonesInitialized);
         float stage1Time = Time.realtimeSinceStartup - stage0Time;
         Debug.Log($"WORLD GENERATION :: ZONES INITIALIZED :: Stage Duration {stage1Time}");
 
         // [[ STAGE 2 ]] ==> INITIALIZE PATHS
-        yield return new WaitUntil(() => WorldCoordinateMap.exitPathsInitialized);
+        yield return new WaitUntil(() => CoordinateMap.exitPathsInitialized);
         float stage2Time = Time.realtimeSinceStartup - stage1Time;
         Debug.Log($"WORLD GENERATION :: PATHS INITIALIZED :: Stage Duration {stage2Time}");
 

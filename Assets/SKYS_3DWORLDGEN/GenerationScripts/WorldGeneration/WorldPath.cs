@@ -52,15 +52,15 @@ public class WorldPath
     int _startHeight;
     int _endHeight;
 
-    List<WorldCoordinate> _pathCoords = new List<WorldCoordinate>();
+    List<Coordinate> _pathCoords = new List<Coordinate>();
     List<WorldChunk> _pathChunks = new List<WorldChunk>();
     float _pathRandomness = 0;
     bool _initialized = false;
 
-    public WorldPath(WorldCoordinate startCoord, int startHeight, WorldCoordinate endCoord, int endHeight, DebugColor pathColor, float pathRandomness = 0)
+    public WorldPath(Coordinate startCoord, int startHeight, Coordinate endCoord, int endHeight, DebugColor pathColor, float pathRandomness = 0)
     {
-        this._startCoordinate = startCoord.Coordinate;
-        this._endCoordinate = endCoord.Coordinate;
+        this._startCoordinate = startCoord.NormalizedCoordinate;
+        this._endCoordinate = endCoord.NormalizedCoordinate;
 
         this._startHeight = startHeight;
         this._endHeight = endHeight;
@@ -73,9 +73,9 @@ public class WorldPath
     public void Initialize()
     {
         // Check that all coords are valid
-        foreach (WorldCoordinate coord in _pathCoords)
+        foreach (Coordinate coord in _pathCoords)
         {
-            if (coord.type != WorldCoordinate.TYPE.PATH)
+            if (coord.type != Coordinate.TYPE.PATH)
             {
                 _initialized = false;
                 return;
@@ -83,17 +83,17 @@ public class WorldPath
         }
 
         // Initialize
-        if (_initialized || !WorldCoordinateMap.coordMapInitialized) return;
+        if (_initialized || !CoordinateMap.coordMapInitialized) return;
         _initialized = false;
 
         // << CREATE PATH >>
-        _pathCoords = WorldCoordinateMap.FindWorldCoordinatePath(_startCoordinate, _endCoordinate, _pathRandomness);
-        List<WorldCoordinate.TYPE> types = WorldCoordinateMap.GetCoordinateTypesFromList(_pathCoords);
+        _pathCoords = CoordinateMap.FindWorldCoordinatePath(_startCoordinate, _endCoordinate, _pathRandomness);
+        List<Coordinate.TYPE> types = CoordinateMap.GetCoordinateTypesFromList(_pathCoords);
         bool typesAreValid = true;
-        foreach (WorldCoordinate.TYPE type in types)
+        foreach (Coordinate.TYPE type in types)
         {
             // If Coordinate Type does not match
-            if (type != WorldCoordinate.TYPE.PATH && type != WorldCoordinate.TYPE.NULL)
+            if (type != Coordinate.TYPE.PATH && type != Coordinate.TYPE.NULL)
             {
                 typesAreValid = false;
                 Debug.Log($"Path contains invalid types");
@@ -112,7 +112,7 @@ public class WorldPath
             DeterminePathChunkHeights(_startHeight, _endHeight);
 
             // Set Coordinate Path Type
-            WorldCoordinateMap.SetMapCoordinatesToType(_pathCoords, WorldCoordinate.TYPE.PATH, GetRGBAFromDebugColor(_pathColor));
+            CoordinateMap.SetMapCoordinatesToType(_pathCoords, Coordinate.TYPE.PATH, GetRGBAFromDebugColor(_pathColor));
 
             _initialized = true;
         }
@@ -120,7 +120,7 @@ public class WorldPath
 
     public void Reset()
     {
-        if (!_initialized || !WorldCoordinateMap.coordMapInitialized) return;
+        if (!_initialized || !CoordinateMap.coordMapInitialized) return;
 
         // Reset Coordinate Path Type
         if (_pathCoords != null && _pathCoords.Count > 0)
@@ -137,9 +137,9 @@ public class WorldPath
         return _initialized; 
     }
 
-    public List<WorldCoordinate> GetPathCoordinates()
+    public List<Coordinate> GetPathCoordinates()
     {
-        if (!_initialized) { return new List<WorldCoordinate>(); }
+        if (!_initialized) { return new List<Coordinate>(); }
         return _pathCoords;
     }
 

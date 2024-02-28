@@ -2,8 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class WorldRegion : MonoBehaviour
 {
+    private bool _initialized = false;
+    public bool IsInitialized() { return _initialized; }
+
     // >>>> World Size
     private int _worldWidth_inRegions = WorldGeneration.WorldWidth_inRegions;
     private int _worldWidth_inWorldSpace = WorldGeneration.GetWorldWidth_inWorldSpace();
@@ -21,6 +25,7 @@ public class WorldRegion : MonoBehaviour
     // >>>> Region Height
     private int _regionMaxGroundHeight = WorldGeneration.RegionMaxGroundHeight;
 
+   
     public Vector2Int regionCoordinate;
     public Vector3 centerPosition;
 
@@ -35,6 +40,14 @@ public class WorldRegion : MonoBehaviour
         centerPosition = new Vector3(this.regionCoordinate.x, 0, this.regionCoordinate.y) * _fullRegionWidth_inWorldSpace;
         centerPosition -= worldWidthRadius * new Vector3(1, 0, 1);
         centerPosition += regionWidthRadius * new Vector3(1, 0, 1);
+
+        _initialized = true;
+    }
+
+    [EasyButtons.Button]
+    public void InitializeCoordinates()
+    {
+        Debug.Log("Initial Coordinates");
     }
 
 }
