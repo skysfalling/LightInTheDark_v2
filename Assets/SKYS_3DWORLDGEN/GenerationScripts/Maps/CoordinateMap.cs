@@ -14,7 +14,7 @@ public class CoordinateMap
     public List<WorldExitPath> worldExitPaths = new List<WorldExitPath>();
     public List<WorldZone> worldZones = new List<WorldZone>();
 
-    public CoordinateMap(WorldSpace worldSpace, Transform parent)
+    public CoordinateMap(WorldRegion region)
     {
         List<Coordinate> newCoordList = new List<Coordinate>();
         Dictionary<Vector2Int, Coordinate> newCoordMap = new();
@@ -27,7 +27,7 @@ public class CoordinateMap
         {
             for (int y = 0; y < yCoordCount; y++)
             {
-                Coordinate newCoord = new Coordinate(new Vector2Int(x, y));
+                Coordinate newCoord = new Coordinate(this, new Vector2Int(x, y), region);
                 newCoordList.Add(newCoord);
                 newCoordMap[newCoord.LocalCoordinate] = newCoord;
             }
@@ -36,6 +36,9 @@ public class CoordinateMap
         // Set Coordinate Map
         CoordinateList = newCoordList;
         CoordinateValueMap = newCoordMap;
+
+        coordMapInitialized = true;
+        coordNeighborsInitialized = true;
     }
 
     #region == HANDLE COORDINATE MAP ================================ ////

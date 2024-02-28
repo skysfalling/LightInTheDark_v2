@@ -89,7 +89,6 @@ public class WorldGeneration : MonoBehaviour
         UnityEngine.Random.InitState(CurrentSeed);
     }
 
-
     public List<WorldRegion> worldRegions = new List<WorldRegion>();
     public void CreateRegions()
     {
@@ -100,13 +99,10 @@ public class WorldGeneration : MonoBehaviour
             for (int y = 0; y < WorldWidth_inRegions; y++)
             {
                 GameObject regionObject = new GameObject($"New Region ({x} , {y})");
-                
                 WorldRegion region = regionObject.AddComponent<WorldRegion>();
-
                 Vector2Int regionCoordinate = new Vector2Int(x, y);
                 region.Initialize(regionCoordinate);
 
-                regionObject.transform.position = region.centerPosition;
                 regionObject.transform.parent = this.transform;
 
 

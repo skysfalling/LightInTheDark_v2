@@ -11,33 +11,29 @@ public class Coordinate
     public WorldDirection borderEdgeDirection;
     public Color debugColor = Color.clear;
 
+    public CoordinateMap CoordinateMap { get; private set; }
+    public WorldSpace Space { get; private set; }
     public Vector2Int LocalCoordinate { get; private set; }
-    public Vector2 Position { get; private set; }
-    public Vector3 WorldPosition
-    {
-        get
-        {
-            return new Vector3(Position.x, 0, Position.y);
-        }
-        private set { }
-    }
+    public Vector3 WorldPosition { get; private set; }
 
     public Dictionary<WorldDirection, Vector2Int> NeighborCoordinateMap { get; private set; }
 
-    public Coordinate(Vector2Int coord)
+    public Coordinate(CoordinateMap coordinateMap, Vector2Int coord, WorldRegion region)
     {
+        this.CoordinateMap = coordinateMap;
         LocalCoordinate = coord;
+        Space = WorldSpace.Region;
 
         // Calculate position
-        int chunkWidth = WorldGeneration.ChunkWidth_inCells;
-        int realFullRegionWidth = WorldGeneration.GetFullRegionWidth_inChunks();
-        float halfRegionWidth = realFullRegionWidth * 0.5f;
-        Vector2 newPos = new Vector2(coord.x * chunkWidth, coord.y * chunkWidth);
-        newPos -= Vector2.one * halfRegionWidth;
-        newPos += Vector2.one * chunkWidth * 0.5f;
+        int chunkWidth = WorldGeneration.GetChunkWidth_inWorldSpace();
 
-        Position = newPos;
-        WorldPosition = new Vector3(Position.x, 0, Position.y);
+        // Calculate local position
+        Vector2 worldPosition = new Vector2(region.originCoordinatePosition.x, region.originCoordinatePosition.z);
+        worldPosition += new Vector2(coord.x, coord.y) * chunkWidth;
+
+        WorldPosition = new Vector3(worldPosition.x, 0, worldPosition.y);
+
+        InitializeNeighborMap();
     }
 
     // =================== NEIGHBOR MAP ====================== >>>> 
@@ -75,7 +71,7 @@ public class Coordinate
     public Coordinate GetNeighborInDirection(WorldDirection direction)
     {
         if (!foundNeighbors) return null;
-        return null; //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[direction]);
+        return CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[direction]);
     }
 
     public WorldDirection? GetDirectionOfNeighbor(Coordinate neighbor)
@@ -102,10 +98,10 @@ public class Coordinate
         if (!foundNeighbors) return new();
 
         List<Coordinate> neighbors = new List<Coordinate> {
-            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.WEST]),
-            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.EAST]),
-            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTH]),
-            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTH])
+            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.WEST]),
+            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.EAST]),
+            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTH]),
+            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTH])
         };
         neighbors.RemoveAll(item => item == null);
         return neighbors;
@@ -116,10 +112,10 @@ public class Coordinate
         if (!foundNeighbors) return new();
 
         List<Coordinate> neighbors = new List<Coordinate> {
-            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTHWEST]),
-            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTHEAST]),
-            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTHWEST]),
-            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTHEAST])
+            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTHWEST]),
+            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTHEAST]),
+            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTHWEST]),
+            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTHEAST])
         };
         neighbors.RemoveAll(item => item == null);
         return neighbors;

@@ -5,9 +5,13 @@ using UnityEditor;
 
 public static class DarklightGizmos
 {
-    public static void DrawWireSquare_withLabel(string label, Vector3 position, int size)
+    public static void DrawWireSquare_withLabel(string label, Vector3 position, int size, Color color)
     {
-        Handles.color = Color.black;
+        if (color == null)
+        {
+            Handles.color = Color.black;
+        }
+        else { Handles.color = color;}
         Handles.DrawWireCube(position, size * new Vector3(1, 0, 1));
 
         // Calculate the position for the label (midpoint of the top edge)

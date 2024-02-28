@@ -28,19 +28,31 @@ public class WorldRegion : MonoBehaviour
     public CoordinateMap coordinateMap;
     public Vector2Int regionCoordinate;
     public Vector3 centerPosition;
+    public Vector3 originCoordinatePosition;
 
     public void Initialize(Vector2Int regionCoordinate)
     {
         this.regionCoordinate = regionCoordinate;
-        //this.coordinateMap = new CoordinateMap(WorldSpace.Region, this.transform);
 
         float worldWidthRadius = _worldWidth_inWorldSpace * 0.5f;
         float regionWidthRadius = _fullRegionWidth_inWorldSpace * 0.5f;
+        float chunkWidthRadius = WorldGeneration.GetChunkWidth_inWorldSpace() * 0.5f;
 
-        // Calculate based on region width
+        // >> Center Position
         centerPosition = new Vector3(this.regionCoordinate.x, 0, this.regionCoordinate.y) * _fullRegionWidth_inWorldSpace;
         centerPosition -= worldWidthRadius * new Vector3(1, 0, 1);
         centerPosition += regionWidthRadius * new Vector3(1, 0, 1);
+
+        // >> Origin Coordinate Position { Bottom Left }
+        originCoordinatePosition = new Vector3(this.regionCoordinate.x, 0, this.regionCoordinate.y) * _fullRegionWidth_inWorldSpace;
+        originCoordinatePosition -= worldWidthRadius * new Vector3(1, 0, 1);
+        originCoordinatePosition += chunkWidthRadius * new Vector3(1, 0, 1);
+
+        // Set the transform to the center
+        transform.position = centerPosition;
+
+        // Create the coordinate map for the region
+        this.coordinateMap = new CoordinateMap(this);
 
         _initialized = true;
     }
