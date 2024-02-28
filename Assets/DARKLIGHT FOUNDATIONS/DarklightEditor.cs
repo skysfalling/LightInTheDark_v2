@@ -5,42 +5,11 @@ using UnityEngine;
 using UnityEditor;
 
 
-public class DarklightEditor
+public static class DarklightEditor
 {
-
     public static Vector3 MultiplyVec3(Vector3 vec3_a, Vector3 vec3_b)
     {
         return new Vector3(vec3_a.x * vec3_b.x, vec3_a.y * vec3_b.y, vec3_a.z * vec3_b.z);
-    }
-
-    public static void DrawWireRectangle_withLabel(string label, Vector3 position, int size)
-    {
-        Handles.color = Color.black;
-        Handles.DrawWireCube(position, size * new Vector3(1, 0, 1));
-
-        // Calculate the position for the label (midpoint of the top edge)
-        Vector3 labelOffset = new Vector3(-0.45f, 0, 0.45f); // Adjust the label position as needed
-
-        // Draw the label with the width
-        Vector3 labelPosition = position + (size * labelOffset);
-        Handles.Label(labelPosition, label);
-
-    }
-
-    // Function to draw a rectangle in the scene view and display its width
-    public static void DrawRectangleWithWidthLabel(Vector3 position, Vector2 size, Quaternion rotation, string labelPrefix = "Width: ")
-    {
-        // Calculate the corners of the rectangle
-        Vector3[] rectangleCorners = new Vector3[4];
-        rectangleCorners[0] = position + rotation * new Vector3(-size.x / 2, size.y / 2, 0); // Top left
-        rectangleCorners[1] = position + rotation * new Vector3(size.x / 2, size.y / 2, 0); // Top right
-        rectangleCorners[2] = position + rotation * new Vector3(size.x / 2, -size.y / 2, 0); // Bottom right
-        rectangleCorners[3] = position + rotation * new Vector3(-size.x / 2, -size.y / 2, 0); // Bottom left
-
-        // Draw the rectangle
-        Handles.DrawSolidRectangleWithOutline(rectangleCorners, new Color(0.5f, 0.5f, 1f, 0.1f), Color.green);
-
-
     }
 
     // The helper function to draw a button and invoke a callback when pressed

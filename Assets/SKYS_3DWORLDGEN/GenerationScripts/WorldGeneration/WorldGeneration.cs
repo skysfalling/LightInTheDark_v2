@@ -45,8 +45,8 @@ public class WorldGeneration : MonoBehaviour
     // >>>> WorldChunk { in WorldCell Units }
     public static int ChunkWidth_inCells = 10; 
     public static int ChunkDepth_inCells = 5;
-    public static Vector3Int GetChunkVec3Dimensions() { return new Vector3Int(ChunkWidth_inCells, ChunkDepth_inCells, ChunkWidth_inCells); }
-    public static Vector3Int GetChunkVec3Dimensions_inCells() { return new Vector3Int(ChunkWidth_inCells, ChunkDepth_inCells, ChunkWidth_inCells) * CellWidth_inWorldSpace; }
+    public static Vector3Int GetChunkVec3Dimensions_inCells() { return new Vector3Int(ChunkWidth_inCells, ChunkDepth_inCells, ChunkWidth_inCells); }
+    public static Vector3Int GetChunkVec3Dimensions_inWorldSpace() { return new Vector3Int(ChunkWidth_inCells, ChunkDepth_inCells, ChunkWidth_inCells) * CellWidth_inWorldSpace; }
     public static int GetChunkWidth_inWorldSpace() { return ChunkWidth_inCells * CellWidth_inWorldSpace; }
 
 

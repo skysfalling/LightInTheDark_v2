@@ -29,7 +29,7 @@ public class MeshQuad
 public class WorldChunkMesh
 {
     int _cellSize = WorldGeneration.CellWidth_inWorldSpace;
-    Vector3Int default_chunkMeshDimensions = WorldGeneration.GetChunkVec3Dimensions();
+    Vector3Int default_chunkMeshDimensions = WorldGeneration.GetChunkVec3Dimensions_inCells();
     Vector3Int current_chunkMeshDimensions;
     WorldChunk chunk;
     Coordinate worldCoordinate;

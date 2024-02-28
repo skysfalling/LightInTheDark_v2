@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 public enum DebugColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE, CLEAR }
 public enum WorldDirection { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
 
-public class CoordinateMap: MonoBehaviour
+public class CoordinateMap : MonoBehaviour
 {
     public static bool coordMapInitialized { get; private set; }
     public static bool coordNeighborsInitialized { get; private set; }
@@ -18,8 +18,19 @@ public class CoordinateMap: MonoBehaviour
     public static List<Coordinate> CoordinateList { get; private set; }
     public static Dictionary<Vector2Int, Coordinate> CoordinateValueMap { get; private set; }
 
+    public List<Coordinate> coordinates { get { return CoordinateList; } private set { } }
     public List<WorldExitPath> worldExitPaths = new List<WorldExitPath>();
     public List<WorldZone> worldZones = new List<WorldZone>();
+
+    private void OnDrawGizmos()
+    {
+        if (!coordMapInitialized|| coordinates == null) return;
+        foreach (Coordinate coordinate in coordinates)
+        {
+            DarklightGizmos.DrawWireRectangle_withLabel($"{coordinate.NormalizedCoordinate}",
+                coordinate.WorldPosition, WorldGeneration.GetChunkWidth_inWorldSpace());
+        }
+    }
 
     #region == HANDLE COORDINATE MAP ================================ ////
 
@@ -203,10 +214,6 @@ public class CoordinateMap: MonoBehaviour
         }
         return coordinatesOnEdge;
     }
-
-
-    // << GET NEIGHBORS >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
 
     #endregion
 
@@ -458,6 +465,5 @@ public class CoordinateMap: MonoBehaviour
     }
 
     #endregion
-
 
 }

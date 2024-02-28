@@ -98,7 +98,7 @@ public class WorldGenerationEditor : Editor
             {
                 if (region != null && region.IsInitialized())
                 {
-                    DarklightEditor.DrawWireRectangle_withLabel($"World Region {region.regionCoordinate}", region.centerPosition, WorldGeneration.GetFullRegionWidth_inWorldSpace());
+                    DarklightGizmos.DrawWireRectangle_withLabel($"World Region {region.regionCoordinate}", region.centerPosition, WorldGeneration.GetFullRegionWidth_inWorldSpace());
                 }
             }
         }

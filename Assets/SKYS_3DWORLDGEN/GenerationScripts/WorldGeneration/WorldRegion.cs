@@ -2,9 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
+[RequireComponent(typeof(CoordinateMap))]
 public class WorldRegion : MonoBehaviour
 {
+    // >>>> Init
     private bool _initialized = false;
     public bool IsInitialized() { return _initialized; }
 
@@ -25,13 +26,14 @@ public class WorldRegion : MonoBehaviour
     // >>>> Region Height
     private int _regionMaxGroundHeight = WorldGeneration.RegionMaxGroundHeight;
 
-   
+    public CoordinateMap coordinateMap;
     public Vector2Int regionCoordinate;
     public Vector3 centerPosition;
 
     public void Initialize(Vector2Int regionCoordinate)
     {
         this.regionCoordinate = regionCoordinate;
+        this.coordinateMap = GetComponent<CoordinateMap>();
 
         float worldWidthRadius = _worldWidth_inWorldSpace * 0.5f;
         float regionWidthRadius = _fullRegionWidth_inWorldSpace * 0.5f;
@@ -48,6 +50,9 @@ public class WorldRegion : MonoBehaviour
     public void InitializeCoordinates()
     {
         Debug.Log("Initial Coordinates");
+
+        coordinateMap = GetComponent<CoordinateMap>();
+        coordinateMap.UpdateCoordinateMap();
     }
 
 }

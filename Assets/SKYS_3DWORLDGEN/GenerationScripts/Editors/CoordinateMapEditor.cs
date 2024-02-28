@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(CoordinateMap))]
-public class WorldCoordinateMapEditor : Editor
+public class CoordinateMapEditor : Editor
 {
     SerializedObject serializedCoordinateMap;
     private GUIStyle h1Style;
@@ -44,9 +44,9 @@ public class WorldCoordinateMapEditor : Editor
     public override void OnInspectorGUI()
     {
         serializedCoordinateMap.Update();
-        CoordinateMap worldCoordMap = (CoordinateMap)target;
-        WorldRegionMap worldMap = worldCoordMap.GetComponent<WorldRegionMap>();
+        base.OnInspectorGUI();
 
+        CoordinateMap coordinateMap = (CoordinateMap)target;
 
         EditorGUILayout.LabelField($"World Coordinate Map Initialized => {CoordinateMap.coordMapInitialized}");
         EditorGUILayout.Space();
@@ -73,7 +73,7 @@ public class WorldCoordinateMapEditor : Editor
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Add World Exit Path"))
             {
-                worldCoordMap.CreateWorldExitPath();
+                coordinateMap.CreateWorldExitPath();
             }
             if (GUILayout.Button("Remove Last"))
             {
@@ -106,7 +106,7 @@ public class WorldCoordinateMapEditor : Editor
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Add World Zone"))
             {
-                worldCoordMap.CreateWorldZone();
+                coordinateMap.CreateWorldZone();
             }
             if (GUILayout.Button("Remove Last"))
             {
@@ -131,5 +131,7 @@ public class WorldCoordinateMapEditor : Editor
             EditorUtility.SetDirty(target);
         }
     }
+
+
 }
 #endif

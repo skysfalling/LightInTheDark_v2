@@ -83,6 +83,7 @@ public class WorldRegionMapEditor : Editor
 
     private void OnSceneGUI()
     {
+        /*
         WorldRegionMap regionMap = (WorldRegionMap)target;
 
         if (_showWorldMapBoundaries)
@@ -116,6 +117,8 @@ public class WorldRegionMapEditor : Editor
         }
 
         DarklightEditor.DrawWireRectangle_withLabel("World Generation", Vector3.zero, WorldGeneration.GetWorldWidth_inWorldSpace());
+        */
+        
     }
 
     public override void OnInspectorGUI()
@@ -173,7 +176,7 @@ public class WorldRegionMapEditor : Editor
             EditorGUILayout.BeginHorizontal(); // Start a horizontal group
             GUILayout.FlexibleSpace(); // Push everything after this to the right, centering the content
 
-            // DrawGUIWorldMap();
+            DrawGUIWorldMap();
 
             GUILayout.FlexibleSpace(); // Push everything before this to the left, ensuring centering
             EditorGUILayout.EndHorizontal(); // End the horizontal group
@@ -320,9 +323,6 @@ public class WorldRegionMapEditor : Editor
 
         EditorGUILayout.EndVertical();
 
-
-
-
         // ================================================= >>
 
         if (EditorGUI.EndChangeCheck())
@@ -354,7 +354,7 @@ public class WorldRegionMapEditor : Editor
             {
                 case WorldChunkMapDebug.ALL_CHUNKS:
 
-                    DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
+                    //DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
                     break;
             }
         }
@@ -472,60 +472,6 @@ public class WorldRegionMapEditor : Editor
         selectedChunk = worldChunk;
     }
 
-    private void DrawRectangleAtChunkGround(WorldChunk worldChunk, Color fillColor, float scaleMultiplier = 1)
-    {
-        if (WorldChunkMap.chunkMapInitialized == false || worldChunk == null) return;
-
-        Handles.color = fillColor;
-        Handles.DrawSolidRectangleWithOutline(
-            GetRectangleVertices(
-                worldChunk.GetGroundWorldPosition(), 
-                WorldGeneration.GetChunkWidth_inWorldSpace() * scaleMultiplier * Vector2.one, Vector3.up),
-                fillColor, Color.clear);
-    }
-
-    private void DrawRectangleAtCell(WorldCell worldCell, Color fillColor, float scaleMultiplier = 1)
-    {
-        if (WorldChunkMap.chunkMapInitialized == false || worldCell == null) return;
-
-        Handles.color = fillColor;
-        Handles.DrawSolidRectangleWithOutline(
-            GetRectangleVertices(worldCell.position, Vector2.one * WorldGeneration.CellWidth_inWorldSpace * scaleMultiplier, worldCell.normal),
-            fillColor, Color.clear);
-    }
-
-    private void DrawRectangleAtWorldCoordinate(Coordinate coord, Color fillColor)
-    {
-        if (CoordinateMap.coordMapInitialized == false || coord == null) return;
-
-        Handles.color = fillColor;
-        Handles.DrawSolidRectangleWithOutline(
-            GetRectangleVertices(coord.WorldPosition, WorldGeneration.ChunkWidth_inCells * Vector2.one, Vector3.up),
-            fillColor, Color.clear);
-    }
-
-    private Vector3[] GetRectangleVertices(Vector3 center, Vector2 area, Vector3 normalDirection)
-    {
-        Vector2 halfArea = area * 0.5f;
-        Vector3[] vertices = new Vector3[4]
-        {
-        new Vector3(-halfArea.x, 0, -halfArea.y),
-        new Vector3(halfArea.x, 0, -halfArea.y),
-        new Vector3(halfArea.x, 0, halfArea.y),
-        new Vector3(-halfArea.x, 0, halfArea.y)
-        };
-
-        // Calculate the rotation from the up direction to the normal direction
-        Quaternion rotation = Quaternion.FromToRotation(Vector3.up, normalDirection);
-
-        // Apply rotation to each vertex
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            vertices[i] = rotation * vertices[i] + center;
-        }
-
-        return vertices;
-    }
     #endregion
 
 
