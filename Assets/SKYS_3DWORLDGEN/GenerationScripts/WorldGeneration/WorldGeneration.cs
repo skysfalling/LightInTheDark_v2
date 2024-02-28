@@ -15,6 +15,11 @@ using Unity.VisualScripting;
 /// resources, and points of interest. Interacts with various world components to
 /// ensure a cohesive and dynamically generated game environment.
 /// </summary>
+/// 
+public enum DebugColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE, CLEAR }
+public enum WorldDirection { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
+public enum WorldSpace { World, Region, Chunk, Cell }
+
 [RequireComponent(typeof(WorldPathfinder))]
 [RequireComponent(typeof(WorldInteractor))]
 [RequireComponent(typeof(WorldStatTracker))]
@@ -57,12 +62,12 @@ public class WorldGeneration : MonoBehaviour
     public static int GetPlayRegionWidth_inCells() { return PlayRegionWidth_inChunks * ChunkWidth_inCells; }
     public static int GetFullRegionWidth_inChunks() { return PlayRegionWidth_inChunks + (PlayRegionBoundaryOffset * 2); } // Include BoundaryOffset on both sides
     public static int GetFullRegionWidth_inCells() { return GetFullRegionWidth_inChunks() * ChunkWidth_inCells; }
-    public static int GetFullRegionWidth_inWorldSpace() { return GetFullRegionWidth_inChunks() * CellWidth_inWorldSpace; }
+    public static int GetFullRegionWidth_inWorldSpace() { return GetFullRegionWidth_inChunks() * ChunkWidth_inCells * CellWidth_inWorldSpace; }
 
 
     // >>>> WorldGeneration { in WorldRegion Units }
     public static int WorldWidth_inRegions = 3;
-    public static int GetWorldWidth_inCells() { return WorldWidth_inRegions * GetFullRegionWidth_inChunks(); }
+    public static int GetWorldWidth_inCells() { return WorldWidth_inRegions * GetFullRegionWidth_inChunks() * ChunkWidth_inCells; }
     public static int GetWorldWidth_inWorldSpace() { return GetWorldWidth_inCells() * CellWidth_inWorldSpace; }
 
 
@@ -137,12 +142,13 @@ public class WorldGeneration : MonoBehaviour
         generation_finished = false;
         if (_worldGenerationObject != null) { Reset(); }
 
-        CoordinateMap worldCoordMap = FindObjectOfType<CoordinateMap>();
+        //CoordinateMap worldCoordMap = FindObjectOfType<CoordinateMap>();
 
         float startTime = Time.realtimeSinceStartup;
         Debug.Log($"WORLD GENERATION :: START GENERATION");
 
         // [[ STAGE 0 ]] ==> INITIALIZE MAPS
+        /*
         if (!CoordinateMap.coordMapInitialized || !WorldChunkMap.chunkMapInitialized)
         {
             //FindObjectOfType<WorldRegionMap>().UpdateRegionMap();
@@ -162,6 +168,7 @@ public class WorldGeneration : MonoBehaviour
         yield return new WaitUntil(() => CoordinateMap.exitPathsInitialized);
         float stage2Time = Time.realtimeSinceStartup - stage1Time;
         Debug.Log($"WORLD GENERATION :: PATHS INITIALIZED :: Stage Duration {stage2Time}");
+        */
 
         // [[ STAGE 3 ]] ==> INITIALIZE CHUNKS
         foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
@@ -171,9 +178,9 @@ public class WorldGeneration : MonoBehaviour
             CreateMeshObject($"Chunk {chunk.coordinate} :: height {chunk.groundHeight}",
                 chunk.chunkMesh.mesh, WorldMaterialLibrary.Instance.chunkMaterial);
         }
-        float stage3Time = Time.realtimeSinceStartup - stage2Time;
-        Debug.Log($"WORLD GENERATION :: CHUNK MESH CREATED :: Stage Duration {stage2Time}" +
-            $"\n -> {WorldChunkMap.ChunkList.Count} CHUNKS");
+        //float stage3Time = Time.realtimeSinceStartup - stage2Time;
+        //Debug.Log($"WORLD GENERATION :: CHUNK MESH CREATED :: Stage Duration {stage2Time}" +
+            //$"\n -> {WorldChunkMap.ChunkList.Count} CHUNKS");
 
         // [[ GENERATE COMBINED MESHES ]] ========================================== >>
         /*

@@ -5,7 +5,7 @@ using UnityEditor;
 
 public static class DarklightGizmos
 {
-    public static void DrawWireRectangle_withLabel(string label, Vector3 position, int size)
+    public static void DrawWireSquare_withLabel(string label, Vector3 position, int size)
     {
         Handles.color = Color.black;
         Handles.DrawWireCube(position, size * new Vector3(1, 0, 1));
@@ -18,7 +18,7 @@ public static class DarklightGizmos
         Handles.Label(labelPosition, label);
     }
 
-    public static void DrawSquareAtPosition(Vector3 position, int size, Vector3 direction, Color fillColor)
+    public static void DrawFilledSquareAt(Vector3 position, int size, Vector3 direction, Color fillColor)
     {
         Handles.color = fillColor;
         Handles.DrawSolidRectangleWithOutline(

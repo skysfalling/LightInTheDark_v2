@@ -34,9 +34,8 @@ public class WorldGenerationEditor : Editor
 
         SerializedProperty gameSeedProperty = serializedWorldGen.FindProperty("gameSeed");
         EditorGUILayout.PropertyField(gameSeedProperty);
-
-        EditorGUILayout.LabelField("============");
-        EditorGUILayout.LabelField("CurrentSeed", WorldGeneration.CurrentSeed.ToString());
+        EditorGUILayout.LabelField("Encoded Seed", WorldGeneration.CurrentSeed.ToString());
+        EditorGUILayout.LabelField("============///");
 
 
         EditorGUILayout.BeginHorizontal();
@@ -44,9 +43,9 @@ public class WorldGenerationEditor : Editor
 
         EditorGUILayout.BeginVertical();
 
-        DarklightEditor.CreateIntegerControl("Cell Size", WorldGeneration.CellWidth_inWorldSpace, 1, 8, (value) => WorldGeneration.CellWidth_inWorldSpace = value);
-        DarklightEditor.CreateIntegerControl("Chunk Width", WorldGeneration.ChunkWidth_inCells, 1, 10, (value) => WorldGeneration.ChunkWidth_inCells = value);
-        DarklightEditor.CreateIntegerControl("Chunk Depth", WorldGeneration.ChunkDepth_inCells, 1, 10, (value) => WorldGeneration.ChunkDepth_inCells = value);
+        //DarklightEditor.CreateIntegerControl("Cell Size", WorldGeneration.CellWidth_inWorldSpace, 1, 8, (value) => WorldGeneration.CellWidth_inWorldSpace = value);
+        //DarklightEditor.CreateIntegerControl("Chunk Width", WorldGeneration.ChunkWidth_inCells, 1, 10, (value) => WorldGeneration.ChunkWidth_inCells = value);
+        //DarklightEditor.CreateIntegerControl("Chunk Depth", WorldGeneration.ChunkDepth_inCells, 1, 10, (value) => WorldGeneration.ChunkDepth_inCells = value);
 
         DarklightEditor.CreateIntegerControl("Playable Area", WorldGeneration.PlayRegionWidth_inChunks, 1, 10, (value) => WorldGeneration.PlayRegionWidth_inChunks = value);
         DarklightEditor.CreateIntegerControl("Boundary Offset", WorldGeneration.PlayRegionBoundaryOffset, 1, 10, (value) => WorldGeneration.PlayRegionBoundaryOffset = value);
@@ -86,8 +85,7 @@ public class WorldGenerationEditor : Editor
         WorldGeneration worldGen = (WorldGeneration)target;
         Transform transform = worldGen.transform;
 
-
-        //DarklightEditor.DrawWireRectangle_withWidthLabel("World Region", transform.position, WorldGeneration.GetFulRegionWidth_inWorldSpace());
+        DarklightGizmos.DrawWireSquare_withLabel("World Generation", transform.position, WorldGeneration.GetWorldWidth_inWorldSpace());
         //DarklightEditor.DrawWireRectangle_withWidthLabel("World Chunk", transform.position, WorldGeneration.GetChunkWidth_inWorldSpace());
         //DarklightEditor.DrawWireRectangle_withWidthLabel("World Cell", transform.position, WorldGeneration.CellWidth_inWorldSpace);
 
@@ -98,7 +96,7 @@ public class WorldGenerationEditor : Editor
             {
                 if (region != null && region.IsInitialized())
                 {
-                    DarklightGizmos.DrawWireRectangle_withLabel($"World Region {region.regionCoordinate}", region.centerPosition, WorldGeneration.GetFullRegionWidth_inWorldSpace());
+                    DarklightGizmos.DrawWireSquare_withLabel($"World Region {region.regionCoordinate}", region.centerPosition, WorldGeneration.GetFullRegionWidth_inWorldSpace());
                 }
             }
         }

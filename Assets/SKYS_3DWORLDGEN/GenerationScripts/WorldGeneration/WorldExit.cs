@@ -41,14 +41,12 @@ public class WorldExit
     public void Initialize()
     {
         if (_initialized 
-            || !CoordinateMap.coordMapInitialized 
-            || !CoordinateMap.coordNeighborsInitialized
             || !WorldChunkMap.chunkMapInitialized) return;
 
         _borderDirection = borderDirection;
         _borderIndex = borderIndex;
 
-        worldCoordinate = CoordinateMap.GetCoordinateAtWorldExit(borderDirection, borderIndex);
+        //worldCoordinate = CoordinateMap.GetCoordinateAtWorldExit(borderDirection, borderIndex);
         pathConnection = worldCoordinate.GetNeighborInOppositeDirection(borderDirection);
 
         _chunk = WorldChunkMap.GetChunkAt(worldCoordinate);
@@ -59,7 +57,7 @@ public class WorldExit
 
     public void Reset()
     {
-        CoordinateMap.SetMapCoordinateToType(worldCoordinate, Coordinate.TYPE.BORDER);
+        //CoordinateMap.SetMapCoordinateToType(worldCoordinate, Coordinate.TYPE.BORDER);
         _initialized = false;
     }
 
@@ -134,8 +132,8 @@ public class WorldExitPath
             startExit.worldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
             endExit.worldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
 
-            CoordinateMap.SetMapCoordinateToType(startExit.worldCoordinate, Coordinate.TYPE.EXIT);
-            CoordinateMap.SetMapCoordinateToType(endExit.worldCoordinate, Coordinate.TYPE.EXIT);
+            //CoordinateMap.SetMapCoordinateToType(startExit.worldCoordinate, Coordinate.TYPE.EXIT);
+            //CoordinateMap.SetMapCoordinateToType(endExit.worldCoordinate, Coordinate.TYPE.EXIT);
 
             _initialized = true;
         }
@@ -144,7 +142,7 @@ public class WorldExitPath
     public void Reset()
     {
         if (!_initialized) return;
-        if (CoordinateMap.coordMapInitialized == false) { _initialized = false; return; }
+        //if (CoordinateMap.coordMapInitialized == false) { _initialized = false; return; }
         if (WorldChunkMap.chunkMapInitialized == false) { _initialized = false; return; }
 
         startExit.Reset();

@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(CoordinateMap))]
 public class WorldRegion : MonoBehaviour
 {
     // >>>> Init
@@ -33,7 +32,7 @@ public class WorldRegion : MonoBehaviour
     public void Initialize(Vector2Int regionCoordinate)
     {
         this.regionCoordinate = regionCoordinate;
-        this.coordinateMap = GetComponent<CoordinateMap>();
+        //this.coordinateMap = new CoordinateMap(WorldSpace.Region, this.transform);
 
         float worldWidthRadius = _worldWidth_inWorldSpace * 0.5f;
         float regionWidthRadius = _fullRegionWidth_inWorldSpace * 0.5f;
@@ -45,14 +44,4 @@ public class WorldRegion : MonoBehaviour
 
         _initialized = true;
     }
-
-    [EasyButtons.Button]
-    public void InitializeCoordinates()
-    {
-        Debug.Log("Initial Coordinates");
-
-        coordinateMap = GetComponent<CoordinateMap>();
-        coordinateMap.UpdateCoordinateMap();
-    }
-
 }

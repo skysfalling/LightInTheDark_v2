@@ -45,7 +45,7 @@ public class WorldZone
 
     public WorldZone( Coordinate centerCoordinate, TYPE zoneType )
     {
-        this.coordinateVector = centerCoordinate.NormalizedCoordinate;
+        this.coordinateVector = centerCoordinate.LocalCoordinate;
         this.zoneType = zoneType;
 
         Initialize();
@@ -53,12 +53,12 @@ public class WorldZone
 
     public void Initialize()
     {
-        if (_initialized || !CoordinateMap.coordMapInitialized) { return; }
+        if (_initialized) { return; }
         _initialized = false;
 
         // Update private variables
         _coordinateVector = coordinateVector;
-        _centerCoordinate = CoordinateMap.GetCoordinateAt(coordinateVector);
+        //_centerCoordinate = CoordinateMap.GetCoordinateAt(coordinateVector);
         _zoneType = zoneType;
         _zoneHeight = zoneHeight;
 
@@ -93,7 +93,7 @@ public class WorldZone
         WorldChunkMap.SetChunksToHeightFromCoordinates(_zoneCoordinates, zoneHeight);
 
         // Assign Zone TYPE
-        CoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, Coordinate.TYPE.ZONE, GetRGBAfromDebugColor(zoneColor));
+        //CoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, Coordinate.TYPE.ZONE, GetRGBAfromDebugColor(zoneColor));
 
         _initialized = true;
         //Debug.Log($"Initialized WORLD ZONE : {_coordinateVector} : height {zoneHeight}");
@@ -108,7 +108,7 @@ public class WorldZone
 
         // Check private variables
         if ( _centerCoordinate == null
-            || _centerCoordinate.NormalizedCoordinate != coordinateVector
+            || _centerCoordinate.LocalCoordinate != coordinateVector
             || _coordinateVector != coordinateVector
             || _zoneHeight != zoneHeight
             || _zoneType != zoneType
@@ -118,13 +118,15 @@ public class WorldZone
         }
         else if (_zoneCoordinates.Count > 0)
         {
+            /*
             foreach (Coordinate coord in _zoneCoordinates)
             {
-                if (CoordinateMap.GetCoordinateAt(coord.NormalizedCoordinate).type != Coordinate.TYPE.ZONE)
+                if (CoordinateMap.GetCoordinateAt(coord.LocalCoordinate).type != Coordinate.TYPE.ZONE)
                 {
                     _initialized = false;
                 }
             }
+            */
         }
         else
         {

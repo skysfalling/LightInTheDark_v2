@@ -59,8 +59,8 @@ public class WorldPath
 
     public WorldPath(Coordinate startCoord, int startHeight, Coordinate endCoord, int endHeight, DebugColor pathColor, float pathRandomness = 0)
     {
-        this._startCoordinate = startCoord.NormalizedCoordinate;
-        this._endCoordinate = endCoord.NormalizedCoordinate;
+        this._startCoordinate = startCoord.LocalCoordinate;
+        this._endCoordinate = endCoord.LocalCoordinate;
 
         this._startHeight = startHeight;
         this._endHeight = endHeight;
@@ -83,9 +83,10 @@ public class WorldPath
         }
 
         // Initialize
-        if (_initialized || !CoordinateMap.coordMapInitialized) return;
+        if (_initialized) return;
         _initialized = false;
 
+        /*
         // << CREATE PATH >>
         _pathCoords = CoordinateMap.FindWorldCoordinatePath(_startCoordinate, _endCoordinate, _pathRandomness);
         List<Coordinate.TYPE> types = CoordinateMap.GetCoordinateTypesFromList(_pathCoords);
@@ -116,11 +117,12 @@ public class WorldPath
 
             _initialized = true;
         }
+        */
     }
 
     public void Reset()
     {
-        if (!_initialized || !CoordinateMap.coordMapInitialized) return;
+        if (!_initialized) return;
 
         // Reset Coordinate Path Type
         if (_pathCoords != null && _pathCoords.Count > 0)

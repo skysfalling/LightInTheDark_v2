@@ -27,6 +27,7 @@ public class WorldChunkMap : MonoBehaviour
             yield return null;
         }
 
+        /*
         yield return new WaitUntil(() => CoordinateMap.coordMapInitialized);
 
         List<WorldChunk> newChunkList = new();
@@ -38,11 +39,12 @@ public class WorldChunkMap : MonoBehaviour
             WorldChunk newChunk = new WorldChunk(worldCoord);
 
             newChunkList.Add(newChunk);
-            newCoordinateChunkMap[worldCoord.NormalizedCoordinate] = newChunk;
+            newCoordinateChunkMap[worldCoord.LocalCoordinate] = newChunk;
         }
+        */
 
-        ChunkList = newChunkList;
-        CoordinateChunkMap = newCoordinateChunkMap;
+        //ChunkList = newChunkList;
+        //CoordinateChunkMap = newCoordinateChunkMap;
 
         chunkMapInitialized = true;
     }
@@ -97,7 +99,7 @@ public class WorldChunkMap : MonoBehaviour
         if (!chunkMapInitialized || worldCoord == null) { return null; }
 
         // Use the dictionary for fast lookups
-        if (CoordinateChunkMap.TryGetValue(worldCoord.NormalizedCoordinate, out WorldChunk foundChunk))
+        if (CoordinateChunkMap.TryGetValue(worldCoord.LocalCoordinate, out WorldChunk foundChunk))
         {
             return foundChunk;
         }

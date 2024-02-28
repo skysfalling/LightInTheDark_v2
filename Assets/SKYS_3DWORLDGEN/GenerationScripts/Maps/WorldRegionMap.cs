@@ -83,6 +83,8 @@ public class WorldRegionMapEditor : Editor
 
     private void OnSceneGUI()
     {
+
+
         /*
         WorldRegionMap regionMap = (WorldRegionMap)target;
 
@@ -118,7 +120,7 @@ public class WorldRegionMapEditor : Editor
 
         DarklightEditor.DrawWireRectangle_withLabel("World Generation", Vector3.zero, WorldGeneration.GetWorldWidth_inWorldSpace());
         */
-        
+
     }
 
     public override void OnInspectorGUI()
@@ -217,13 +219,13 @@ public class WorldRegionMapEditor : Editor
             EditorGUILayout.BeginVertical();
             EditorGUI.BeginDisabledGroup(true);
 
-            CreateToggle("Coordinate Map", CoordinateMap.coordMapInitialized);
+            //CreateToggle("Coordinate Map", CoordinateMap.coordMapInitialized);
             CreateToggle("Chunk Map", WorldChunkMap.chunkMapInitialized);
             CreateToggle("Cell Map", WorldCellMap.cellMapInitialized);
 
-            CreateToggle("Coordinate Neighbors", CoordinateMap.coordNeighborsInitialized);
-            CreateToggle("Zones", CoordinateMap.zonesInitialized);
-            CreateToggle("Exit Paths", CoordinateMap.exitPathsInitialized);
+            //CreateToggle("Coordinate Neighbors", CoordinateMap.coordNeighborsInitialized);
+            //CreateToggle("Zones", CoordinateMap.zonesInitialized);
+            //CreateToggle("Exit Paths", CoordinateMap.exitPathsInitialized);
             CreateToggle("World Chunk Mesh", WorldChunkMap.chunkMeshInitialized);
 
             EditorGUI.EndDisabledGroup();
@@ -282,7 +284,7 @@ public class WorldRegionMapEditor : Editor
                 try
                 {
                     string chunkParameters =
-                        $"Coordinate => {worldCoord.NormalizedCoordinate}" +
+                        $"Coordinate => {worldCoord.LocalCoordinate}" +
                         $"\nCoordinate Type => {worldCoord.type}" +
                         $"\nCoordinate Neighbors => {worldCoord.NeighborCoordinateMap.Values.ToList().Count()}" +
                         $"\n" +
@@ -338,7 +340,7 @@ public class WorldRegionMapEditor : Editor
     #region == DRAW WORLD MAP ============================================== >>>>
     private void DrawWorldMap()
     {
-        if (CoordinateMap.coordMapInitialized == false || WorldChunkMap.chunkMapInitialized == false) { return; }
+        //if (CoordinateMap.coordMapInitialized == false || WorldChunkMap.chunkMapInitialized == false) { return; }
 
         // Start by defining a GUIStyle for your labels
         GUIStyle coordinatelabelStyle = new GUIStyle();
@@ -359,6 +361,7 @@ public class WorldRegionMapEditor : Editor
             }
         }
 
+        /*
         // << DRAW BASE COORDINATE MAP >>
         List<Coordinate> coordList = CoordinateMap.CoordinateList;
         foreach (Coordinate coord in coordList)
@@ -366,7 +369,7 @@ public class WorldRegionMapEditor : Editor
             switch(worldCoordinateMapDebug)
             {
                 case WorldCoordinateMapDebug.COORDINATE:
-                    Handles.Label(coord.WorldPosition, new GUIContent($"{coord.NormalizedCoordinate}"), coordinatelabelStyle);
+                    Handles.Label(coord.WorldPosition, new GUIContent($"{coord.LocalCoordinate}"), coordinatelabelStyle);
                     break;
                 case WorldCoordinateMapDebug.TYPE:
                     Handles.Label(coord.WorldPosition, new GUIContent($"{coord.type}"), coordinatelabelStyle);
@@ -377,6 +380,7 @@ public class WorldRegionMapEditor : Editor
                     break;
             }
         }
+        */
 
 
 
@@ -404,57 +408,52 @@ public class WorldRegionMapEditor : Editor
             GUILayout.BeginHorizontal();
             for (int x = 0; x < mapWidth; x++)
             {
-                if (CoordinateMap.coordMapInitialized)
+                Coordinate worldCoord = null;// CoordinateMap.GetCoordinateAt(new Vector2Int(x, y));
+                WorldChunk worldChunk = WorldChunkMap.GetChunkAt(worldCoord);
+                if (worldCoord != null)
                 {
-                    Coordinate worldCoord = CoordinateMap.GetCoordinateAt(new Vector2Int(x, y));
-                    WorldChunk worldChunk = WorldChunkMap.GetChunkAt(worldCoord);
-                    if (worldCoord != null)
+
+                    // << SET WORLD CHUNK COLOR >>
+                    GUI.backgroundColor = worldCoord.debugColor;
+
+                    // << SET SELECTED CHUNK COLOR >>
+                    if (selectedChunk != null)
                     {
-
-                        // << SET WORLD CHUNK COLOR >>
-                        GUI.backgroundColor = worldCoord.debugColor;
-
-                        // << SET SELECTED CHUNK COLOR >>
-                        if (selectedChunk != null)
+                        // Make the color brighter by interpolating towards white
+                        if (selectedChunk == worldChunk)
                         {
-                            // Make the color brighter by interpolating towards white
-                            if (selectedChunk == worldChunk)
-                            {
-                                GUI.backgroundColor = Color.Lerp(worldCoord.debugColor, Color.white, 0.75f);
-                            }
-                            else if (CoordinateMap.coordNeighborsInitialized)
-                            {
-                                List<Vector2Int> naturalNeighbors = selectedChunk.worldCoordinate.GetValidNaturalNeighborCoordinates();
-                                List<Vector2Int> diagonalNeighbors = selectedChunk.worldCoordinate.GetValidDiagonalNeighborCoordinates();
-
-                                // Draw Natural Neighbors
-                                if (naturalNeighbors.Contains(worldChunk.worldCoordinate.NormalizedCoordinate))
-                                {
-                                    GUI.backgroundColor = Color.Lerp(worldCoord.debugColor, Color.white, 0.5f);
-                                }
-
-                                // Draw Diagonal Neighbors
-                                else if (diagonalNeighbors.Contains(worldChunk.worldCoordinate.NormalizedCoordinate))
-                                {
-                                    GUI.backgroundColor = Color.Lerp(worldCoord.debugColor, Color.white, 0.25f);
-                                }
-
-                            }
+                            GUI.backgroundColor = Color.Lerp(worldCoord.debugColor, Color.white, 0.75f);
                         }
-
-
-                        // Create Button
-                        if (GUILayout.Button("", GUILayout.Width(mapGUIBoxSize), GUILayout.Height(mapGUIBoxSize)))
+                        else
                         {
-                            SelectChunk(worldChunk);
+                            List<Vector2Int> naturalNeighbors = selectedChunk.worldCoordinate.GetValidNaturalNeighborCoordinates();
+                            List<Vector2Int> diagonalNeighbors = selectedChunk.worldCoordinate.GetValidDiagonalNeighborCoordinates();
+
+                            // Draw Natural Neighbors
+                            if (naturalNeighbors.Contains(worldChunk.worldCoordinate.LocalCoordinate))
+                            {
+                                GUI.backgroundColor = Color.Lerp(worldCoord.debugColor, Color.white, 0.5f);
+                            }
+
+                            // Draw Diagonal Neighbors
+                            else if (diagonalNeighbors.Contains(worldChunk.worldCoordinate.LocalCoordinate))
+                            {
+                                GUI.backgroundColor = Color.Lerp(worldCoord.debugColor, Color.white, 0.25f);
+                            }
+
                         }
-
-                        GUI.backgroundColor = Color.white; // Reset color to default
-
-                        continue; // continue to next coordinate
                     }
 
 
+                    // Create Button
+                    if (GUILayout.Button("", GUILayout.Width(mapGUIBoxSize), GUILayout.Height(mapGUIBoxSize)))
+                    {
+                        SelectChunk(worldChunk);
+                    }
+
+                    GUI.backgroundColor = Color.white; // Reset color to default
+
+                    continue; // continue to next coordinate
                 }
             }
             GUILayout.EndHorizontal();

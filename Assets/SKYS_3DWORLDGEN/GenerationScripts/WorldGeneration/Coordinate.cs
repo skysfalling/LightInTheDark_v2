@@ -11,7 +11,7 @@ public class Coordinate
     public WorldDirection borderEdgeDirection;
     public Color debugColor = Color.clear;
 
-    public Vector2Int NormalizedCoordinate { get; private set; }
+    public Vector2Int LocalCoordinate { get; private set; }
     public Vector2 Position { get; private set; }
     public Vector3 WorldPosition
     {
@@ -26,7 +26,7 @@ public class Coordinate
 
     public Coordinate(Vector2Int coord)
     {
-        NormalizedCoordinate = coord;
+        LocalCoordinate = coord;
 
         // Calculate position
         int chunkWidth = WorldGeneration.ChunkWidth_inCells;
@@ -49,7 +49,7 @@ public class Coordinate
         foreach (WorldDirection direction in Enum.GetValues(typeof(WorldDirection)))
         {
             // Get neighbor in direction
-            NeighborCoordinateMap[direction] = NormalizedCoordinate + GetDirectionVector(direction);
+            NeighborCoordinateMap[direction] = LocalCoordinate + GetDirectionVector(direction);
         }
 
         foundNeighbors = true;
@@ -75,7 +75,7 @@ public class Coordinate
     public Coordinate GetNeighborInDirection(WorldDirection direction)
     {
         if (!foundNeighbors) return null;
-        return CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[direction]);
+        return null; //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[direction]);
     }
 
     public WorldDirection? GetDirectionOfNeighbor(Coordinate neighbor)
@@ -86,7 +86,7 @@ public class Coordinate
         foreach (var entry in NeighborCoordinateMap)
         {
             // Check if the neighbor's Coordinate matches the entry's value
-            if (entry.Value == neighbor.NormalizedCoordinate)
+            if (entry.Value == neighbor.LocalCoordinate)
             {
                 // If so, return the direction
                 return entry.Key;
@@ -102,10 +102,10 @@ public class Coordinate
         if (!foundNeighbors) return new();
 
         List<Coordinate> neighbors = new List<Coordinate> {
-            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.WEST]),
-            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.EAST]),
-            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTH]),
-            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTH])
+            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.WEST]),
+            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.EAST]),
+            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTH]),
+            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTH])
         };
         neighbors.RemoveAll(item => item == null);
         return neighbors;
@@ -116,10 +116,10 @@ public class Coordinate
         if (!foundNeighbors) return new();
 
         List<Coordinate> neighbors = new List<Coordinate> {
-            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTHWEST]),
-            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTHEAST]),
-            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTHWEST]),
-            CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTHEAST])
+            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTHWEST]),
+            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.NORTHEAST]),
+            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTHWEST]),
+            //CoordinateMap.GetCoordinateAt(NeighborCoordinateMap[WorldDirection.SOUTHEAST])
         };
         neighbors.RemoveAll(item => item == null);
         return neighbors;

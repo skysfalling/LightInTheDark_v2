@@ -1,44 +1,46 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UIElements;
 
-public enum DebugColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE, CLEAR }
-public enum WorldDirection { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
-
-public class CoordinateMap : MonoBehaviour
+public class CoordinateMap
 {
-    public static bool coordMapInitialized { get; private set; }
-    public static bool coordNeighborsInitialized { get; private set; }
-    public static bool exitPathsInitialized { get; private set; }
-    public static bool zonesInitialized { get; private set; }
-
-    public static List<Coordinate> CoordinateList { get; private set; }
-    public static Dictionary<Vector2Int, Coordinate> CoordinateValueMap { get; private set; }
+    public bool coordMapInitialized = false;
+    public bool coordNeighborsInitialized = false;
+    public List<Coordinate> CoordinateList { get; private set; }
+    public Dictionary<Vector2Int, Coordinate> CoordinateValueMap { get; private set; }
 
     public List<Coordinate> coordinates { get { return CoordinateList; } private set { } }
     public List<WorldExitPath> worldExitPaths = new List<WorldExitPath>();
     public List<WorldZone> worldZones = new List<WorldZone>();
 
-    private void OnDrawGizmos()
+    public CoordinateMap(WorldSpace worldSpace, Transform parent)
     {
-        if (!coordMapInitialized|| coordinates == null) return;
-        foreach (Coordinate coordinate in coordinates)
+        List<Coordinate> newCoordList = new List<Coordinate>();
+        Dictionary<Vector2Int, Coordinate> newCoordMap = new();
+
+        int fullRegionWidth = WorldGeneration.GetFullRegionWidth_inChunks();
+        int xCoordCount = fullRegionWidth;
+        int yCoordCount = fullRegionWidth;
+
+        for (int x = 0; x < xCoordCount; x++)
         {
-            DarklightGizmos.DrawWireRectangle_withLabel($"{coordinate.NormalizedCoordinate}",
-                coordinate.WorldPosition, WorldGeneration.GetChunkWidth_inWorldSpace());
+            for (int y = 0; y < yCoordCount; y++)
+            {
+                Coordinate newCoord = new Coordinate(new Vector2Int(x, y));
+                newCoordList.Add(newCoord);
+                newCoordMap[newCoord.LocalCoordinate] = newCoord;
+            }
         }
+
+        // Set Coordinate Map
+        CoordinateList = newCoordList;
+        CoordinateValueMap = newCoordMap;
     }
 
     #region == HANDLE COORDINATE MAP ================================ ////
 
-    public void UpdateCoordinateMap()
-    {
-        StartCoroutine(UpdateRoutine());
-    }
-
+    /*
     IEnumerator UpdateRoutine()
     {
         zonesInitialized = false;
@@ -64,49 +66,11 @@ public class CoordinateMap : MonoBehaviour
         //UpdateAllWorldExitPaths(); // Update all world paths to new values
         yield return new WaitUntil(() => exitPathsInitialized);
     }
-
-    static IEnumerator InitializationRoutine()
-    {
-        if (coordMapInitialized) yield return null;
-
-        List<Coordinate> newCoordList = new List<Coordinate>();
-        Dictionary<Vector2Int, Coordinate> newCoordMap = new();
-
-        int fullRegionWidth = WorldGeneration.GetFullRegionWidth_inChunks();
-        int xCoordCount = fullRegionWidth;
-        int yCoordCount = fullRegionWidth;
-
-        for (int x = 0; x < xCoordCount; x++)
-        {
-            for (int y = 0; y < yCoordCount; y++)
-            {
-                Coordinate newCoord = new Coordinate(new Vector2Int(x, y));
-                newCoordList.Add(newCoord);
-                newCoordMap[newCoord.NormalizedCoordinate] = newCoord;
-            }
-        }
-
-        // Set Coordinate Map
-        CoordinateList = newCoordList;
-        CoordinateValueMap = newCoordMap;
-
-        // Set Coordinate Map Type Defaults
-        SetAllCoordinateTypesToDefault();
-
-        coordMapInitialized = true;
+    */
 
 
-        // Initialize individual Coordinates
-        foreach (Coordinate coord in CoordinateList) 
-        { 
-            coord.InitializeNeighborMap();
-            yield return new WaitUntil(() => coord.foundNeighbors);
-        }
 
-        coordNeighborsInitialized = true;
-    }
-
-    static void SetAllCoordinateTypesToDefault()
+    void SetAllCoordinateTypesToDefault()
     {
         CoordinateValueMap.ToList().ForEach(entry => entry.Value.type = Coordinate.TYPE.NULL);
 
@@ -114,11 +78,11 @@ public class CoordinateMap : MonoBehaviour
     }
 
 
-    static void ResetAllCoordinatesToDefault()
+    void ResetAllCoordinatesToDefault()
     {
         foreach (Coordinate coord in CoordinateList)
         {
-            Vector2Int coordinateVector = coord.NormalizedCoordinate;
+            Vector2Int coordinateVector = coord.LocalCoordinate;
             Coordinate worldCoordinate = CoordinateValueMap[coordinateVector];
 
             int coordMax = WorldGeneration.GetFullRegionWidth_inChunks();
@@ -157,16 +121,13 @@ public class CoordinateMap : MonoBehaviour
     {
         CoordinateList = new();
         CoordinateValueMap = new();
-
-        coordMapInitialized = false;
-        coordNeighborsInitialized = false;
     }
 
     #endregion
 
     #region == GET MAP COORDINATES ================================ ////
 
-    public static Coordinate GetCoordinateAt(Vector2Int coordinate)
+    public Coordinate GetCoordinateAt(Vector2Int coordinate)
     {
         if (!coordMapInitialized) { return null; }
 
@@ -178,7 +139,7 @@ public class CoordinateMap : MonoBehaviour
         return null;
     }
 
-    public static List<Coordinate> GetAllCoordinatesOfType(Coordinate.TYPE type)
+    public List<Coordinate> GetAllCoordinatesOfType(Coordinate.TYPE type)
     {
         List<Coordinate> typeList = new();
         foreach(Coordinate coord in CoordinateList)
@@ -191,17 +152,17 @@ public class CoordinateMap : MonoBehaviour
         return typeList;
     }
 
-    public static List<Coordinate.TYPE> GetCoordinateTypesFromList(List<Coordinate> worldCoords)
+    public List<Coordinate.TYPE> GetCoordinateTypesFromList(List<Coordinate> worldCoords)
     {
         List<Coordinate.TYPE> typeList = new();
         foreach (Coordinate coord in worldCoords)
         {
-            typeList.Add(CoordinateValueMap[coord.NormalizedCoordinate].type); // Get type from map
+            typeList.Add(CoordinateValueMap[coord.LocalCoordinate].type); // Get type from map
         }
         return typeList;
     }
 
-    public static List<Coordinate> GetCoordinatesOnBorder(WorldDirection direction)
+    public List<Coordinate> GetCoordinatesOnBorder(WorldDirection direction)
     {
         List<Coordinate> coordinatesOnEdge = new List<Coordinate>();
         List<Coordinate> borderMap = GetAllCoordinatesOfType(Coordinate.TYPE.BORDER);
@@ -218,16 +179,16 @@ public class CoordinateMap : MonoBehaviour
     #endregion
 
     #region == SET MAP COORDINATES ================================================================ ///
-    public static bool SetMapCoordinateToType(Coordinate worldCoord, Coordinate.TYPE type, Color? debugColor = null)
+    public bool SetMapCoordinateToType(Coordinate worldCoord, Coordinate.TYPE type, Color? debugColor = null)
     {
         if (!coordMapInitialized || worldCoord == null) { return false; }
-        CoordinateValueMap[worldCoord.NormalizedCoordinate].type = type;
+        CoordinateValueMap[worldCoord.LocalCoordinate].type = type;
 
         if (debugColor.HasValue) { worldCoord.debugColor = debugColor.Value; }
 
         return true;
     }
-    public static bool SetMapCoordinatesToType(List<Coordinate> coords, Coordinate.TYPE conversionType, Color? debugColor = null)
+    public bool SetMapCoordinatesToType(List<Coordinate> coords, Coordinate.TYPE conversionType, Color? debugColor = null)
     {
         if (!coordMapInitialized) { return false; }
         foreach (Coordinate coordinate in coords)
@@ -255,7 +216,7 @@ public class CoordinateMap : MonoBehaviour
         worldExitPaths.Add(new WorldExitPath(defaultStart, defaultEnd));
     }
 
-    public static Coordinate GetCoordinateAtWorldExit(WorldDirection direction, int index)
+    public Coordinate GetCoordinateAtWorldExit(WorldDirection direction, int index)
     {
         List<Coordinate> borderCoords = GetCoordinatesOnBorder(direction);
         if (borderCoords.Count > index)
@@ -284,12 +245,12 @@ public class CoordinateMap : MonoBehaviour
 
         if (exitPathsAreInitialized == false)
         {
-            exitPathsInitialized = false;
+            //exitPathsInitialized = false;
             UpdateAllWorldExitPaths(); // Update again 
         }
         else
         {
-            exitPathsInitialized = true;
+            //exitPathsInitialized = true;
         }
     }
 
@@ -309,7 +270,7 @@ public class CoordinateMap : MonoBehaviour
         int centerY = Mathf.CeilToInt(WorldGeneration.GetFullRegionWidth_inChunks() / 2);
         Coordinate centerCoordinate = GetCoordinateAt(new Vector2Int(centerX, centerY));
 
-        Debug.Log($"Create Zone at {centerCoordinate.NormalizedCoordinate}");
+        Debug.Log($"Create Zone at {centerCoordinate.LocalCoordinate}");
         worldZones.Add(new WorldZone(centerCoordinate, WorldZone.TYPE.NATURAL_CROSS));
     }
 
@@ -328,12 +289,12 @@ public class CoordinateMap : MonoBehaviour
         }
 
         if (zonesAreInitialized == false) { 
-            zonesInitialized = false;
+            //zonesInitialized = false;
             UpdateAllWorldZones();
         }
         else 
         { 
-            zonesInitialized = true;
+            //zonesInitialized = true;
         }
     }
 
@@ -349,7 +310,7 @@ public class CoordinateMap : MonoBehaviour
 
     #region == COORDINATE PATHFINDING =================================///
 
-    public static List<Coordinate> FindWorldCoordinatePath(Vector2Int startCoord, Vector2Int endCoord, float pathRandomness = 0)
+    public List<Coordinate> FindWorldCoordinatePath(Vector2Int startCoord, Vector2Int endCoord, float pathRandomness = 0)
     {
         // A* Pathfinding implementation
         // gCost is the known cost from the starting node
@@ -407,20 +368,20 @@ public class CoordinateMap : MonoBehaviour
 
             foreach (Coordinate neighbor in CoordinateValueMap[current].GetValidNaturalNeighbors())
             {
-                if (closedSet.Contains(neighbor.NormalizedCoordinate) || !IsCoordinateValidForPathfinding(neighbor.NormalizedCoordinate))
+                if (closedSet.Contains(neighbor.LocalCoordinate) || !IsCoordinateValidForPathfinding(neighbor.LocalCoordinate))
                         continue; // Skip non-traversable neighbors and those already evaluated
 
-                float tentativeGCost = gCost[current] + Vector2Int.Distance(current, neighbor.NormalizedCoordinate);
+                float tentativeGCost = gCost[current] + Vector2Int.Distance(current, neighbor.LocalCoordinate);
 
-                if (tentativeGCost < gCost[neighbor.NormalizedCoordinate])
+                if (tentativeGCost < gCost[neighbor.LocalCoordinate])
                 {
                     // This path to neighbor is better than any previous one. Record it!
-                    parents[neighbor.NormalizedCoordinate] = CoordinateValueMap[current];
-                    gCost[neighbor.NormalizedCoordinate] = tentativeGCost;
-                    fCost[neighbor.NormalizedCoordinate] = tentativeGCost + Vector2Int.Distance(neighbor.NormalizedCoordinate, endCoord);
+                    parents[neighbor.LocalCoordinate] = CoordinateValueMap[current];
+                    gCost[neighbor.LocalCoordinate] = tentativeGCost;
+                    fCost[neighbor.LocalCoordinate] = tentativeGCost + Vector2Int.Distance(neighbor.LocalCoordinate, endCoord);
 
-                    if (!openSet.Contains(neighbor.NormalizedCoordinate))
-                        openSet.Add(neighbor.NormalizedCoordinate);
+                    if (!openSet.Contains(neighbor.LocalCoordinate))
+                        openSet.Add(neighbor.LocalCoordinate);
                 }
             }
         }
@@ -430,7 +391,7 @@ public class CoordinateMap : MonoBehaviour
     }
 
     // Helper method to retrace path from end to start using parent references
-    static List<Coordinate> RetracePath(Vector2Int startCoord, Vector2Int endCoord, Dictionary<Vector2Int, Coordinate> parents)
+    List<Coordinate> RetracePath(Vector2Int startCoord, Vector2Int endCoord, Dictionary<Vector2Int, Coordinate> parents)
     {
         List<Coordinate> path = new List<Coordinate>();
         Vector2Int currentCoord = endCoord;
@@ -438,7 +399,7 @@ public class CoordinateMap : MonoBehaviour
         while (currentCoord != startCoord)
         {
             path.Add(CoordinateValueMap[currentCoord]);
-            currentCoord = parents[currentCoord].NormalizedCoordinate; // Move to the parent coordinate
+            currentCoord = parents[currentCoord].LocalCoordinate; // Move to the parent coordinate
         }
         path.Add(CoordinateValueMap[startCoord]); // Add the start coordinate at the end
         path.Reverse(); // Reverse the list to start from the beginning
@@ -446,13 +407,7 @@ public class CoordinateMap : MonoBehaviour
         return path;
     }
 
-    public static float GetCoordinateDistance(Coordinate a, Coordinate b)
-    {
-        // This link has more heuristics :: https://www.enjoyalgorithms.com/blog/a-star-search-algorithm
-        return Vector2.Distance(a.Position, b.Position);
-    }
-
-    public static bool IsCoordinateValidForPathfinding(Vector2Int candidate)
+    public bool IsCoordinateValidForPathfinding(Vector2Int candidate)
     {
         // Check Types
         if (CoordinateValueMap[candidate] != null && 
