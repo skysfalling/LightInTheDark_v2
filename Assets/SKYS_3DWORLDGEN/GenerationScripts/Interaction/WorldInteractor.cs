@@ -28,7 +28,6 @@ public class WorldInteractor : MonoBehaviour
     {
         _worldGeneration = WorldGeneration.Instance;
         _worldCellMap = WorldCellMap.Instance;
-        _worldChunkMap = WorldChunkMap.Instance;
         _worldSpawnMap = WorldSpawnMap.Instance;
         _worldEnvironment = WorldEnvironment.Instance;
     }

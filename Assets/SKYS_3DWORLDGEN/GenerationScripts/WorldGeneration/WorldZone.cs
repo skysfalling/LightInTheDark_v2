@@ -90,7 +90,7 @@ public class WorldZone
         _zoneCoordinates.AddRange(neighborsInZone);
 
         // Assign Chunk Heights
-        WorldChunkMap.SetChunksToHeightFromCoordinates(_zoneCoordinates, zoneHeight);
+        //WorldChunkMap.SetChunksToHeightFromCoordinates(_zoneCoordinates, zoneHeight);
 
         // Assign Zone TYPE
         //CoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, Coordinate.TYPE.ZONE, GetRGBAfromDebugColor(zoneColor));
@@ -147,11 +147,13 @@ public class WorldZone
 
 
     public List<Coordinate> GetZoneCoordinates() { return _zoneCoordinates; }
+    /*
     public List<WorldChunk> GetZoneChunks()
     {
         if (_zoneCoordinates == null || _zoneCoordinates.Count == 0) { return new List<WorldChunk>(); }
         return WorldChunkMap.GetChunksAtCoordinates(_zoneCoordinates);
     }
+    */
 }
 
 // =================================================================

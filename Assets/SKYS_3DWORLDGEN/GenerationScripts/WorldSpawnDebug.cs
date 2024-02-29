@@ -14,7 +14,6 @@ public class WorldSpawnDebug : MonoBehaviour
     public void OnDrawGizmosSelected()
     {
         _worldGeneration = FindObjectOfType<WorldGeneration>();
-        _worldChunkMap = FindObjectOfType<WorldChunkMap>();
         _worldSpawnMap = FindObjectOfType<WorldSpawnMap>();
 
         if (_worldGeneration == null) return;

@@ -20,7 +20,7 @@ public class WorldSpawnMap : MonoBehaviour
         initialized = false;
 
         _worldGeneration = FindObjectOfType<WorldGeneration>();
-        _worldChunkMap = FindObjectOfType<WorldChunkMap>();
+        //_worldChunkMap = FindObjectOfType<WorldChunkMap>();
 
         /*
         // Sort the chunks by type

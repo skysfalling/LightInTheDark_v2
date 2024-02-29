@@ -42,7 +42,7 @@ public class WorldChunkMesh
     public WorldChunkMesh(WorldChunk chunk, int groundHeight, Vector3 groundPosition)
     {
         this.chunk = chunk;
-        this.worldCoordinate = chunk.worldCoordinate;
+        this.worldCoordinate = chunk.coordinate;
 
         List<FaceType> facesToGenerate = new List<FaceType>()
         {
@@ -244,7 +244,7 @@ public class WorldChunkMesh
 
             if (neighborCoord != null)
             {
-                WorldChunk neighborChunk = WorldChunkMap.GetChunkAt(neighborCoord);
+                WorldChunk neighborChunk = chunk.chunkMap.GetChunkAt(neighborCoord);
                 faceHeight -= neighborChunk.groundHeight; // subtract based on neighbor height
                 faceHeight -= default_chunkMeshDimensions.y; // subtract 'underground' amount
                 faceHeight = Mathf.Max(faceHeight, 0); // set to 0 as minimum

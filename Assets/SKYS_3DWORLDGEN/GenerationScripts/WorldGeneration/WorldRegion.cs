@@ -26,6 +26,8 @@ public class WorldRegion : MonoBehaviour
     private int _regionMaxGroundHeight = WorldGeneration.RegionMaxGroundHeight;
 
     public CoordinateMap coordinateMap;
+    public WorldChunkMap worldChunkMap;
+
     public Vector2Int regionCoordinate;
     public Vector3 centerPosition;
     public Vector3 originCoordinatePosition;
@@ -55,5 +57,12 @@ public class WorldRegion : MonoBehaviour
         this.coordinateMap = new CoordinateMap(this);
 
         _initialized = true;
+    }
+
+    public void CreateChunkMap()
+    {
+        if (coordinateMap == null) { Debug.Log("Cannot create chunk map without a coordinate map"); return; }
+        this.worldChunkMap = new WorldChunkMap(this.coordinateMap);
+
     }
 }

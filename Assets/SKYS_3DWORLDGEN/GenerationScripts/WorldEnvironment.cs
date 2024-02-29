@@ -57,7 +57,6 @@ public class WorldEnvironment : MonoBehaviour
         generation_finished = false;
 
         _worldGeneration = FindObjectOfType<WorldGeneration>();
-        _worldChunkMap = FindObjectOfType<WorldChunkMap>();
         _worldSpawnMap = FindObjectOfType<WorldSpawnMap>();
 
         Destroy(instantiatedPlayer);

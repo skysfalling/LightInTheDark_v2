@@ -2,113 +2,58 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WorldChunkMap : MonoBehaviour
+public class WorldChunkMap
 {
-    // >> SINGLETON INSTANCE ================== >>
-    public static WorldChunkMap Instance;
-    public void Awake()
+    HashSet<WorldChunk> _chunks = new();
+    Dictionary<Vector2Int, WorldChunk> _chunkMap = new();
+
+    public bool initialized { get; private set; }
+    public CoordinateMap coordinateMap { get; private set; }
+    public HashSet<WorldChunk> allChunks { get { return _chunks; } private set { } }
+
+    public WorldChunkMap(CoordinateMap coordinateMap)
     {
-        if (Instance == null) { Instance = this; }
-    }
-
-    public static bool chunkMapInitialized { get; private set; }
-    public static bool chunkMeshInitialized { get; private set; }
-
-    public static List<WorldChunk> ChunkList { get; private set; }
-    public static Dictionary<Vector2Int, WorldChunk> CoordinateChunkMap { get; private set; }
-
-    // == HANDLE CHUNK MAP =================================== ///
-    public IEnumerator InitializeChunkMap()
-    {
-
-        if (chunkMapInitialized)
+        this.coordinateMap = coordinateMap;
+        foreach (Coordinate coord in coordinateMap.allCoordinates)
         {
-            ResetAllChunkHeights();
-            yield return null;
+            WorldChunk newChunk = new WorldChunk(this, coord);
+            _chunks.Add(newChunk);
+            _chunkMap[coord.localPosition] = newChunk;
         }
 
-        /*
-        yield return new WaitUntil(() => CoordinateMap.coordMapInitialized);
-
-        List<WorldChunk> newChunkList = new();
-        Dictionary<Vector2Int, WorldChunk> newCoordinateChunkMap = new();
-
-        // Create Chunks at each World Coordinate
-        foreach (Coordinate worldCoord in CoordinateMap.CoordinateList)
-        {
-            WorldChunk newChunk = new WorldChunk(worldCoord);
-
-            newChunkList.Add(newChunk);
-            newCoordinateChunkMap[worldCoord.LocalCoordinate] = newChunk;
-        }
-        */
-
-        //ChunkList = newChunkList;
-        //CoordinateChunkMap = newCoordinateChunkMap;
-
-        chunkMapInitialized = true;
+        initialized = true;
     }
 
-    public void DestroyChunkMap()
-    {
-        ChunkList = new();
-        CoordinateChunkMap = new();
-
-        chunkMapInitialized = false;
-    }
-
-    public void UpdateChunkMap()
-    {
-        StartCoroutine(InitializeChunkMap()); // Make sure chunk map is initialized
-    }
-
-    public void InitializeChunkMesh()
-    {
-        StartCoroutine(InitializeChunkMeshRoutine());
-    }
-
-     IEnumerator InitializeChunkMeshRoutine()
-     {
-
-        foreach (WorldChunk chunk in ChunkList)
-        {
-            // Generate individual chunk
-            chunk.GenerateChunkMesh();
-            yield return new WaitUntil(() => chunk.generation_finished);
-        }
-
-        chunkMeshInitialized = true;
-     }
 
     #region == GET CHUNKS ======================================== ////
 
-    public static WorldChunk GetChunkAt(Vector2Int coordinate)
+    public WorldChunk GetChunkAt(Vector2Int position)
     {
-        if (!chunkMapInitialized) { return null; }
+        if (!initialized) { return null; }
 
         // Use the dictionary for fast lookups
-        if (CoordinateChunkMap.TryGetValue(coordinate, out WorldChunk foundChunk))
+        if (_chunkMap.TryGetValue(position, out WorldChunk foundChunk))
         {
             return foundChunk;
         }
         return null;
     }
 
-    public static WorldChunk GetChunkAt(Coordinate worldCoord)
+    public WorldChunk GetChunkAt(Coordinate worldCoord)
     {
-        if (!chunkMapInitialized || worldCoord == null) { return null; }
+        if (!initialized || worldCoord == null) { return null; }
 
         // Use the dictionary for fast lookups
-        if (CoordinateChunkMap.TryGetValue(worldCoord.localPosition, out WorldChunk foundChunk))
+        if (_chunkMap.TryGetValue(worldCoord.localPosition, out WorldChunk foundChunk))
         {
             return foundChunk;
         }
         return null;
     }
 
-    public static List<WorldChunk> GetChunksAtCoordinates(List<Coordinate> worldCoords)
+    public List<WorldChunk> GetChunksAtCoordinates(List<Coordinate> worldCoords)
     {
-        if (!chunkMapInitialized) { return new List<WorldChunk>(); }
+        if (!initialized) { return new List<WorldChunk>(); }
 
         List<WorldChunk> chunks = new List<WorldChunk>();
         foreach (Coordinate worldCoord in worldCoords)
@@ -122,16 +67,16 @@ public class WorldChunkMap : MonoBehaviour
 
 
     #region == SET CHUNKS =====================================////
-    public static void ResetAllChunkHeights()
+    public void ResetAllChunkHeights()
     {
-        foreach (WorldChunk chunk in ChunkList)
+        foreach (WorldChunk chunk in allChunks)
         {
             chunk.SetGroundHeight(0);
         }
     }
 
 
-    public static void SetChunksToHeight(List<WorldChunk> worldChunk, int chunkHeight)
+    public void SetChunksToHeight(List<WorldChunk> worldChunk, int chunkHeight)
     {
         foreach (WorldChunk chunk in worldChunk)
         {
@@ -139,7 +84,7 @@ public class WorldChunkMap : MonoBehaviour
         }
     }
 
-    public static void SetChunksToHeightFromCoordinates(List<Coordinate> worldCoords, int chunkHeight)
+    public void SetChunksToHeightFromCoordinates(List<Coordinate> worldCoords, int chunkHeight)
     {
         foreach (Coordinate coord in worldCoords)
         {

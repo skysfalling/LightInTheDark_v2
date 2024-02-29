@@ -122,7 +122,7 @@ public class WorldGeneration : MonoBehaviour
         }
 
         // Start Routine
-        _worldGenerationRoutine = StartCoroutine(GenerateRegionChunks());
+        //_worldGenerationRoutine = StartCoroutine(GenerateRegionChunks());
     }
 
     public void Reset()
@@ -132,6 +132,7 @@ public class WorldGeneration : MonoBehaviour
     }
     #endregion
 
+    /*
     #region == GENERATE CHUNKS ================================================ ///
     IEnumerator GenerateRegionChunks(float delay = 0.25f)
     {
@@ -144,7 +145,7 @@ public class WorldGeneration : MonoBehaviour
         Debug.Log($"WORLD GENERATION :: START GENERATION");
 
         // [[ STAGE 0 ]] ==> INITIALIZE MAPS
-        /*
+        
         if (!CoordinateMap.coordMapInitialized || !WorldChunkMap.chunkMapInitialized)
         {
             //FindObjectOfType<WorldRegionMap>().UpdateRegionMap();
@@ -164,10 +165,10 @@ public class WorldGeneration : MonoBehaviour
         yield return new WaitUntil(() => CoordinateMap.exitPathsInitialized);
         float stage2Time = Time.realtimeSinceStartup - stage1Time;
         Debug.Log($"WORLD GENERATION :: PATHS INITIALIZED :: Stage Duration {stage2Time}");
-        */
+        
 
         // [[ STAGE 3 ]] ==> INITIALIZE CHUNKS
-        foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
+        foreach (WorldChunk chunk in WorldChunkMap._chunkList)
         {
             yield return new WaitUntil(() => chunk.generation_finished);
 
@@ -179,7 +180,7 @@ public class WorldGeneration : MonoBehaviour
             //$"\n -> {WorldChunkMap.ChunkList.Count} CHUNKS");
 
         // [[ GENERATE COMBINED MESHES ]] ========================================== >>
-        /*
+        
         // Create Combined Mesh of world chunks
         Mesh combinedMesh = CombineChunks(WorldChunkMap.ChunkList);
         _worldGenerationObject = CreateCombinedMeshObject(combinedMesh, WorldMaterialLibrary.Instance.chunkMaterial);
@@ -187,39 +188,19 @@ public class WorldGeneration : MonoBehaviour
         _worldGenerationObject.name = "(WORLD GENERATION) Combined Ground Mesh";
         MeshCollider collider = _worldGenerationObject.AddComponent<MeshCollider>();
         collider.sharedMesh = combinedMesh;
-        */
-        
-        /*
-        // Create Combined Mesh
-        Mesh combinedBorderMesh = CombineChunks(_borderChunks);
-        _worldBorderObject = CreateCombinedMeshObject(combinedBorderMesh, WorldMaterialLibrary.chunkMaterial);
-        _worldBorderObject.transform.parent = transform;
-        _worldBorderObject.name = "(WORLD GENERATION) Combined Ground Border";  
-        */
 
-        #region [[ INITIALIZE MAPS ]] ============================================= >>
-        /*
-        // Initialize Spawn Map
-        /*
-        WorldSpawnMap worldSpawnMap = FindObjectOfType<WorldSpawnMap>();
-        FindObjectOfType<WorldSpawnMap>().InitializeSpawnMap();
-        yield return new WaitUntil(() => worldCellMap.initialized);
-        Debug.Log(_prefix + "COMPLETE : Initialized World Spawn Map");
-        */
+    // Create Combined Mesh
+    Mesh combinedBorderMesh = CombineChunks(_borderChunks);
+    _worldBorderObject = CreateCombinedMeshObject(combinedBorderMesh, WorldMaterialLibrary.chunkMaterial);
+    _worldBorderObject.transform.parent = transform;
+    _worldBorderObject.name = "(WORLD GENERATION) Combined Ground Border";  
 
-        /*
-        // [[ ENVIRONMENT GENERATION ]] ===================================
-        WorldEnvironment worldEnvironment = FindObjectOfType<WorldEnvironment>();
-        worldEnvironment.StartEnvironmentGeneration();
-        yield return new WaitUntil(() => worldEnvironment.generation_finished);
-        Debug.Log(_prefix + "COMPLETE : Finished Environment Generation");
-        */
-        #endregion
 
-        generation_finished = true;
+    generation_finished = true;
         _worldGenerationRoutine = null;
     }
     #endregion
+    */
 
     #region == CREATE COMBINED CHUNK MESH ==============================================
     /// <summary>

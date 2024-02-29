@@ -220,13 +220,13 @@ public class WorldRegionMapEditor : Editor
             EditorGUI.BeginDisabledGroup(true);
 
             //CreateToggle("Coordinate Map", CoordinateMap.coordMapInitialized);
-            CreateToggle("Chunk Map", WorldChunkMap.chunkMapInitialized);
+            //CreateToggle("Chunk Map", WorldChunkMap.initialized);
             CreateToggle("Cell Map", WorldCellMap.cellMapInitialized);
 
             //CreateToggle("Coordinate Neighbors", CoordinateMap.coordNeighborsInitialized);
             //CreateToggle("Zones", CoordinateMap.zonesInitialized);
             //CreateToggle("Exit Paths", CoordinateMap.exitPathsInitialized);
-            CreateToggle("World Chunk Mesh", WorldChunkMap.chunkMeshInitialized);
+            //CreateToggle("World Chunk Mesh", WorldChunkMap.chunkMeshInitialized);
 
             EditorGUI.EndDisabledGroup();
             EditorGUILayout.EndVertical();
@@ -280,7 +280,7 @@ public class WorldRegionMapEditor : Editor
             }
             else
             {
-                Coordinate coord = selectedChunk.worldCoordinate;
+                Coordinate coord = selectedChunk.coordinate;
                 try
                 {
                     string chunkParameters =
@@ -348,38 +348,39 @@ public class WorldRegionMapEditor : Editor
         coordinatelabelStyle.alignment = TextAnchor.MiddleCenter; // Center the text
         coordinatelabelStyle.fontStyle = FontStyle.Bold;
 
-        // << DRAW CHUNK MAP >>
-        foreach (WorldChunk chunk in WorldChunkMap.ChunkList)
-        {
-            switch (worldChunkMapDebug)
-            {
-                case WorldChunkMapDebug.ALL_CHUNKS:
-
-                    //DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
-                    break;
-            }
-        }
-
         /*
-        // << DRAW BASE COORDINATE MAP >>
-        List<Coordinate> coordList = CoordinateMap.CoordinateList;
-        foreach (Coordinate coord in coordList)
-        {
-            switch(worldCoordinateMapDebug)
-            {
-                case WorldCoordinateMapDebug.COORDINATE:
-                    Handles.Label(coord.WorldPosition, new GUIContent($"{coord.LocalCoordinate}"), coordinatelabelStyle);
-                    break;
-                case WorldCoordinateMapDebug.TYPE:
-                    Handles.Label(coord.WorldPosition, new GUIContent($"{coord.type}"), coordinatelabelStyle);
-                    break;
-                case WorldCoordinateMapDebug.CHUNK_HEIGHT:
-                    WorldChunk chunk = WorldChunkMap.GetChunkAt(coord);
-                    Handles.Label(coord.WorldPosition, new GUIContent($"{chunk.groundHeight}"), coordinatelabelStyle);
-                    break;
-            }
-        }
-        */
+
+// << DRAW CHUNK MAP >>
+foreach (WorldChunk chunk in WorldChunkMap._chunkList)
+{
+    switch (worldChunkMapDebug)
+    {
+        case WorldChunkMapDebug.ALL_CHUNKS:
+
+            //DrawRectangleAtChunkGround(chunk, chunk.worldCoordinate.debugColor);
+            break;
+    }
+}
+
+// << DRAW BASE COORDINATE MAP >>
+List<Coordinate> coordList = CoordinateMap.CoordinateList;
+foreach (Coordinate coord in coordList)
+{
+    switch(worldCoordinateMapDebug)
+    {
+        case WorldCoordinateMapDebug.COORDINATE:
+            Handles.Label(coord.WorldPosition, new GUIContent($"{coord.LocalCoordinate}"), coordinatelabelStyle);
+            break;
+        case WorldCoordinateMapDebug.TYPE:
+            Handles.Label(coord.WorldPosition, new GUIContent($"{coord.type}"), coordinatelabelStyle);
+            break;
+        case WorldCoordinateMapDebug.CHUNK_HEIGHT:
+            WorldChunk chunk = WorldChunkMap.GetChunkAt(coord);
+            Handles.Label(coord.WorldPosition, new GUIContent($"{chunk.groundHeight}"), coordinatelabelStyle);
+            break;
+    }
+}
+*/
 
 
 
@@ -407,6 +408,7 @@ public class WorldRegionMapEditor : Editor
             GUILayout.BeginHorizontal();
             for (int x = 0; x < mapWidth; x++)
             {
+                /*
                 Coordinate worldCoord = null;// CoordinateMap.GetCoordinateAt(new Vector2Int(x, y));
                 WorldChunk worldChunk = WorldChunkMap.GetChunkAt(worldCoord);
                 if (worldCoord != null)
@@ -453,7 +455,8 @@ public class WorldRegionMapEditor : Editor
                     GUI.backgroundColor = Color.white; // Reset color to default
 
                     continue; // continue to next coordinate
-                }
+                                */
+
             }
             GUILayout.EndHorizontal();
         }

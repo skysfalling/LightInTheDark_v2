@@ -15,7 +15,6 @@ public class CameraOverlayUI : MonoBehaviour
     void Start()
     {
         _worldGenerationStats = FindObjectOfType<WorldStatTracker>();
-        _worldChunkMap = WorldChunkMap.Instance;
     }
 
     // Update is called once per frame

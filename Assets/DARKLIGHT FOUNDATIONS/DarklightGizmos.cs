@@ -37,7 +37,7 @@ public static class DarklightGizmos
         Handles.Label(labelPosition, label, labelStyle);
     }
 
-    public static void DrawFilledSquareAt(Vector3 position, int size, Vector3 direction, Color fillColor)
+    public static void DrawFilledSquareAt(Vector3 position, float size, Vector3 direction, Color fillColor)
     {
         Handles.color = fillColor;
         Handles.DrawSolidRectangleWithOutline(

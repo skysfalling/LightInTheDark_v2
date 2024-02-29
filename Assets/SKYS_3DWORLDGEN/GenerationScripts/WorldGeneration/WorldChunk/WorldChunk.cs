@@ -13,6 +13,7 @@ public class WorldChunk
     int _chunkWidth { get { return WorldGeneration.ChunkWidth_inCells; } }
 
     public WorldChunkMesh chunkMesh;
+    public Color debugColor = Color.white;
     public int groundHeight { get; private set; }
     int _realChunkHeight { get { return groundHeight * WorldGeneration.CellWidth_inWorldSpace; } }
 
@@ -40,10 +41,11 @@ public class WorldChunk
         EXIT
     }
     public TYPE type;
-    public Vector2Int coordinate;
-    public bool generation_finished = false;
+    public WorldChunkMap chunkMap { get; private set; }
+    public Vector2Int localPosition { get; private set; }
+    public bool generation_finished { get; private set; }
 
-    public Coordinate worldCoordinate { get { return null; } }
+    public Coordinate coordinate { get; private set; }
     public Vector3 groundPosition { get; private set; }
     public Vector3 groundMeshDimensions { get; private set; }
 
@@ -53,12 +55,14 @@ public class WorldChunk
     bool _eastEdgeActive;
     bool _westEdgeActive;
 
-    public WorldChunk(Coordinate worldCoord)
+    public WorldChunk(WorldChunkMap chunkMap, Coordinate coordinate)
     {
-        this.coordinate = worldCoord.localPosition;
-        this.groundHeight = PerlinNoise.CalculateHeightFromNoise(this.coordinate);
+        this.chunkMap = chunkMap;
+        this.coordinate = coordinate;
+        this.localPosition = coordinate.localPosition;
+        this.groundHeight = PerlinNoise.CalculateHeightFromNoise(this.localPosition);
 
-        groundPosition = new Vector3(worldCoord.worldPosition.x, _realChunkHeight, worldCoord.worldPosition.z);
+        groundPosition = new Vector3(coordinate.worldPosition.x, _realChunkHeight, coordinate.worldPosition.z);
         groundMeshDimensions = new Vector3(_chunkWidth, _realChunkHeight, _chunkWidth);
     }
 
@@ -76,8 +80,8 @@ public class WorldChunk
 
     void RecalcuatePosition()
     {
-        if (coordinate == null) return;
-        groundPosition = new Vector3(worldCoordinate.worldPosition.x, _realChunkHeight, worldCoordinate.worldPosition.z);
+        if (localPosition == null) return;
+        groundPosition = new Vector3(coordinate.worldPosition.x, _realChunkHeight, coordinate.worldPosition.z);
         groundMeshDimensions = new Vector3(_chunkWidth, _realChunkHeight, _chunkWidth);
     }
 
@@ -168,30 +172,6 @@ public class WorldChunk
     }
 
     #endregion
-
-    public List<WorldChunk> GetNaturalChunkNeighbors()
-    {
-        List<WorldChunk> chunkNeighbors = new();
-        List<Coordinate> neighborCoords = worldCoordinate.GetValidNaturalNeighbors();
-        foreach (Coordinate neighborCoord in neighborCoords)
-        {
-            chunkNeighbors.Add(WorldChunkMap.GetChunkAt(neighborCoord.localPosition));
-        }
-        return chunkNeighbors;
-    }
-
-    public List<WorldChunk> GetDiagonalChunkNeighbors()
-    {
-        List<WorldChunk> chunkNeighbors = new();
-        List<Coordinate> neighborCoords = worldCoordinate.GetValidDiagonalNeighbors();
-        foreach (Coordinate neighborCoord in neighborCoords)
-        {
-            chunkNeighbors.Add(WorldChunkMap.GetChunkAt(neighborCoord.localPosition));
-        }
-        return chunkNeighbors;
-    }
-
-
 
     // ================ CREATE & INITIALIZE WORLD CELLS ============================== >>
     public List<WorldCell> localCells = new List<WorldCell>();

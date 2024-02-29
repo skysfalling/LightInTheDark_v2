@@ -5,8 +5,6 @@ using UnityEngine;
 
 public enum MapBorder { NORTH, SOUTH, EAST, WEST }
 
-
-
 public class CoordinateMap
 {
     #region << STATIC FUNCTIONS <<
