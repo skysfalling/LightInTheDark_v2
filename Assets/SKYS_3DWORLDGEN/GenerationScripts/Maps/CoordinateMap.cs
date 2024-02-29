@@ -68,7 +68,7 @@ public class CoordinateMap
     HashSet<Vector2Int> _positions = new();
     HashSet<Coordinate> _coordinates = new();
     Dictionary<Vector2Int, Coordinate> _positionMap = new();
-    Dictionary<Coordinate.TYPE, HashSet<Coordinate>> _typeMap = new();
+    Dictionary<Coordinate.TYPE, HashSet<Vector2Int>> _typeMap = new();
     Dictionary<MapBorder, List<Vector2Int>> _borderPositionsMap = new(); // Enum , Sorted List of Border Coordinates
 
     public WorldRegion WorldRegion { get; private set; }
@@ -83,12 +83,13 @@ public class CoordinateMap
     {
         WorldRegion = region;
 
+
+        // << CREATE REGION COORDINATES >> =================================================================
+
         int fullRegionWidth = WorldGeneration.GetFullRegionWidth_inChunks();
         int coordMax = fullRegionWidth;
 
         _coordinateMap = new Coordinate[coordMax][]; // initialize row
-
-        // << CREATE REGION COORDINATES >>
         for (int x = 0; x < coordMax; x++)
         {
             _coordinateMap[x] = new Coordinate[coordMax]; // initialize column
@@ -103,7 +104,7 @@ public class CoordinateMap
             }
         }
 
-        // << ASSIGN COORDINATE TYPES >>
+        // << ASSIGN COORDINATE TYPES >> =================================================================
         // ** Set Coordinate To Type updates the TypeMap accordingly
 
         // >> initialize _border positions
@@ -127,12 +128,12 @@ public class CoordinateMap
             if (cornerCoordinates.Contains(pos))
             {
                 // Set Type to Closed
-                SetCoordinateToType(_positionMap[pos], Coordinate.TYPE.CLOSED);
+                SetCoordinateToType(pos, Coordinate.TYPE.CLOSED);
             }
             else if ( pos.x == range.x || pos.x == range.y || pos.y == range.x || pos.y == range.y)
             {
                 // Set Type to Border
-                SetCoordinateToType(_positionMap[pos], Coordinate.TYPE.BORDER);
+                SetCoordinateToType(pos, Coordinate.TYPE.BORDER);
 
                 // Set Border Map
                 if (pos.x == range.x) { _borderPositionsMap[MapBorder.WEST].Add(pos); } // WEST
@@ -143,7 +144,7 @@ public class CoordinateMap
             else
             {
                 // Set Type to Null
-                SetCoordinateToType(_positionMap[pos], Coordinate.TYPE.NULL); 
+                SetCoordinateToType(pos, Coordinate.TYPE.NULL); 
             }
         }
 
@@ -180,40 +181,40 @@ public class CoordinateMap
     }
     */
 
-    void SetCoordinateToType(Coordinate coordinate, Coordinate.TYPE type)
+    void SetCoordinateToType(Vector2Int position, Coordinate.TYPE newType)
     {
-        // Remove coordinate from previous type reference
-        if (_typeMap.ContainsKey(coordinate.type))
+        if (!_positions.Contains(position)) return;
+
+        // Remove Old Type
+        Coordinate coordinate = _positionMap[position];
+        Coordinate.TYPE currentType = coordinate.type;
+        if (_typeMap.ContainsKey(currentType))
         {
-            _typeMap[coordinate.type].Remove(coordinate);
+            _typeMap[currentType].Remove(position);
         }
 
-        // Assign type
-        coordinate.type = type;
-        switch (type)
+        // Assign New Type
+        coordinate.type = newType;
+        switch (newType)
         {
             case Coordinate.TYPE.CLOSED: coordinate.debugColor = Color.black; break;
             case Coordinate.TYPE.BORDER: coordinate.debugColor = Color.black; break;
             case Coordinate.TYPE.NULL: coordinate.debugColor = Color.grey; break;
             case Coordinate.TYPE.EXIT: coordinate.debugColor = Color.red; break;
+            case Coordinate.TYPE.PATH: coordinate.debugColor = Color.white; break;
+
         }
 
         // If new TYPE key not found, create
-        if (!_typeMap.ContainsKey(type))
+        if (!_typeMap.ContainsKey(newType))
         {
-            _typeMap[type] = new HashSet<Coordinate> { coordinate };
+            _typeMap[newType] = new HashSet<Vector2Int> { position };
         }
         // else if the map doesnt already include the coordinate
-        else if (!_typeMap[type].Contains(coordinate))
+        else if (!_typeMap[newType].Contains(position))
         {
-            _typeMap[type].Add(coordinate);
+            _typeMap[newType].Add(position);
         }
-    }
-
-    void SetCoordinateToType(Vector2Int position, Coordinate.TYPE type)
-    {
-        Coordinate coordinate = GetCoordinateAt(position);
-        SetCoordinateToType(coordinate, type);
     }
 
     void SetCoordinatesToType(List<Vector2Int> positions,  Coordinate.TYPE type)
@@ -236,32 +237,68 @@ public class CoordinateMap
             return;
         }
 
-        SetCoordinateToType(coordinate, Coordinate.TYPE.EXIT);
+        exitPositions.Add(coordinate.localPosition);
+
+        SetCoordinateToType(coordinate.localPosition, Coordinate.TYPE.EXIT);
     }
 
     #endregion
 
     #region == GET MAP COORDINATES ================================ ////
 
-    public Coordinate GetCoordinateAt(Vector2Int coordinate)
+    public Coordinate GetCoordinateAt(Vector2Int position)
     {
-        if (_initialized && _positions.Contains(coordinate))
+        if (_initialized && _positions.Contains(position))
         {
-            return _positionMap[coordinate];
+            return _positionMap[position];
         }
         return null;
     }
 
-    public List<Coordinate> GetAllCoordinatesOfType(Coordinate.TYPE type)
+    public Coordinate.TYPE? GetCoordinateTypeAt(Vector2Int position)
+    {
+        if (_initialized && _positions.Contains(position))
+        {
+            return _positionMap[position].type;
+        }
+        return null;
+    }
+
+    public HashSet<Vector2Int> GetAllPositionsOfType(Coordinate.TYPE type)
     {
         if (!_typeMap.ContainsKey(type)) { _typeMap[type] = new(); } 
-        return _typeMap[type].ToList();
+        return _typeMap[type];
     }
 
     #endregion
 
+    public void CreatePathFrom(Vector2Int start, Vector2Int end)
+    {
+        WorldPath newPath = new WorldPath(this, start, end, 0.25f);
+        worldPaths.Add(newPath);
 
+        // Remove Exits from path positions
+        List<Vector2Int> positions = newPath.positions;
+        if (GetCoordinateTypeAt(start) == Coordinate.TYPE.EXIT) { positions.Remove(start); }
+        if (GetCoordinateTypeAt(end) == Coordinate.TYPE.EXIT) { positions.Remove(end); }
 
+        // Assign Path Type
+        SetCoordinatesToType(newPath.positions, Coordinate.TYPE.PATH);
+        Debug.Log($"Created Path from {start} to {end} with {newPath.positions.Count}");
+    }
+
+    public bool IsCoordinateValidForPathfinding(Vector2Int candidate)
+    {
+        // Check Types
+        if (_positionMap.ContainsKey(candidate) && _positionMap[candidate] != null 
+            && (_positionMap[candidate].type == Coordinate.TYPE.NULL 
+            || _positionMap[candidate].type == Coordinate.TYPE.PATH
+            || _positionMap[candidate].type == Coordinate.TYPE.EXIT ))
+        {
+            return true;
+        }
+        return false;
+    }
 
     // =====================================================================================
 
@@ -318,16 +355,6 @@ public class CoordinateMap
     }
     #endregion
 
-    public bool IsCoordinateValidForPathfinding(Vector2Int candidate)
-    {
-        // Check Types
-        if (_positionMap[candidate] != null &&
-           (_positionMap[candidate].type == Coordinate.TYPE.NULL
-           || _positionMap[candidate].type == Coordinate.TYPE.PATH))
-        {
-            return true;
-        }
-        return false;
-    }
+
 
 }

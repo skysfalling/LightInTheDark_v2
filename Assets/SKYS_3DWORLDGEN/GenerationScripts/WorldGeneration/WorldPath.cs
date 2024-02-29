@@ -6,7 +6,7 @@ public class WorldPath
 {
     public Vector2Int start { get; private set; }
     public Vector2Int end { get; private set; }
-    public List<Vector2Int> _positions { get; private set; }
+    public List<Vector2Int> positions { get; private set; }
     float _pathRandomness = 0;
     bool _initialized = false;
 
@@ -16,7 +16,7 @@ public class WorldPath
         this.end = end;
         this._pathRandomness = pathRandomness;
 
-        _positions = WorldPathfinder.FindPath(coordinateMap, this.start, this.end, _pathRandomness);
+        positions = WorldPathfinder.FindPath(coordinateMap, this.start, this.end, _pathRandomness);
     }
 
     public void Initialize()
@@ -45,9 +45,9 @@ public class WorldPath
         if (!_initialized) return;
 
         // Reset Coordinate Path Type
-        if (_positions != null && _positions.Count > 0)
+        if (positions != null && positions.Count > 0)
         {
-            _positions.Clear();
+            positions.Clear();
 
             _initialized = false;
         }

@@ -20,8 +20,8 @@ public class WorldRegionEditor : Editor
     WorldSpace editorViewSpace = WorldSpace.Region;
 
     // Coordinate Map
-    enum CoordinateMapDebug { NONE, COORDINATE, TYPE, CHUNK_HEIGHT }
-    CoordinateMapDebug coordinateMapDebugType = CoordinateMapDebug.COORDINATE;
+    enum CoordinateMapDebug { NONE, COORDINATE, TYPE }
+    CoordinateMapDebug coordinateMapDebugType = CoordinateMapDebug.TYPE;
     Coordinate selectedCoordinate = null;
     
 
@@ -123,10 +123,10 @@ public class WorldRegionEditor : Editor
 
             if (coordinateMapDebugType == CoordinateMapDebug.TYPE)
             {
-                EditorGUILayout.LabelField($"NULL TYPE : {coordinateMap.GetAllCoordinatesOfType(Coordinate.TYPE.NULL).Count}", rightAlignedStyle);
-                EditorGUILayout.LabelField($"BORDER TYPE : {coordinateMap.GetAllCoordinatesOfType(Coordinate.TYPE.BORDER).Count}", rightAlignedStyle);
-                EditorGUILayout.LabelField($"CLOSED TYPE : {coordinateMap.GetAllCoordinatesOfType(Coordinate.TYPE.CLOSED).Count}", rightAlignedStyle);
-                EditorGUILayout.LabelField($"EXIT TYPE : {coordinateMap.GetAllCoordinatesOfType(Coordinate.TYPE.EXIT).Count}", rightAlignedStyle);
+                EditorGUILayout.LabelField($"NULL TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.NULL).Count}", rightAlignedStyle);
+                EditorGUILayout.LabelField($"BORDER TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.BORDER).Count}", rightAlignedStyle);
+                EditorGUILayout.LabelField($"CLOSED TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.CLOSED).Count}", rightAlignedStyle);
+                EditorGUILayout.LabelField($"EXIT TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.EXIT).Count}", rightAlignedStyle);
 
             }
 
@@ -160,7 +160,15 @@ public class WorldRegionEditor : Editor
             EditorGUILayout.BeginVertical();
             EditorGUILayout.LabelField("Exits", h1Style);
             EditorGUILayout.Space(10);
-            EditorGUILayout.LabelField($"Exit Count: {coordinateMap.worldPaths.Count}");
+            EditorGUILayout.LabelField($"Exit Count: {coordinateMap.exitPositions.Count}");
+
+            if (coordinateMap.exitPositions.Count > 0)
+            {
+                foreach (Vector2Int pos in coordinateMap.exitPositions)
+                {
+                    EditorGUILayout.LabelField($">> Exit At: {pos}");
+                }
+            }
 
             // >>>> convert selected to exit
             if (selectedCoordinate != null && GUILayout.Button("Convert Selected Coordinate to EXIT"))
@@ -181,9 +189,12 @@ public class WorldRegionEditor : Editor
             EditorGUILayout.LabelField($"Path Count: {coordinateMap.worldPaths.Count}");
 
             // >>>> convert selected to exit
-            if (selectedCoordinate != null && GUILayout.Button("Convert Selected Coordinate to EXIT"))
+            if (coordinateMap.exitPositions.Count > 1)
             {
-                //coordinateMap.SetCoordinateToType(selectedCoordinate, Coordinate.TYPE.EXIT, Color.red);
+                if (GUILayout.Button("Create Path"))
+                {
+                    coordinateMap.CreatePathFrom(coordinateMap.exitPositions[0], coordinateMap.exitPositions[1]);
+                }
             }
 
             EditorGUILayout.EndHorizontal();
@@ -200,7 +211,6 @@ public class WorldRegionEditor : Editor
         }
         EditorGUILayout.EndVertical();
     }
-
 
     // ==================== SCENE GUI =================================================== ////
 
@@ -228,7 +238,6 @@ public class WorldRegionEditor : Editor
                 DrawRegionView(); 
                 break;                
         }
-
     }
 
     void SelectCoordinate (Coordinate coordinate)
@@ -238,11 +247,6 @@ public class WorldRegionEditor : Editor
         Repaint();
     }
 
-    // TODO
-    private void OnDestroy()
-    {
-        
-    }
 
     void DrawCoordinateNeighbors(Coordinate coordinate)
     {
@@ -268,7 +272,6 @@ public class WorldRegionEditor : Editor
 
                 DarklightGizmos.DrawArrow(coordinate.worldPosition, direction, Color.yellow);
             }
-
         }
     }
 
@@ -288,42 +291,38 @@ public class WorldRegionEditor : Editor
             normal = new GUIStyleState { textColor = Color.blue } // Set the text color
         };
 
-        // Draw Coordinates
-        if (region.coordinateMap.allCoordinates != null)
-        {
-            foreach (Coordinate coord in region.coordinateMap.allCoordinates)
-            {
+        CoordinateMap coordinateMap = region.coordinateMap;
 
-                if (coord == selectedCoordinate)
+        // Draw Coordinates
+        if (coordinateMap.IsInitialized() && coordinateMap.allPositions.Count > 0)
+        {   
+            foreach (Vector2Int position in coordinateMap.allPositions)
+            {
+                Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
+
+                if (selectedCoordinate != null && position == selectedCoordinate.localPosition)
                 {
-                    DrawCoordinateNeighbors(coord);
+                    DrawCoordinateNeighbors(coordinateMap.GetCoordinateAt(position));
                     continue;
                 }
 
-                DarklightGizmos.DrawButtonHandle(coord.worldPosition, Vector3.right * 90, WorldGeneration.CellWidth_inWorldSpace * 0.5f, Color.black, () =>
+                DarklightGizmos.DrawButtonHandle(coordinate.worldPosition, Vector3.right * 90, WorldGeneration.CellWidth_inWorldSpace * 0.5f, Color.black, () =>
                 {
-                    SelectCoordinate(coord);
+                    SelectCoordinate(coordinate);
                 });
-
 
                 switch (coordinateMapDebugType)
                 {
                     case CoordinateMapDebug.COORDINATE:
-                        DarklightGizmos.DrawWireSquare(coord.worldPosition, WorldGeneration.CellWidth_inWorldSpace, Color.blue);
-                        DarklightGizmos.DrawLabel($"{coord.localPosition}", coord.worldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
+                        DarklightGizmos.DrawWireSquare(coordinate.worldPosition, WorldGeneration.CellWidth_inWorldSpace, Color.blue);
+                        DarklightGizmos.DrawLabel($"{coordinate.localPosition}", coordinate.worldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
                         break;
                     case CoordinateMapDebug.TYPE:
-
-                        coordLabelStyle.normal.textColor = coord.debugColor;
-                        DarklightGizmos.DrawWireSquare(coord.worldPosition, WorldGeneration.CellWidth_inWorldSpace, coord.debugColor);
-                        DarklightGizmos.DrawLabel($"{coord.type}", coord.worldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
-                        break;
-                    case CoordinateMapDebug.CHUNK_HEIGHT:
-                        //WorldChunk chunk = WorldChunkMap.GetChunkAt(coord);
-                        //DarklightGizmos.DrawLabel($"{coord.}", coord.WorldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
+                        coordLabelStyle.normal.textColor = coordinate.debugColor;
+                        DarklightGizmos.DrawWireSquare(coordinate.worldPosition, WorldGeneration.CellWidth_inWorldSpace, coordinate.debugColor);
+                        DarklightGizmos.DrawLabel($"{coordinate.type}", coordinate.worldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
                         break;
                 }
-
             }
         }
         else
