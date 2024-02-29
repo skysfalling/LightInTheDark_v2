@@ -98,7 +98,6 @@ public class WorldExitPath
         this.startExit = startExit;
         this.endExit = endExit;
 
-        this.pathColor = WorldPath.GetRandomPathColor();
         this.pathRandomness = 1;
     }
 
@@ -122,21 +121,6 @@ public class WorldExitPath
 
         _pathRandomness = pathRandomness;
 
-
-        // Get new World Path
-        _worldPath = new WorldPath(_pathStart, startHeight, _pathEnd, endHeight, pathColor, pathRandomness);
-
-        // Update Exit Values
-        if (_worldPath.IsInitialized() && WorldChunkMap.chunkMapInitialized)
-        {
-            startExit.worldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
-            endExit.worldCoordinate.debugColor = WorldPath.GetRGBAFromDebugColor(pathColor);
-
-            //CoordinateMap.SetMapCoordinateToType(startExit.worldCoordinate, Coordinate.TYPE.EXIT);
-            //CoordinateMap.SetMapCoordinateToType(endExit.worldCoordinate, Coordinate.TYPE.EXIT);
-
-            _initialized = true;
-        }
     }
 
     public void Reset()
@@ -165,20 +149,7 @@ public class WorldExitPath
         return _initialized;
     }
 
-    public List<Coordinate> GetPathCoordinates()
-    {
-        return _worldPath.GetPathCoordinates();
-    }
 
-    public List<WorldChunk> GetPathChunks()
-    {
-        return _worldPath.GetPathChunks();
-    }
-
-    public Color GetPathColorRGBA()
-    {
-        return WorldPath.GetRGBAFromDebugColor(pathColor);
-    }
 }
 
 // =================================================================

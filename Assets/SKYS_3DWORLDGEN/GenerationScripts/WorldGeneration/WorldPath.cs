@@ -1,119 +1,39 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.IO;
-using UnityEngine.UIElements;
-using System;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-[System.Serializable]
 public class WorldPath
 {
-    DebugColor _pathColor = DebugColor.WHITE;
-    public static Color GetRGBAFromDebugColor(DebugColor pathColor)
-    {
-        switch (pathColor)
-        {
-            case DebugColor.BLACK:
-                return Color.black;
-            case DebugColor.WHITE:
-                return Color.white;
-            case DebugColor.RED:
-                return Color.red;
-            case DebugColor.YELLOW:
-                return Color.yellow;
-            case DebugColor.GREEN:
-                return Color.green;
-            case DebugColor.BLUE:
-                return Color.blue;
-            default:
-                return Color.clear;
-        }
-    }
-
-    public static DebugColor GetRandomPathColor()
-    {
-        // Get all values of the PathColor enum
-        Array values = Enum.GetValues(typeof(DebugColor));
-
-        // Select a random index
-        int randomIndex = UnityEngine.Random.Range(0, values.Length);
-
-        // Return the random PathColor
-        return (DebugColor)values.GetValue(randomIndex);
-    }
-
-
-    Vector2Int _startCoordinate;
-    Vector2Int _endCoordinate;
-
-    int _startHeight;
-    int _endHeight;
-
-    List<Coordinate> _pathCoords = new List<Coordinate>();
-    List<WorldChunk> _pathChunks = new List<WorldChunk>();
+    public Vector2Int start { get; private set; }
+    public Vector2Int end { get; private set; }
+    public List<Vector2Int> _positions { get; private set; }
     float _pathRandomness = 0;
     bool _initialized = false;
 
-    public WorldPath(Coordinate startCoord, int startHeight, Coordinate endCoord, int endHeight, DebugColor pathColor, float pathRandomness = 0)
+    public WorldPath(CoordinateMap coordinateMap, Vector2Int start, Vector2Int end, float pathRandomness = 0)
     {
-        this._startCoordinate = startCoord.LocalPosition;
-        this._endCoordinate = endCoord.LocalPosition;
-
-        this._startHeight = startHeight;
-        this._endHeight = endHeight;
-
-        this._pathColor = pathColor;
+        this.start = start;
+        this.end = end;
         this._pathRandomness = pathRandomness;
-        Initialize();
+
+        _positions = WorldPathfinder.FindPath(coordinateMap, this.start, this.end, _pathRandomness);
     }
 
     public void Initialize()
     {
-        // Check that all coords are valid
-        foreach (Coordinate coord in _pathCoords)
-        {
-            if (coord.type != Coordinate.TYPE.PATH)
-            {
-                _initialized = false;
-                return;
-            }
-        }
-
-        // Initialize
-        if (_initialized) return;
-        _initialized = false;
-
         /*
-        // << CREATE PATH >>
-        _pathCoords = CoordinateMap.FindWorldCoordinatePath(_startCoordinate, _endCoordinate, _pathRandomness);
-        List<Coordinate.TYPE> types = CoordinateMap.GetCoordinateTypesFromList(_pathCoords);
-        bool typesAreValid = true;
-        foreach (Coordinate.TYPE type in types)
-        {
-            // If Coordinate Type does not match
-            if (type != Coordinate.TYPE.PATH && type != Coordinate.TYPE.NULL)
-            {
-                typesAreValid = false;
-                Debug.Log($"Path contains invalid types");
-                break;
-            }
-        }
-
         if (typesAreValid)
         {
             //Debug.Log($"Found Valid Path from {_startCoordinate} -> {_endCoordinate}");
 
-            _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_pathCoords);
+            _pathChunks = WorldChunkMap.GetChunksAtCoordinates(_positions);
 
-            WorldChunk startChunk = WorldChunkMap.GetChunkAt(_startCoordinate);
-            WorldChunk endChunk = WorldChunkMap.GetChunkAt(_endCoordinate);
+            WorldChunk startChunk = WorldChunkMap.GetChunkAt(_start);
+            WorldChunk endChunk = WorldChunkMap.GetChunkAt(_end);
             DeterminePathChunkHeights(_startHeight, _endHeight);
 
             // Set Coordinate Path Type
-            CoordinateMap.SetMapCoordinatesToType(_pathCoords, Coordinate.TYPE.PATH, GetRGBAFromDebugColor(_pathColor));
+            CoordinateMap.SetMapCoordinatesToType(_positions, Coordinate.TYPE.PATH, GetRGBAFromDebugColor(_pathColor));
 
             _initialized = true;
         }
@@ -125,9 +45,9 @@ public class WorldPath
         if (!_initialized) return;
 
         // Reset Coordinate Path Type
-        if (_pathCoords != null && _pathCoords.Count > 0)
+        if (_positions != null && _positions.Count > 0)
         {
-            _pathCoords.Clear();
+            _positions.Clear();
 
             _initialized = false;
         }
@@ -139,18 +59,7 @@ public class WorldPath
         return _initialized; 
     }
 
-    public List<Coordinate> GetPathCoordinates()
-    {
-        if (!_initialized) { return new List<Coordinate>(); }
-        return _pathCoords;
-    }
-
-    public List<WorldChunk> GetPathChunks()
-    {
-        if (!_initialized) { return new List<WorldChunk>(); }
-        return _pathChunks;
-    }
-
+    /*
     public void DeterminePathChunkHeights(int startHeight, int endHeight, float heightAdjustChance = 1f)
     {
         if (WorldChunkMap.chunkMapInitialized == false || _pathChunks.Count == 0) return;
@@ -176,8 +85,8 @@ public class WorldPath
                 // Determine the direction of the last & next chunk in path
                 WorldChunk lastChunk = _pathChunks[i - 1];
                 WorldChunk nextChunk = _pathChunks[i + 1];
-                WorldDirection? lastChunkDirection = _pathChunks[i].worldCoordinate.GetDirectionOfNeighbor(lastChunk.worldCoordinate);
-                WorldDirection? nextChunkDirection = _pathChunks[i].worldCoordinate.GetDirectionOfNeighbor(nextChunk.worldCoordinate);
+                WorldDirection? lastChunkDirection = _pathChunks[i].worldCoordinate.GetWorldDirectionOfNeighbor(lastChunk.worldCoordinate);
+                WorldDirection? nextChunkDirection = _pathChunks[i].worldCoordinate.GetWorldDirectionOfNeighbor(nextChunk.worldCoordinate);
                 if (lastChunkDirection != null && nextChunkDirection != null)
                 {
                     if (_pathChunks[i].worldCoordinate.GetNeighborInOppositeDirection((WorldDirection)nextChunkDirection) == lastChunk.worldCoordinate)
@@ -199,6 +108,7 @@ public class WorldPath
             }
         }
     }
+    */
 
 }
 

@@ -2,17 +2,66 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public enum MapBorder { NORTH, SOUTH, EAST, WEST }
 
 
+
 public class CoordinateMap
 {
+    #region << STATIC FUNCTIONS <<
+    public static Dictionary<WorldDirection, Vector2Int> _directionVectorMap = new() {
+        { WorldDirection.NORTH, new Vector2Int(0, 1) },
+        { WorldDirection.SOUTH, new Vector2Int(0, -1) },
+        { WorldDirection.WEST, new Vector2Int(-1, 0) },
+        { WorldDirection.EAST, new Vector2Int(1, 0) },
+        { WorldDirection.NORTHWEST, new Vector2Int(-1, 1) },
+        { WorldDirection.NORTHEAST, new Vector2Int(1, 1) },
+        { WorldDirection.SOUTHWEST, new Vector2Int(-1, -1) },
+        { WorldDirection.SOUTHEAST, new Vector2Int(1, -1) }
+    };
+    public static Vector2Int GetDirectionVector(WorldDirection direction)
+    {
+        return _directionVectorMap[direction];
+    }
+    public static WorldDirection? GetDirectionEnum(Vector2Int direction)
+    {
+        foreach (var pair in _directionVectorMap)
+        {
+            if (pair.Value == direction)
+            {
+                return pair.Key; // Return the WorldDirection if a match is found
+            }
+        }
+        return null;
+    }
+    public static List<Vector2Int> CalculateNaturalNeighborPositions(Vector2Int center)
+    {
+        return new List<Vector2Int>()
+        {
+            center + _directionVectorMap[WorldDirection.NORTH],
+            center + _directionVectorMap[WorldDirection.SOUTH],
+            center + _directionVectorMap[WorldDirection.EAST],
+            center + _directionVectorMap[WorldDirection.WEST]
+        };
+    }
+
+    public static List<Vector2Int> CalculateDiagonalNeighborPositions(Vector2Int center)
+    {
+        return new List<Vector2Int>()
+        {
+            center + _directionVectorMap[WorldDirection.NORTHEAST],
+            center + _directionVectorMap[WorldDirection.NORTHWEST],
+            center + _directionVectorMap[WorldDirection.SOUTHEAST],
+            center + _directionVectorMap[WorldDirection.SOUTHWEST]
+        };
+    }
+    #endregion
+
     bool _initialized;
     public bool IsInitialized() {  return _initialized; }
 
-    // 
+    // >> main coordinate reference
     Coordinate[][] _coordinateMap;
 
     // >> _coordinateMap reference lists
@@ -23,10 +72,11 @@ public class CoordinateMap
     Dictionary<MapBorder, List<Vector2Int>> _borderPositionsMap = new(); // Enum , Sorted List of Border Coordinates
 
     public WorldRegion WorldRegion { get; private set; }
+    public List<Vector2Int> allPositions { get { return _positions.ToList(); } }
     public List<Coordinate> allCoordinates { get { return _coordinates.ToList(); } }
 
-
-    public List<WorldExitPath> worldPaths = new List<WorldExitPath>();
+    public List<Vector2Int> exitPositions = new();
+    public List<WorldPath> worldPaths = new List<WorldPath>();
     public List<WorldZone> worldZones = new List<WorldZone>();
 
     public CoordinateMap(WorldRegion region)
@@ -130,7 +180,7 @@ public class CoordinateMap
     }
     */
 
-    public bool SetCoordinateToType(Coordinate coordinate, Coordinate.TYPE type)
+    void SetCoordinateToType(Coordinate coordinate, Coordinate.TYPE type)
     {
         // Remove coordinate from previous type reference
         if (_typeMap.ContainsKey(coordinate.type))
@@ -158,9 +208,37 @@ public class CoordinateMap
         {
             _typeMap[type].Add(coordinate);
         }
-
-        return true;
     }
+
+    void SetCoordinateToType(Vector2Int position, Coordinate.TYPE type)
+    {
+        Coordinate coordinate = GetCoordinateAt(position);
+        SetCoordinateToType(coordinate, type);
+    }
+
+    void SetCoordinatesToType(List<Vector2Int> positions,  Coordinate.TYPE type)
+    {
+        foreach (Vector2Int pos in positions)
+        {
+            if (_positions.Contains(pos))
+            {
+                SetCoordinateToType(pos, type);
+            }
+        }
+    }
+
+    public void ConvertCoordinateToExit(Coordinate coordinate)
+    {
+        if (coordinate == null) return;
+        if (coordinate.type != Coordinate.TYPE.BORDER)
+        {
+            Debug.Log("Cannot convert non border coordinate to exit");
+            return;
+        }
+
+        SetCoordinateToType(coordinate, Coordinate.TYPE.EXIT);
+    }
+
     #endregion
 
     #region == GET MAP COORDINATES ================================ ////
@@ -184,52 +262,9 @@ public class CoordinateMap
 
 
 
+
     // =====================================================================================
 
-    #region == HANDLE WORLD PATHS ======================================================== ////
-
-    public void CreateWorldExitPath()
-    {
-        if (_initialized == false)
-        {
-            Debug.LogError("Cannot Create World Exit Path with Uninitialized WorldCoordinate Map");
-            return;
-        }
-
-        WorldExit defaultStart = new WorldExit(WorldDirection.WEST, 0);
-        WorldExit defaultEnd = new WorldExit(WorldDirection.EAST, 0);
-        worldPaths.Add(new WorldExitPath(defaultStart, defaultEnd));
-    }
-
-    public void UpdateAllWorldExitPaths()
-    {
-        //Debug.Log($"Update All Paths :: forceReset {forceReset}");
-        bool exitPathsAreInitialized = true;
-
-        foreach (WorldExitPath exitPath in worldPaths) 
-        {
-            exitPath.Reset();
-            exitPath.EditorUpdate();
-
-            // Check if the path is initialized
-            if (exitPath.IsInitialized() == false)
-            {
-                exitPathsAreInitialized = false;
-            }
-        }
-
-        if (exitPathsAreInitialized == false)
-        {
-            //exitPathsInitialized = false;
-            UpdateAllWorldExitPaths(); // Update again 
-        }
-        else
-        {
-            //exitPathsInitialized = true;
-        }
-    }
-
-    #endregion
 
     #region == HANDLE WORLD ZONES ==================================== ////
     public void CreateWorldZone()
@@ -245,7 +280,7 @@ public class CoordinateMap
         int centerY = Mathf.CeilToInt(WorldGeneration.GetFullRegionWidth_inChunks() / 2);
         Coordinate centerCoordinate = GetCoordinateAt(new Vector2Int(centerX, centerY));
 
-        Debug.Log($"Create Zone at {centerCoordinate.LocalPosition}");
+        Debug.Log($"Create Zone at {centerCoordinate.localPosition}");
         worldZones.Add(new WorldZone(centerCoordinate, WorldZone.TYPE.NATURAL_CROSS));
     }
 
@@ -283,117 +318,16 @@ public class CoordinateMap
     }
     #endregion
 
-    #region == COORDINATE PATHFINDING =================================///
-
-    public List<Coordinate> FindWorldCoordinatePath(Vector2Int startCoord, Vector2Int endCoord, float pathRandomness = 0)
-    {
-        // A* Pathfinding implementation
-        // gCost is the known cost from the starting node
-        // hCost is the estimated distance to the end node
-        // fCost is gCost + hCost
-
-        // Initialize Random Seed :: IMPORTANT To keep the same results per seed
-        WorldGeneration.InitializeRandomSeed();
-
-        // Initialize the open set with the start coordinate
-        List<Vector2Int> openSet = new List<Vector2Int> { startCoord };
-        // Initialize the closed set as an empty collection of Vector2Int
-        HashSet<Vector2Int> closedSet = new HashSet<Vector2Int>();
-
-        // Initialize costs for all coordinates to infinity, except the start coordinate
-        Dictionary<Vector2Int, float> gCost = new Dictionary<Vector2Int, float>();
-        Dictionary<Vector2Int, Coordinate> parents = new Dictionary<Vector2Int, Coordinate>();
-        foreach (Vector2Int pos in _positions)
-        {
-            gCost[pos] = float.MaxValue;
-        }
-        gCost[startCoord] = 0;
-
-        // Initialize the heuristic costs
-        Dictionary<Vector2Int, float> fCost = new Dictionary<Vector2Int, float>();
-        foreach (Vector2Int pos in _positions)
-        {
-            fCost[pos] = float.MaxValue;
-        }
-        fCost[startCoord] = Vector2Int.Distance(startCoord, endCoord);
-
-        while (openSet.Count > 0)
-        {
-            Vector2Int current = openSet[0];
-            for (int i = 1; i < openSet.Count; i++)
-            {
-                Vector2Int candidate = openSet[i];
-                // Convert FCost and HCost checks to work with Vector2Int by accessing WorldCoordinate properties
-                if (fCost[candidate] <= fCost[current] &&
-                    IsCoordinateValidForPathfinding(candidate) &&
-                    UnityEngine.Random.Range(0f, 1f) <= pathRandomness)
-                {
-                    current = openSet[i];
-                }
-            }
-
-            if (current == endCoord)
-            {
-                // Path has been found
-                return RetracePath(startCoord, endCoord, parents);
-            }
-
-            openSet.Remove(current);
-            closedSet.Add(current);
-
-            foreach (Coordinate neighbor in _positionMap[current].GetValidNaturalNeighbors())
-            {
-                if (closedSet.Contains(neighbor.LocalPosition) || !IsCoordinateValidForPathfinding(neighbor.LocalPosition))
-                        continue; // Skip non-traversable neighbors and those already evaluated
-
-                float tentativeGCost = gCost[current] + Vector2Int.Distance(current, neighbor.LocalPosition);
-
-                if (tentativeGCost < gCost[neighbor.LocalPosition])
-                {
-                    // This path to neighbor is better than any previous one. Record it!
-                    parents[neighbor.LocalPosition] = _positionMap[current];
-                    gCost[neighbor.LocalPosition] = tentativeGCost;
-                    fCost[neighbor.LocalPosition] = tentativeGCost + Vector2Int.Distance(neighbor.LocalPosition, endCoord);
-
-                    if (!openSet.Contains(neighbor.LocalPosition))
-                        openSet.Add(neighbor.LocalPosition);
-                }
-            }
-        }
-
-        // If we reach here, then there is no path
-        return new List<Coordinate>();
-    }
-
-    // Helper method to retrace path from end to start using parent references
-    List<Coordinate> RetracePath(Vector2Int startCoord, Vector2Int endCoord, Dictionary<Vector2Int, Coordinate> parents)
-    {
-        List<Coordinate> path = new List<Coordinate>();
-        Vector2Int currentCoord = endCoord;
-
-        while (currentCoord != startCoord)
-        {
-            path.Add(_positionMap[currentCoord]);
-            currentCoord = parents[currentCoord].LocalPosition; // Move to the parent coordinate
-        }
-        path.Add(_positionMap[startCoord]); // Add the start coordinate at the end
-        path.Reverse(); // Reverse the list to start from the beginning
-
-        return path;
-    }
-
     public bool IsCoordinateValidForPathfinding(Vector2Int candidate)
     {
         // Check Types
-        if (_positionMap[candidate] != null && 
-           (_positionMap[candidate].type == Coordinate.TYPE.NULL 
-           || _positionMap[candidate].type == Coordinate.TYPE.PATH ))
+        if (_positionMap[candidate] != null &&
+           (_positionMap[candidate].type == Coordinate.TYPE.NULL
+           || _positionMap[candidate].type == Coordinate.TYPE.PATH))
         {
             return true;
         }
         return false;
     }
-
-    #endregion
 
 }

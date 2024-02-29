@@ -2,94 +2,112 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WorldPathfinder : MonoBehaviour
+public class WorldPathfinder
 {
-    public static WorldPathfinder Instance;
-    public void Awake()
+    public WorldPathfinder()
     {
-        Instance = this;
+
     }
 
-    WorldCellMap _worldCellMap;
-
-
-    public void Start()
+    public static List<Vector2Int> FindPath(CoordinateMap coordinateMap, Vector2Int startCoord, Vector2Int endCoord, float pathRandomness = 0)
     {
-        _worldCellMap = WorldCellMap.Instance;
-    }
+        // A* Pathfinding implementation
+        // gCost is the known cost from the starting node
+        // hCost is the estimated distance to the end node
+        // fCost is gCost + hCost
 
-    // A* Pathfinding implementation
-    // - gCost is the known cost from the starting node
-    // - hCost is the estimated distance to the end node
-    // - fCost is gCost + hCost
+        // Initialize Random Seed :: IMPORTANT To keep the same results per seed
+        WorldGeneration.InitializeRandomSeed();
 
-    public List<WorldCell> FindPath(WorldCell startCell, WorldCell endCell)
-    {
-        // INITIALIZE SETS
-        List<WorldCell> openSet = new List<WorldCell>();
-        HashSet<WorldCell> closedSet = new HashSet<WorldCell>();
-        openSet.Add(startCell);
+        // Store all possible positions from the coordinate map
+        List<Vector2Int> positions = coordinateMap.allPositions;
+        // Initialize the open set with the start coordinate
+        List<Vector2Int> openSet = new List<Vector2Int> { startCoord };
+        // Initialize the closed set as an empty collection of Vector2Int
+        HashSet<Vector2Int> closedSet = new HashSet<Vector2Int>();
+
+        // Initialize costs for all coordinates to infinity, except the start coordinate
+        Dictionary<Vector2Int, float> gCost = new Dictionary<Vector2Int, float>();
+        Dictionary<Vector2Int, Vector2Int> parents = new Dictionary<Vector2Int, Vector2Int>();
+        foreach (Vector2Int pos in coordinateMap.allPositions)
+        {
+            gCost[pos] = float.MaxValue;
+        }
+        gCost[startCoord] = 0;
+
+        // Initialize the heuristic costs
+        Dictionary<Vector2Int, float> fCost = new Dictionary<Vector2Int, float>();
+        foreach (Vector2Int pos in positions)
+        {
+            fCost[pos] = float.MaxValue;
+        }
+        fCost[startCoord] = Vector2Int.Distance(startCoord, endCoord);
 
         while (openSet.Count > 0)
         {
-
-            // << GET BEST OPTION OF OPEN SET >>
-            WorldCell currentCell = openSet[0];
+            Vector2Int current = openSet[0];
             for (int i = 1; i < openSet.Count; i++)
             {
-                if (openSet[i].astar_fCost <= currentCell.astar_fCost) { continue; }
-                if (openSet[i].astar_hCost < currentCell.astar_hCost ) { continue; }
-
-                currentCell = openSet[i];
-            }
-
-            // << ADD VALID CELL TO CLOSED SET >>
-            openSet.Remove(currentCell);
-            closedSet.Add(currentCell);
-            if (currentCell == endCell)
-            {
-                // We found the path, retrace steps from endCell to startCell
-                return RetracePath(startCell, endCell);
-            }
-
-            // << GET ALL NEIGHBORS OF CURRENT CELL >>
-            foreach (WorldCell neighbor in _worldCellMap.GetAllCellNeighbors(currentCell))
-            {
-                // Skip invalid neighbors of current cell
-                if (closedSet.Contains(neighbor) || neighbor.type != WorldCell.TYPE.EMPTY)
+                Vector2Int candidate = openSet[i];
+                // Convert FCost and HCost checks to work with Vector2Int by accessing WorldCoordinate properties
+                if (fCost[candidate] <= fCost[current] &&
+                    UnityEngine.Random.Range(0f, 1f) <= pathRandomness)
                 {
-                    continue;
+                    current = openSet[i];
                 }
+            }
 
-                // Set movement cost for valid neighbor
-                float newMovementCostToNeighbor = currentCell.astar_gCost + _worldCellMap.GetDistance(currentCell, neighbor);
-                if (newMovementCostToNeighbor < neighbor.astar_gCost || !openSet.Contains(neighbor))
+            if (current == endCoord)
+            {
+                // Path has been found
+                return RetracePath(startCoord, endCoord, parents);
+            }
+
+            openSet.Remove(current);
+            closedSet.Add(current);
+
+
+            // [[ ITERATE THROUGH NATURAL NEIGHBORS ]]
+            foreach (Vector2Int pos in CoordinateMap.CalculateNaturalNeighborPositions(current))
+            {
+                if (closedSet.Contains(pos) || !coordinateMap.IsCoordinateValidForPathfinding(pos))
+                    continue; // Skip non-traversable neighbors and those already evaluated
+
+                float tentativeGCost = gCost[current] + Vector2Int.Distance(current, pos);
+
+                if (tentativeGCost < gCost[pos])
                 {
-                    neighbor.astar_gCost = newMovementCostToNeighbor; // cost from starting node
-                    neighbor.astar_hCost = _worldCellMap.GetDistance(neighbor, endCell); // distance from end node
-                    neighbor.astar_parent = currentCell;
+                    // This path to neighbor is better than any previous one. Record it!
+                    parents[pos] = current;
+                    gCost[pos] = tentativeGCost;
+                    fCost[pos] = tentativeGCost + Vector2Int.Distance(pos, endCoord);
 
-                    if (!openSet.Contains(neighbor))
-                        openSet.Add(neighbor);
+                    if (!openSet.Contains(pos))
+                        openSet.Add(pos);
                 }
             }
         }
 
-        return new List<WorldCell>(); // Return an empty path if there is no path
+        // If we reach here, then there is no path
+        return new List<Vector2Int>();
     }
 
-    List<WorldCell> RetracePath(WorldCell startCell, WorldCell endCell)
+    // Helper method to retrace path from end to start using parent references
+    static List<Vector2Int> RetracePath(Vector2Int startCoord, Vector2Int endCoord, Dictionary<Vector2Int, Vector2Int> parents)
     {
-        List<WorldCell> path = new List<WorldCell>();
-        WorldCell currentCell = endCell;
+        List<Vector2Int> path = new List<Vector2Int>();
+        Vector2Int currentCoord = endCoord;
 
-        while (currentCell != startCell)
+        while (currentCoord != startCoord)
         {
-            path.Add(currentCell);
-            currentCell = currentCell.astar_parent;
+            path.Add(currentCoord);
+            currentCoord = parents[currentCoord]; // Move to the parent coordinate
         }
-        path.Reverse(); // The path is constructed from endCell to startCell, so we reverse it
+        path.Add(startCoord); // Add the start coordinate at the end
+        path.Reverse(); // Reverse the list to start from the beginning
+
         return path;
     }
+
 
 }

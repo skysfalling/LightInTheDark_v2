@@ -139,10 +139,10 @@ public class WorldRegionEditor : Editor
             EditorGUILayout.Space(10);
             if (selectedCoordinate != null)
             {
-                EditorGUILayout.LabelField($"Space:  {selectedCoordinate.Space}");
-                EditorGUILayout.LabelField($"Local Coordinate: {selectedCoordinate.LocalPosition}");
+                EditorGUILayout.LabelField($"Space:  {selectedCoordinate.worldSpace}");
+                EditorGUILayout.LabelField($"Local Coordinate: {selectedCoordinate.localPosition}");
                 EditorGUILayout.LabelField($"Type: {selectedCoordinate.type}");
-                EditorGUILayout.LabelField($"World Position: {selectedCoordinate.WorldPosition}");
+                EditorGUILayout.LabelField($"World Position: {selectedCoordinate.worldPosition}");
                 EditorGUILayout.LabelField($"Neighbor Count: {selectedCoordinate.GetAllValidNeighbors().Count}");
             }
             else
@@ -165,7 +165,7 @@ public class WorldRegionEditor : Editor
             // >>>> convert selected to exit
             if (selectedCoordinate != null && GUILayout.Button("Convert Selected Coordinate to EXIT"))
             {
-                coordinateMap.SetCoordinateToType(selectedCoordinate, Coordinate.TYPE.EXIT);
+                coordinateMap.ConvertCoordinateToExit(selectedCoordinate);
             }
 
             EditorGUILayout.EndHorizontal();
@@ -246,27 +246,27 @@ public class WorldRegionEditor : Editor
 
     void DrawCoordinateNeighbors(Coordinate coordinate)
     {
-        if (coordinate.foundNeighbors)
+        if (coordinate.initialized)
         {
             List<Coordinate> natural_neighbors = coordinate.GetValidNaturalNeighbors();
 
             foreach (Coordinate neighbor in natural_neighbors)
             {
-                WorldDirection neighborDirection = (WorldDirection)coordinate.GetDirectionOfNeighbor(neighbor);
-                Vector2Int directionVector = Coordinate.GetDirectionVector(neighborDirection);
+                WorldDirection neighborDirection = (WorldDirection)coordinate.GetWorldDirectionOfNeighbor(neighbor);
+                Vector2Int directionVector = CoordinateMap.GetDirectionVector(neighborDirection);
                 Vector3 direction = new Vector3(directionVector.x, 0, directionVector.y) * WorldGeneration.GetChunkWidth_inWorldSpace() * 0.25f;
 
-                DarklightGizmos.DrawArrow(coordinate.WorldPosition, direction, Color.red);
+                DarklightGizmos.DrawArrow(coordinate.worldPosition, direction, Color.red);
             }
 
             List<Coordinate> diagonal_neighbors = coordinate.GetValidDiagonalNeighbors();
             foreach (Coordinate neighbor in diagonal_neighbors)
             {
-                WorldDirection neighborDirection = (WorldDirection)coordinate.GetDirectionOfNeighbor(neighbor);
-                Vector2Int directionVector = Coordinate.GetDirectionVector(neighborDirection);
+                WorldDirection neighborDirection = (WorldDirection)coordinate.GetWorldDirectionOfNeighbor(neighbor);
+                Vector2Int directionVector = CoordinateMap.GetDirectionVector(neighborDirection);
                 Vector3 direction = new Vector3(directionVector.x, 0, directionVector.y) * WorldGeneration.GetChunkWidth_inWorldSpace() * 0.25f;
 
-                DarklightGizmos.DrawArrow(coordinate.WorldPosition, direction, Color.yellow);
+                DarklightGizmos.DrawArrow(coordinate.worldPosition, direction, Color.yellow);
             }
 
         }
@@ -300,7 +300,7 @@ public class WorldRegionEditor : Editor
                     continue;
                 }
 
-                DarklightGizmos.DrawButtonHandle(coord.WorldPosition, Vector3.right * 90, WorldGeneration.CellWidth_inWorldSpace * 0.5f, Color.black, () =>
+                DarklightGizmos.DrawButtonHandle(coord.worldPosition, Vector3.right * 90, WorldGeneration.CellWidth_inWorldSpace * 0.5f, Color.black, () =>
                 {
                     SelectCoordinate(coord);
                 });
@@ -309,14 +309,14 @@ public class WorldRegionEditor : Editor
                 switch (coordinateMapDebugType)
                 {
                     case CoordinateMapDebug.COORDINATE:
-                        DarklightGizmos.DrawWireSquare(coord.WorldPosition, WorldGeneration.CellWidth_inWorldSpace, Color.blue);
-                        DarklightGizmos.DrawLabel($"{coord.LocalPosition}", coord.WorldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
+                        DarklightGizmos.DrawWireSquare(coord.worldPosition, WorldGeneration.CellWidth_inWorldSpace, Color.blue);
+                        DarklightGizmos.DrawLabel($"{coord.localPosition}", coord.worldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
                         break;
                     case CoordinateMapDebug.TYPE:
 
                         coordLabelStyle.normal.textColor = coord.debugColor;
-                        DarklightGizmos.DrawWireSquare(coord.WorldPosition, WorldGeneration.CellWidth_inWorldSpace, coord.debugColor);
-                        DarklightGizmos.DrawLabel($"{coord.type}", coord.WorldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
+                        DarklightGizmos.DrawWireSquare(coord.worldPosition, WorldGeneration.CellWidth_inWorldSpace, coord.debugColor);
+                        DarklightGizmos.DrawLabel($"{coord.type}", coord.worldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
                         break;
                     case CoordinateMapDebug.CHUNK_HEIGHT:
                         //WorldChunk chunk = WorldChunkMap.GetChunkAt(coord);

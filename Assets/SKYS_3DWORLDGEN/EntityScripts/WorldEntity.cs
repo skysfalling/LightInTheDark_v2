@@ -70,6 +70,6 @@ public class Entity : MonoBehaviour
         _currPathIndex = 0;
 
         _targetCell = targetCell;
-        _movePath = WorldPathfinder.Instance.FindPath(_currentCell, _targetCell);
+        //_movePath = WorldPathfinder.Instance.FindPath(_currentCell, _targetCell);
     }
 }

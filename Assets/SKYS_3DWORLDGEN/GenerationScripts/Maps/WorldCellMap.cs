@@ -181,15 +181,6 @@ public class WorldCellMap : MonoBehaviour
     #endregion
 
 
-    #region === CELL PATHS ==================================================..//
-    public List<WorldCell> GetPath(WorldCell cellStart,  WorldCell cellEnd)
-    {
-        return _worldPathfinder.FindPath(cellStart, cellEnd);
-    }
-
-
-    #endregion
-
 
     #region === CELL GROUPS ==================================================..//
 

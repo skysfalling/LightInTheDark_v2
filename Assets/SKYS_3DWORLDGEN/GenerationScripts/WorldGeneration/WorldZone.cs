@@ -45,7 +45,7 @@ public class WorldZone
 
     public WorldZone( Coordinate centerCoordinate, TYPE zoneType )
     {
-        this.coordinateVector = centerCoordinate.LocalPosition;
+        this.coordinateVector = centerCoordinate.localPosition;
         this.zoneType = zoneType;
 
         Initialize();
@@ -108,7 +108,7 @@ public class WorldZone
 
         // Check private variables
         if ( _centerCoordinate == null
-            || _centerCoordinate.LocalPosition != coordinateVector
+            || _centerCoordinate.localPosition != coordinateVector
             || _coordinateVector != coordinateVector
             || _zoneHeight != zoneHeight
             || _zoneType != zoneType

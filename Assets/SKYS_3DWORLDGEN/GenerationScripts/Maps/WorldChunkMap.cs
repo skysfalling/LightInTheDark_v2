@@ -99,7 +99,7 @@ public class WorldChunkMap : MonoBehaviour
         if (!chunkMapInitialized || worldCoord == null) { return null; }
 
         // Use the dictionary for fast lookups
-        if (CoordinateChunkMap.TryGetValue(worldCoord.LocalPosition, out WorldChunk foundChunk))
+        if (CoordinateChunkMap.TryGetValue(worldCoord.localPosition, out WorldChunk foundChunk))
         {
             return foundChunk;
         }
