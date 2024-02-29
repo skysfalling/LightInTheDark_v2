@@ -2,43 +2,102 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
+
+public enum MapBorder { NORTH, SOUTH, EAST, WEST }
+
 
 public class CoordinateMap
 {
-    public bool coordMapInitialized = false;
-    public bool coordNeighborsInitialized = false;
-    public List<Coordinate> CoordinateList { get; private set; }
-    public Dictionary<Vector2Int, Coordinate> CoordinateValueMap { get; private set; }
+    bool _initialized;
+    public bool IsInitialized() {  return _initialized; }
 
-    public List<Coordinate> coordinates { get { return CoordinateList; } private set { } }
-    public List<WorldExitPath> worldExitPaths = new List<WorldExitPath>();
+    // 
+    Coordinate[][] _coordinateMap;
+
+    // >> _coordinateMap reference lists
+    HashSet<Vector2Int> _positions = new();
+    HashSet<Coordinate> _coordinates = new();
+    Dictionary<Vector2Int, Coordinate> _positionMap = new();
+    Dictionary<Coordinate.TYPE, HashSet<Coordinate>> _typeMap = new();
+    Dictionary<MapBorder, List<Vector2Int>> _borderPositionsMap = new(); // Enum , Sorted List of Border Coordinates
+
+    public WorldRegion WorldRegion { get; private set; }
+    public List<Coordinate> allCoordinates { get { return _coordinates.ToList(); } }
+
+
+    public List<WorldExitPath> worldPaths = new List<WorldExitPath>();
     public List<WorldZone> worldZones = new List<WorldZone>();
 
     public CoordinateMap(WorldRegion region)
     {
-        List<Coordinate> newCoordList = new List<Coordinate>();
-        Dictionary<Vector2Int, Coordinate> newCoordMap = new();
+        WorldRegion = region;
 
         int fullRegionWidth = WorldGeneration.GetFullRegionWidth_inChunks();
-        int xCoordCount = fullRegionWidth;
-        int yCoordCount = fullRegionWidth;
+        int coordMax = fullRegionWidth;
 
-        for (int x = 0; x < xCoordCount; x++)
+        _coordinateMap = new Coordinate[coordMax][]; // initialize row
+
+        // << CREATE REGION COORDINATES >>
+        for (int x = 0; x < coordMax; x++)
         {
-            for (int y = 0; y < yCoordCount; y++)
+            _coordinateMap[x] = new Coordinate[coordMax]; // initialize column
+
+            for (int y = 0; y < coordMax; y++)
             {
-                Coordinate newCoord = new Coordinate(this, new Vector2Int(x, y), region);
-                newCoordList.Add(newCoord);
-                newCoordMap[newCoord.LocalCoordinate] = newCoord;
+                Vector2Int newPosition = new Vector2Int(x, y);
+                _positions.Add(newPosition);
+                _coordinateMap[x][y] = new Coordinate(this, newPosition, region); // Create and store Region Coordinate
+                _coordinates.Add(_coordinateMap[x][y]);
+                _positionMap[newPosition] = _coordinateMap[x][y];
             }
         }
 
-        // Set Coordinate Map
-        CoordinateList = newCoordList;
-        CoordinateValueMap = newCoordMap;
+        // << ASSIGN COORDINATE TYPES >>
+        // ** Set Coordinate To Type updates the TypeMap accordingly
 
-        coordMapInitialized = true;
-        coordNeighborsInitialized = true;
+        // >> initialize _border positions
+        _borderPositionsMap[MapBorder.WEST] = new();
+        _borderPositionsMap[MapBorder.EAST] = new();
+        _borderPositionsMap[MapBorder.NORTH] = new();
+        _borderPositionsMap[MapBorder.SOUTH] = new();
+
+        // >> store coordinate range
+        Vector2Int range = new Vector2Int(0, coordMax - 1);
+        HashSet<Vector2Int> cornerCoordinates = new HashSet<Vector2Int>() {
+            new Vector2Int(range.x, range.x), // 0 0
+            new Vector2Int(range.y, range.y), // max max
+            new Vector2Int(range.x, range.y), // 0 max
+            new Vector2Int(range.y, range.x)  // max 0
+            };
+
+        // >> iterate through positions
+        foreach (Vector2Int pos in _positions)
+        {
+            if (cornerCoordinates.Contains(pos))
+            {
+                // Set Type to Closed
+                SetCoordinateToType(_positionMap[pos], Coordinate.TYPE.CLOSED);
+            }
+            else if ( pos.x == range.x || pos.x == range.y || pos.y == range.x || pos.y == range.y)
+            {
+                // Set Type to Border
+                SetCoordinateToType(_positionMap[pos], Coordinate.TYPE.BORDER);
+
+                // Set Border Map
+                if (pos.x == range.x) { _borderPositionsMap[MapBorder.WEST].Add(pos); } // WEST
+                if (pos.x == range.y) { _borderPositionsMap[MapBorder.EAST].Add(pos); } // EAST
+                if (pos.y == range.x) { _borderPositionsMap[MapBorder.NORTH].Add(pos); } // NORTH
+                if (pos.y == range.y) { _borderPositionsMap[MapBorder.SOUTH].Add(pos); } // SOUTH
+            }
+            else
+            {
+                // Set Type to Null
+                SetCoordinateToType(_positionMap[pos], Coordinate.TYPE.NULL); 
+            }
+        }
+
+        _initialized = true;
     }
 
     #region == HANDLE COORDINATE MAP ================================ ////
@@ -71,136 +130,59 @@ public class CoordinateMap
     }
     */
 
-
-
-    void SetAllCoordinateTypesToDefault()
+    public bool SetCoordinateToType(Coordinate coordinate, Coordinate.TYPE type)
     {
-        CoordinateValueMap.ToList().ForEach(entry => entry.Value.type = Coordinate.TYPE.NULL);
-
-        ResetAllCoordinatesToDefault();
-    }
-
-
-    void ResetAllCoordinatesToDefault()
-    {
-        foreach (Coordinate coord in CoordinateList)
+        // Remove coordinate from previous type reference
+        if (_typeMap.ContainsKey(coordinate.type))
         {
-            Vector2Int coordinateVector = coord.LocalCoordinate;
-            Coordinate worldCoordinate = CoordinateValueMap[coordinateVector];
-
-            int coordMax = WorldGeneration.GetFullRegionWidth_inChunks();
-
-            // Check if the position is in a corner & close it
-            if ((coordinateVector == Vector2Int.zero) 
-                || (coordinateVector == new Vector2Int(coordMax - 1, 0))
-                || coordinateVector == new Vector2Int(0, coordMax - 1) 
-                || coordinateVector == new Vector2Int(coordMax - 1, coordMax - 1))
-                {
-                worldCoordinate.type = Coordinate.TYPE.CLOSED;
-                worldCoordinate.debugColor = Color.black;
-            }
-            // Check if the position is on the border
-            else if (coordinateVector.x == 0 || coordinateVector.y == 0 
-                || coordinateVector.x == coordMax - 1 || coordinateVector.y == coordMax - 1)
-            {
-                worldCoordinate.type = Coordinate.TYPE.BORDER;
-                worldCoordinate.debugColor = Color.black;
-
-                if (coordinateVector.x == 0) { CoordinateValueMap[coordinateVector].borderEdgeDirection = WorldDirection.WEST; }
-                if (coordinateVector.y == 0) { CoordinateValueMap[coordinateVector].borderEdgeDirection = WorldDirection.SOUTH; }
-                if (coordinateVector.x == coordMax - 1) { CoordinateValueMap[coordinateVector].borderEdgeDirection = WorldDirection.EAST; }
-                if (coordinateVector.y == coordMax - 1) { CoordinateValueMap[coordinateVector].borderEdgeDirection = WorldDirection.NORTH; }
-            }
-            else
-            {
-                worldCoordinate.type = Coordinate.TYPE.NULL;
-                worldCoordinate.debugColor = Color.grey;
-            }
+            _typeMap[coordinate.type].Remove(coordinate);
         }
+
+        // Assign type
+        coordinate.type = type;
+        switch (type)
+        {
+            case Coordinate.TYPE.CLOSED: coordinate.debugColor = Color.black; break;
+            case Coordinate.TYPE.BORDER: coordinate.debugColor = Color.black; break;
+            case Coordinate.TYPE.NULL: coordinate.debugColor = Color.grey; break;
+            case Coordinate.TYPE.EXIT: coordinate.debugColor = Color.red; break;
+        }
+
+        // If new TYPE key not found, create
+        if (!_typeMap.ContainsKey(type))
+        {
+            _typeMap[type] = new HashSet<Coordinate> { coordinate };
+        }
+        // else if the map doesnt already include the coordinate
+        else if (!_typeMap[type].Contains(coordinate))
+        {
+            _typeMap[type].Add(coordinate);
+        }
+
+        return true;
     }
-
-
-    public void DestroyCoordinateMap()
-    {
-        CoordinateList = new();
-        CoordinateValueMap = new();
-    }
-
     #endregion
 
     #region == GET MAP COORDINATES ================================ ////
 
     public Coordinate GetCoordinateAt(Vector2Int coordinate)
     {
-        if (!coordMapInitialized) { return null; }
-
-        // Use the dictionary for fast lookups
-        if (CoordinateValueMap.TryGetValue(coordinate, out Coordinate foundCoord))
+        if (_initialized && _positions.Contains(coordinate))
         {
-            return foundCoord;
+            return _positionMap[coordinate];
         }
         return null;
     }
 
     public List<Coordinate> GetAllCoordinatesOfType(Coordinate.TYPE type)
     {
-        List<Coordinate> typeList = new();
-        foreach(Coordinate coord in CoordinateList)
-        {
-            if (coord.type == type)
-            {
-                typeList.Add(coord);
-            }
-        }
-        return typeList;
-    }
-
-    public List<Coordinate.TYPE> GetCoordinateTypesFromList(List<Coordinate> worldCoords)
-    {
-        List<Coordinate.TYPE> typeList = new();
-        foreach (Coordinate coord in worldCoords)
-        {
-            typeList.Add(CoordinateValueMap[coord.LocalCoordinate].type); // Get type from map
-        }
-        return typeList;
-    }
-
-    public List<Coordinate> GetCoordinatesOnBorder(WorldDirection direction)
-    {
-        List<Coordinate> coordinatesOnEdge = new List<Coordinate>();
-        List<Coordinate> borderMap = GetAllCoordinatesOfType(Coordinate.TYPE.BORDER);
-        foreach (Coordinate coord in borderMap)
-        {
-            if (coord.borderEdgeDirection == direction)
-            {
-                coordinatesOnEdge.Add(coord);
-            }
-        }
-        return coordinatesOnEdge;
+        if (!_typeMap.ContainsKey(type)) { _typeMap[type] = new(); } 
+        return _typeMap[type].ToList();
     }
 
     #endregion
 
-    #region == SET MAP COORDINATES ================================================================ ///
-    public bool SetMapCoordinateToType(Coordinate worldCoord, Coordinate.TYPE type, Color? debugColor = null)
-    {
-        if (!coordMapInitialized || worldCoord == null) { return false; }
-        CoordinateValueMap[worldCoord.LocalCoordinate].type = type;
 
-        if (debugColor.HasValue) { worldCoord.debugColor = debugColor.Value; }
-
-        return true;
-    }
-    public bool SetMapCoordinatesToType(List<Coordinate> coords, Coordinate.TYPE conversionType, Color? debugColor = null)
-    {
-        if (!coordMapInitialized) { return false; }
-        foreach (Coordinate coordinate in coords)
-        {
-            SetMapCoordinateToType(coordinate, conversionType, debugColor);
-        }
-        return true;
-    }
-    #endregion
 
     // =====================================================================================
 
@@ -208,7 +190,7 @@ public class CoordinateMap
 
     public void CreateWorldExitPath()
     {
-        if (coordMapInitialized == false)
+        if (_initialized == false)
         {
             Debug.LogError("Cannot Create World Exit Path with Uninitialized WorldCoordinate Map");
             return;
@@ -216,17 +198,7 @@ public class CoordinateMap
 
         WorldExit defaultStart = new WorldExit(WorldDirection.WEST, 0);
         WorldExit defaultEnd = new WorldExit(WorldDirection.EAST, 0);
-        worldExitPaths.Add(new WorldExitPath(defaultStart, defaultEnd));
-    }
-
-    public Coordinate GetCoordinateAtWorldExit(WorldDirection direction, int index)
-    {
-        List<Coordinate> borderCoords = GetCoordinatesOnBorder(direction);
-        if (borderCoords.Count > index)
-        {
-            return borderCoords[index];
-        }
-        return null;
+        worldPaths.Add(new WorldExitPath(defaultStart, defaultEnd));
     }
 
     public void UpdateAllWorldExitPaths()
@@ -234,7 +206,7 @@ public class CoordinateMap
         //Debug.Log($"Update All Paths :: forceReset {forceReset}");
         bool exitPathsAreInitialized = true;
 
-        foreach (WorldExitPath exitPath in worldExitPaths) 
+        foreach (WorldExitPath exitPath in worldPaths) 
         {
             exitPath.Reset();
             exitPath.EditorUpdate();
@@ -262,7 +234,7 @@ public class CoordinateMap
     #region == HANDLE WORLD ZONES ==================================== ////
     public void CreateWorldZone()
     {
-        if (coordMapInitialized == false)
+        if (_initialized == false)
         {
             Debug.LogError("Cannot Create World Zone with Uninitialized WorldCoordinate Map");
             return;
@@ -273,7 +245,7 @@ public class CoordinateMap
         int centerY = Mathf.CeilToInt(WorldGeneration.GetFullRegionWidth_inChunks() / 2);
         Coordinate centerCoordinate = GetCoordinateAt(new Vector2Int(centerX, centerY));
 
-        Debug.Log($"Create Zone at {centerCoordinate.LocalCoordinate}");
+        Debug.Log($"Create Zone at {centerCoordinate.LocalPosition}");
         worldZones.Add(new WorldZone(centerCoordinate, WorldZone.TYPE.NATURAL_CROSS));
     }
 
@@ -331,17 +303,17 @@ public class CoordinateMap
         // Initialize costs for all coordinates to infinity, except the start coordinate
         Dictionary<Vector2Int, float> gCost = new Dictionary<Vector2Int, float>();
         Dictionary<Vector2Int, Coordinate> parents = new Dictionary<Vector2Int, Coordinate>();
-        foreach (var coord in CoordinateValueMap.Keys)
+        foreach (Vector2Int pos in _positions)
         {
-            gCost[coord] = float.MaxValue;
+            gCost[pos] = float.MaxValue;
         }
         gCost[startCoord] = 0;
 
         // Initialize the heuristic costs
         Dictionary<Vector2Int, float> fCost = new Dictionary<Vector2Int, float>();
-        foreach (var coord in CoordinateValueMap.Keys)
+        foreach (Vector2Int pos in _positions)
         {
-            fCost[coord] = float.MaxValue;
+            fCost[pos] = float.MaxValue;
         }
         fCost[startCoord] = Vector2Int.Distance(startCoord, endCoord);
 
@@ -369,22 +341,22 @@ public class CoordinateMap
             openSet.Remove(current);
             closedSet.Add(current);
 
-            foreach (Coordinate neighbor in CoordinateValueMap[current].GetValidNaturalNeighbors())
+            foreach (Coordinate neighbor in _positionMap[current].GetValidNaturalNeighbors())
             {
-                if (closedSet.Contains(neighbor.LocalCoordinate) || !IsCoordinateValidForPathfinding(neighbor.LocalCoordinate))
+                if (closedSet.Contains(neighbor.LocalPosition) || !IsCoordinateValidForPathfinding(neighbor.LocalPosition))
                         continue; // Skip non-traversable neighbors and those already evaluated
 
-                float tentativeGCost = gCost[current] + Vector2Int.Distance(current, neighbor.LocalCoordinate);
+                float tentativeGCost = gCost[current] + Vector2Int.Distance(current, neighbor.LocalPosition);
 
-                if (tentativeGCost < gCost[neighbor.LocalCoordinate])
+                if (tentativeGCost < gCost[neighbor.LocalPosition])
                 {
                     // This path to neighbor is better than any previous one. Record it!
-                    parents[neighbor.LocalCoordinate] = CoordinateValueMap[current];
-                    gCost[neighbor.LocalCoordinate] = tentativeGCost;
-                    fCost[neighbor.LocalCoordinate] = tentativeGCost + Vector2Int.Distance(neighbor.LocalCoordinate, endCoord);
+                    parents[neighbor.LocalPosition] = _positionMap[current];
+                    gCost[neighbor.LocalPosition] = tentativeGCost;
+                    fCost[neighbor.LocalPosition] = tentativeGCost + Vector2Int.Distance(neighbor.LocalPosition, endCoord);
 
-                    if (!openSet.Contains(neighbor.LocalCoordinate))
-                        openSet.Add(neighbor.LocalCoordinate);
+                    if (!openSet.Contains(neighbor.LocalPosition))
+                        openSet.Add(neighbor.LocalPosition);
                 }
             }
         }
@@ -401,10 +373,10 @@ public class CoordinateMap
 
         while (currentCoord != startCoord)
         {
-            path.Add(CoordinateValueMap[currentCoord]);
-            currentCoord = parents[currentCoord].LocalCoordinate; // Move to the parent coordinate
+            path.Add(_positionMap[currentCoord]);
+            currentCoord = parents[currentCoord].LocalPosition; // Move to the parent coordinate
         }
-        path.Add(CoordinateValueMap[startCoord]); // Add the start coordinate at the end
+        path.Add(_positionMap[startCoord]); // Add the start coordinate at the end
         path.Reverse(); // Reverse the list to start from the beginning
 
         return path;
@@ -413,9 +385,9 @@ public class CoordinateMap
     public bool IsCoordinateValidForPathfinding(Vector2Int candidate)
     {
         // Check Types
-        if (CoordinateValueMap[candidate] != null && 
-           (CoordinateValueMap[candidate].type == Coordinate.TYPE.NULL 
-           || CoordinateValueMap[candidate].type == Coordinate.TYPE.PATH ))
+        if (_positionMap[candidate] != null && 
+           (_positionMap[candidate].type == Coordinate.TYPE.NULL 
+           || _positionMap[candidate].type == Coordinate.TYPE.PATH ))
         {
             return true;
         }

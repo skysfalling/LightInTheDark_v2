@@ -59,8 +59,8 @@ public class WorldPath
 
     public WorldPath(Coordinate startCoord, int startHeight, Coordinate endCoord, int endHeight, DebugColor pathColor, float pathRandomness = 0)
     {
-        this._startCoordinate = startCoord.LocalCoordinate;
-        this._endCoordinate = endCoord.LocalCoordinate;
+        this._startCoordinate = startCoord.LocalPosition;
+        this._endCoordinate = endCoord.LocalPosition;
 
         this._startHeight = startHeight;
         this._endHeight = endHeight;

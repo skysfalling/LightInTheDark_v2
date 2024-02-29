@@ -55,7 +55,7 @@ public class WorldChunk
 
     public WorldChunk(Coordinate worldCoord)
     {
-        this.coordinate = worldCoord.LocalCoordinate;
+        this.coordinate = worldCoord.LocalPosition;
         this.groundHeight = PerlinNoise.CalculateHeightFromNoise(this.coordinate);
 
         groundPosition = new Vector3(worldCoord.WorldPosition.x, _realChunkHeight, worldCoord.WorldPosition.z);
@@ -175,7 +175,7 @@ public class WorldChunk
         List<Coordinate> neighborCoords = worldCoordinate.GetValidNaturalNeighbors();
         foreach (Coordinate neighborCoord in neighborCoords)
         {
-            chunkNeighbors.Add(WorldChunkMap.GetChunkAt(neighborCoord.LocalCoordinate));
+            chunkNeighbors.Add(WorldChunkMap.GetChunkAt(neighborCoord.LocalPosition));
         }
         return chunkNeighbors;
     }
@@ -186,7 +186,7 @@ public class WorldChunk
         List<Coordinate> neighborCoords = worldCoordinate.GetValidDiagonalNeighbors();
         foreach (Coordinate neighborCoord in neighborCoords)
         {
-            chunkNeighbors.Add(WorldChunkMap.GetChunkAt(neighborCoord.LocalCoordinate));
+            chunkNeighbors.Add(WorldChunkMap.GetChunkAt(neighborCoord.LocalPosition));
         }
         return chunkNeighbors;
     }

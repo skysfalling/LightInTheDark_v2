@@ -8,20 +8,19 @@ public class Coordinate
 
     public enum TYPE { NULL, BORDER, EXIT, PATH, ZONE, CLOSED }
     public TYPE type;
-    public WorldDirection borderEdgeDirection;
     public Color debugColor = Color.clear;
 
     public CoordinateMap CoordinateMap { get; private set; }
     public WorldSpace Space { get; private set; }
-    public Vector2Int LocalCoordinate { get; private set; }
+    public Vector2Int LocalPosition { get; private set; }
     public Vector3 WorldPosition { get; private set; }
 
     public Dictionary<WorldDirection, Vector2Int> NeighborCoordinateMap { get; private set; }
 
-    public Coordinate(CoordinateMap coordinateMap, Vector2Int coord, WorldRegion region)
+    public Coordinate(CoordinateMap coordinateMapParent, Vector2Int coord, WorldRegion region)
     {
-        this.CoordinateMap = coordinateMap;
-        LocalCoordinate = coord;
+        this.CoordinateMap = coordinateMapParent;
+        LocalPosition = coord;
         Space = WorldSpace.Chunk; // The Coordinate is in chunk space because it determines where the chunks spawn in the parent region
 
         // Calculate position
@@ -36,7 +35,7 @@ public class Coordinate
         InitializeNeighborMap();
     }
 
-    // =================== NEIGHBOR MAP ====================== >>>> 
+    #region =================== NEIGHBOR MAP ====================== >>>> 
     public void InitializeNeighborMap()
     {
         // Set Neighbors
@@ -45,7 +44,7 @@ public class Coordinate
         foreach (WorldDirection direction in Enum.GetValues(typeof(WorldDirection)))
         {
             // Get neighbor in direction
-            NeighborCoordinateMap[direction] = LocalCoordinate + GetDirectionVector(direction);
+            NeighborCoordinateMap[direction] = LocalPosition + GetDirectionVector(direction);
         }
 
         foundNeighbors = true;
@@ -82,7 +81,7 @@ public class Coordinate
         foreach (var entry in NeighborCoordinateMap)
         {
             // Check if the neighbor's Coordinate matches the entry's value
-            if (entry.Value == neighbor.LocalCoordinate)
+            if (entry.Value == neighbor.LocalPosition)
             {
                 // If so, return the direction
                 return entry.Key;
@@ -189,5 +188,7 @@ public class Coordinate
     {
         return GetValidDiagonalNeighborCoordinates().Contains(coordinate);
     }
+    #endregion
 }
+
 

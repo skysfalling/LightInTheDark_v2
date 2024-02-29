@@ -284,7 +284,7 @@ public class WorldRegionMapEditor : Editor
                 try
                 {
                     string chunkParameters =
-                        $"Coordinate => {worldCoord.LocalCoordinate}" +
+                        $"Coordinate => {worldCoord.LocalPosition}" +
                         $"\nCoordinate Type => {worldCoord.type}" +
                         $"\nCoordinate Neighbors => {worldCoord.NeighborCoordinateMap.Values.ToList().Count()}" +
                         $"\n" +
@@ -430,13 +430,13 @@ public class WorldRegionMapEditor : Editor
                             List<Vector2Int> diagonalNeighbors = selectedChunk.worldCoordinate.GetValidDiagonalNeighborCoordinates();
 
                             // Draw Natural Neighbors
-                            if (naturalNeighbors.Contains(worldChunk.worldCoordinate.LocalCoordinate))
+                            if (naturalNeighbors.Contains(worldChunk.worldCoordinate.LocalPosition))
                             {
                                 GUI.backgroundColor = Color.Lerp(worldCoord.debugColor, Color.white, 0.5f);
                             }
 
                             // Draw Diagonal Neighbors
-                            else if (diagonalNeighbors.Contains(worldChunk.worldCoordinate.LocalCoordinate))
+                            else if (diagonalNeighbors.Contains(worldChunk.worldCoordinate.LocalPosition))
                             {
                                 GUI.backgroundColor = Color.Lerp(worldCoord.debugColor, Color.white, 0.25f);
                             }
