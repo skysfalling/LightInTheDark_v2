@@ -12,7 +12,6 @@ using UnityEngine.Windows;
 public class WorldInteractor : MonoBehaviour
 {
     WorldGeneration _worldGeneration;
-    WorldCellMap _worldCellMap;
     WorldChunkMap _worldChunkMap;
     WorldSpawnMap _worldSpawnMap;
     WorldEnvironment _worldEnvironment;
@@ -27,7 +26,7 @@ public class WorldInteractor : MonoBehaviour
     public void Start()
     {
         _worldGeneration = WorldGeneration.Instance;
-        _worldCellMap = WorldCellMap.Instance;
+        //_worldCellMap = WorldCellMap.Instance;
         _worldSpawnMap = WorldSpawnMap.Instance;
         _worldEnvironment = WorldEnvironment.Instance;
     }

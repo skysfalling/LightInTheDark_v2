@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Entity : MonoBehaviour
 {
-    WorldCellMap _cellMap;
     WorldEntityManager _entityManager;
     
     List<WorldCell> _affectedPath = new List<WorldCell>();
@@ -19,7 +18,6 @@ public class Entity : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        _cellMap = WorldCellMap.Instance;
         _entityManager = WorldEntityManager.Instance;
         InvokeRepeating("TickUpdate", _entityManager.tickSpeed, _entityManager.tickSpeed);
     }
@@ -35,7 +33,7 @@ public class Entity : MonoBehaviour
 
     void TickUpdate()
     {
-        if (_currentCell == null) { _currentCell = _cellMap.FindClosestCellTo(transform.position); }
+        //if (_currentCell == null) { _currentCell = _cellMap.FindClosestCellTo(transform.position); }
 
         // if still following path .. update
         if (_currPathIndex < _movePath.Count)
@@ -59,8 +57,8 @@ public class Entity : MonoBehaviour
 
     public void SetTargetCell(Vector3 worldPos)
     {
-        _targetCell = WorldCellMap.Instance.FindClosestCellTo(worldPos);
-        SetMovePathTo(_targetCell);
+        //_targetCell = WorldCellMap.Instance.FindClosestCellTo(worldPos);
+        //SetMovePathTo(_targetCell);
     }
 
     public void SetMovePathTo(WorldCell targetCell)

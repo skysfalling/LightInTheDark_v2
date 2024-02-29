@@ -14,11 +14,12 @@ public class WorldChunkMap
     public WorldChunkMap(CoordinateMap coordinateMap)
     {
         this.coordinateMap = coordinateMap;
-        foreach (Coordinate coord in coordinateMap.allCoordinates)
+        foreach (Vector2Int position in coordinateMap.allPositions)
         {
-            WorldChunk newChunk = new WorldChunk(this, coord);
+            Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
+            WorldChunk newChunk = new WorldChunk(this, coordinate);
             _chunks.Add(newChunk);
-            _chunkMap[coord.localPosition] = newChunk;
+            _chunkMap[coordinate.localPosition] = newChunk;
         }
 
         initialized = true;
@@ -29,26 +30,14 @@ public class WorldChunkMap
 
     public WorldChunk GetChunkAt(Vector2Int position)
     {
-        if (!initialized) { return null; }
-
-        // Use the dictionary for fast lookups
-        if (_chunkMap.TryGetValue(position, out WorldChunk foundChunk))
-        {
-            return foundChunk;
-        }
-        return null;
+        if (!initialized || !coordinateMap.allPositions.Contains(position)) { return null; }
+        return _chunkMap[position];
     }
 
     public WorldChunk GetChunkAt(Coordinate worldCoord)
     {
         if (!initialized || worldCoord == null) { return null; }
-
-        // Use the dictionary for fast lookups
-        if (_chunkMap.TryGetValue(worldCoord.localPosition, out WorldChunk foundChunk))
-        {
-            return foundChunk;
-        }
-        return null;
+        return GetChunkAt(worldCoord.localPosition);
     }
 
     public List<WorldChunk> GetChunksAtCoordinates(List<Coordinate> worldCoords)

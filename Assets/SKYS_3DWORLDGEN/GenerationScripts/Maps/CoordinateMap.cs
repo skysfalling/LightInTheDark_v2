@@ -70,6 +70,7 @@ public class CoordinateMap
     Dictionary<MapBorder, List<Vector2Int>> _borderPositionsMap = new(); // Enum , Sorted List of Border Coordinates
 
     public WorldRegion WorldRegion { get; private set; }
+    public WorldChunk WorldChunk { get; private set; }
     public List<Vector2Int> allPositions { get { return _positions.ToList(); } }
     public List<Coordinate> allCoordinates { get { return _coordinates.ToList(); } }
 
@@ -80,7 +81,6 @@ public class CoordinateMap
     public CoordinateMap(WorldRegion region)
     {
         WorldRegion = region;
-
 
         // << CREATE REGION COORDINATES >> =================================================================
 
@@ -143,6 +143,77 @@ public class CoordinateMap
             {
                 // Set Type to Null
                 SetCoordinateToType(pos, Coordinate.TYPE.NULL); 
+            }
+        }
+
+        _initialized = true;
+    }
+
+    public CoordinateMap(WorldChunk chunk)
+    {
+        WorldChunk = chunk;
+
+        // << CREATE REGION COORDINATES >> =================================================================
+
+        int fullChunkWidth = WorldGeneration.ChunkWidth_inCells;
+        int coordMax = fullChunkWidth;
+
+        _coordinateMap = new Coordinate[coordMax][]; // initialize row
+        for (int x = 0; x < coordMax; x++)
+        {
+            _coordinateMap[x] = new Coordinate[coordMax]; // initialize column
+
+            for (int y = 0; y < coordMax; y++)
+            {
+                Vector2Int newPosition = new Vector2Int(x, y);
+                _positions.Add(newPosition);
+                _coordinateMap[x][y] = new Coordinate(this, newPosition, chunk); // Create and store Region Coordinate
+                _coordinates.Add(_coordinateMap[x][y]);
+                _positionMap[newPosition] = _coordinateMap[x][y];
+            }
+        }
+
+        // << ASSIGN COORDINATE TYPES >> =================================================================
+        // ** Set Coordinate To Type updates the TypeMap accordingly
+
+        // >> initialize _border positions
+        _borderPositionsMap[MapBorder.WEST] = new();
+        _borderPositionsMap[MapBorder.EAST] = new();
+        _borderPositionsMap[MapBorder.NORTH] = new();
+        _borderPositionsMap[MapBorder.SOUTH] = new();
+
+        // >> store coordinate range
+        Vector2Int range = new Vector2Int(0, coordMax - 1);
+        HashSet<Vector2Int> cornerCoordinates = new HashSet<Vector2Int>() {
+            new Vector2Int(range.x, range.x), // 0 0
+            new Vector2Int(range.y, range.y), // max max
+            new Vector2Int(range.x, range.y), // 0 max
+            new Vector2Int(range.y, range.x)  // max 0
+            };
+
+        // >> iterate through positions
+        foreach (Vector2Int pos in _positions)
+        {
+            if (cornerCoordinates.Contains(pos))
+            {
+                // Set Type to Closed
+                SetCoordinateToType(pos, Coordinate.TYPE.CLOSED);
+            }
+            else if (pos.x == range.x || pos.x == range.y || pos.y == range.x || pos.y == range.y)
+            {
+                // Set Type to Border
+                SetCoordinateToType(pos, Coordinate.TYPE.BORDER);
+
+                // Set Border Map
+                if (pos.x == range.x) { _borderPositionsMap[MapBorder.WEST].Add(pos); } // WEST
+                if (pos.x == range.y) { _borderPositionsMap[MapBorder.EAST].Add(pos); } // EAST
+                if (pos.y == range.x) { _borderPositionsMap[MapBorder.NORTH].Add(pos); } // NORTH
+                if (pos.y == range.y) { _borderPositionsMap[MapBorder.SOUTH].Add(pos); } // SOUTH
+            }
+            else
+            {
+                // Set Type to Null
+                SetCoordinateToType(pos, Coordinate.TYPE.NULL);
             }
         }
 

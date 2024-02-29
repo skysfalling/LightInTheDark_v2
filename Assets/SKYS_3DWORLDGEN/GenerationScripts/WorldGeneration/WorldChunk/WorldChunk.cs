@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-[System.Serializable]
 public class WorldChunk
 {
     public enum FaceType{ Front, Back, Left, Right, Top, Bottom }
@@ -12,6 +11,7 @@ public class WorldChunk
     string prefix = " [[ WORLD CHUNK ]]";
     int _chunkWidth { get { return WorldGeneration.ChunkWidth_inCells; } }
 
+    public CoordinateMap coordinateMap { get; }
     public WorldChunkMesh chunkMesh;
     public Color debugColor = Color.white;
     public int groundHeight { get; private set; }
@@ -48,7 +48,7 @@ public class WorldChunk
     public Coordinate coordinate { get; private set; }
     public Vector3 groundPosition { get; private set; }
     public Vector3 groundMeshDimensions { get; private set; }
-
+    public Vector3 originCoordinatePosition { get; }
     // Active Edges
     bool _northEdgeActive;
     bool _southEdgeActive;  
@@ -62,8 +62,26 @@ public class WorldChunk
         this.localPosition = coordinate.localPosition;
         this.groundHeight = PerlinNoise.CalculateHeightFromNoise(this.localPosition);
 
+
+        // Determine position & dimenstions
         groundPosition = new Vector3(coordinate.worldPosition.x, _realChunkHeight, coordinate.worldPosition.z);
         groundMeshDimensions = new Vector3(_chunkWidth, _realChunkHeight, _chunkWidth);
+
+        // >> Origin Coordinate Position { Bottom Left }
+        originCoordinatePosition = groundPosition;
+        originCoordinatePosition -= WorldGeneration.GetChunkWidth_inWorldSpace() * new Vector3(0.5f, 0, 0.5f);
+
+        // Create coordinate map
+        this.coordinateMap = new CoordinateMap(this);
+
+        // Create chunkMesh
+        chunkMesh = new WorldChunkMesh(this, groundHeight, groundPosition);
+
+        // Create Cells
+        CreateCells();
+        DetermineChunkEdges();
+        SetChunkType();
+        CreateCellTypeMap();
     }
 
     public void SetGroundHeight(int height)
@@ -86,24 +104,6 @@ public class WorldChunk
     }
 
     #region ================ INITIALIZE WORLD CHUNK ============================= >>
-
-    public void GenerateChunkMesh()
-    {
-        if (generation_finished) return;
-
-        generation_finished = false;
-
-        // Create chunkMesh
-        chunkMesh = new WorldChunkMesh(this, groundHeight, groundPosition);
-
-        // Create Cells
-        CreateCells();
-        DetermineChunkEdges();
-        SetChunkType();
-        CreateCellTypeMap();
-
-        generation_finished = true;
-    }
 
     void DetermineChunkEdges()
     {

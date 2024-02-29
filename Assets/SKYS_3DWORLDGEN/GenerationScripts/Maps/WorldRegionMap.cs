@@ -221,7 +221,7 @@ public class WorldRegionMapEditor : Editor
 
             //CreateToggle("Coordinate Map", CoordinateMap.coordMapInitialized);
             //CreateToggle("Chunk Map", WorldChunkMap.initialized);
-            CreateToggle("Cell Map", WorldCellMap.cellMapInitialized);
+            //CreateToggle("Cell Map", WorldCellMap.cellMapInitialized);
 
             //CreateToggle("Coordinate Neighbors", CoordinateMap.coordNeighborsInitialized);
             //CreateToggle("Zones", CoordinateMap.zonesInitialized);
@@ -290,16 +290,6 @@ public class WorldRegionMapEditor : Editor
                         $"\nChunk GroundHeight => {selectedChunk.groundHeight}" +
                         $"\nChunk Mesh Dimensions => {selectedChunk.groundMeshDimensions}";
 
-                    if (WorldCellMap.cellMapInitialized)
-                    {
-                        chunkParameters += "\n" +
-                            $"\nChunk LocalCells => {selectedChunk.localCells.Count}";
-                    }
-                    else
-                    {
-                        chunkParameters += "\n" +
-                            "\nCell Map not initialized";
-                    }
                     GUILayout.Box(chunkParameters, pStyle, GUILayout.Height(200));
 
                 }

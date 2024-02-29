@@ -13,14 +13,14 @@ public class WorldChunkCursor : MonoBehaviour
     #region == Mouse Input ======================================= ///////
     public void MouseHoverInput(Vector3 worldPosition)
     {
-        WorldCell closestCell = WorldCellMap.Instance.FindClosestCellTo(worldPosition);
+        //WorldCell closestCell = WorldCellMap.Instance.FindClosestCellTo(worldPosition);
         //UpdateHoverCursorCell(closestCell);
     }
 
     public void MouseSelectInput(Vector3 worldPosition)
     {
-        WorldCell closestCell = WorldCellMap.Instance.FindClosestCellTo(worldPosition);
-        SelectChunk(closestCell.GetChunk());
+        //WorldCell closestCell = WorldCellMap.Instance.FindClosestCellTo(worldPosition);
+        //SelectChunk(closestCell.GetChunk());
     }
     #endregion
 

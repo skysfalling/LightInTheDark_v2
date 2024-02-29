@@ -17,15 +17,15 @@ public class WorldCellCursor : MonoBehaviour
     #region == Mouse Input ======================================= ///////
     public void MouseHoverInput(Vector3 worldPosition)
     {
-        WorldCell closestCell = WorldCellMap.Instance.FindClosestCellTo(worldPosition);
-        if (closestCell == _selectedCursorCell) { return; }
-        SetHoverCursorCell(closestCell);
+        //WorldCell closestCell = WorldCellMap.Instance.FindClosestCellTo(worldPosition);
+        //if (closestCell == _selectedCursorCell) { return; }
+        //SetHoverCursorCell(closestCell);
     }
 
     public void MouseSelectInput(Vector3 worldPosition)
     {
-        WorldCell closestCell = WorldCellMap.Instance.FindClosestCellTo(worldPosition);
-        SetSelectedCursorCell(closestCell);
+        //WorldCell closestCell = WorldCellMap.Instance.FindClosestCellTo(worldPosition);
+        //SetSelectedCursorCell(closestCell);
     }
     #endregion
 

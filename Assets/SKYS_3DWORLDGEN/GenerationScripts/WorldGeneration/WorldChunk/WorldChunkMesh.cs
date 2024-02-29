@@ -31,8 +31,9 @@ public class WorldChunkMesh
     int _cellSize = WorldGeneration.CellWidth_inWorldSpace;
     Vector3Int default_chunkMeshDimensions = WorldGeneration.GetChunkVec3Dimensions_inCells();
     Vector3Int current_chunkMeshDimensions;
-    WorldChunk chunk;
-    Coordinate worldCoordinate;
+    WorldChunk _chunk;
+    Coordinate _worldCoordinate;
+    WorldChunkMap _worldChunkMap;
     Dictionary<FaceType, List<Vector3>> _meshVertices = new();
     Dictionary<FaceType, List<Vector2>> _meshUVs = new();
     public List<MeshQuad> meshQuads = new();
@@ -41,8 +42,9 @@ public class WorldChunkMesh
 
     public WorldChunkMesh(WorldChunk chunk, int groundHeight, Vector3 groundPosition)
     {
-        this.chunk = chunk;
-        this.worldCoordinate = chunk.coordinate;
+        this._chunk = chunk;
+        this._worldCoordinate = chunk.coordinate;
+        this._worldChunkMap = chunk.chunkMap;
 
         List<FaceType> facesToGenerate = new List<FaceType>()
         {
@@ -226,16 +228,16 @@ public class WorldChunkMesh
             switch (type)
             {
                 case FaceType.Front:
-                    neighborCoord = worldCoordinate.GetNeighborInDirection(WorldDirection.NORTH);
+                    neighborCoord = _worldCoordinate.GetNeighborInDirection(WorldDirection.NORTH);
                     break;
                 case FaceType.Back:
-                    neighborCoord = worldCoordinate.GetNeighborInDirection(WorldDirection.SOUTH);
+                    neighborCoord = _worldCoordinate.GetNeighborInDirection(WorldDirection.SOUTH);
                     break;
                 case FaceType.Left:
-                    neighborCoord = worldCoordinate.GetNeighborInDirection(WorldDirection.WEST);
+                    neighborCoord = _worldCoordinate.GetNeighborInDirection(WorldDirection.WEST);
                     break;
                 case FaceType.Right:
-                    neighborCoord = worldCoordinate.GetNeighborInDirection(WorldDirection.EAST);
+                    neighborCoord = _worldCoordinate.GetNeighborInDirection(WorldDirection.EAST);
                     break;
                 case FaceType.Top:
                 case FaceType.Bottom:
@@ -244,10 +246,14 @@ public class WorldChunkMesh
 
             if (neighborCoord != null)
             {
-                WorldChunk neighborChunk = chunk.chunkMap.GetChunkAt(neighborCoord);
-                faceHeight -= neighborChunk.groundHeight; // subtract based on neighbor height
-                faceHeight -= default_chunkMeshDimensions.y; // subtract 'underground' amount
-                faceHeight = Mathf.Max(faceHeight, 0); // set to 0 as minimum
+                WorldChunk neighborChunk = _worldChunkMap.GetChunkAt(neighborCoord);
+                if (neighborChunk != null)
+                {
+                    faceHeight -= neighborChunk.groundHeight; // subtract based on neighbor height
+                    faceHeight -= default_chunkMeshDimensions.y; // subtract 'underground' amount
+                    faceHeight = Mathf.Max(faceHeight, 0); // set to 0 as minimum
+                }
+
             }
 
             return faceHeight;

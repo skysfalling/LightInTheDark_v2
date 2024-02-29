@@ -48,6 +48,35 @@ public class Coordinate
         initialized = true;
     }
 
+    public Coordinate(CoordinateMap coordinateMapParent, Vector2Int coord, WorldChunk chunk)
+    {
+        this.coordinateMap = coordinateMapParent;
+        localPosition = coord;
+        worldSpace = WorldSpace.Cell; // The Coordinate is in chunk space because it determines where the chunks spawn in the parent region
+
+        // Calculate position
+        int cellWidth = WorldGeneration.CellWidth_inWorldSpace;
+
+        // Calculate local position
+        Vector2 worldPosition = new Vector2(chunk.originCoordinatePosition.x, chunk.originCoordinatePosition.z);
+        worldPosition += new Vector2(coord.x, coord.y) * cellWidth;
+
+        this.worldPosition = new Vector3(worldPosition.x, chunk.groundHeight, worldPosition.y);
+
+        // << SET NEIGHBORS >>
+        _neighborPositions = new();
+        _neighborMap = new();
+        foreach (WorldDirection direction in Enum.GetValues(typeof(WorldDirection)))
+        {
+            // Get neighbor in direction
+            Vector2Int neighborPosition = localPosition + CoordinateMap.GetDirectionVector(direction);
+            _neighborPositions.Add(neighborPosition);
+            _neighborMap[direction] = neighborPosition;
+        }
+
+        initialized = true;
+    }
+
     #region =================== NEIGHBOR MAP ====================== >>>> 
 
 

@@ -145,7 +145,6 @@ public class WorldRegionEditor : Editor
         EditorGUILayout.EndVertical();
 
         // << SELECTED CHUNK >>
-        EditorGUILayout.BeginHorizontal();
         EditorGUILayout.BeginVertical();
         EditorGUILayout.LabelField("Selected Chunk", h2Style);
         EditorGUILayout.Space(10);
@@ -154,14 +153,12 @@ public class WorldRegionEditor : Editor
             EditorGUILayout.LabelField($"Coordinate Local Position:  {selectedChunk.coordinate.localPosition}");
             EditorGUILayout.LabelField($"Chunk Ground Height:  {selectedChunk.groundHeight}");
             EditorGUILayout.LabelField($"Chunk Type:  {selectedChunk.type}");
-
         }
         else
         {
             EditorGUILayout.LabelField($"Please Select a Chunk in the Scene View");
         }
         EditorGUILayout.EndVertical();
-        EditorGUILayout.EndHorizontal();
 
     }
 
@@ -302,6 +299,9 @@ public class WorldRegionEditor : Editor
             case WorldSpace.Chunk:
                 DrawChunkView();
                 break;
+            case WorldSpace.Cell:
+                DrawCellView();
+                break;
         }
     }
 
@@ -409,6 +409,42 @@ public class WorldRegionEditor : Editor
         }
     }
 
+    void DrawCellView()
+    {
+        if (region == null || region.worldChunkMap == null) { return; }
+        GUIStyle cellLabelStyle = new GUIStyle()
+        {
+            fontStyle = FontStyle.Bold, // Example style
+            fontSize = 8, // Example font size
+            alignment = TextAnchor.MiddleCenter,
+            normal = new GUIStyleState { textColor = Color.black } // Set the text color
+        };
+
+        WorldChunkMap chunkMap = region.worldChunkMap;
+        if (chunkMap.initialized)
+        {
+            foreach (WorldChunk chunk in chunkMap.allChunks)
+            {
+                Color chunkDebugColor = Color.white;
+                string chunkDebugString = "";
+
+                DarklightGizmos.DrawButtonHandle(chunk.groundPosition, Vector3.right * 90, WorldGeneration.CellWidth_inWorldSpace * 0.5f, Color.black, () =>
+                {
+                    SelectChunk(chunk);
+                });
+
+            }
+
+            if (selectedChunk != null)
+            {
+                foreach (Coordinate coordinate in selectedChunk.coordinateMap.allCoordinates)
+                {
+                    DarklightGizmos.DrawFilledSquareAt(coordinate.worldPosition, WorldGeneration.CellWidth_inWorldSpace * 0.75f, Vector3.up, Color.white);
+                    DarklightGizmos.DrawLabel($"{coordinate.localPosition}", coordinate.worldPosition, cellLabelStyle);
+                }
+            }
+        }
+    }
 
     void SelectCoordinate(Coordinate coordinate)
     {
