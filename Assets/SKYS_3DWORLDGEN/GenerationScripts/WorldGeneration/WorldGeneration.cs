@@ -10,7 +10,7 @@ using Unity.VisualScripting;
 /// <summary>
 /// SKYS_3DWORLDGEN : Created by skysfalling @ darklightinteractive 2024
 /// 
-/// Handles the procedural generation of the game world in Unity.
+/// Handles the procedural generation of the game world in   Unity.
 /// Responsible for initializing and populating the world with terrain, landscapes,
 /// resources, and points of interest. Interacts with various world components to
 /// ensure a cohesive and dynamically generated game environment.
@@ -20,7 +20,6 @@ public enum DebugColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE, CLEAR }
 public enum WorldDirection { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
 public enum WorldSpace { World, Region, Chunk, Cell }
 
-[RequireComponent(typeof(WorldPathfinder))]
 [RequireComponent(typeof(WorldInteractor))]
 [RequireComponent(typeof(WorldStatTracker))]
 [RequireComponent(typeof(WorldMaterialLibrary))]

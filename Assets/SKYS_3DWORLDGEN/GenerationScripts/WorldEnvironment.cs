@@ -177,9 +177,9 @@ public class WorldEnvironment : MonoBehaviour
 
     private GameObject SpawnPrefab(GameObject prefab, WorldCell cell, Transform parent, float scaleMultiplier = 1)
     {
-        GameObject newObject = Instantiate(prefab, cell.position, Quaternion.identity);
+        GameObject newObject = Instantiate(prefab, cell.worldPosition, Quaternion.identity);
         newObject.transform.parent = parent;
-        newObject.transform.position = cell.position;
+        newObject.transform.position = cell.worldPosition;
         newObject.transform.localScale *= scaleMultiplier;
         return newObject;
     }

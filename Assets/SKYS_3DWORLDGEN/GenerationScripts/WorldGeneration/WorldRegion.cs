@@ -32,6 +32,8 @@ public class WorldRegion : MonoBehaviour
     public Vector3 centerPosition;
     public Vector3 originCoordinatePosition;
 
+    public Material defaultMaterial;
+
     public void Initialize(Vector2Int regionCoordinate)
     {
         this.regionCoordinate = regionCoordinate;
@@ -63,6 +65,13 @@ public class WorldRegion : MonoBehaviour
     {
         if (coordinateMap == null) { Debug.Log("Cannot create chunk map without a coordinate map"); return; }
         this.worldChunkMap = new WorldChunkMap(this.coordinateMap);
+    }
 
+    public void CreateChunkMeshObjects()
+    {
+        foreach (WorldChunk chunk in worldChunkMap.allChunks)
+        {
+            WorldGeneration.CreateMeshObject($"Chunk {chunk.localPosition} :: height {chunk.groundHeight}", chunk.chunkMesh.mesh, defaultMaterial);
+        }
     }
 }

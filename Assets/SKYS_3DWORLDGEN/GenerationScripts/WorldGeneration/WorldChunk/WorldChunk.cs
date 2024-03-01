@@ -11,11 +11,13 @@ public class WorldChunk
     string prefix = " [[ WORLD CHUNK ]]";
     int _chunkWidth { get { return WorldGeneration.ChunkWidth_inCells; } }
 
-    public CoordinateMap coordinateMap { get; }
+    public CoordinateMap cellCoordinateMap { get; }
     public WorldChunkMesh chunkMesh;
     public Color debugColor = Color.white;
     public int groundHeight { get; private set; }
     int _realChunkHeight { get { return groundHeight * WorldGeneration.CellWidth_inWorldSpace; } }
+
+
 
 
     /// <summary>
@@ -45,7 +47,7 @@ public class WorldChunk
     public Vector2Int localPosition { get; private set; }
     public bool generation_finished { get; private set; }
 
-    public Coordinate coordinate { get; private set; }
+    public Coordinate chunkCoordinate { get; private set; }
     public Vector3 groundPosition { get; private set; }
     public Vector3 groundMeshDimensions { get; private set; }
     public Vector3 originCoordinatePosition { get; }
@@ -55,10 +57,15 @@ public class WorldChunk
     bool _eastEdgeActive;
     bool _westEdgeActive;
 
+
+
+    public List<WorldCell> localCells = new List<WorldCell>();
+    Dictionary<WorldCell.TYPE, List<WorldCell>> _cellTypeMap = new();
+    Dictionary<FaceType, HashSet<WorldCell>> _cellFaceMap = new();
     public WorldChunk(WorldChunkMap chunkMap, Coordinate coordinate)
     {
         this.chunkMap = chunkMap;
-        this.coordinate = coordinate;
+        this.chunkCoordinate = coordinate;
         this.localPosition = coordinate.localPosition;
         this.groundHeight = PerlinNoise.CalculateHeightFromNoise(this.localPosition);
 
@@ -72,17 +79,34 @@ public class WorldChunk
         originCoordinatePosition -= WorldGeneration.GetChunkWidth_inWorldSpace() * new Vector3(0.5f, 0, 0.5f);
 
         // Create coordinate map
-        this.coordinateMap = new CoordinateMap(this);
+        this.cellCoordinateMap = new CoordinateMap(this);
+    }
 
+    public void CreateChunkMesh()
+    {
         // Create chunkMesh
         chunkMesh = new WorldChunkMesh(this, groundHeight, groundPosition);
 
         // Create Cells
-        CreateCells();
+        localCells.Clear();
+        foreach (MeshQuad quad in chunkMesh.meshQuads)
+        {
+            // Spawn top face cells
+            if (quad.faceType != FaceType.Bottom)
+            {
+                WorldCell newCell = new WorldCell(this, quad);
+                localCells.Add(newCell);
+
+                if (!_cellFaceMap.ContainsKey(quad.faceType)) { _cellFaceMap[quad.faceType] = new(); }
+                _cellFaceMap[quad.faceType].Add(newCell);
+            }
+        }
+
         DetermineChunkEdges();
         SetChunkType();
         CreateCellTypeMap();
     }
+
 
     public void SetGroundHeight(int height)
     {
@@ -99,7 +123,7 @@ public class WorldChunk
     void RecalcuatePosition()
     {
         if (localPosition == null) return;
-        groundPosition = new Vector3(coordinate.worldPosition.x, _realChunkHeight, coordinate.worldPosition.z);
+        groundPosition = new Vector3(chunkCoordinate.worldPosition.x, _realChunkHeight, chunkCoordinate.worldPosition.z);
         groundMeshDimensions = new Vector3(_chunkWidth, _realChunkHeight, _chunkWidth);
     }
 
@@ -122,10 +146,10 @@ public class WorldChunk
         // Find the edge positions
         foreach (WorldCell cell in localCells)
         {
-            if (cell.position.z > northEdgeZ) northEdgeZ = cell.position.z;
-            if (cell.position.z < southEdgeZ) southEdgeZ = cell.position.z;
-            if (cell.position.x > eastEdgeX) eastEdgeX = cell.position.x;
-            if (cell.position.x < westEdgeX) westEdgeX = cell.position.x;
+            if (cell.worldPosition.z > northEdgeZ) northEdgeZ = cell.worldPosition.z;
+            if (cell.worldPosition.z < southEdgeZ) southEdgeZ = cell.worldPosition.z;
+            if (cell.worldPosition.x > eastEdgeX) eastEdgeX = cell.worldPosition.x;
+            if (cell.worldPosition.x < westEdgeX) westEdgeX = cell.worldPosition.x;
         }
 
         // Check each cell
@@ -133,10 +157,10 @@ public class WorldChunk
         {
             if (cell.type == WorldCell.TYPE.EMPTY)
             {
-                if (cell.position.z == northEdgeZ) _northEdgeActive = false;
-                if (cell.position.z == southEdgeZ) _southEdgeActive = false;
-                if (cell.position.x == eastEdgeX) _eastEdgeActive = false;
-                if (cell.position.x == westEdgeX) _westEdgeActive = false;
+                if (cell.worldPosition.z == northEdgeZ) _northEdgeActive = false;
+                if (cell.worldPosition.z == southEdgeZ) _southEdgeActive = false;
+                if (cell.worldPosition.x == eastEdgeX) _eastEdgeActive = false;
+                if (cell.worldPosition.x == westEdgeX) _westEdgeActive = false;
             }
         }
 
@@ -174,22 +198,8 @@ public class WorldChunk
     #endregion
 
     // ================ CREATE & INITIALIZE WORLD CELLS ============================== >>
-    public List<WorldCell> localCells = new List<WorldCell>();
-    Dictionary<WorldCell.TYPE, List<WorldCell>> _cellTypeMap = new Dictionary<WorldCell.TYPE, List<WorldCell>>();
-    void CreateCells()
-    {
-        localCells.Clear();
 
-        foreach(MeshQuad quad in chunkMesh.meshQuads)
-        {
-            // Spawn top face cells
-            if (quad.faceType != FaceType.Bottom)
-            {
-                WorldCell newCell = new WorldCell(this, quad);
-                localCells.Add(newCell);
-            }
-        }
-    }
+
 
     void CreateCellTypeMap()
     {
@@ -248,7 +258,7 @@ public class WorldChunk
         string cellAreaList = "";
         foreach (WorldCell cell in cellsInArea)
         {
-            cellAreaList += $"{cell.position} {cell.type}\n";
+            cellAreaList += $"{cell.worldPosition} {cell.type}\n";
         }
 
         /*
@@ -273,7 +283,7 @@ public class WorldChunk
         {
             for (int z = 0; z < space.y; z++)
             {
-                WorldCell cell = GetCellAt(startCell.position.x + (x * cellSize), startCell.position.z + (z * cellSize));
+                WorldCell cell = GetCellAt(startCell.worldPosition.x + (x * cellSize), startCell.worldPosition.z + (z * cellSize));
                 if (cell != null && !areaCells.Contains(cell))
                 {
                     areaCells.Add(cell);
@@ -290,7 +300,7 @@ public class WorldChunk
 
         foreach (WorldCell cell in localCells)
         {
-            if (cell.position.x == x && cell.position.z == z) { return cell; }
+            if (cell.worldPosition.x == x && cell.worldPosition.z == z) { return cell; }
         }
 
         return null;

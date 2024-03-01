@@ -23,6 +23,13 @@ public class WorldChunkMap
         }
 
         initialized = true;
+
+
+        // Create Chunk Meshes
+        foreach (WorldChunk chunk in _chunks)
+        {
+            chunk.CreateChunkMesh();
+        }
     }
 
 

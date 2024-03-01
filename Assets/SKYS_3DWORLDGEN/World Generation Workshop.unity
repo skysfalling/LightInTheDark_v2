@@ -155,6 +155,7 @@ MonoBehaviour:
   regionCoordinate: {x: 0, y: 2}
   centerPosition: {x: -280, y: 0, z: 280}
   originCoordinatePosition: {x: -400, y: 0, z: 160}
+  defaultMaterial: {fileID: 0}
 --- !u!4 &55350652
 Transform:
   m_ObjectHideFlags: 0
@@ -202,6 +203,7 @@ MonoBehaviour:
   regionCoordinate: {x: 0, y: 0}
   centerPosition: {x: -280, y: 0, z: -280}
   originCoordinatePosition: {x: -400, y: 0, z: -400}
+  defaultMaterial: {fileID: 2100000, guid: 981abf7a53e6a964fba6bc48555ec31a, type: 2}
 --- !u!4 &97437459
 Transform:
   m_ObjectHideFlags: 0
@@ -386,6 +388,7 @@ MonoBehaviour:
   regionCoordinate: {x: 2, y: 2}
   centerPosition: {x: 280, y: 0, z: 280}
   originCoordinatePosition: {x: 160, y: 0, z: 160}
+  defaultMaterial: {fileID: 0}
 --- !u!4 &645195437
 Transform:
   m_ObjectHideFlags: 0
@@ -433,6 +436,7 @@ MonoBehaviour:
   regionCoordinate: {x: 0, y: 1}
   centerPosition: {x: -280, y: 0, z: 0}
   originCoordinatePosition: {x: -400, y: 0, z: -120}
+  defaultMaterial: {fileID: 0}
 --- !u!4 &917089621
 Transform:
   m_ObjectHideFlags: 0
@@ -480,6 +484,7 @@ MonoBehaviour:
   regionCoordinate: {x: 1, y: 2}
   centerPosition: {x: 0, y: 0, z: 280}
   originCoordinatePosition: {x: -120, y: 0, z: 160}
+  defaultMaterial: {fileID: 0}
 --- !u!4 &1007757354
 Transform:
   m_ObjectHideFlags: 0
@@ -527,6 +532,7 @@ MonoBehaviour:
   regionCoordinate: {x: 1, y: 1}
   centerPosition: {x: 0, y: 0, z: 0}
   originCoordinatePosition: {x: -120, y: 0, z: -120}
+  defaultMaterial: {fileID: 0}
 --- !u!4 &1037160641
 Transform:
   m_ObjectHideFlags: 0
@@ -574,6 +580,7 @@ MonoBehaviour:
   regionCoordinate: {x: 1, y: 0}
   centerPosition: {x: 0, y: 0, z: -280}
   originCoordinatePosition: {x: -120, y: 0, z: -400}
+  defaultMaterial: {fileID: 0}
 --- !u!4 &1307233186
 Transform:
   m_ObjectHideFlags: 0
@@ -621,6 +628,7 @@ MonoBehaviour:
   regionCoordinate: {x: 2, y: 1}
   centerPosition: {x: 280, y: 0, z: 0}
   originCoordinatePosition: {x: 160, y: 0, z: -120}
+  defaultMaterial: {fileID: 0}
 --- !u!4 &1987106660
 Transform:
   m_ObjectHideFlags: 0
@@ -749,7 +757,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 8701923849753727028, guid: dad85dccd7fc00b49a2afeef84d99cca, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 5845749257906015333, guid: dad85dccd7fc00b49a2afeef84d99cca,
@@ -828,6 +837,7 @@ MonoBehaviour:
   regionCoordinate: {x: 2, y: 0}
   centerPosition: {x: 280, y: 0, z: -280}
   originCoordinatePosition: {x: 160, y: 0, z: -400}
+  defaultMaterial: {fileID: 0}
 --- !u!4 &2098626522
 Transform:
   m_ObjectHideFlags: 0

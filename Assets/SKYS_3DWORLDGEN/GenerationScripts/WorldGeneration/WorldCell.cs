@@ -10,42 +10,35 @@ using UnityEngine;
 /// for the larger world map, enabling detailed and scalable world design.
 /// </summary>
 
-
-[System.Serializable]
 public class WorldCell
 {
     public enum TYPE { EMPTY, EDGE, CORNER, OBSTACLE, SPAWN_POINT}
     public TYPE type = WorldCell.TYPE.EMPTY;
 
     WorldGeneration _generation;
-    WorldChunk _chunkParent;
     int _chunkCellIndex;
     WorldMaterialLibrary _materialLibrary;
-    MeshQuad _meshQuad;
 
-    [HideInInspector] public float astar_fCost;
-    [HideInInspector] public float astar_gCost;
-    [HideInInspector] public float astar_hCost;
-    [HideInInspector] public WorldCell astar_parent;
+    public WorldChunk chunkParent { get; private set; }
+    public MeshQuad meshQuad { get; private set; }
 
     GameObject _debugCubeObject;
     float _defaultRelativeScale = 0.25f;
     float _debugCubeRelativeScale = 0.25f; // percentage of the WorldGeneration cellSize
 
     public Vector3[] vertices; // Corners of the cell  
-    public Vector3 position;     // Center position of the cell
+    public Vector3 worldPosition;     // Center position of the cell
     public Vector3 normal; // Normal Direction of the cell
 
     public WorldCell(WorldChunk chunkParent, MeshQuad meshQuad)
     {
         this._generation = WorldGeneration.Instance;
-        this._chunkParent = chunkParent;
+        this.chunkParent = chunkParent;
         this._materialLibrary = WorldMaterialLibrary.Instance;
-        this._meshQuad = meshQuad;
-
+        this.meshQuad = meshQuad;
 
         // Set Position [[ parent position offset + center of corresponding quad ]]
-        this.position = this._chunkParent.GetGroundWorldPosition() + meshQuad.GetCenterPosition();
+        this.worldPosition = this.chunkParent.GetGroundWorldPosition() + meshQuad.GetCenterPosition();
         this.normal = meshQuad.faceNormal;
     }
 
@@ -56,7 +49,7 @@ public class WorldCell
 
     public WorldChunk GetChunk()
     {
-        return this._chunkParent;
+        return this.chunkParent;
     }
 }
 

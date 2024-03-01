@@ -43,7 +43,7 @@ public class WorldChunkMesh
     public WorldChunkMesh(WorldChunk chunk, int groundHeight, Vector3 groundPosition)
     {
         this._chunk = chunk;
-        this._worldCoordinate = chunk.coordinate;
+        this._worldCoordinate = chunk.chunkCoordinate;
         this._worldChunkMap = chunk.chunkMap;
 
         List<FaceType> facesToGenerate = new List<FaceType>()
@@ -146,7 +146,7 @@ public class WorldChunkMesh
                         int topRight = topLeft + 1;
 
                         // Track the quad
-                        Vector2Int faceCoordinate = new Vector2Int(j, i);
+                        Vector2Int faceCoordinate = new Vector2Int(i, j);
                         List<Vector3> quadVertices = new();
                         try
                         {

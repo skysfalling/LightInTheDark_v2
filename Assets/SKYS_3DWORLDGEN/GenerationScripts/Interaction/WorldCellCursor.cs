@@ -39,7 +39,7 @@ public class WorldCellCursor : MonoBehaviour
         CreateCursorAt(_hoverCursorCell, CURSOR_TYPE.HOVERED_OVER);
 
         // Move transform to cell
-        transform.position = _hoverCursorCell.position;
+        transform.position = _hoverCursorCell.worldPosition;
     }
 
     private void SetSelectedCursorCell(WorldCell cell)
@@ -57,7 +57,7 @@ public class WorldCellCursor : MonoBehaviour
         RemoveCursorAt(cell);
 
         // Create New Cursor
-        GameObject cursor = Instantiate(cursorPrefab, cell.position, Quaternion.identity);
+        GameObject cursor = Instantiate(cursorPrefab, cell.worldPosition, Quaternion.identity);
         cursor.transform.localScale = Vector3.one * localScaleMultiplier;
         cursor.name = $"{cursorPrefab.name} :: {type}";
         _activeCursors[cell] = cursor;

@@ -29,6 +29,7 @@ public class WorldRegionEditor : Editor
     ChunkMapDebug chunkMapDebugType = ChunkMapDebug.COORDINATE_TYPE;
     WorldChunk selectedChunk = null;
 
+    SerializedProperty defaultMaterialProperty;
 
     private void OnEnable()
     {
@@ -36,6 +37,9 @@ public class WorldRegionEditor : Editor
         region = (WorldRegion)target;
 
         // ================================================= >>
+
+        defaultMaterialProperty = serializedObject.FindProperty("defaultMaterial");
+
     }
 
     public override void OnInspectorGUI()
@@ -104,7 +108,10 @@ public class WorldRegionEditor : Editor
         EditorGUILayout.LabelField("Region Initialized:", region.IsInitialized().ToString());
         EditorGUILayout.EndVertical();
 
-        switch(editorViewSpace)
+        // >> default material
+        EditorGUILayout.PropertyField(defaultMaterialProperty); // Show the material field in the inspector
+
+        switch (editorViewSpace)
         {
             case WorldSpace.Chunk:
                 DrawChunkMapInspector();
@@ -133,7 +140,14 @@ public class WorldRegionEditor : Editor
                 region.CreateChunkMap();
             }
             return;
-        };
+        }
+        else
+        {
+            if (GUILayout.Button("Create Chunk Mesh Objects"))
+            {
+                region.CreateChunkMeshObjects();
+            }
+        }
 
         // << DEBUG VIEW >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         EditorGUILayout.BeginVertical();
@@ -148,9 +162,9 @@ public class WorldRegionEditor : Editor
         EditorGUILayout.BeginVertical();
         EditorGUILayout.LabelField("Selected Chunk", h2Style);
         EditorGUILayout.Space(10);
-        if (selectedChunk != null && selectedChunk.coordinate != null)
+        if (selectedChunk != null && selectedChunk.chunkCoordinate != null)
         {
-            EditorGUILayout.LabelField($"Coordinate Local Position:  {selectedChunk.coordinate.localPosition}");
+            EditorGUILayout.LabelField($"Coordinate Local Position:  {selectedChunk.chunkCoordinate.localPosition}");
             EditorGUILayout.LabelField($"Chunk Ground Height:  {selectedChunk.groundHeight}");
             EditorGUILayout.LabelField($"Chunk Type:  {selectedChunk.type}");
         }
@@ -383,8 +397,8 @@ public class WorldRegionEditor : Editor
                 switch(chunkMapDebugType)
                 {
                     case ChunkMapDebug.COORDINATE_TYPE:
-                        chunkDebugColor = chunk.coordinate.debugColor;
-                        chunkDebugString = $"{chunk.coordinate.type}";
+                        chunkDebugColor = chunk.chunkCoordinate.debugColor;
+                        chunkDebugString = $"{chunk.chunkCoordinate.type}";
                         break;
                     case ChunkMapDebug.CHUNK_TYPE:
                         chunkDebugColor = chunk.debugColor;
@@ -417,7 +431,7 @@ public class WorldRegionEditor : Editor
             fontStyle = FontStyle.Bold, // Example style
             fontSize = 8, // Example font size
             alignment = TextAnchor.MiddleCenter,
-            normal = new GUIStyleState { textColor = Color.black } // Set the text color
+            normal = new GUIStyleState { textColor = Color.white } // Set the text color
         };
 
         WorldChunkMap chunkMap = region.worldChunkMap;
@@ -437,10 +451,10 @@ public class WorldRegionEditor : Editor
 
             if (selectedChunk != null)
             {
-                foreach (Coordinate coordinate in selectedChunk.coordinateMap.allCoordinates)
+                foreach (WorldCell cell in selectedChunk.localCells)
                 {
-                    DarklightGizmos.DrawFilledSquareAt(coordinate.worldPosition, WorldGeneration.CellWidth_inWorldSpace * 0.75f, Vector3.up, Color.white);
-                    DarklightGizmos.DrawLabel($"{coordinate.localPosition}", coordinate.worldPosition, cellLabelStyle);
+                    DarklightGizmos.DrawFilledSquareAt(cell.worldPosition, WorldGeneration.CellWidth_inWorldSpace * 0.75f, cell.meshQuad.faceNormal, Color.grey);
+                    DarklightGizmos.DrawLabel($"{cell.meshQuad.faceCoord}", cell.worldPosition, cellLabelStyle);
                 }
             }
         }
