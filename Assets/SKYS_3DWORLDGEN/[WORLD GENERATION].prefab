@@ -59,7 +59,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gizmoType: 0
-  gizmoSelectedTypeChunks: []
 --- !u!1 &1652254909227268323
 GameObject:
   m_ObjectHideFlags: 0
@@ -245,7 +244,6 @@ GameObject:
   m_Component:
   - component: {fileID: 5845749257906015333}
   - component: {fileID: 1656387468885595367}
-  - component: {fileID: 8701923849753727028}
   - component: {fileID: 2633072700718698929}
   - component: {fileID: 1689068836374433759}
   - component: {fileID: 6927385738628150715}
@@ -300,18 +298,6 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
---- !u!114 &8701923849753727028
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3048074976327827359}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa4b5f0099933435691cfd502fb2b0f7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &2633072700718698929
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -325,14 +311,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   worldCursor: {fileID: 1981935170520572513}
-  currCursorCell:
-    type: 0
-    astar_fCost: 0
-    astar_gCost: 0
-    astar_hCost: 0
-    vertices: []
-    position: {x: 0, y: 0, z: 0}
-    normal: {x: 0, y: 0, z: 0}
   selectedEntity: {fileID: 0}
 --- !u!114 &1689068836374433759
 MonoBehaviour:
@@ -544,14 +522,6 @@ MonoBehaviour:
   generation_finished: 0
   playerPrefab: {fileID: 7174322603541102714, guid: 75e31aadaf670b74a88bea728e1f041d,
     type: 3}
-  playerSpawnCell:
-    type: 0
-    astar_fCost: 0
-    astar_gCost: 0
-    astar_hCost: 0
-    vertices: []
-    position: {x: 0, y: 0, z: 0}
-    normal: {x: 0, y: 0, z: 0}
   instantiatedPlayer: {fileID: 0}
   wall_0: {fileID: 2986166503023539567, guid: 96c08d2e01fd52540a29788d18bd682d, type: 3}
   environmentObjects: []

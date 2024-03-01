@@ -77,9 +77,7 @@ public class Coordinate
         initialized = true;
     }
 
-    #region =================== NEIGHBOR MAP ====================== >>>> 
-
-
+    #region =================== Get Neighbors ====================== >>>> 
 
     public Coordinate GetNeighborInDirection(WorldDirection direction)
     {

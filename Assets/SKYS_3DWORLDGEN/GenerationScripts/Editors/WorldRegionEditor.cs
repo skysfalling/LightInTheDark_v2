@@ -272,10 +272,25 @@ public class WorldRegionEditor : Editor
         // >>>> create paths
         if (coordinateMap.exitPositions.Count > 1)
         {
-            if (GUILayout.Button("Create Path"))
+            if (GUILayout.Button("Generate Paths"))
             {
-                coordinateMap.CreatePathFrom(coordinateMap.exitPositions[0], coordinateMap.exitPositions[1]);
+                coordinateMap.GeneratePathsBetweenExits();
             }
+        }
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.EndVertical();
+
+        // << ZONES >>
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.BeginVertical();
+        EditorGUILayout.LabelField("Zones", h2Style);
+        EditorGUILayout.Space(10);
+        EditorGUILayout.LabelField($"Zone Count: {coordinateMap.worldZones.Count}");
+
+        // >>>> create zone
+        if (GUILayout.Button("Create Zone At Selected"))
+        {
+            coordinateMap.CreateWorldZone(selectedCoordinate, WorldZone.TYPE.FULL, 5);
         }
 
         EditorGUILayout.EndHorizontal();

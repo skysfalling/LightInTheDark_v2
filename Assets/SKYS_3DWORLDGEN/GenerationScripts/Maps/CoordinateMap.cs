@@ -220,36 +220,6 @@ public class CoordinateMap
         _initialized = true;
     }
 
-    #region == HANDLE COORDINATE MAP ================================ ////
-
-    /*
-    IEnumerator UpdateRoutine()
-    {
-        zonesInitialized = false;
-        exitPathsInitialized = false;
-
-        if (!coordMapInitialized)
-        {
-            StartCoroutine(InitializationRoutine()); // Make sure CoordinateMap is initialized
-        }
-        yield return new WaitUntil(() => coordMapInitialized);
-        yield return new WaitUntil(() => coordNeighborsInitialized);
-        yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);
-
-        // Initialize Random Seed :: IMPORTANT To keep the same results per seed
-        WorldGeneration.InitializeRandomSeed();
-
-        ResetAllCoordinatesToDefault(); // Set all world coordinates to default values
-
-        //UpdateAllWorldZones(); // Update all world zones to new values
-        yield return new WaitUntil(() => zonesInitialized);
-        yield return new WaitForSeconds(0.5f);
-
-        //UpdateAllWorldExitPaths(); // Update all world paths to new values
-        yield return new WaitUntil(() => exitPathsInitialized);
-    }
-    */
-
     void SetCoordinateToType(Vector2Int position, Coordinate.TYPE newType)
     {
         if (!_positions.Contains(position)) return;
@@ -271,7 +241,7 @@ public class CoordinateMap
             case Coordinate.TYPE.NULL: coordinate.debugColor = Color.grey; break;
             case Coordinate.TYPE.EXIT: coordinate.debugColor = Color.red; break;
             case Coordinate.TYPE.PATH: coordinate.debugColor = Color.white; break;
-
+            case Coordinate.TYPE.ZONE: coordinate.debugColor = Color.green; break;
         }
 
         // If new TYPE key not found, create
@@ -311,10 +281,6 @@ public class CoordinateMap
         SetCoordinateToType(coordinate.localPosition, Coordinate.TYPE.EXIT);
     }
 
-    #endregion
-
-    #region == GET MAP COORDINATES ================================ ////
-
     public Coordinate GetCoordinateAt(Vector2Int position)
     {
         if (_initialized && _positions.Contains(position))
@@ -339,8 +305,7 @@ public class CoordinateMap
         return _typeMap[type];
     }
 
-    #endregion
-
+    // == [[ WORLD PATH ]] ================================================================================ >>>>
     public void CreatePathFrom(Vector2Int start, Vector2Int end)
     {
         WorldPath newPath = new WorldPath(this, start, end, 0.25f);
@@ -356,6 +321,33 @@ public class CoordinateMap
         Debug.Log($"Created Path from {start} to {end} with {newPath.positions.Count}");
     }
 
+    public void GeneratePathsBetweenExits()
+    {
+        // Clear existing paths
+        worldPaths.Clear();
+
+        // Ensure there's more than one exit to connect
+        if (exitPositions.Count < 2)
+        {
+            Debug.LogWarning("Not enough exits to generate paths.");
+            return;
+        }
+
+        List<Vector2Int> sortedExits = exitPositions.OrderBy(pos => pos.x).ThenBy(pos => pos.y).ToList();
+        for (int i = 0; i < sortedExits.Count - 1; i++)
+        {
+            Vector2Int start = sortedExits[i];
+            Vector2Int end = sortedExits[i + 1]; // Connect to the next exit in the list
+
+            CreatePathFrom(start, end);
+        }
+
+        //Connect the last exit back to the first to ensure all exits are interconnected
+        CreatePathFrom(sortedExits[sortedExits.Count - 1], sortedExits[0]);
+
+        Debug.Log($"Generated new paths connecting all exits.");
+    }
+
     public bool IsCoordinateValidForPathfinding(Vector2Int candidate)
     {
         // Check Types
@@ -369,61 +361,29 @@ public class CoordinateMap
         return false;
     }
 
-    // =====================================================================================
-
-
-    #region == HANDLE WORLD ZONES ==================================== ////
-    public void CreateWorldZone()
+    // == [[ WORLD ZONES ]] ================================================================================ >>>>
+    public void CreateWorldZone(Coordinate centerCoordinate, WorldZone.TYPE zoneType, int zoneHeight)
     {
-        if (_initialized == false)
+        Debug.Log($"Attempting to create zone at {centerCoordinate.localPosition}");
+
+        // Temporarily create the zone to check its positions
+        WorldZone tempZone = new WorldZone(this, centerCoordinate, zoneType, zoneHeight);
+
+        // Check if any of the zone's positions are in the BORDER or CLOSED categories
+        var invalidPositions = new HashSet<Vector2Int>(_typeMap[Coordinate.TYPE.BORDER].Concat(_typeMap[Coordinate.TYPE.CLOSED]));
+
+        // Check for intersection between the zone's positions and invalid positions
+        bool hasInvalidPosition = tempZone.positions.Any(pos => invalidPositions.Contains(pos));
+
+        if (hasInvalidPosition)
         {
-            Debug.LogError("Cannot Create World Zone with Uninitialized WorldCoordinate Map");
-            return;
+            Debug.Log($"Zone at {centerCoordinate.localPosition} intersects with BORDER or CLOSED positions. Zone creation aborted.");
+            return; // Abort the creation of the zone
         }
 
-        // Get Center Coordinate
-        int centerX = Mathf.CeilToInt(WorldGeneration.GetFullRegionWidth_inChunks() / 2);
-        int centerY = Mathf.CeilToInt(WorldGeneration.GetFullRegionWidth_inChunks() / 2);
-        Coordinate centerCoordinate = GetCoordinateAt(new Vector2Int(centerX, centerY));
-
-        Debug.Log($"Create Zone at {centerCoordinate.localPosition}");
-        worldZones.Add(new WorldZone(centerCoordinate, WorldZone.TYPE.NATURAL_CROSS));
+        // If no invalid positions are found, add the zone
+        worldZones.Add(tempZone);
+        SetCoordinatesToType(tempZone.positions, Coordinate.TYPE.ZONE);
+        Debug.Log($"Zone successfully created at {centerCoordinate.localPosition} with type {zoneType}.");
     }
-
-    void UpdateAllWorldZones()
-    {
-        bool zonesAreInitialized = true;
-        foreach (WorldZone zone in worldZones) {
-
-            zone.Initialize();
-
-            // Check if the zone is initialized
-            if (zone.IsInitialized() == false) 
-            { 
-                zonesAreInitialized = false;
-            }
-        }
-
-        if (zonesAreInitialized == false) { 
-            //zonesInitialized = false;
-            UpdateAllWorldZones();
-        }
-        else 
-        { 
-            //zonesInitialized = true;
-        }
-    }
-
-    public bool IsCoordinateInZone(Coordinate coord)
-    {
-        foreach (WorldZone zone in worldZones)
-        {
-            if (zone.GetZoneCoordinates().Contains(coord)) { return true; }
-        }
-        return false;
-    }
-    #endregion
-
-
-
 }
