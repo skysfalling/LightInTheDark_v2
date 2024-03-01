@@ -6,6 +6,7 @@ using UnityEngine;
 [CustomEditor(typeof(WorldRegion))]
 public class WorldRegionEditor : Editor
 {
+
     private SerializedObject serializedObject;
     private WorldRegion region;
 
@@ -16,17 +17,17 @@ public class WorldRegionEditor : Editor
     GUIStyle h2Style;
     GUIStyle pStyle;
 
-
-    WorldSpace editorViewSpace = WorldSpace.Region;
+    // Editor View
+    static WorldSpace editorViewSpace = WorldSpace.Region;
 
     // Coordinate Map
-    enum CoordinateMapDebug { NONE, COORDINATE, TYPE }
-    CoordinateMapDebug coordinateMapDebugType = CoordinateMapDebug.TYPE;
+    enum CoordinateMapDebug { NONE, COORDINATE, TYPE, EDITOR }
+    static CoordinateMapDebug coordinateMapDebugType = CoordinateMapDebug.TYPE;
     Coordinate selectedCoordinate = null;
 
     // Chunk Map
     enum ChunkMapDebug { NONE, COORDINATE_TYPE, CHUNK_TYPE, CHUNK_HEIGHT }
-    ChunkMapDebug chunkMapDebugType = ChunkMapDebug.COORDINATE_TYPE;
+    static ChunkMapDebug chunkMapDebugType = ChunkMapDebug.COORDINATE_TYPE;
     WorldChunk selectedChunk = null;
 
     SerializedProperty defaultMaterialProperty;
@@ -90,40 +91,189 @@ public class WorldRegionEditor : Editor
 
         // [[ EDITOR VIEW ]]
         EditorGUILayout.BeginVertical();
-
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.LabelField("Editor View Space  =>");
         editorViewSpace = (WorldSpace)EditorGUILayout.EnumPopup(editorViewSpace);
         EditorGUILayout.EndHorizontal();
-
         EditorGUILayout.EndVertical();
 
-        // [[ REGION VIEW ]]
+        // [[ REGION VIEW ]] ============================================================ \\\\
         EditorGUILayout.BeginVertical();
         EditorGUILayout.LabelField("Region", h1Style);
         EditorGUILayout.Space(10);
         EditorGUILayout.LabelField("Region Coordinate:", region.regionCoordinate.ToString());
-        EditorGUILayout.LabelField("Center Position:", region.centerPosition.ToString());
-        EditorGUILayout.LabelField("Origin Coordinate Position:", region.originCoordinatePosition.ToString());
+        EditorGUILayout.LabelField("Center Position:", region.centerPosition_inWorldSpace.ToString());
+        EditorGUILayout.LabelField("Origin Coordinate Position:", region.originPosition_inWorldSpace.ToString());
         EditorGUILayout.LabelField("Region Initialized:", region.IsInitialized().ToString());
-        EditorGUILayout.EndVertical();
 
         // >> default material
         EditorGUILayout.PropertyField(defaultMaterialProperty); // Show the material field in the inspector
+        EditorGUILayout.EndVertical(); // ======================================= ////
 
         switch (editorViewSpace)
         {
-            case WorldSpace.Chunk:
-                DrawChunkMapInspector();
-                break;
             case WorldSpace.Region:
                 DrawCoordinateMapInspector();
+                break;
+            case WorldSpace.Chunk:
+                DrawChunkMapInspector();
                 break;
         }
 
         serializedObject.ApplyModifiedProperties();
         Repaint();
     }
+
+    void DrawCoordinateMapInspector()
+    {
+        // [[ COORDINATE MAP ]]
+        CoordinateMap coordinateMap = region.coordinateMap;
+
+        EditorGUILayout.LabelField("Region Coordinate Map", h2Style);
+        EditorGUILayout.Space(10);
+
+        // >> initialize button
+        if (region.coordinateMap == null)
+        {
+            return;
+        }
+
+        // >> generation
+        if (GUILayout.Button("Seed Generation"))
+        {
+            WorldGeneration.InitializeRandomSeed();
+            region.coordinateMap = new CoordinateMap(region);
+            region.coordinateMap.GenerateRandomExits();
+            region.coordinateMap.GeneratePathsBetweenExits();
+            region.coordinateMap.GenerateRandomZones(1, 3);
+        }
+
+        // >> reset button
+        if (GUILayout.Button("Reset Coordinate Map"))
+        {
+            region.coordinateMap = new CoordinateMap(region);
+        }
+
+        // >> select debug view
+        EditorGUILayout.BeginVertical();
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("Debug View  =>");
+        coordinateMapDebugType = (CoordinateMapDebug)EditorGUILayout.EnumPopup(coordinateMapDebugType);
+        GUILayout.FlexibleSpace();
+        EditorGUILayout.EndHorizontal();
+
+        // TYPE >> show coordinate type data
+        if (coordinateMapDebugType == CoordinateMapDebug.TYPE)
+        {
+            EditorGUILayout.LabelField($"NULL TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.NULL).Count}", rightAlignedStyle);
+            EditorGUILayout.LabelField($"BORDER TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.BORDER).Count}", rightAlignedStyle);
+            EditorGUILayout.LabelField($"CLOSED TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.CLOSED).Count}", rightAlignedStyle);
+            EditorGUILayout.LabelField($"EXIT TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.EXIT).Count}", rightAlignedStyle);
+        }
+        // EDITOR >> edit the coordinates in the map
+        else if (coordinateMapDebugType == CoordinateMapDebug.EDITOR) {
+
+            #region Selected Coordinate
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.LabelField("Selected Coordinate", h2Style);
+            EditorGUILayout.Space(10);
+            if (selectedCoordinate != null)
+            {
+                EditorGUILayout.LabelField($"Space:  {selectedCoordinate.worldSpace}");
+                EditorGUILayout.LabelField($"Local Coordinate: {selectedCoordinate.localPosition}");
+                EditorGUILayout.LabelField($"Type: {selectedCoordinate.type}");
+                EditorGUILayout.LabelField($"World Position: {selectedCoordinate.worldPosition}");
+                EditorGUILayout.LabelField($"Neighbor Count: {selectedCoordinate.GetAllValidNeighbors().Count}");
+            }
+            else
+            {
+                EditorGUILayout.LabelField($"Please Select a Coordinate in the Scene View");
+            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            #endregion
+
+            #region Exits
+            // << EXITS >> // ==================================================== \\\\
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.LabelField("Exits", h2Style);
+            EditorGUILayout.Space(10);
+            EditorGUILayout.LabelField($"Exit Count: {coordinateMap.exitPositions.Count}");
+
+            // >> show exits
+            if (coordinateMap.exitPositions.Count > 0)
+            {
+                foreach (Vector2Int pos in coordinateMap.exitPositions)
+                {
+                    EditorGUILayout.LabelField($">> Exit At: {pos}");
+                }
+            }
+
+            // >>>> create random exits
+            if (GUILayout.Button("Generate Random Exits"))
+            {
+                coordinateMap.GenerateRandomExits();
+            }
+
+            // >>>> convert selected to exit
+            if (selectedCoordinate != null && GUILayout.Button("Convert Selected Coordinate to EXIT"))
+            {
+                coordinateMap.ConvertCoordinateToExit(selectedCoordinate);
+            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical(); // ==================================================== ////
+            #endregion
+
+            // << PATHS >>
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.LabelField("Paths", h2Style);
+            EditorGUILayout.Space(10);
+            EditorGUILayout.LabelField($"Path Count: {coordinateMap.worldPaths.Count}");
+
+            // >>>> create paths
+            if (coordinateMap.exitPositions.Count > 1)
+            {
+                if (GUILayout.Button("Generate Paths"))
+                {
+                    coordinateMap.GeneratePathsBetweenExits();
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+
+            // << ZONES >>
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.LabelField("Zones", h2Style);
+            EditorGUILayout.Space(10);
+            EditorGUILayout.LabelField($"Zone Count: {coordinateMap.worldZones.Count}");
+
+            // >>>> create zones
+            if (GUILayout.Button("Generate Random Zones"))
+            {
+                coordinateMap.GenerateRandomZones(1, 4);
+            }
+
+            // >>>> create zone at selected
+            if (GUILayout.Button("Create Zone At Selected"))
+            {
+                coordinateMap.CreateWorldZone(selectedCoordinate.localPosition, WorldZone.TYPE.FULL, 5);
+            }
+
+
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+        }
+        
+
+
+
+        EditorGUILayout.EndVertical();
+    }
+
 
     void DrawChunkMapInspector()
     {
@@ -133,20 +283,21 @@ public class WorldRegionEditor : Editor
         EditorGUILayout.Space(10);
 
         // >> initialize button
-        if (region.worldChunkMap == null)
-        {
-            if (GUILayout.Button("Initialize Chunk Map"))
-            {
-                region.CreateChunkMap();
-            }
-            return;
-        }
-        else
+        if (region.worldChunkMap != null)
         {
             if (GUILayout.Button("Create Chunk Mesh Objects"))
             {
                 region.CreateChunkMeshObjects();
             }
+
+            if (GUILayout.Button("Reset Chunk Map"))
+            {
+                region.ResetChunkMap();
+            }
+        }
+        else
+        {
+            EditorGUILayout.LabelField("Chunk Map not initialized, try reseting the region");
         }
 
         // << DEBUG VIEW >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -175,130 +326,6 @@ public class WorldRegionEditor : Editor
         EditorGUILayout.EndVertical();
 
     }
-
-
-    void DrawCoordinateMapInspector()
-    {
-        // [[ COORDINATE MAP ]]
-        CoordinateMap coordinateMap = region.coordinateMap;
-
-        EditorGUILayout.LabelField("Region Coordinate Map", h2Style);
-        EditorGUILayout.Space(10);
-
-        // >> initialize button
-        if (region.coordinateMap == null)
-        {
-            if (GUILayout.Button("Initialize Coordinate Map"))
-            {
-                region.Initialize(region.regionCoordinate);
-            }
-            return;
-        }
-        else if (GUILayout.Button("Reset Coordinate Map"))
-        {
-            region.coordinateMap = new CoordinateMap(region);
-        }
-
-        // << DEBUG VIEW >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        EditorGUILayout.BeginVertical();
-        EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.LabelField("Debug View  =>");
-        coordinateMapDebugType = (CoordinateMapDebug)EditorGUILayout.EnumPopup(coordinateMapDebugType);
-        GUILayout.FlexibleSpace();
-        EditorGUILayout.EndHorizontal();
-
-        // >> show coordinate type data
-        if (coordinateMapDebugType == CoordinateMapDebug.TYPE)
-        {
-            EditorGUILayout.LabelField($"NULL TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.NULL).Count}", rightAlignedStyle);
-            EditorGUILayout.LabelField($"BORDER TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.BORDER).Count}", rightAlignedStyle);
-            EditorGUILayout.LabelField($"CLOSED TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.CLOSED).Count}", rightAlignedStyle);
-            EditorGUILayout.LabelField($"EXIT TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.EXIT).Count}", rightAlignedStyle);
-        }
-
-        // << SELECTED COORDINATE >>
-        EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.BeginVertical();
-        EditorGUILayout.LabelField("Selected Coordinate", h2Style);
-        EditorGUILayout.Space(10);
-        if (selectedCoordinate != null)
-        {
-            EditorGUILayout.LabelField($"Space:  {selectedCoordinate.worldSpace}");
-            EditorGUILayout.LabelField($"Local Coordinate: {selectedCoordinate.localPosition}");
-            EditorGUILayout.LabelField($"Type: {selectedCoordinate.type}");
-            EditorGUILayout.LabelField($"World Position: {selectedCoordinate.worldPosition}");
-            EditorGUILayout.LabelField($"Neighbor Count: {selectedCoordinate.GetAllValidNeighbors().Count}");
-        }
-        else
-        {
-            EditorGUILayout.LabelField($"Please Select a Coordinate in the Scene View");
-        }
-        EditorGUILayout.EndHorizontal();
-        EditorGUILayout.EndVertical();
-
-
-        // << EXITS >>
-        EditorGUILayout.BeginHorizontal();
-
-        EditorGUILayout.BeginVertical();
-        EditorGUILayout.LabelField("Exits", h2Style);
-        EditorGUILayout.Space(10);
-        EditorGUILayout.LabelField($"Exit Count: {coordinateMap.exitPositions.Count}");
-
-        if (coordinateMap.exitPositions.Count > 0)
-        {
-            foreach (Vector2Int pos in coordinateMap.exitPositions)
-            {
-                EditorGUILayout.LabelField($">> Exit At: {pos}");
-            }
-        }
-
-        // >>>> convert selected to exit
-        if (selectedCoordinate != null && GUILayout.Button("Convert Selected Coordinate to EXIT"))
-        {
-            coordinateMap.ConvertCoordinateToExit(selectedCoordinate);
-        }
-
-        EditorGUILayout.EndHorizontal();
-        EditorGUILayout.EndVertical();
-
-        // << PATHS >>
-        EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.BeginVertical();
-        EditorGUILayout.LabelField("Paths", h2Style);
-        EditorGUILayout.Space(10);
-        EditorGUILayout.LabelField($"Path Count: {coordinateMap.worldPaths.Count}");
-
-        // >>>> create paths
-        if (coordinateMap.exitPositions.Count > 1)
-        {
-            if (GUILayout.Button("Generate Paths"))
-            {
-                coordinateMap.GeneratePathsBetweenExits();
-            }
-        }
-        EditorGUILayout.EndHorizontal();
-        EditorGUILayout.EndVertical();
-
-        // << ZONES >>
-        EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.BeginVertical();
-        EditorGUILayout.LabelField("Zones", h2Style);
-        EditorGUILayout.Space(10);
-        EditorGUILayout.LabelField($"Zone Count: {coordinateMap.worldZones.Count}");
-
-        // >>>> create zone
-        if (GUILayout.Button("Create Zone At Selected"))
-        {
-            coordinateMap.CreateWorldZone(selectedCoordinate, WorldZone.TYPE.FULL, 5);
-        }
-
-        EditorGUILayout.EndHorizontal();
-        EditorGUILayout.EndVertical();
-
-        EditorGUILayout.EndVertical();
-    }
-
 
     // ==================== SCENE GUI =================================================== ////
 
@@ -377,6 +404,7 @@ public class WorldRegionEditor : Editor
                         DarklightGizmos.DrawLabel($"{coordinate.localPosition}", coordinate.worldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
                         break;
                     case CoordinateMapDebug.TYPE:
+                    case CoordinateMapDebug.EDITOR:
                         coordLabelStyle.normal.textColor = coordinate.debugColor;
                         DarklightGizmos.DrawWireSquare(coordinate.worldPosition, WorldGeneration.CellWidth_inWorldSpace, coordinate.debugColor);
                         DarklightGizmos.DrawLabel($"{coordinate.type}", coordinate.worldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
@@ -386,7 +414,7 @@ public class WorldRegionEditor : Editor
         }
         else
         {
-            DarklightGizmos.DrawWireSquare_withLabel($"region origin", region.originCoordinatePosition, 10, Color.red, coordLabelStyle);
+            DarklightGizmos.DrawWireSquare_withLabel($"region origin", region.originPosition_inWorldSpace, 10, Color.red, coordLabelStyle);
         }
     }
 

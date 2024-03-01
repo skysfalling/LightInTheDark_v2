@@ -25,17 +25,20 @@ public class WorldRegion : MonoBehaviour
     // >>>> Region Height
     private int _regionMaxGroundHeight = WorldGeneration.RegionMaxGroundHeight;
 
+    // PUBLIC VARIABLES
+    public WorldGeneration worldGeneration;
     public CoordinateMap coordinateMap;
     public WorldChunkMap worldChunkMap;
 
     public Vector2Int regionCoordinate;
-    public Vector3 centerPosition;
-    public Vector3 originCoordinatePosition;
+    public Vector3 centerPosition_inWorldSpace;
+    public Vector3 originPosition_inWorldSpace;
 
     public Material defaultMaterial;
 
-    public void Initialize(Vector2Int regionCoordinate)
+    public void Initialize(WorldGeneration worldGeneration, Vector2Int regionCoordinate)
     {
+        this.worldGeneration = worldGeneration;
         this.regionCoordinate = regionCoordinate;
 
         float worldWidthRadius = _worldWidth_inWorldSpace * 0.5f;
@@ -43,35 +46,44 @@ public class WorldRegion : MonoBehaviour
         float chunkWidthRadius = WorldGeneration.GetChunkWidth_inWorldSpace() * 0.5f;
 
         // >> Center Position
-        centerPosition = new Vector3(this.regionCoordinate.x, 0, this.regionCoordinate.y) * _fullRegionWidth_inWorldSpace;
-        centerPosition -= worldWidthRadius * new Vector3(1, 0, 1);
-        centerPosition += regionWidthRadius * new Vector3(1, 0, 1);
+        centerPosition_inWorldSpace = new Vector3(this.regionCoordinate.x, 0, this.regionCoordinate.y) * _fullRegionWidth_inWorldSpace;
+        centerPosition_inWorldSpace -= worldWidthRadius * new Vector3(1, 0, 1);
+        centerPosition_inWorldSpace += regionWidthRadius * new Vector3(1, 0, 1);
 
         // >> Origin Coordinate Position { Bottom Left }
-        originCoordinatePosition = new Vector3(this.regionCoordinate.x, 0, this.regionCoordinate.y) * _fullRegionWidth_inWorldSpace;
-        originCoordinatePosition -= worldWidthRadius * new Vector3(1, 0, 1);
-        originCoordinatePosition += chunkWidthRadius * new Vector3(1, 0, 1);
+        originPosition_inWorldSpace = new Vector3(this.regionCoordinate.x, 0, this.regionCoordinate.y) * _fullRegionWidth_inWorldSpace;
+        originPosition_inWorldSpace -= worldWidthRadius * new Vector3(1, 0, 1);
+        originPosition_inWorldSpace += chunkWidthRadius * new Vector3(1, 0, 1);
 
         // Set the transform to the center
-        transform.position = centerPosition;
+        transform.position = centerPosition_inWorldSpace;
 
         // Create the coordinate map for the region
         this.coordinateMap = new CoordinateMap(this);
+        this.coordinateMap.GenerateRandomExits();
+        this.coordinateMap.GeneratePathsBetweenExits();
+        this.coordinateMap.GenerateRandomZones(1, 3);
 
+        this.worldChunkMap = new WorldChunkMap(this, this.coordinateMap);
         _initialized = true;
     }
 
-    public void CreateChunkMap()
+    public void Destroy()
     {
-        if (coordinateMap == null) { Debug.Log("Cannot create chunk map without a coordinate map"); return; }
-        this.worldChunkMap = new WorldChunkMap(this.coordinateMap);
+        WorldGeneration.DestroyGameObject(this.gameObject);
+    }
+
+    public void ResetChunkMap()
+    {
+        this.worldChunkMap = new WorldChunkMap(this, this.coordinateMap);
     }
 
     public void CreateChunkMeshObjects()
     {
+        ResetChunkMap();
         foreach (WorldChunk chunk in worldChunkMap.allChunks)
         {
-            WorldGeneration.CreateMeshObject($"Chunk {chunk.localPosition} :: height {chunk.groundHeight}", chunk.chunkMesh.mesh, defaultMaterial);
+            chunk.CreateChunkMeshObject(this);
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Coordinate
@@ -16,8 +17,9 @@ public class Coordinate
     public bool initialized { get; private set; }
 
 
-    HashSet<Vector2Int> _neighborPositions;
-    Dictionary<WorldDirection, Vector2Int> _neighborMap;
+    HashSet<Vector2Int> _neighborPositions = new();
+    Dictionary<WorldDirection, Vector2Int> _neighborMap = new();
+    Dictionary<Vector2Int, TYPE> _neighborTypeMap = new();
 
     public Coordinate(CoordinateMap coordinateMapParent, Vector2Int coord, WorldRegion region)
     {
@@ -29,21 +31,12 @@ public class Coordinate
         int chunkWidth = WorldGeneration.GetChunkWidth_inWorldSpace();
 
         // Calculate local position
-        Vector2 worldPosition = new Vector2(region.originCoordinatePosition.x, region.originCoordinatePosition.z);
+        Vector2 worldPosition = new Vector2(region.originPosition_inWorldSpace.x, region.originPosition_inWorldSpace.z);
         worldPosition += new Vector2(coord.x, coord.y) * chunkWidth;
 
         this.worldPosition = new Vector3(worldPosition.x, 0, worldPosition.y);
 
-        // << SET NEIGHBORS >>
-        _neighborPositions = new();
-        _neighborMap = new();
-        foreach (WorldDirection direction in Enum.GetValues(typeof(WorldDirection)))
-        {
-            // Get neighbor in direction
-            Vector2Int neighborPosition = localPosition + CoordinateMap.GetDirectionVector(direction);
-            _neighborPositions.Add(neighborPosition);
-            _neighborMap[direction] = neighborPosition;
-        }
+        SetNeighbors();
 
         initialized = true;
     }
@@ -63,7 +56,13 @@ public class Coordinate
 
         this.worldPosition = new Vector3(worldPosition.x, chunk.groundHeight, worldPosition.y);
 
-        // << SET NEIGHBORS >>
+        SetNeighbors();
+
+        initialized = true;
+    }
+
+    void SetNeighbors()
+    {
         _neighborPositions = new();
         _neighborMap = new();
         foreach (WorldDirection direction in Enum.GetValues(typeof(WorldDirection)))
@@ -73,11 +72,27 @@ public class Coordinate
             _neighborPositions.Add(neighborPosition);
             _neighborMap[direction] = neighborPosition;
         }
-
-        initialized = true;
     }
 
+    
+
     #region =================== Get Neighbors ====================== >>>> 
+
+    public HashSet<TYPE> GetNeighborTypes()
+    {
+        _neighborTypeMap = new(); // reset neighbor map
+        List<Vector2Int> neighbors = _neighborPositions.ToList();
+        HashSet<TYPE> types = new HashSet<TYPE>();
+
+        for(int i = 0; i < neighbors.Count; i++)
+        {
+            TYPE neighborType = (TYPE)coordinateMap.GetCoordinateTypeAt(neighbors[i]);
+            _neighborTypeMap[neighbors[i]] = neighborType;
+            types.Add(neighborType);
+        }
+
+        return types;
+    }
 
     public Coordinate GetNeighborInDirection(WorldDirection direction)
     {

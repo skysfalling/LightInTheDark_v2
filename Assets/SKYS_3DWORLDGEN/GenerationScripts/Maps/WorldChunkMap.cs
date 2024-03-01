@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class WorldChunkMap
@@ -8,11 +9,13 @@ public class WorldChunkMap
     Dictionary<Vector2Int, WorldChunk> _chunkMap = new();
 
     public bool initialized { get; private set; }
+    public WorldRegion worldRegion { get; private set; }
     public CoordinateMap coordinateMap { get; private set; }
     public HashSet<WorldChunk> allChunks { get { return _chunks; } private set { } }
 
-    public WorldChunkMap(CoordinateMap coordinateMap)
+    public WorldChunkMap(WorldRegion worldRegion, CoordinateMap coordinateMap)
     {
+        this.worldRegion = worldRegion;
         this.coordinateMap = coordinateMap;
         foreach (Vector2Int position in coordinateMap.allPositions)
         {
@@ -20,9 +23,25 @@ public class WorldChunkMap
             WorldChunk newChunk = new WorldChunk(this, coordinate);
             _chunks.Add(newChunk);
             _chunkMap[coordinate.localPosition] = newChunk;
+
+
+            Coordinate.TYPE type = (Coordinate.TYPE)coordinateMap.GetCoordinateTypeAt(position);
+            switch(type)
+            {
+                case Coordinate.TYPE.CLOSED:
+                case Coordinate.TYPE.BORDER:
+                    newChunk.SetGroundHeight(WorldGeneration.RegionMaxGroundHeight); break;
+                case Coordinate.TYPE.PATH:
+                case Coordinate.TYPE.ZONE:
+                case Coordinate.TYPE.EXIT:
+                    newChunk.SetGroundHeight(0); break;
+            }
         }
 
         initialized = true;
+
+        // Apply heights
+
 
 
         // Create Chunk Meshes
@@ -31,9 +50,6 @@ public class WorldChunkMap
             chunk.CreateChunkMesh();
         }
     }
-
-
-    #region == GET CHUNKS ======================================== ////
 
     public WorldChunk GetChunkAt(Vector2Int position)
     {
@@ -59,10 +75,7 @@ public class WorldChunkMap
 
         return chunks;
     }
-    #endregion
 
-
-    #region == SET CHUNKS =====================================////
     public void ResetAllChunkHeights()
     {
         foreach (WorldChunk chunk in allChunks)
@@ -70,7 +83,6 @@ public class WorldChunkMap
             chunk.SetGroundHeight(0);
         }
     }
-
 
     public void SetChunksToHeight(List<WorldChunk> worldChunk, int chunkHeight)
     {
@@ -91,6 +103,4 @@ public class WorldChunkMap
             }
         }
     }
-
-    #endregion
 }

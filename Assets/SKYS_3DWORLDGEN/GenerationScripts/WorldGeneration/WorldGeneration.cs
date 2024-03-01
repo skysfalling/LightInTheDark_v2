@@ -6,7 +6,9 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.XR;
 using Unity.VisualScripting;
-
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 /// <summary>
 /// SKYS_3DWORLDGEN : Created by skysfalling @ darklightinteractive 2024
 /// 
@@ -40,6 +42,17 @@ public class WorldGeneration : MonoBehaviour
     // STATIC GENERATION VALUES ========================================================= ///
     public static string GameSeed = "Default Game Seed";
     public static int CurrentSeed { get { return GameSeed.GetHashCode(); }}
+    public static void InitializeRandomSeed(string newGameSeed = "")
+    {
+
+        if (newGameSeed != "" && newGameSeed != GameSeed)
+        {
+            GameSeed = newGameSeed;
+            Debug.Log($"Initialize Random Seed to => {GameSeed} :: {CurrentSeed}");
+        }
+
+        UnityEngine.Random.InitState(CurrentSeed);
+    }
 
     // STATIC GENERATION DIMENSIONS ==================================== ///
 
@@ -56,7 +69,7 @@ public class WorldGeneration : MonoBehaviour
 
     // >>>> WorldRegion { in WorldChunk Units }
     public static int PlayRegionWidth_inChunks = 5; // in World Chunks
-    public static int PlayRegionBoundaryOffset = 1; // Boundary offset value 
+    public static int PlayRegionBoundaryOffset = 0; // Boundary offset value 
     public static int RegionMaxGroundHeight = 10; // Maximum chunk height
     public static int GetPlayRegionWidth_inCells() { return PlayRegionWidth_inChunks * ChunkWidth_inCells; }
     public static int GetFullRegionWidth_inChunks() { return PlayRegionWidth_inChunks + (PlayRegionBoundaryOffset * 2); } // Include BoundaryOffset on both sides
@@ -77,21 +90,13 @@ public class WorldGeneration : MonoBehaviour
     Coroutine _worldGenerationRoutine;
 
     public string gameSeed = GameSeed;
-    public static void InitializeRandomSeed(string newGameSeed = "") { 
 
-        if (newGameSeed != "" && newGameSeed != GameSeed)
-        {
-            GameSeed = newGameSeed;
-            Debug.Log($"Initialize Random Seed to => {GameSeed} :: {CurrentSeed}");
-        }
-
-        UnityEngine.Random.InitState(CurrentSeed);
-    }
 
     public List<WorldRegion> worldRegions = new List<WorldRegion>();
     public void CreateRegions()
     {
         worldRegions = new();
+        WorldGeneration.InitializeRandomSeed();
 
         for (int x = 0; x < WorldWidth_inRegions; x++)
         {
@@ -100,14 +105,27 @@ public class WorldGeneration : MonoBehaviour
                 GameObject regionObject = new GameObject($"New Region ({x} , {y})");
                 WorldRegion region = regionObject.AddComponent<WorldRegion>();
                 Vector2Int regionCoordinate = new Vector2Int(x, y);
-                region.Initialize(regionCoordinate);
+                region.Initialize(this, regionCoordinate);
 
                 regionObject.transform.parent = this.transform;
-
 
                 worldRegions.Add(region);
             }
         }
+    }
+
+    public void DestroyRegions()
+    {
+        for (int i = 0; i < worldRegions.Count; i++)
+        {
+            worldRegions[i].Destroy();
+        }
+        worldRegions.Clear();
+    }
+
+    public Material GetChunkMaterial()
+    {
+        return GetComponent<WorldMaterialLibrary>().chunkMaterial;
     }
 
     #region == INITIALIZE ======
@@ -120,8 +138,10 @@ public class WorldGeneration : MonoBehaviour
             if (_worldGenerationRoutine != null) { StopCoroutine(_worldGenerationRoutine); }
         }
 
-        // Start Routine
-        //_worldGenerationRoutine = StartCoroutine(GenerateRegionChunks());
+        foreach(WorldRegion region in worldRegions)
+        {
+            region.CreateChunkMeshObjects();
+        }
     }
 
     public void Reset()
@@ -263,6 +283,24 @@ public class WorldGeneration : MonoBehaviour
         worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
 
         return worldObject;
+    }
+
+    public static void DestroyGameObject(GameObject gameObject)
+    {
+        // Check if we are running in the Unity Editor
+#if UNITY_EDITOR
+        if (!EditorApplication.isPlaying)
+        {
+            // Use DestroyImmediate if in edit mode and not playing
+            DestroyImmediate(gameObject);
+            return;
+        }
+        else
+#endif
+        {
+            // Use Destroy in play mode or in a build
+            Destroy(gameObject);
+        }
     }
     #endregion
 

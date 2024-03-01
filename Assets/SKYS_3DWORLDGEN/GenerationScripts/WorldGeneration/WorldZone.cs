@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -59,10 +60,13 @@ public class WorldZone
             positions.Add(coordinates[i].localPosition);
         }
 
-        // Assign Chunk Heights
+        // Leave uninitialized if positions are invalid
+        HashSet<Vector2Int> validPositions = coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.NULL);
+        foreach(Vector2Int position in validPositions)
+        {
+            if (!validPositions.Contains(position)) { return; }
+        }
 
-        // Assign Zone TYPE
-        //CoordinateMap.SetMapCoordinatesToType(_zoneCoordinates, Coordinate.TYPE.ZONE, GetRGBAfromDebugColor(zoneColor));
 
         _initialized = true;
         //Debug.Log($"Initialized WORLD ZONE : {_coordinateVector} : height {zoneHeight}");

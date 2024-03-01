@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public enum MapBorder { NORTH, SOUTH, EAST, WEST }
 
@@ -68,7 +69,6 @@ public class CoordinateMap
     Dictionary<Vector2Int, Coordinate> _positionMap = new();
     Dictionary<Coordinate.TYPE, HashSet<Vector2Int>> _typeMap = new();
     Dictionary<MapBorder, List<Vector2Int>> _borderPositionsMap = new(); // Enum , Sorted List of Border Coordinates
-
     public WorldRegion WorldRegion { get; private set; }
     public WorldChunk WorldChunk { get; private set; }
     public List<Vector2Int> allPositions { get { return _positions.ToList(); } }
@@ -102,49 +102,7 @@ public class CoordinateMap
             }
         }
 
-        // << ASSIGN COORDINATE TYPES >> =================================================================
-        // ** Set Coordinate To Type updates the TypeMap accordingly
-
-        // >> initialize _border positions
-        _borderPositionsMap[MapBorder.WEST] = new();
-        _borderPositionsMap[MapBorder.EAST] = new();
-        _borderPositionsMap[MapBorder.NORTH] = new();
-        _borderPositionsMap[MapBorder.SOUTH] = new();
-
-        // >> store coordinate range
-        Vector2Int range = new Vector2Int(0, coordMax - 1);
-        HashSet<Vector2Int> cornerCoordinates = new HashSet<Vector2Int>() {
-            new Vector2Int(range.x, range.x), // 0 0
-            new Vector2Int(range.y, range.y), // max max
-            new Vector2Int(range.x, range.y), // 0 max
-            new Vector2Int(range.y, range.x)  // max 0
-            };
-
-        // >> iterate through positions
-        foreach (Vector2Int pos in _positions)
-        {
-            if (cornerCoordinates.Contains(pos))
-            {
-                // Set Type to Closed
-                SetCoordinateToType(pos, Coordinate.TYPE.CLOSED);
-            }
-            else if ( pos.x == range.x || pos.x == range.y || pos.y == range.x || pos.y == range.y)
-            {
-                // Set Type to Border
-                SetCoordinateToType(pos, Coordinate.TYPE.BORDER);
-
-                // Set Border Map
-                if (pos.x == range.x) { _borderPositionsMap[MapBorder.WEST].Add(pos); } // WEST
-                if (pos.x == range.y) { _borderPositionsMap[MapBorder.EAST].Add(pos); } // EAST
-                if (pos.y == range.x) { _borderPositionsMap[MapBorder.NORTH].Add(pos); } // NORTH
-                if (pos.y == range.y) { _borderPositionsMap[MapBorder.SOUTH].Add(pos); } // SOUTH
-            }
-            else
-            {
-                // Set Type to Null
-                SetCoordinateToType(pos, Coordinate.TYPE.NULL); 
-            }
-        }
+        SetAllCoordinatesToDefault(coordMax, WorldGeneration.PlayRegionBoundaryOffset);
 
         _initialized = true;
     }
@@ -167,12 +125,19 @@ public class CoordinateMap
             {
                 Vector2Int newPosition = new Vector2Int(x, y);
                 _positions.Add(newPosition);
-                _coordinateMap[x][y] = new Coordinate(this, newPosition, chunk); // Create and store Region Coordinate
+                _coordinateMap[x][y] = new Coordinate(this, newPosition, chunk); // Create and store Chunk Coordinate
                 _coordinates.Add(_coordinateMap[x][y]);
                 _positionMap[newPosition] = _coordinateMap[x][y];
             }
         }
 
+        SetAllCoordinatesToDefault(coordMax, WorldGeneration.PlayRegionBoundaryOffset);
+
+        _initialized = true;
+    }
+
+    void SetAllCoordinatesToDefault(int coordMax, int borderOffset)
+    {
         // << ASSIGN COORDINATE TYPES >> =================================================================
         // ** Set Coordinate To Type updates the TypeMap accordingly
 
@@ -183,32 +148,32 @@ public class CoordinateMap
         _borderPositionsMap[MapBorder.SOUTH] = new();
 
         // >> store coordinate range
-        Vector2Int range = new Vector2Int(0, coordMax - 1);
+        Vector2Int playableMapRange = new Vector2Int(borderOffset, coordMax - (borderOffset + 1));
         HashSet<Vector2Int> cornerCoordinates = new HashSet<Vector2Int>() {
-            new Vector2Int(range.x, range.x), // 0 0
-            new Vector2Int(range.y, range.y), // max max
-            new Vector2Int(range.x, range.y), // 0 max
-            new Vector2Int(range.y, range.x)  // max 0
+            new Vector2Int(playableMapRange.x, playableMapRange.x), // 0 0
+            new Vector2Int(playableMapRange.y, playableMapRange.y), // max max
+            new Vector2Int(playableMapRange.x, playableMapRange.y), // 0 max
+            new Vector2Int(playableMapRange.y, playableMapRange.x)  // max 0
             };
 
         // >> iterate through positions
         foreach (Vector2Int pos in _positions)
         {
-            if (cornerCoordinates.Contains(pos))
+            if (cornerCoordinates.Contains(pos) || pos.x < playableMapRange.x || pos.x > playableMapRange.y || pos.y < playableMapRange.x || pos.y > playableMapRange.y)
             {
                 // Set Type to Closed
                 SetCoordinateToType(pos, Coordinate.TYPE.CLOSED);
             }
-            else if (pos.x == range.x || pos.x == range.y || pos.y == range.x || pos.y == range.y)
+            else if (pos.x == playableMapRange.x || pos.x == playableMapRange.y || pos.y == playableMapRange.x || pos.y == playableMapRange.y)
             {
                 // Set Type to Border
                 SetCoordinateToType(pos, Coordinate.TYPE.BORDER);
 
                 // Set Border Map
-                if (pos.x == range.x) { _borderPositionsMap[MapBorder.WEST].Add(pos); } // WEST
-                if (pos.x == range.y) { _borderPositionsMap[MapBorder.EAST].Add(pos); } // EAST
-                if (pos.y == range.x) { _borderPositionsMap[MapBorder.NORTH].Add(pos); } // NORTH
-                if (pos.y == range.y) { _borderPositionsMap[MapBorder.SOUTH].Add(pos); } // SOUTH
+                if (pos.x == playableMapRange.x) { _borderPositionsMap[MapBorder.WEST].Add(pos); } // WEST
+                if (pos.x == playableMapRange.y) { _borderPositionsMap[MapBorder.EAST].Add(pos); } // EAST
+                if (pos.y == playableMapRange.x) { _borderPositionsMap[MapBorder.NORTH].Add(pos); } // NORTH
+                if (pos.y == playableMapRange.y) { _borderPositionsMap[MapBorder.SOUTH].Add(pos); } // SOUTH
             }
             else
             {
@@ -216,8 +181,6 @@ public class CoordinateMap
                 SetCoordinateToType(pos, Coordinate.TYPE.NULL);
             }
         }
-
-        _initialized = true;
     }
 
     void SetCoordinateToType(Vector2Int position, Coordinate.TYPE newType)
@@ -267,20 +230,6 @@ public class CoordinateMap
         }
     }
 
-    public void ConvertCoordinateToExit(Coordinate coordinate)
-    {
-        if (coordinate == null) return;
-        if (coordinate.type != Coordinate.TYPE.BORDER)
-        {
-            Debug.Log("Cannot convert non border coordinate to exit");
-            return;
-        }
-
-        exitPositions.Add(coordinate.localPosition);
-
-        SetCoordinateToType(coordinate.localPosition, Coordinate.TYPE.EXIT);
-    }
-
     public Coordinate GetCoordinateAt(Vector2Int position)
     {
         if (_initialized && _positions.Contains(position))
@@ -303,6 +252,52 @@ public class CoordinateMap
     {
         if (!_typeMap.ContainsKey(type)) { _typeMap[type] = new(); } 
         return _typeMap[type];
+    }
+
+    // == [[ WORLD EXITS ]] ======================================================================== >>>>
+    public void ConvertCoordinateToExit(Coordinate coordinate)
+    {
+        if (coordinate == null) return;
+        if (coordinate.type != Coordinate.TYPE.BORDER)
+        {
+            Debug.Log("Cannot convert non border coordinate to exit");
+            return;
+        }
+
+        exitPositions.Add(coordinate.localPosition);
+
+        SetCoordinateToType(coordinate.localPosition, Coordinate.TYPE.EXIT);
+    }
+
+    public void GenerateRandomExits()
+    {
+        // Determine the number of exits to create, with a minimum of 2 and a maximum of 4
+        int numberOfExits = UnityEngine.Random.Range(2, 5); // Unity's Random.Range is inclusive for min and exclusive for max
+
+        // Combine all border positions into a single list for easier access
+        List<Vector2Int> allBorderPositions = _typeMap[Coordinate.TYPE.BORDER].ToList();
+
+        // Shuffle the list of all border positions using the Fisher-Yates shuffle algorithm
+        for (int i = allBorderPositions.Count - 1; i > 0; i--)
+        {
+            int swapIndex = UnityEngine.Random.Range(0, i + 1);
+            Vector2Int temp = allBorderPositions[i];
+            allBorderPositions[i] = allBorderPositions[swapIndex];
+            allBorderPositions[swapIndex] = temp;
+        }
+
+        // Ensure not to exceed the number of available border positions
+        numberOfExits = Mathf.Min(numberOfExits, allBorderPositions.Count);
+
+        // Convert the first N positions into exits, where N is the number of exits determined
+        for (int i = 0; i < numberOfExits; i++)
+        {
+            Vector2Int exitPosition = allBorderPositions[i];
+            Coordinate coordinate = _positionMap[exitPosition]; // Assuming _positionMap contains all coordinates
+            ConvertCoordinateToExit(coordinate);
+        }
+
+        Debug.Log($"{numberOfExits} exits have been created on the map borders.");
     }
 
     // == [[ WORLD PATH ]] ================================================================================ >>>>
@@ -362,28 +357,85 @@ public class CoordinateMap
     }
 
     // == [[ WORLD ZONES ]] ================================================================================ >>>>
-    public void CreateWorldZone(Coordinate centerCoordinate, WorldZone.TYPE zoneType, int zoneHeight)
+    public bool CreateWorldZone(Vector2Int position, WorldZone.TYPE zoneType, int zoneHeight)
     {
-        Debug.Log($"Attempting to create zone at {centerCoordinate.localPosition}");
+        Debug.Log($"Attempting to create zone at {position}");
 
         // Temporarily create the zone to check its positions
-        WorldZone tempZone = new WorldZone(this, centerCoordinate, zoneType, zoneHeight);
+        WorldZone tempZone = new WorldZone(this, GetCoordinateAt(position), zoneType, zoneHeight);
 
         // Check if any of the zone's positions are in the BORDER or CLOSED categories
-        var invalidPositions = new HashSet<Vector2Int>(_typeMap[Coordinate.TYPE.BORDER].Concat(_typeMap[Coordinate.TYPE.CLOSED]));
+        HashSet<Vector2Int> validPositions = GetAllPositionsOfType(Coordinate.TYPE.NULL);
 
         // Check for intersection between the zone's positions and invalid positions
-        bool hasInvalidPosition = tempZone.positions.Any(pos => invalidPositions.Contains(pos));
-
+        bool hasInvalidPosition = tempZone.positions.Any(pos => !validPositions.Contains(pos));
         if (hasInvalidPosition)
         {
-            Debug.Log($"Zone at {centerCoordinate.localPosition} intersects with BORDER or CLOSED positions. Zone creation aborted.");
-            return; // Abort the creation of the zone
+            Debug.Log($"Zone at {position} includes invalid coordinate types. Zone creation aborted.");
+            return false; // Abort the creation of the zone
         }
 
         // If no invalid positions are found, add the zone
         worldZones.Add(tempZone);
         SetCoordinatesToType(tempZone.positions, Coordinate.TYPE.ZONE);
-        Debug.Log($"Zone successfully created at {centerCoordinate.localPosition} with type {zoneType}.");
+        Debug.Log($"Zone successfully created at {position} with type {zoneType}.");
+        return true;
+    }
+
+    public void GenerateRandomZones(int minZones, int maxZones)
+    {
+        worldZones.Clear();
+
+        // Determine the random number of zones to create within the specified range
+        int numZonesToCreate = Random.Range(minZones, maxZones + 1);
+
+        // A list to hold potential positions for zone creation
+        List<Vector2Int> potentialPositions = GetAllPositionsOfType(Coordinate.TYPE.NULL).ToList();
+
+        // Shuffle the list of potential positions to randomize the selection
+        ShuffleList(potentialPositions);
+
+        // Attempt to create zones up to the determined number or until potential positions run out
+        int zonesCreated = 0;
+        for(int i = 0; i < potentialPositions.Count; i++)
+        {
+            if (zonesCreated >= numZonesToCreate) break; // Stop if we've created the desired number of zones
+
+            // Attempt to create a zone at the current position
+
+            WorldZone.TYPE zoneType = GetRandomWorldZoneType();
+            int randomHeight = Random.Range(0, 5);
+
+            CreateWorldZone(potentialPositions[i], zoneType, randomHeight);
+            zonesCreated++;
+        }
+
+        Debug.Log($"Attempted to create {numZonesToCreate} zones. Successfully created {zonesCreated}.");
+    }
+
+    WorldZone.TYPE GetRandomWorldZoneType()
+    {
+        // Get all values defined in the WorldZone.TYPE enum
+        var zoneTypes = System.Enum.GetValues(typeof(WorldZone.TYPE));
+
+        // Choose a random index
+        int randomIndex = Random.Range(0, zoneTypes.Length);
+
+        // Return the randomly selected WorldZone.TYPE
+        return (WorldZone.TYPE)zoneTypes.GetValue(randomIndex);
+    }
+
+    // Utility method to shuffle a list in place
+    private void ShuffleList<T>(List<T> list)
+    {
+        int n = list.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = Random.Range(0, n + 1);
+            T value = list[k];
+            list[k] = list[n];
+            list[n] = value;
+        }
     }
 }

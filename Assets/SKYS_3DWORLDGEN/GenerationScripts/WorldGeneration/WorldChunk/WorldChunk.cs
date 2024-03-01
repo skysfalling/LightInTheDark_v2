@@ -5,20 +5,15 @@ using UnityEngine;
 public class WorldChunk
 {
     public enum FaceType{ Front, Back, Left, Right, Top, Bottom }
-
-
-    WorldGeneration _worldGeneration;
     string prefix = " [[ WORLD CHUNK ]]";
     int _chunkWidth { get { return WorldGeneration.ChunkWidth_inCells; } }
 
-    public CoordinateMap cellCoordinateMap { get; }
+    public CoordinateMap cellCoordinateMap { get; private set; }
     public WorldChunkMesh chunkMesh;
+    public GameObject chunkMeshObject;
     public Color debugColor = Color.white;
     public int groundHeight { get; private set; }
     int _realChunkHeight { get { return groundHeight * WorldGeneration.CellWidth_inWorldSpace; } }
-
-
-
 
     /// <summary>
     /// Defines World Chunks based on wall count / location
@@ -67,8 +62,10 @@ public class WorldChunk
         this.chunkMap = chunkMap;
         this.chunkCoordinate = coordinate;
         this.localPosition = coordinate.localPosition;
-        this.groundHeight = PerlinNoise.CalculateHeightFromNoise(this.localPosition);
 
+        // >> set perlin noise height
+        Vector2Int perlinOffset = new Vector2Int((int)coordinate.worldPosition.x, (int)coordinate.worldPosition.z);
+        this.groundHeight = PerlinNoise.CalculateHeightFromNoise(perlinOffset);
 
         // Determine position & dimenstions
         groundPosition = new Vector3(coordinate.worldPosition.x, _realChunkHeight, coordinate.worldPosition.z);
@@ -77,6 +74,9 @@ public class WorldChunk
         // >> Origin Coordinate Position { Bottom Left }
         originCoordinatePosition = groundPosition;
         originCoordinatePosition -= WorldGeneration.GetChunkWidth_inWorldSpace() * new Vector3(0.5f, 0, 0.5f);
+
+
+
 
         // Create coordinate map
         this.cellCoordinateMap = new CoordinateMap(this);
@@ -107,6 +107,17 @@ public class WorldChunk
         CreateCellTypeMap();
     }
 
+    public void CreateChunkMeshObject(WorldRegion region)
+    {
+        if (this.chunkMeshObject != null)
+        {
+            WorldGeneration.DestroyGameObject(chunkMeshObject);
+        }
+
+        this.chunkMeshObject = WorldGeneration.CreateMeshObject($"Chunk {localPosition} " +
+            $":: height {groundHeight}", chunkMesh.mesh, region.worldGeneration.GetChunkMaterial());
+        this.chunkMeshObject.transform.parent = region.transform;
+    }
 
     public void SetGroundHeight(int height)
     {

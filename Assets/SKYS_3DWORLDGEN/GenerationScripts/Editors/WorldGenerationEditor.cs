@@ -60,10 +60,28 @@ public class WorldGenerationEditor : Editor
 
         WorldGeneration worldGen = (WorldGeneration)target;
 
-        if (GUILayout.Button("Create Regions"))
+        if (worldGen.worldRegions.Count == 0)
         {
-            worldGen.CreateRegions();
+            if (GUILayout.Button("Create Regions"))
+            {
+                worldGen.CreateRegions();
+            }
         }
+        else
+        {
+            if (GUILayout.Button("Start Generation"))
+            {
+                worldGen.StartGeneration();
+            }
+
+            if (GUILayout.Button("Destroy All Regions"))
+            {
+                worldGen.DestroyRegions();
+            }
+        }
+
+
+
 
         // Check if any changes were made in the Inspector
         if (EditorGUI.EndChangeCheck())
@@ -76,8 +94,6 @@ public class WorldGenerationEditor : Editor
             // Optionally, mark the target object as dirty to ensure the changes are saved
             EditorUtility.SetDirty(target);
         }
-
-        DrawDefaultInspector();
     }
 
     void OnSceneGUI()
@@ -102,7 +118,7 @@ public class WorldGenerationEditor : Editor
             {
                 if (region != null && region.IsInitialized())
                 {
-                    DarklightGizmos.DrawWireSquare_withLabel($"World Region {region.regionCoordinate}", region.centerPosition, WorldGeneration.GetFullRegionWidth_inWorldSpace(), Color.blue, labelStyle);
+                    DarklightGizmos.DrawWireSquare_withLabel($"World Region {region.regionCoordinate}", region.centerPosition_inWorldSpace, WorldGeneration.GetFullRegionWidth_inWorldSpace(), Color.blue, labelStyle);
                 }
             }
         }
