@@ -10,90 +10,90 @@ public class Coordinate
     public TYPE type;
     public Color debugColor = Color.clear;
 
-    public CoordinateMap coordinateMap { get; private set; }
-    public WorldSpace worldSpace { get; private set; }
-    public Vector2Int localPosition { get; private set; }
-    public Vector3 worldPosition { get; private set; }
-    public bool initialized { get; private set; }
+    public CoordinateMap CoordinateMapParent { get; private set; }
+    public WorldSpace WorldSpace { get; private set; }
+    public Vector2Int CoordinateValue { get; private set; }
+    public Vector3 WorldPosition { get; private set; }
+    public bool Initialized { get; private set; }
 
     HashSet<Vector2Int> _neighborPositions = new();
-    Dictionary<WorldDirection, Vector2Int> _neighborMap = new();
+    Dictionary<WorldDirection, Vector2Int> _neighborDirectionMap = new();
     Dictionary<Vector2Int, TYPE> _neighborTypeMap = new();
+
+    public Dictionary<WorldDirection, Vector2Int> NeighborDirectionMap { get { return _neighborDirectionMap; } }
 
     public Coordinate(CoordinateMap coordinateMapParent, Vector2Int coord, WorldGeneration worldGeneration)
     {
-        this.coordinateMap = coordinateMapParent;
-        localPosition = coord;
-        worldSpace = WorldSpace.Region; // The Coordinate is in REGION space because it determines where the REGIONS spawn in the parent WORLD
+        this.CoordinateMapParent = coordinateMapParent;
+        CoordinateValue = coord;
+        WorldSpace = WorldSpace.Region; // The Coordinate is in REGION space because it determines where the REGIONS spawn in the parent WORLD
 
         // Calculate position
         int regionWidth = WorldGeneration.GetFullRegionWidth_inWorldSpace();
 
-        // Calculate local position
+        // Calculate world position
         Vector2 worldPosition = new Vector2(worldGeneration.originPosition_inWorldSpace.x, worldGeneration.originPosition_inWorldSpace.z);
         worldPosition += new Vector2(coord.x, coord.y) * regionWidth;
 
-        this.worldPosition = new Vector3(worldPosition.x, 0, worldPosition.y);
+        this.WorldPosition = new Vector3(worldPosition.x, 0, worldPosition.y);
 
         SetNeighbors();
 
-        initialized = true;
+        Initialized = true;
     }
 
     public Coordinate(CoordinateMap coordinateMapParent, Vector2Int coord, WorldRegion region)
     {
-        this.coordinateMap = coordinateMapParent;
-        localPosition = coord;
-        worldSpace = WorldSpace.Chunk; // The Coordinate is in CHUNK space because it determines where the CHUNKS spawn in the parent REGION
+        this.CoordinateMapParent = coordinateMapParent;
+        CoordinateValue = coord;
+        WorldSpace = WorldSpace.Chunk; // The Coordinate is in CHUNK space because it determines where the CHUNKS spawn in the parent REGION
 
         // Calculate position
         int chunkWidth = WorldGeneration.GetChunkWidth_inWorldSpace();
 
-        // Calculate local position
+        // Calculate world position
         Vector2 worldPosition = new Vector2(region.originPosition_inWorldSpace.x, region.originPosition_inWorldSpace.z);
         worldPosition += new Vector2(coord.x, coord.y) * chunkWidth;
 
-        this.worldPosition = new Vector3(worldPosition.x, 0, worldPosition.y);
+        this.WorldPosition = new Vector3(worldPosition.x, 0, worldPosition.y);
 
         SetNeighbors();
 
-        initialized = true;
+        Initialized = true;
     }
 
     public Coordinate(CoordinateMap coordinateMapParent, Vector2Int coord, WorldChunk chunk)
     {
-        this.coordinateMap = coordinateMapParent;
-        localPosition = coord;
-        worldSpace = WorldSpace.Cell; // The Coordinate is in CELL space because it determines where the CELLS spawn in the parent CHUNK
+        this.CoordinateMapParent = coordinateMapParent;
+        CoordinateValue = coord;
+        WorldSpace = WorldSpace.Cell; // The Coordinate is in CELL space because it determines where the CELLS spawn in the parent CHUNK
 
         // Calculate position
         int cellWidth = WorldGeneration.CellWidth_inWorldSpace;
 
-        // Calculate local position
+        // Calculate world position
         Vector2 worldPosition = new Vector2(chunk.originCoordinatePosition.x, chunk.originCoordinatePosition.z);
         worldPosition += new Vector2(coord.x, coord.y) * cellWidth;
 
-        this.worldPosition = new Vector3(worldPosition.x, chunk.groundHeight, worldPosition.y);
+        this.WorldPosition = new Vector3(worldPosition.x, chunk.groundHeight, worldPosition.y);
 
         SetNeighbors();
 
-        initialized = true;
+        Initialized = true;
     }
 
     void SetNeighbors()
     {
         _neighborPositions = new();
-        _neighborMap = new();
+        _neighborDirectionMap = new();
         foreach (WorldDirection direction in Enum.GetValues(typeof(WorldDirection)))
         {
             // Get neighbor in direction
-            Vector2Int neighborPosition = localPosition + CoordinateMap.GetDirectionVector(direction);
+            Vector2Int neighborPosition = CoordinateValue + CoordinateMap.GetDirectionVector(direction);
             _neighborPositions.Add(neighborPosition);
-            _neighborMap[direction] = neighborPosition;
+            _neighborDirectionMap[direction] = neighborPosition;
         }
     }
-
-    
 
     #region =================== Get Neighbors ====================== >>>> 
 
@@ -105,7 +105,7 @@ public class Coordinate
 
         for(int i = 0; i < neighbors.Count; i++)
         {
-            TYPE neighborType = (TYPE)coordinateMap.GetCoordinateTypeAt(neighbors[i]);
+            TYPE neighborType = (TYPE)CoordinateMapParent.GetCoordinateTypeAt(neighbors[i]);
             _neighborTypeMap[neighbors[i]] = neighborType;
             types.Add(neighborType);
         }
@@ -115,28 +115,28 @@ public class Coordinate
 
     public Coordinate GetNeighborInDirection(WorldDirection direction)
     {
-        if (!initialized) return null;
-        return coordinateMap.GetCoordinateAt(_neighborMap[direction]);
+        if (!Initialized) return null;
+        return CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[direction]);
     }
 
     public WorldDirection? GetWorldDirectionOfNeighbor(Coordinate neighbor)
     {
-        if (!initialized || !_neighborPositions.Contains(neighbor.localPosition)) return null;
+        if (!Initialized || !_neighborPositions.Contains(neighbor.CoordinateValue)) return null;
 
         // Get Offset
-        Vector2Int offset = neighbor.localPosition - this.localPosition;
+        Vector2Int offset = neighbor.CoordinateValue - this.CoordinateValue;
         return CoordinateMap.GetDirectionEnum(offset);
     }
 
     public List<Coordinate> GetValidNaturalNeighbors()
     {
-        if (!initialized) return new();
+        if (!Initialized) return new();
 
         List<Coordinate> neighbors = new List<Coordinate> {
-            coordinateMap.GetCoordinateAt(_neighborMap[WorldDirection.WEST]),
-            coordinateMap.GetCoordinateAt(_neighborMap[WorldDirection.EAST]),
-            coordinateMap.GetCoordinateAt(_neighborMap[WorldDirection.NORTH]),
-            coordinateMap.GetCoordinateAt(_neighborMap[WorldDirection.SOUTH])
+            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.WEST]),
+            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.EAST]),
+            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTH]),
+            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTH])
         };
         neighbors.RemoveAll(item => item == null);
         return neighbors;
@@ -144,13 +144,13 @@ public class Coordinate
 
     public List<Coordinate> GetValidDiagonalNeighbors()
     {
-        if (!initialized) return new();
+        if (!Initialized) return new();
 
         List<Coordinate> neighbors = new List<Coordinate> {
-            coordinateMap.GetCoordinateAt(_neighborMap[WorldDirection.NORTHWEST]),
-            coordinateMap.GetCoordinateAt(_neighborMap[WorldDirection.NORTHEAST]),
-            coordinateMap.GetCoordinateAt(_neighborMap[WorldDirection.SOUTHWEST]),
-            coordinateMap.GetCoordinateAt(_neighborMap[WorldDirection.SOUTHEAST])
+            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTHWEST]),
+            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTHEAST]),
+            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTHWEST]),
+            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTHEAST])
         };
         neighbors.RemoveAll(item => item == null);
         return neighbors;
@@ -158,16 +158,18 @@ public class Coordinate
 
     public List<Coordinate> GetAllValidNeighbors()
     {
-        if (!initialized) return new();
+        if (!Initialized) return new();
 
         List<Coordinate> neighbors = GetValidNaturalNeighbors();
         neighbors.AddRange(GetValidDiagonalNeighbors());
         return neighbors;
     }
 
+
+
     public Coordinate GetNeighborInOppositeDirection(WorldDirection direction)
     {
-        if (!initialized) return null;
+        if (!Initialized) return null;
 
         switch (direction)
         {
@@ -194,13 +196,13 @@ public class Coordinate
 
     public List<Vector2Int> GetValidNaturalNeighborCoordinates()
     {
-        if (!initialized) return new();
+        if (!Initialized) return new();
 
         List<Vector2Int> neighbors = new List<Vector2Int> {
-            _neighborMap[WorldDirection.WEST],
-            _neighborMap[WorldDirection.EAST],
-            _neighborMap[WorldDirection.NORTH],
-            _neighborMap[WorldDirection.SOUTH],
+            _neighborDirectionMap[WorldDirection.WEST],
+            _neighborDirectionMap[WorldDirection.EAST],
+            _neighborDirectionMap[WorldDirection.NORTH],
+            _neighborDirectionMap[WorldDirection.SOUTH],
         };
         neighbors.RemoveAll(item => item == null);
         return neighbors;
@@ -208,13 +210,13 @@ public class Coordinate
 
     public List<Vector2Int> GetValidDiagonalNeighborCoordinates()
     {
-        if (!initialized) return new();
+        if (!Initialized) return new();
 
         List<Vector2Int> neighbors = new List<Vector2Int> {
-            _neighborMap[WorldDirection.NORTHWEST],
-            _neighborMap[WorldDirection.NORTHEAST],
-            _neighborMap[WorldDirection.SOUTHWEST],
-            _neighborMap[WorldDirection.SOUTHEAST],
+            _neighborDirectionMap[WorldDirection.NORTHWEST],
+            _neighborDirectionMap[WorldDirection.NORTHEAST],
+            _neighborDirectionMap[WorldDirection.SOUTHWEST],
+            _neighborDirectionMap[WorldDirection.SOUTHEAST],
         };
         neighbors.RemoveAll(item => item == null);
         return neighbors;

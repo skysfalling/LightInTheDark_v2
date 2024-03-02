@@ -22,7 +22,7 @@ public class WorldChunkMap
             Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
             WorldChunk newChunk = new WorldChunk(this, coordinate);
             _chunks.Add(newChunk);
-            _chunkMap[coordinate.localPosition] = newChunk;
+            _chunkMap[coordinate.CoordinateValue] = newChunk;
 
 
             Coordinate.TYPE type = (Coordinate.TYPE)coordinateMap.GetCoordinateTypeAt(position);
@@ -58,7 +58,7 @@ public class WorldChunkMap
     public WorldChunk GetChunkAt(Coordinate worldCoord)
     {
         if (!initialized || worldCoord == null) { return null; }
-        return GetChunkAt(worldCoord.localPosition);
+        return GetChunkAt(worldCoord.CoordinateValue);
     }
 
     public List<WorldChunk> GetChunksAtCoordinates(List<Coordinate> worldCoords)

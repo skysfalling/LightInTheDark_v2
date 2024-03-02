@@ -8,7 +8,7 @@ public class WorldChunk
     string prefix = " [[ WORLD CHUNK ]]";
     int _chunkWidth { get { return WorldGeneration.ChunkWidth_inCells; } }
 
-    public CoordinateMap cellCoordinateMap { get; private set; }
+    public CoordinateMap coordinateCellMap { get; private set; }
     public WorldChunkMesh chunkMesh;
     public GameObject chunkMeshObject;
     public Color debugColor = Color.white;
@@ -61,14 +61,14 @@ public class WorldChunk
     {
         this.chunkMap = chunkMap;
         this.chunkCoordinate = coordinate;
-        this.localPosition = coordinate.localPosition;
+        this.localPosition = coordinate.CoordinateValue;
 
         // >> set perlin noise height
-        Vector2Int perlinOffset = new Vector2Int((int)coordinate.worldPosition.x, (int)coordinate.worldPosition.z);
+        Vector2Int perlinOffset = new Vector2Int((int)coordinate.WorldPosition.x, (int)coordinate.WorldPosition.z);
         this.groundHeight = PerlinNoise.CalculateHeightFromNoise(perlinOffset);
 
         // Determine position & dimenstions
-        groundPosition = new Vector3(coordinate.worldPosition.x, _realChunkHeight, coordinate.worldPosition.z);
+        groundPosition = new Vector3(coordinate.WorldPosition.x, _realChunkHeight, coordinate.WorldPosition.z);
         groundMeshDimensions = new Vector3(_chunkWidth, _realChunkHeight, _chunkWidth);
 
         // >> Origin Coordinate Position { Bottom Left }
@@ -76,7 +76,7 @@ public class WorldChunk
         originCoordinatePosition -= WorldGeneration.GetChunkWidth_inWorldSpace() * new Vector3(0.5f, 0, 0.5f);
 
         // Create coordinate map
-        this.cellCoordinateMap = new CoordinateMap(this);
+        this.coordinateCellMap = new CoordinateMap(this);
     }
 
     public void CreateChunkMesh()
@@ -131,7 +131,7 @@ public class WorldChunk
     void RecalcuatePosition()
     {
         if (localPosition == null) return;
-        groundPosition = new Vector3(chunkCoordinate.worldPosition.x, _realChunkHeight, chunkCoordinate.worldPosition.z);
+        groundPosition = new Vector3(chunkCoordinate.WorldPosition.x, _realChunkHeight, chunkCoordinate.WorldPosition.z);
         groundMeshDimensions = new Vector3(_chunkWidth, _realChunkHeight, _chunkWidth);
     }
 

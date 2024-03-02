@@ -27,7 +27,7 @@ public class WorldRegion : MonoBehaviour
 
     // PUBLIC VARIABLES
     public WorldGeneration worldGeneration;
-    public CoordinateMap coordinateMap;
+    public CoordinateMap coordinateChunkMap;
     public Coordinate coordinate;
     public WorldChunkMap worldChunkMap;
 
@@ -41,7 +41,7 @@ public class WorldRegion : MonoBehaviour
     {
         this.worldGeneration = worldGeneration;
         this.coordinate = regionCoordinate;
-        this.localCoordinatePosition = regionCoordinate.localPosition;
+        this.localCoordinatePosition = regionCoordinate.CoordinateValue;
 
         float worldWidthRadius = _worldWidth_inWorldSpace * 0.5f;
         float regionWidthRadius = _fullRegionWidth_inWorldSpace * 0.5f;
@@ -61,8 +61,8 @@ public class WorldRegion : MonoBehaviour
         transform.position = centerPosition_inWorldSpace;
 
         // Create the coordinate map for the region
-        this.coordinateMap = new CoordinateMap(this);
-        this.worldChunkMap = new WorldChunkMap(this, this.coordinateMap);
+        this.coordinateChunkMap = new CoordinateMap(this);
+        this.worldChunkMap = new WorldChunkMap(this, this.coordinateChunkMap);
 
         _initialized = true;
     }
@@ -74,7 +74,7 @@ public class WorldRegion : MonoBehaviour
 
     public void ResetChunkMap()
     {
-        this.worldChunkMap = new WorldChunkMap(this, this.coordinateMap);
+        this.worldChunkMap = new WorldChunkMap(this, this.coordinateChunkMap);
     }
 
     public void CreateChunkMeshObjects()

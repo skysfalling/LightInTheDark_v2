@@ -9,6 +9,22 @@ public enum MapBorder { NORTH, SOUTH, EAST, WEST }
 public class CoordinateMap
 {
     #region << STATIC FUNCTIONS <<
+    public static MapBorder? GetMapBorderInNaturalDirection(WorldDirection direction)
+    {
+        switch (direction)
+        {
+            case WorldDirection.NORTH:
+                return MapBorder.NORTH;
+            case WorldDirection.SOUTH:
+                return MapBorder.SOUTH;
+            case WorldDirection.WEST:
+                return MapBorder.WEST;
+            case WorldDirection.EAST:
+                return MapBorder.EAST;
+            default:
+                return null;
+        }
+    }
     public static Dictionary<WorldDirection, Vector2Int> _directionVectorMap = new() {
         { WorldDirection.NORTH, new Vector2Int(0, 1) },
         { WorldDirection.SOUTH, new Vector2Int(0, -1) },
@@ -44,7 +60,6 @@ public class CoordinateMap
             center + _directionVectorMap[WorldDirection.WEST]
         };
     }
-
     public static List<Vector2Int> CalculateDiagonalNeighborPositions(Vector2Int center)
     {
         return new List<Vector2Int>()
@@ -79,6 +94,8 @@ public class CoordinateMap
     public List<Vector2Int> exitPositions = new List<Vector2Int>();
     public List<WorldPath> worldPaths = new List<WorldPath>();
     public List<WorldZone> worldZones = new List<WorldZone>();
+
+    // == [[ CONSTRUCTOR ]] ======================================================================== >>>>
 
     public CoordinateMap(WorldGeneration worldGeneration)
     {
@@ -167,6 +184,32 @@ public class CoordinateMap
         _initialized = true;
     }
 
+    // == [[ GET COORDINATE ]] ======================================================================== >>>>
+    public Coordinate GetCoordinateAt(Vector2Int position)
+    {
+        if (_initialized && _positions.Contains(position))
+        {
+            return _positionMap[position];
+        }
+        return null;
+    }
+
+    public Coordinate.TYPE? GetCoordinateTypeAt(Vector2Int position)
+    {
+        if (_initialized && _positions.Contains(position))
+        {
+            return _positionMap[position].type;
+        }
+        return null;
+    }
+
+    public HashSet<Vector2Int> GetAllPositionsOfType(Coordinate.TYPE type)
+    {
+        if (!_typeMap.ContainsKey(type)) { _typeMap[type] = new(); } 
+        return _typeMap[type];
+    }
+
+    // == [[ SET COORDINATE ]] ======================================================================== >>>>
     void SetAllCoordinatesToDefault(int coordMax, int borderOffset)
     {
         // << ASSIGN COORDINATE TYPES >> =================================================================
@@ -201,10 +244,10 @@ public class CoordinateMap
                 SetCoordinateToType(pos, Coordinate.TYPE.BORDER);
 
                 // Set Border Map
-                if (pos.x == playableMapRange.x) { _borderPositionsMap[MapBorder.WEST].Add(pos); } // WEST
                 if (pos.x == playableMapRange.y) { _borderPositionsMap[MapBorder.EAST].Add(pos); } // EAST
-                if (pos.y == playableMapRange.x) { _borderPositionsMap[MapBorder.NORTH].Add(pos); } // NORTH
-                if (pos.y == playableMapRange.y) { _borderPositionsMap[MapBorder.SOUTH].Add(pos); } // SOUTH
+                if (pos.x == playableMapRange.x) { _borderPositionsMap[MapBorder.WEST].Add(pos); } // WEST
+                if (pos.y == playableMapRange.y) { _borderPositionsMap[MapBorder.NORTH].Add(pos); } // NORTH
+                if (pos.y == playableMapRange.x) { _borderPositionsMap[MapBorder.SOUTH].Add(pos); } // SOUTH
             }
             else
             {
@@ -250,7 +293,7 @@ public class CoordinateMap
         }
     }
 
-    void SetCoordinatesToType(List<Vector2Int> positions,  Coordinate.TYPE type)
+    void SetCoordinatesToType(List<Vector2Int> positions, Coordinate.TYPE type)
     {
         foreach (Vector2Int pos in positions)
         {
@@ -261,28 +304,40 @@ public class CoordinateMap
         }
     }
 
-    public Coordinate GetCoordinateAt(Vector2Int position)
+    public void SetCoordinatesOfTypeTo(List<Vector2Int> positions, Coordinate.TYPE targetType, Coordinate.TYPE convertType)
     {
-        if (_initialized && _positions.Contains(position))
+        foreach (Vector2Int pos in positions)
         {
-            return _positionMap[position];
+            // Check if the position is within the map boundaries
+            if (_positions.Contains(pos))
+            {
+                // Retrieve the coordinate at the given position
+                Coordinate coordinate = _positionMap[pos];
+
+                // Check if the coordinate's current type matches the targetType
+                if (coordinate.type == targetType)
+                {
+                    // If so, set the coordinate to the new convertType
+                    SetCoordinateToType(pos, convertType);
+                }
+            }
         }
-        return null;
     }
 
-    public Coordinate.TYPE? GetCoordinateTypeAt(Vector2Int position)
+    public void NullifyMapBorder(MapBorder mapBorder)
     {
-        if (_initialized && _positions.Contains(position))
-        {
-            return _positionMap[position].type;
-        }
-        return null;
+        // Destroy that border >:#!! 
+        List<Vector2Int> positions = _borderPositionsMap[mapBorder];
+
+        SetCoordinatesToType(positions, Coordinate.TYPE.NULL);
     }
 
-    public HashSet<Vector2Int> GetAllPositionsOfType(Coordinate.TYPE type)
+    public void CloseMapBorder(MapBorder mapBorder)
     {
-        if (!_typeMap.ContainsKey(type)) { _typeMap[type] = new(); } 
-        return _typeMap[type];
+        // Destroy that border >:#!! 
+        List<Vector2Int> positions = _borderPositionsMap[mapBorder];
+
+        SetCoordinatesToType(positions, Coordinate.TYPE.CLOSED);
     }
 
     // == [[ WORLD EXITS ]] ======================================================================== >>>>
@@ -295,9 +350,9 @@ public class CoordinateMap
             return;
         }
 
-        exitPositions.Add(coordinate.localPosition);
+        exitPositions.Add(coordinate.CoordinateValue);
 
-        SetCoordinateToType(coordinate.localPosition, Coordinate.TYPE.EXIT);
+        SetCoordinateToType(coordinate.CoordinateValue, Coordinate.TYPE.EXIT);
     }
 
     public void GenerateRandomExits()

@@ -284,7 +284,7 @@ public class WorldRegionMapEditor : Editor
                 try
                 {
                     string chunkParameters =
-                        $"Coordinate => {coord.localPosition}" +
+                        $"Coordinate => {coord.CoordinateValue}" +
                         $"\nCoordinate Type => {coord.type}" +
                         $"\n" +
                         $"\nChunk GroundHeight => {selectedChunk.groundHeight}" +

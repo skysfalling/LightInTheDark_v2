@@ -3,6 +3,8 @@ using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -105,12 +107,13 @@ public class WorldGeneration : MonoBehaviour
         worldRegions = new();
         InitializeRandomSeed();
 
+        // >> create a region at each coordinate
         for (int i = 0; i < coordinateRegionMap.allCoordinates.Count; i++)
         {
             Coordinate regionCoordinate = coordinateRegionMap.allCoordinates[i];
 
             // Create a new object for each region
-            GameObject regionObject = new GameObject($"New Region ({regionCoordinate.localPosition})");
+            GameObject regionObject = new GameObject($"New Region ({regionCoordinate.CoordinateValue})");
             WorldRegion region = regionObject.AddComponent<WorldRegion>();
             region.Initialize(this, regionCoordinate);
 
@@ -119,8 +122,35 @@ public class WorldGeneration : MonoBehaviour
             worldRegions.Add(region);
         }
 
+        // >> close borders that dont share a neighbor
+        for (int i = 0; i < worldRegions.Count; i++)
+        {
+            WorldRegion region = worldRegions[i];
+            Coordinate regionCoordinate = region.coordinate;
+
+            // iterate through all possible neighbors
+            Dictionary<WorldDirection, Vector2Int> neighborDirectionMap = regionCoordinate.NeighborDirectionMap;
+            List<WorldDirection> allNeighborDirections = neighborDirectionMap.Keys.ToList();
+            for (int j = 0; j < allNeighborDirections.Count; j++)
+            {
+                Vector2Int position = neighborDirectionMap[allNeighborDirections[j]];
+                WorldDirection direction = allNeighborDirections[j];
+                MapBorder? border = CoordinateMap.GetMapBorderInNaturalDirection(direction); // get map border
+                if (border == null) continue;
+
+                if (coordinateRegionMap.GetCoordinateAt(position) == null)
+                {
+                    // Neighbor not found
+                    region.coordinateChunkMap.CloseMapBorder((MapBorder)border); // close borders on chunks
+                }
+
+                Debug.Log($"Region {region.coordinate.CoordinateValue} valid neighbor in {allNeighborDirections[j]}");
+            }
+        }
+
         initialized = true;
     }
+
 
     public void Reset()
     {

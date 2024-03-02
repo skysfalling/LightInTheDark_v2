@@ -171,15 +171,15 @@ public class WorldGenerationEditor : Editor
             foreach (Vector2Int position in coordinateMap.allPositions)
             {
                 Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
-                DarklightGizmos.DrawWireSquare(coordinate.worldPosition, WorldGeneration.CellWidth_inWorldSpace, coordinate.debugColor);
-                DarklightGizmos.DrawLabel($"{coordinate.type}", coordinate.worldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
+                DarklightGizmos.DrawWireSquare(coordinate.WorldPosition, WorldGeneration.CellWidth_inWorldSpace, coordinate.debugColor);
+                DarklightGizmos.DrawLabel($"{coordinate.type}", coordinate.WorldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
             }
         }
     }
 
     void DrawCoordinateNeighbors(Coordinate coordinate)
     {
-        if (coordinate.initialized)
+        if (coordinate.Initialized)
         {
             List<Coordinate> natural_neighbors = coordinate.GetValidNaturalNeighbors();
 
@@ -189,7 +189,7 @@ public class WorldGenerationEditor : Editor
                 Vector2Int directionVector = CoordinateMap.GetDirectionVector(neighborDirection);
                 Vector3 direction = new Vector3(directionVector.x, 0, directionVector.y) * WorldGeneration.GetChunkWidth_inWorldSpace() * 0.25f;
 
-                DarklightGizmos.DrawArrow(coordinate.worldPosition, direction, Color.red);
+                DarklightGizmos.DrawArrow(coordinate.WorldPosition, direction, Color.red);
             }
 
             List<Coordinate> diagonal_neighbors = coordinate.GetValidDiagonalNeighbors();
@@ -199,7 +199,7 @@ public class WorldGenerationEditor : Editor
                 Vector2Int directionVector = CoordinateMap.GetDirectionVector(neighborDirection);
                 Vector3 direction = new Vector3(directionVector.x, 0, directionVector.y) * WorldGeneration.GetChunkWidth_inWorldSpace() * 0.25f;
 
-                DarklightGizmos.DrawArrow(coordinate.worldPosition, direction, Color.yellow);
+                DarklightGizmos.DrawArrow(coordinate.WorldPosition, direction, Color.yellow);
             }
         }
     }
