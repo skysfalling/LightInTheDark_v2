@@ -12,7 +12,7 @@ public class Coordinate
 
     public CoordinateMap CoordinateMapParent { get; private set; }
     public WorldSpace WorldSpace { get; private set; }
-    public Vector2Int CoordinateValue { get; private set; }
+    public Vector2Int Value { get; private set; }
     public Vector3 WorldPosition { get; private set; }
     public bool Initialized { get; private set; }
 
@@ -25,7 +25,7 @@ public class Coordinate
     public Coordinate(CoordinateMap coordinateMapParent, Vector2Int coord, WorldGeneration worldGeneration)
     {
         this.CoordinateMapParent = coordinateMapParent;
-        CoordinateValue = coord;
+        Value = coord;
         WorldSpace = WorldSpace.Region; // The Coordinate is in REGION space because it determines where the REGIONS spawn in the parent WORLD
 
         // Calculate position
@@ -45,7 +45,7 @@ public class Coordinate
     public Coordinate(CoordinateMap coordinateMapParent, Vector2Int coord, WorldRegion region)
     {
         this.CoordinateMapParent = coordinateMapParent;
-        CoordinateValue = coord;
+        Value = coord;
         WorldSpace = WorldSpace.Chunk; // The Coordinate is in CHUNK space because it determines where the CHUNKS spawn in the parent REGION
 
         // Calculate position
@@ -65,7 +65,7 @@ public class Coordinate
     public Coordinate(CoordinateMap coordinateMapParent, Vector2Int coord, WorldChunk chunk)
     {
         this.CoordinateMapParent = coordinateMapParent;
-        CoordinateValue = coord;
+        Value = coord;
         WorldSpace = WorldSpace.Cell; // The Coordinate is in CELL space because it determines where the CELLS spawn in the parent CHUNK
 
         // Calculate position
@@ -89,7 +89,7 @@ public class Coordinate
         foreach (WorldDirection direction in Enum.GetValues(typeof(WorldDirection)))
         {
             // Get neighbor in direction
-            Vector2Int neighborPosition = CoordinateValue + CoordinateMap.GetDirectionVector(direction);
+            Vector2Int neighborPosition = Value + CoordinateMap.GetDirectionVector(direction);
             _neighborPositions.Add(neighborPosition);
             _neighborDirectionMap[direction] = neighborPosition;
         }
@@ -121,10 +121,10 @@ public class Coordinate
 
     public WorldDirection? GetWorldDirectionOfNeighbor(Coordinate neighbor)
     {
-        if (!Initialized || !_neighborPositions.Contains(neighbor.CoordinateValue)) return null;
+        if (!Initialized || !_neighborPositions.Contains(neighbor.Value)) return null;
 
         // Get Offset
-        Vector2Int offset = neighbor.CoordinateValue - this.CoordinateValue;
+        Vector2Int offset = neighbor.Value - this.Value;
         return CoordinateMap.GetDirectionEnum(offset);
     }
 
@@ -194,7 +194,7 @@ public class Coordinate
         return null;
     }
 
-    public List<Vector2Int> GetValidNaturalNeighborCoordinates()
+    public List<Vector2Int> GetValidNaturalNeighborCoordinateValues()
     {
         if (!Initialized) return new();
 

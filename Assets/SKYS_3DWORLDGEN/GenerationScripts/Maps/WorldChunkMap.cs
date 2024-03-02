@@ -22,13 +22,11 @@ public class WorldChunkMap
             Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
             WorldChunk newChunk = new WorldChunk(this, coordinate);
             _chunks.Add(newChunk);
-            _chunkMap[coordinate.CoordinateValue] = newChunk;
-
+            _chunkMap[coordinate.Value] = newChunk;
 
             Coordinate.TYPE type = (Coordinate.TYPE)coordinateMap.GetCoordinateTypeAt(position);
             switch(type)
             {
-
                 case Coordinate.TYPE.PATH:
                 case Coordinate.TYPE.ZONE:
                 case Coordinate.TYPE.EXIT:
@@ -39,8 +37,6 @@ public class WorldChunkMap
         initialized = true;
 
         // Apply heights
-
-
 
         // Create Chunk Meshes
         foreach (WorldChunk chunk in _chunks)
@@ -58,7 +54,7 @@ public class WorldChunkMap
     public WorldChunk GetChunkAt(Coordinate worldCoord)
     {
         if (!initialized || worldCoord == null) { return null; }
-        return GetChunkAt(worldCoord.CoordinateValue);
+        return GetChunkAt(worldCoord.Value);
     }
 
     public List<WorldChunk> GetChunksAtCoordinates(List<Coordinate> worldCoords)

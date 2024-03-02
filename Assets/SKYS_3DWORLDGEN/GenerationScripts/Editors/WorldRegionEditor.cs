@@ -154,6 +154,14 @@ public class WorldRegionEditor : Editor
             region.coordinateChunkMap = new CoordinateMap(region);
         }
 
+        // >> generate necessary exits
+        /*
+        if (GUILayout.Button("Generate Necessary Exits"))
+        {
+            region.GenerateNecessaryExits();
+        }
+        */
+
         // >> select debug view
         EditorGUILayout.BeginVertical();
         EditorGUILayout.BeginHorizontal();
@@ -181,7 +189,7 @@ public class WorldRegionEditor : Editor
             if (selectedCoordinate != null)
             {
                 EditorGUILayout.LabelField($"Space:  {selectedCoordinate.WorldSpace}");
-                EditorGUILayout.LabelField($"Local Coordinate: {selectedCoordinate.CoordinateValue}");
+                EditorGUILayout.LabelField($"Local Coordinate: {selectedCoordinate.Value}");
                 EditorGUILayout.LabelField($"Type: {selectedCoordinate.type}");
                 EditorGUILayout.LabelField($"World Position: {selectedCoordinate.WorldPosition}");
                 EditorGUILayout.LabelField($"Neighbor Count: {selectedCoordinate.GetAllValidNeighbors().Count}");
@@ -260,7 +268,7 @@ public class WorldRegionEditor : Editor
             // >>>> create zone at selected
             if (GUILayout.Button("Create Zone At Selected"))
             {
-                coordinateMap.CreateWorldZone(selectedCoordinate.CoordinateValue, WorldZone.TYPE.FULL, 5);
+                coordinateMap.CreateWorldZone(selectedCoordinate.Value, WorldZone.TYPE.FULL, 5);
             }
 
 
@@ -315,7 +323,7 @@ public class WorldRegionEditor : Editor
         EditorGUILayout.Space(10);
         if (selectedChunk != null && selectedChunk.chunkCoordinate != null)
         {
-            EditorGUILayout.LabelField($"Coordinate Local Position:  {selectedChunk.chunkCoordinate.CoordinateValue}");
+            EditorGUILayout.LabelField($"Coordinate Local Position:  {selectedChunk.chunkCoordinate.Value}");
             EditorGUILayout.LabelField($"Chunk Ground Height:  {selectedChunk.groundHeight}");
             EditorGUILayout.LabelField($"Chunk Type:  {selectedChunk.type}");
         }
@@ -386,7 +394,7 @@ public class WorldRegionEditor : Editor
             {
                 Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
 
-                if (selectedCoordinate != null && position == selectedCoordinate.CoordinateValue)
+                if (selectedCoordinate != null && position == selectedCoordinate.Value)
                 {
                     DrawCoordinateNeighbors(coordinateMap.GetCoordinateAt(position));
                     continue;
@@ -401,7 +409,7 @@ public class WorldRegionEditor : Editor
                 {
                     case CoordinateMapDebug.COORDINATE:
                         DarklightGizmos.DrawWireSquare(coordinate.WorldPosition, WorldGeneration.CellWidth_inWorldSpace, Color.blue);
-                        DarklightGizmos.DrawLabel($"{coordinate.CoordinateValue}", coordinate.WorldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
+                        DarklightGizmos.DrawLabel($"{coordinate.Value}", coordinate.WorldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
                         break;
                     case CoordinateMapDebug.TYPE:
                     case CoordinateMapDebug.EDITOR:

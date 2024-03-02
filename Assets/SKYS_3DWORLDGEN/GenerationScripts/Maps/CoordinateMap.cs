@@ -25,6 +25,23 @@ public class CoordinateMap
                 return null;
         }
     }
+
+    public static MapBorder? GetOppositeBorder(MapBorder border)
+    {
+        switch (border)
+        {
+            case MapBorder.NORTH:
+                return MapBorder.SOUTH;
+            case MapBorder.SOUTH:
+                return MapBorder.NORTH;
+            case MapBorder.WEST:
+                return MapBorder.EAST;
+            case MapBorder.EAST:
+                return MapBorder.WEST;
+            default: return null;
+        }
+    }
+
     public static Dictionary<WorldDirection, Vector2Int> _directionVectorMap = new() {
         { WorldDirection.NORTH, new Vector2Int(0, 1) },
         { WorldDirection.SOUTH, new Vector2Int(0, -1) },
@@ -76,6 +93,9 @@ public class CoordinateMap
     public bool IsInitialized() {  return _initialized; }
 
     // >> main coordinate reference
+    WorldGeneration _worldGeneration = null;
+    WorldRegion _worldRegion = null;
+    WorldChunk _worldChunk = null;
     Coordinate[][] _coordinateMap;
 
     // >> _coordinateMap reference lists
@@ -83,12 +103,12 @@ public class CoordinateMap
     HashSet<Coordinate> _coordinates = new();
     Dictionary<Vector2Int, Coordinate> _positionMap = new();
     Dictionary<Coordinate.TYPE, HashSet<Vector2Int>> _typeMap = new();
-    Dictionary<MapBorder, List<Vector2Int>> _borderPositionsMap = new(); // Enum , Sorted List of Border Coordinates
-    WorldGeneration _worldGeneration = null;
-    WorldRegion _worldRegion = null;
-    WorldChunk _worldChunk = null;
+    Dictionary<MapBorder, HashSet<Vector2Int>> _borderPositionsMap = new(); // Enum , Sorted List of Border Coordinates
+    Dictionary<MapBorder, HashSet<Vector2Int>> _borderExitMap = new();
+    Dictionary<MapBorder, Vector2Int[]> _borderIndexMap = new();
 
     // >> public access lists
+    public int maxCoordinateValue { get; private set; } = 0;
     public List<Vector2Int> allPositions { get { return _positions.ToList(); } }
     public List<Coordinate> allCoordinates { get { return _coordinates.ToList(); } }
     public List<Vector2Int> exitPositions = new List<Vector2Int>();
@@ -209,17 +229,46 @@ public class CoordinateMap
         return _typeMap[type];
     }
 
+    public HashSet<Vector2Int> GetExitsOnBorder(MapBorder border)
+    {
+        if (_borderExitMap.ContainsKey(border))
+        {
+            return _borderExitMap[border];
+        }
+        return null;
+    }
+
+    public 
+
     // == [[ SET COORDINATE ]] ======================================================================== >>>>
     void SetAllCoordinatesToDefault(int coordMax, int borderOffset)
     {
+        this.maxCoordinateValue = coordMax;
+
         // << ASSIGN COORDINATE TYPES >> =================================================================
         // ** Set Coordinate To Type updates the TypeMap accordingly
 
         // >> initialize _border positions
-        _borderPositionsMap[MapBorder.WEST] = new();
-        _borderPositionsMap[MapBorder.EAST] = new();
         _borderPositionsMap[MapBorder.NORTH] = new();
         _borderPositionsMap[MapBorder.SOUTH] = new();
+        _borderPositionsMap[MapBorder.EAST] = new();
+        _borderPositionsMap[MapBorder.WEST] = new();
+
+
+        _borderIndexMap[MapBorder.NORTH] = new Vector2Int[coordMax];
+        _borderIndexMap[MapBorder.SOUTH] = new Vector2Int[coordMax];
+        _borderIndexMap[MapBorder.EAST] = new Vector2Int[coordMax];
+        _borderIndexMap[MapBorder.WEST] = new Vector2Int[coordMax];
+
+        // Helper method to determine the border type based on position
+        MapBorder DetermineBorderType(Vector2Int pos, Vector2Int range)
+        {
+            if (pos.x == range.y) return MapBorder.EAST;
+            if (pos.x == range.x) return MapBorder.WEST;
+            if (pos.y == range.y) return MapBorder.NORTH;
+            if (pos.y == range.x) return MapBorder.SOUTH;
+            return default; // Return a default or undefined value
+        }
 
         // >> store coordinate range
         Vector2Int playableMapRange = new Vector2Int(borderOffset, coordMax - (borderOffset + 1));
@@ -243,11 +292,30 @@ public class CoordinateMap
                 // Set Type to Border
                 SetCoordinateToType(pos, Coordinate.TYPE.BORDER);
 
-                // Set Border Map
-                if (pos.x == playableMapRange.y) { _borderPositionsMap[MapBorder.EAST].Add(pos); } // EAST
-                if (pos.x == playableMapRange.x) { _borderPositionsMap[MapBorder.WEST].Add(pos); } // WEST
-                if (pos.y == playableMapRange.y) { _borderPositionsMap[MapBorder.NORTH].Add(pos); } // NORTH
-                if (pos.y == playableMapRange.x) { _borderPositionsMap[MapBorder.SOUTH].Add(pos); } // SOUTH
+                MapBorder borderType = DetermineBorderType(pos, playableMapRange);
+
+                switch (borderType)
+                {
+                    case MapBorder.EAST:
+                        _borderPositionsMap[MapBorder.EAST].Add(pos);
+                        _borderIndexMap[MapBorder.EAST][pos.y] = pos;
+                        break;
+                    case MapBorder.WEST:
+                        _borderPositionsMap[MapBorder.WEST].Add(pos);
+                        _borderIndexMap[MapBorder.WEST][pos.y] = pos;
+                        break;
+                    case MapBorder.NORTH:
+                        _borderPositionsMap[MapBorder.NORTH].Add(pos);
+                        _borderIndexMap[MapBorder.NORTH][pos.x] = pos;
+                        break;
+                    case MapBorder.SOUTH:
+                        _borderPositionsMap[MapBorder.SOUTH].Add(pos);
+                        _borderIndexMap[MapBorder.SOUTH][pos.x] = pos;
+                        break;
+                    default:
+                        // Handle any non-border or undefined cases, if necessary
+                        break;
+                }
             }
             else
             {
@@ -327,7 +395,7 @@ public class CoordinateMap
     public void NullifyMapBorder(MapBorder mapBorder)
     {
         // Destroy that border >:#!! 
-        List<Vector2Int> positions = _borderPositionsMap[mapBorder];
+        List<Vector2Int> positions = _borderPositionsMap[mapBorder].ToList();
 
         SetCoordinatesToType(positions, Coordinate.TYPE.NULL);
     }
@@ -335,7 +403,7 @@ public class CoordinateMap
     public void CloseMapBorder(MapBorder mapBorder)
     {
         // Destroy that border >:#!! 
-        List<Vector2Int> positions = _borderPositionsMap[mapBorder];
+        List<Vector2Int> positions = _borderPositionsMap[mapBorder].ToList();
 
         SetCoordinatesToType(positions, Coordinate.TYPE.CLOSED);
     }
@@ -346,13 +414,27 @@ public class CoordinateMap
         if (coordinate == null) return;
         if (coordinate.type != Coordinate.TYPE.BORDER)
         {
-            Debug.Log("Cannot convert non border coordinate to exit");
+            Debug.Log($"Cannot convert non border coordinate {coordinate.Value} {coordinate.type} to exit");
             return;
         }
 
-        exitPositions.Add(coordinate.CoordinateValue);
+        // Get border
+        for (int i = 0; i < _borderPositionsMap.Keys.Count; i++)
+        {
+            MapBorder borderType = _borderPositionsMap.Keys.ToList()[i];
+            if (_borderPositionsMap.ContainsKey(borderType) 
+                && _borderPositionsMap[borderType].Contains(coordinate.Value))
+            {
+                // Once border found, update coordinate maps
+                if (!_borderExitMap.ContainsKey(borderType)) { _borderExitMap[borderType] = new(); }
 
-        SetCoordinateToType(coordinate.CoordinateValue, Coordinate.TYPE.EXIT);
+                _borderExitMap[borderType].Add(coordinate.Value);
+                exitPositions.Add(coordinate.Value);
+                break;
+            }
+        }
+
+        SetCoordinateToType(coordinate.Value, Coordinate.TYPE.EXIT);
     }
 
     public void GenerateRandomExits()
@@ -379,11 +461,53 @@ public class CoordinateMap
         for (int i = 0; i < numberOfExits; i++)
         {
             Vector2Int exitPosition = allBorderPositions[i];
-            Coordinate coordinate = _positionMap[exitPosition]; // Assuming _positionMap contains all coordinates
+            Coordinate coordinate = GetCoordinateAt(exitPosition);
             ConvertCoordinateToExit(coordinate);
         }
 
         Debug.Log($"{numberOfExits} exits have been created on the map borders.");
+    }
+
+    public void GenerateRandomExitOnBorder(MapBorder borderType)
+    {
+        List<Vector2Int> allBorderPositions = _borderPositionsMap[borderType].ToList();
+        Vector2Int randomCoordinate = allBorderPositions[Random.Range(0, allBorderPositions.Count)];
+        ConvertCoordinateToExit(GetCoordinateAt(randomCoordinate));
+    }
+
+    public void SetMatchingExit(MapBorder neighborBorder, Vector2Int neighborExitCoordinate)
+    {
+        // Determine the relative position of the exit based on the neighbor border
+        Vector2Int matchingCoordinate = Vector2Int.zero;
+        MapBorder matchingBorder;
+        switch (neighborBorder)
+        {
+            case MapBorder.NORTH:
+                // if this border is NORTH, then the matching neighbor's border is SOUTH
+                matchingBorder = MapBorder.SOUTH;
+                matchingCoordinate = new Vector2Int(neighborExitCoordinate.x, 0);
+                break;
+            case MapBorder.SOUTH:
+                // if this border is SOUTH, then the matching neighbor's border is NORTH
+                matchingBorder = MapBorder.NORTH;
+                matchingCoordinate = new Vector2Int(neighborExitCoordinate.x, this.maxCoordinateValue - 1);
+                break;
+            case MapBorder.EAST:
+                // if this border is EAST, then the matching neighbor's border is WEST
+                matchingBorder = MapBorder.WEST;
+                matchingCoordinate = new Vector2Int(0, neighborExitCoordinate.y);
+                break;
+            case MapBorder.WEST:
+                // if this border is EAST, then the matching neighbor's border is WEST
+                matchingBorder = MapBorder.EAST;
+                matchingCoordinate = new Vector2Int(this.maxCoordinateValue - 1, neighborExitCoordinate.y);
+                break;
+            default:
+                throw new ArgumentException("Invalid MapBorder value.", nameof(neighborBorder));
+        }
+
+        ConvertCoordinateToExit(GetCoordinateAt(matchingCoordinate));
+        //Debug.Log($"Created Exit {matchingCoordinate} to match {neighborExitCoordinate}");
     }
 
     // == [[ WORLD PATH ]] ================================================================================ >>>>

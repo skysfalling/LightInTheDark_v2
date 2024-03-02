@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class WorldRegion : MonoBehaviour
@@ -41,7 +42,7 @@ public class WorldRegion : MonoBehaviour
     {
         this.worldGeneration = worldGeneration;
         this.coordinate = regionCoordinate;
-        this.localCoordinatePosition = regionCoordinate.CoordinateValue;
+        this.localCoordinatePosition = regionCoordinate.Value;
 
         float worldWidthRadius = _worldWidth_inWorldSpace * 0.5f;
         float regionWidthRadius = _fullRegionWidth_inWorldSpace * 0.5f;
@@ -64,7 +65,66 @@ public class WorldRegion : MonoBehaviour
         this.coordinateChunkMap = new CoordinateMap(this);
         this.worldChunkMap = new WorldChunkMap(this, this.coordinateChunkMap);
 
+
         _initialized = true;
+    }
+
+    public void GenerateNecessaryExits()
+    {
+        WorldRegion currentRegion = this;
+        Coordinate currentRegionCoordinate = this.coordinate;
+
+        // iterate through all region neighbors
+        Dictionary<WorldDirection, Vector2Int> neighborDirectionMap = currentRegionCoordinate.NeighborDirectionMap;
+        List<WorldDirection> allNeighborDirections = neighborDirectionMap.Keys.ToList();
+        for (int j = 0; j < allNeighborDirections.Count; j++)
+        {
+            WorldDirection neighborDirection = allNeighborDirections[j];
+            Vector2Int neighborPosition = neighborDirectionMap[allNeighborDirections[j]];
+            MapBorder? getCurrentBorder = CoordinateMap.GetMapBorderInNaturalDirection(neighborDirection); // get region border
+            if (getCurrentBorder == null) continue;
+
+            // defined map border variable
+            MapBorder currentBorderWithNeighbor = (MapBorder)getCurrentBorder;
+
+            // close borders that dont share a neighbor
+            if (this.worldGeneration.coordinateRegionMap.GetCoordinateAt(neighborPosition) == null)
+            {
+                // Neighbor not found
+                currentRegion.coordinateChunkMap.CloseMapBorder(currentBorderWithNeighbor); // close borders on chunks
+
+                Debug.Log($"REGION {currentRegion.coordinate.Value} -> CLOSED {getCurrentBorder} Border");
+            }
+            // else if shares a neighbor...
+            else
+            {
+                Coordinate neighborRegionCoordinate = this.worldGeneration.coordinateRegionMap.GetCoordinateAt(neighborPosition);
+                WorldRegion neighborRegion = this.worldGeneration.regionMap[neighborRegionCoordinate.Value];
+
+                // if neighbor has exits on shared border
+                MapBorder matchingBorderOnNeighbor = (MapBorder)CoordinateMap.GetOppositeBorder(currentBorderWithNeighbor);
+                HashSet<Vector2Int> neighborBorderExits = neighborRegion.coordinateChunkMap.GetExitsOnBorder(matchingBorderOnNeighbor);
+
+                // if neighbor has exits, match exits
+                if (neighborBorderExits != null && neighborBorderExits.Count > 0)
+                {
+                    Debug.Log($"REGION {currentRegion.coordinate.Value} & REGION {neighborRegion.coordinate.Value} share exit");
+
+                    foreach (Vector2Int exit in neighborBorderExits)
+                    {
+                        //Debug.Log($"Region {currentRegionCoordinate.Value} Border {getCurrentBorder} ->");
+                        currentRegion.coordinateChunkMap.SetMatchingExit(matchingBorderOnNeighbor, exit);
+                    }
+                }
+                // if neighbor has no exits, randomly make some
+                else
+                {
+                    // randomly decide how many 
+                    currentRegion.coordinateChunkMap.GenerateRandomExitOnBorder(currentBorderWithNeighbor);
+                }
+            }
+
+        }
     }
 
     public void Destroy()

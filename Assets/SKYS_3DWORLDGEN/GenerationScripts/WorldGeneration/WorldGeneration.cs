@@ -85,6 +85,7 @@ public class WorldGeneration : MonoBehaviour
     public Vector3 centerPosition_inWorldSpace { get; private set; }
     public Vector3 originPosition_inWorldSpace { get; private set; }
     public List<WorldRegion> worldRegions = new List<WorldRegion>();
+    public Dictionary<Vector2Int, WorldRegion> regionMap { get; private set; } = new();
 
     public void Initialize()
     {
@@ -113,44 +114,24 @@ public class WorldGeneration : MonoBehaviour
             Coordinate regionCoordinate = coordinateRegionMap.allCoordinates[i];
 
             // Create a new object for each region
-            GameObject regionObject = new GameObject($"New Region ({regionCoordinate.CoordinateValue})");
+            GameObject regionObject = new GameObject($"New Region ({regionCoordinate.Value})");
             WorldRegion region = regionObject.AddComponent<WorldRegion>();
             region.Initialize(this, regionCoordinate);
 
             regionObject.transform.parent = this.transform;
 
             worldRegions.Add(region);
+            regionMap[regionCoordinate.Value] = region;
         }
 
-        // >> close borders that dont share a neighbor
+        // >> set necessary region borders & exits
         for (int i = 0; i < worldRegions.Count; i++)
         {
-            WorldRegion region = worldRegions[i];
-            Coordinate regionCoordinate = region.coordinate;
-
-            // iterate through all possible neighbors
-            Dictionary<WorldDirection, Vector2Int> neighborDirectionMap = regionCoordinate.NeighborDirectionMap;
-            List<WorldDirection> allNeighborDirections = neighborDirectionMap.Keys.ToList();
-            for (int j = 0; j < allNeighborDirections.Count; j++)
-            {
-                Vector2Int position = neighborDirectionMap[allNeighborDirections[j]];
-                WorldDirection direction = allNeighborDirections[j];
-                MapBorder? border = CoordinateMap.GetMapBorderInNaturalDirection(direction); // get map border
-                if (border == null) continue;
-
-                if (coordinateRegionMap.GetCoordinateAt(position) == null)
-                {
-                    // Neighbor not found
-                    region.coordinateChunkMap.CloseMapBorder((MapBorder)border); // close borders on chunks
-                }
-
-                Debug.Log($"Region {region.coordinate.CoordinateValue} valid neighbor in {allNeighborDirections[j]}");
-            }
+            worldRegions[i].GenerateNecessaryExits();
         }
 
         initialized = true;
     }
-
 
     public void Reset()
     {

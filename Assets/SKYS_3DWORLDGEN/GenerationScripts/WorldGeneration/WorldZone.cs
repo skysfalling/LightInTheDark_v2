@@ -57,7 +57,7 @@ public class WorldZone
         positions = new();
         for (int i = 0; i < coordinates.Count; i++)
         {
-            positions.Add(coordinates[i].CoordinateValue);
+            positions.Add(coordinates[i].Value);
         }
 
         // Leave uninitialized if positions are invalid

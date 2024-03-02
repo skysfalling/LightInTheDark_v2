@@ -61,7 +61,7 @@ public class WorldChunk
     {
         this.chunkMap = chunkMap;
         this.chunkCoordinate = coordinate;
-        this.localPosition = coordinate.CoordinateValue;
+        this.localPosition = coordinate.Value;
 
         // >> set perlin noise height
         Vector2Int perlinOffset = new Vector2Int((int)coordinate.WorldPosition.x, (int)coordinate.WorldPosition.z);
