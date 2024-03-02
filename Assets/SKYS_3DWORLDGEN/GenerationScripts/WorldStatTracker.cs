@@ -24,7 +24,7 @@ public class WorldStatTracker : MonoBehaviour
 
     public string GetWorldStats()
     {
-        if (_worldGeneration == null || !_worldGeneration.generation_finished) return "[ WORLD GENERATION ] is not available.";
+        if (_worldGeneration == null) return "[ WORLD GENERATION ] is not available.";
         if (_worldSpawnMap == null || !_worldSpawnMap.initialized) return "[ WORLD GENERATION ] : WorldSpawnMap not initialized.";
 
         string str_out = $"[ WORLD GENERATION ] : #{_currentGeneration}\n";

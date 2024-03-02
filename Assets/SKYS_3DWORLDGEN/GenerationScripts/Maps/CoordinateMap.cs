@@ -69,18 +69,49 @@ public class CoordinateMap
     Dictionary<Vector2Int, Coordinate> _positionMap = new();
     Dictionary<Coordinate.TYPE, HashSet<Vector2Int>> _typeMap = new();
     Dictionary<MapBorder, List<Vector2Int>> _borderPositionsMap = new(); // Enum , Sorted List of Border Coordinates
-    public WorldRegion WorldRegion { get; private set; }
-    public WorldChunk WorldChunk { get; private set; }
+    WorldGeneration _worldGeneration = null;
+    WorldRegion _worldRegion = null;
+    WorldChunk _worldChunk = null;
+
+    // >> public access lists
     public List<Vector2Int> allPositions { get { return _positions.ToList(); } }
     public List<Coordinate> allCoordinates { get { return _coordinates.ToList(); } }
-
-    public List<Vector2Int> exitPositions = new();
+    public List<Vector2Int> exitPositions = new List<Vector2Int>();
     public List<WorldPath> worldPaths = new List<WorldPath>();
     public List<WorldZone> worldZones = new List<WorldZone>();
 
+    public CoordinateMap(WorldGeneration worldGeneration)
+    {
+        _worldGeneration = worldGeneration;
+
+        // << CREATE WORLD COORDINATES >> =================================================================
+
+        int fullRegionWidth = WorldGeneration.WorldWidth_inRegions;
+        int coordMax = fullRegionWidth;
+
+        _coordinateMap = new Coordinate[coordMax][]; // initialize row
+        for (int x = 0; x < coordMax; x++)
+        {
+            _coordinateMap[x] = new Coordinate[coordMax]; // initialize column
+
+            for (int y = 0; y < coordMax; y++)
+            {
+                Vector2Int newPosition = new Vector2Int(x, y);
+                _positions.Add(newPosition);
+                _coordinateMap[x][y] = new Coordinate(this, newPosition, worldGeneration); // Create and store Region Coordinate
+                _coordinates.Add(_coordinateMap[x][y]);
+                _positionMap[newPosition] = _coordinateMap[x][y];
+
+                
+            }
+        }
+
+        _initialized = true;
+    }
+
     public CoordinateMap(WorldRegion region)
     {
-        WorldRegion = region;
+        _worldRegion = region;
 
         // << CREATE REGION COORDINATES >> =================================================================
 
@@ -109,7 +140,7 @@ public class CoordinateMap
 
     public CoordinateMap(WorldChunk chunk)
     {
-        WorldChunk = chunk;
+        _worldChunk = chunk;
 
         // << CREATE REGION COORDINATES >> =================================================================
 

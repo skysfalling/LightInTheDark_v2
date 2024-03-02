@@ -16,16 +16,35 @@ public class Coordinate
     public Vector3 worldPosition { get; private set; }
     public bool initialized { get; private set; }
 
-
     HashSet<Vector2Int> _neighborPositions = new();
     Dictionary<WorldDirection, Vector2Int> _neighborMap = new();
     Dictionary<Vector2Int, TYPE> _neighborTypeMap = new();
+
+    public Coordinate(CoordinateMap coordinateMapParent, Vector2Int coord, WorldGeneration worldGeneration)
+    {
+        this.coordinateMap = coordinateMapParent;
+        localPosition = coord;
+        worldSpace = WorldSpace.Region; // The Coordinate is in REGION space because it determines where the REGIONS spawn in the parent WORLD
+
+        // Calculate position
+        int regionWidth = WorldGeneration.GetFullRegionWidth_inWorldSpace();
+
+        // Calculate local position
+        Vector2 worldPosition = new Vector2(worldGeneration.originPosition_inWorldSpace.x, worldGeneration.originPosition_inWorldSpace.z);
+        worldPosition += new Vector2(coord.x, coord.y) * regionWidth;
+
+        this.worldPosition = new Vector3(worldPosition.x, 0, worldPosition.y);
+
+        SetNeighbors();
+
+        initialized = true;
+    }
 
     public Coordinate(CoordinateMap coordinateMapParent, Vector2Int coord, WorldRegion region)
     {
         this.coordinateMap = coordinateMapParent;
         localPosition = coord;
-        worldSpace = WorldSpace.Chunk; // The Coordinate is in chunk space because it determines where the chunks spawn in the parent region
+        worldSpace = WorldSpace.Chunk; // The Coordinate is in CHUNK space because it determines where the CHUNKS spawn in the parent REGION
 
         // Calculate position
         int chunkWidth = WorldGeneration.GetChunkWidth_inWorldSpace();
@@ -45,7 +64,7 @@ public class Coordinate
     {
         this.coordinateMap = coordinateMapParent;
         localPosition = coord;
-        worldSpace = WorldSpace.Cell; // The Coordinate is in chunk space because it determines where the chunks spawn in the parent region
+        worldSpace = WorldSpace.Cell; // The Coordinate is in CELL space because it determines where the CELLS spawn in the parent CHUNK
 
         // Calculate position
         int cellWidth = WorldGeneration.CellWidth_inWorldSpace;

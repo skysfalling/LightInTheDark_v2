@@ -28,9 +28,7 @@ public class WorldChunkMap
             Coordinate.TYPE type = (Coordinate.TYPE)coordinateMap.GetCoordinateTypeAt(position);
             switch(type)
             {
-                case Coordinate.TYPE.CLOSED:
-                case Coordinate.TYPE.BORDER:
-                    newChunk.SetGroundHeight(WorldGeneration.RegionMaxGroundHeight); break;
+
                 case Coordinate.TYPE.PATH:
                 case Coordinate.TYPE.ZONE:
                 case Coordinate.TYPE.EXIT:

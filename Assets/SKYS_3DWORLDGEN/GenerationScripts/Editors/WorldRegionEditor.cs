@@ -101,7 +101,7 @@ public class WorldRegionEditor : Editor
         EditorGUILayout.BeginVertical();
         EditorGUILayout.LabelField("Region", h1Style);
         EditorGUILayout.Space(10);
-        EditorGUILayout.LabelField("Region Coordinate:", region.regionCoordinate.ToString());
+        EditorGUILayout.LabelField("Region Coordinate:", region.localCoordinatePosition.ToString());
         EditorGUILayout.LabelField("Center Position:", region.centerPosition_inWorldSpace.ToString());
         EditorGUILayout.LabelField("Origin Coordinate Position:", region.originPosition_inWorldSpace.ToString());
         EditorGUILayout.LabelField("Region Initialized:", region.IsInitialized().ToString());

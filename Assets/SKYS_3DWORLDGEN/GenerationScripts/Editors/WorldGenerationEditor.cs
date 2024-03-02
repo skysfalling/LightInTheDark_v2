@@ -17,6 +17,10 @@ public class WorldGenerationEditor : Editor
         // Cache the SerializedObject
         serializedWorldGen = new SerializedObject(target);
         WorldGeneration.InitializeRandomSeed();
+
+        WorldGeneration worldGen = (WorldGeneration)target;
+        worldGen.Reset();
+
     }
 
     public override void OnInspectorGUI()
@@ -40,16 +44,18 @@ public class WorldGenerationEditor : Editor
 
         EditorGUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
-
         EditorGUILayout.BeginVertical();
 
-        //DarklightEditor.CreateIntegerControl("Cell Size", WorldGeneration.CellWidth_inWorldSpace, 1, 8, (value) => WorldGeneration.CellWidth_inWorldSpace = value);
-        //DarklightEditor.CreateIntegerControl("Chunk Width", WorldGeneration.ChunkWidth_inCells, 1, 10, (value) => WorldGeneration.ChunkWidth_inCells = value);
-        //DarklightEditor.CreateIntegerControl("Chunk Depth", WorldGeneration.ChunkDepth_inCells, 1, 10, (value) => WorldGeneration.ChunkDepth_inCells = value);
+        EditorGUILayout.LabelField("World Generation", DarklightEditor.TitleHeaderStyle);
+        EditorGUILayout.Space(20);
 
-        DarklightEditor.CreateIntegerControl("Playable Area", WorldGeneration.PlayRegionWidth_inChunks, 1, 10, (value) => WorldGeneration.PlayRegionWidth_inChunks = value);
-        DarklightEditor.CreateIntegerControl("Boundary Offset", WorldGeneration.PlayRegionBoundaryOffset, 1, 10, (value) => WorldGeneration.PlayRegionBoundaryOffset = value);
-        DarklightEditor.CreateIntegerControl("Max Ground Height", WorldGeneration.RegionMaxGroundHeight, 1, 10, (value) => WorldGeneration.RegionMaxGroundHeight = value);
+        DarklightEditor.CreateIntegerControl("Cell Size", WorldGeneration.CellWidth_inWorldSpace, 1, 8, (value) => WorldGeneration.CellWidth_inWorldSpace = value);
+        DarklightEditor.CreateIntegerControl("Chunk Width", WorldGeneration.ChunkWidth_inCells, 1, 10, (value) => WorldGeneration.ChunkWidth_inCells = value);
+        DarklightEditor.CreateIntegerControl("Chunk Depth", WorldGeneration.ChunkDepth_inCells, 1, 10, (value) => WorldGeneration.ChunkDepth_inCells = value);
+
+        DarklightEditor.CreateIntegerControl("Playable Area In Chunks", WorldGeneration.PlayRegionWidth_inChunks, 1, 10, (value) => WorldGeneration.PlayRegionWidth_inChunks = value);
+        DarklightEditor.CreateIntegerControl("Boundary Offset", WorldGeneration.PlayRegionBoundaryOffset, 0, 10, (value) => WorldGeneration.PlayRegionBoundaryOffset = value);
+        DarklightEditor.CreateIntegerControl("Max Ground Height", WorldGeneration.RegionMaxGroundHeight, 5, 25, (value) => WorldGeneration.RegionMaxGroundHeight = value);
 
         EditorGUILayout.EndVertical();
 
@@ -62,9 +68,9 @@ public class WorldGenerationEditor : Editor
 
         if (worldGen.worldRegions.Count == 0)
         {
-            if (GUILayout.Button("Create Regions"))
+            if (GUILayout.Button("Initialize"))
             {
-                worldGen.CreateRegions();
+                worldGen.Initialize();
             }
         }
         else
@@ -74,9 +80,9 @@ public class WorldGenerationEditor : Editor
                 worldGen.StartGeneration();
             }
 
-            if (GUILayout.Button("Destroy All Regions"))
+            if (GUILayout.Button("Reset"))
             {
-                worldGen.DestroyRegions();
+                worldGen.Reset();
             }
         }
 
@@ -107,22 +113,57 @@ public class WorldGenerationEditor : Editor
             fontSize = 12, // Example font size
         };
 
-        DarklightGizmos.DrawWireSquare_withLabel("World Generation", transform.position, WorldGeneration.GetWorldWidth_inWorldSpace(), Color.black, labelStyle);
-        //DarklightEditor.DrawWireRectangle_withWidthLabel("World Chunk", transform.position, WorldGeneration.GetChunkWidth_inWorldSpace());
-        //DarklightEditor.DrawWireRectangle_withWidthLabel("World Cell", transform.position, WorldGeneration.CellWidth_inWorldSpace);
+        DarklightGizmos.DrawWireSquare_withLabel("World Generation Size", worldGen.centerPosition_inWorldSpace, WorldGeneration.GetWorldWidth_inWorldSpace(), Color.black, labelStyle);
+        
+        DarklightGizmos.DrawWireSquare_withLabel("Origin Region", worldGen.originPosition_inWorldSpace, WorldGeneration.GetChunkWidth_inWorldSpace(), Color.red, labelStyle);
+
+        DarklightGizmos.DrawWireSquare_withLabel("World Chunk Size", worldGen.centerPosition_inWorldSpace, WorldGeneration.GetChunkWidth_inWorldSpace(), Color.black, labelStyle);
+        DarklightGizmos.DrawWireSquare_withLabel("World Cell Size", worldGen.centerPosition_inWorldSpace, WorldGeneration.CellWidth_inWorldSpace, Color.black, labelStyle);
 
 
-        if (worldGen.worldRegions.Count > 0)
+        if (worldGen.initialized && worldGen.worldRegions.Count > 0)
         {
             foreach (WorldRegion region in worldGen.worldRegions)
             {
+
+                List<Coordinate> regionNeighbors = region.coordinate.GetAllValidNeighbors();
+
                 if (region != null && region.IsInitialized())
                 {
-                    DarklightGizmos.DrawWireSquare_withLabel($"World Region {region.regionCoordinate}", region.centerPosition_inWorldSpace, WorldGeneration.GetFullRegionWidth_inWorldSpace(), Color.blue, labelStyle);
+                    DarklightGizmos.DrawWireSquare_withLabel($"World Region {region.localCoordinatePosition}" +
+                        $"\n neighbors : {regionNeighbors.Count}", region.centerPosition_inWorldSpace, WorldGeneration.GetFullRegionWidth_inWorldSpace(), Color.blue, labelStyle);
                 }
+
+                DrawCoordinateNeighbors(region.coordinate);
             }
         }
     }
 
+    void DrawCoordinateNeighbors(Coordinate coordinate)
+    {
+        if (coordinate.initialized)
+        {
+            List<Coordinate> natural_neighbors = coordinate.GetValidNaturalNeighbors();
+
+            foreach (Coordinate neighbor in natural_neighbors)
+            {
+                WorldDirection neighborDirection = (WorldDirection)coordinate.GetWorldDirectionOfNeighbor(neighbor);
+                Vector2Int directionVector = CoordinateMap.GetDirectionVector(neighborDirection);
+                Vector3 direction = new Vector3(directionVector.x, 0, directionVector.y) * WorldGeneration.GetChunkWidth_inWorldSpace() * 0.25f;
+
+                DarklightGizmos.DrawArrow(coordinate.worldPosition, direction, Color.red);
+            }
+
+            List<Coordinate> diagonal_neighbors = coordinate.GetValidDiagonalNeighbors();
+            foreach (Coordinate neighbor in diagonal_neighbors)
+            {
+                WorldDirection neighborDirection = (WorldDirection)coordinate.GetWorldDirectionOfNeighbor(neighbor);
+                Vector2Int directionVector = CoordinateMap.GetDirectionVector(neighborDirection);
+                Vector3 direction = new Vector3(directionVector.x, 0, directionVector.y) * WorldGeneration.GetChunkWidth_inWorldSpace() * 0.25f;
+
+                DarklightGizmos.DrawArrow(coordinate.worldPosition, direction, Color.yellow);
+            }
+        }
+    }
 
 }

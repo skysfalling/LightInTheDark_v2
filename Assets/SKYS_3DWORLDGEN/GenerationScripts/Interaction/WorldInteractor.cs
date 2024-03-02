@@ -23,12 +23,4 @@ public class WorldInteractor : MonoBehaviour
     [Header("Select Entity")]
     public Entity selectedEntity;
 
-    public void Start()
-    {
-        _worldGeneration = WorldGeneration.Instance;
-        //_worldCellMap = WorldCellMap.Instance;
-        _worldSpawnMap = WorldSpawnMap.Instance;
-        _worldEnvironment = WorldEnvironment.Instance;
-    }
-
 }

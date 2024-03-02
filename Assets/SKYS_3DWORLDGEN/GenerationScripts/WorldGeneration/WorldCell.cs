@@ -32,7 +32,6 @@ public class WorldCell
 
     public WorldCell(WorldChunk chunkParent, MeshQuad meshQuad)
     {
-        this._generation = WorldGeneration.Instance;
         this.chunkParent = chunkParent;
         this._materialLibrary = WorldMaterialLibrary.Instance;
         this.meshQuad = meshQuad;

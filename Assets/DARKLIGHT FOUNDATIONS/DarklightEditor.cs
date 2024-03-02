@@ -7,9 +7,44 @@ using UnityEditor;
 
 public static class DarklightEditor
 {
-    public static Vector3 MultiplyVec3(Vector3 vec3_a, Vector3 vec3_b)
+    public static GUIStyle TitleHeaderStyle
     {
-        return new Vector3(vec3_a.x * vec3_b.x, vec3_a.y * vec3_b.y, vec3_a.z * vec3_b.z);
+        get
+        {
+            return new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 24,
+                fontStyle = FontStyle.Bold,
+                fixedHeight = 40
+            };
+        }
+    }
+
+    public static GUIStyle Header1Style
+    {
+        get
+        {
+            return new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 20,
+                fontStyle = FontStyle.Bold,
+                fixedHeight = 40
+            };
+        }
+    }
+
+    public static GUIStyle Header2Style
+    {
+        get
+        {
+            return new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 16,
+                fontStyle = FontStyle.Bold,
+                fixedHeight = 40
+            };
+        }
     }
 
     // The helper function to draw a button and invoke a callback when pressed
@@ -25,12 +60,12 @@ public static class DarklightEditor
 
     public static void CreateIntegerControl(string title, int currentValue, int minValue, int maxValue, System.Action<int> setValue)
     {
-        GUIStyle controlStyle = new GUIStyle();
-        controlStyle.normal.background = MakeTex(1, 1, new Color(1.0f, 1.0f, 1.0f, 0.1f));
-        controlStyle.alignment = TextAnchor.UpperCenter;
-        controlStyle.margin = new RectOffset(20, 20, 0, 0);
+        GUIStyle controlBackgroundStyle = new GUIStyle();
+        controlBackgroundStyle.normal.background = MakeTex(1, 1, new Color(1.0f, 1.0f, 1.0f, 0.1f));
+        controlBackgroundStyle.alignment = TextAnchor.UpperCenter;
+        controlBackgroundStyle.margin = new RectOffset(20, 20, 0, 0);
 
-        EditorGUILayout.BeginVertical(controlStyle);
+        EditorGUILayout.BeginVertical(controlBackgroundStyle);
 
         EditorGUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();

@@ -2,10 +2,7 @@ using System;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.XR;
-using Unity.VisualScripting;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -27,18 +24,7 @@ public enum WorldSpace { World, Region, Chunk, Cell }
 [RequireComponent(typeof(WorldMaterialLibrary))]
 public class WorldGeneration : MonoBehaviour
 {
-    // CREATE SINGLETON ==================================== ///
-    public static WorldGeneration Instance;
-    public void Awake()
-    {
-        if (Instance != null) { Destroy(Instance); }
-        Instance = this;
-
-        Thread mainThread = Thread.CurrentThread;
-        mainThread.Name = "Main Thread";
-        Debug.Log($"{mainThread.Name} say hi! ");
-    }
-
+    #region [[ STATIC VARIABLES ]] ======================================================================
     // STATIC GENERATION VALUES ========================================================= ///
     public static string GameSeed = "Default Game Seed";
     public static int CurrentSeed { get { return GameSeed.GetHashCode(); }}
@@ -55,7 +41,6 @@ public class WorldGeneration : MonoBehaviour
     }
 
     // STATIC GENERATION DIMENSIONS ==================================== ///
-
     // >>>> WorldCell { in Unity Worldspace Units }
     public static int CellWidth_inWorldSpace = 4; // Size of each WorldCell 
 
@@ -81,46 +66,69 @@ public class WorldGeneration : MonoBehaviour
     public static int WorldWidth_inRegions = 3;
     public static int GetWorldWidth_inCells() { return WorldWidth_inRegions * GetFullRegionWidth_inChunks() * ChunkWidth_inCells; }
     public static int GetWorldWidth_inWorldSpace() { return GetWorldWidth_inCells() * CellWidth_inWorldSpace; }
-
+    #endregion ========================================================
 
     string _prefix = "[ WORLD GENERATION ] ";
-    [HideInInspector] public bool generation_finished = false;
     GameObject _worldGenerationObject;
     GameObject _worldBorderObject;
     Coroutine _worldGenerationRoutine;
+    CoordinateMap _regionCoordinateMap;
 
-    public string gameSeed = GameSeed;
-
-
+    public bool initialized { get; private set; }
+    public string gameSeed = GameSeed; // inspector value ( updated by custom editor )
+    public Vector2Int worldCoordinate { get; private set; }
+    public Vector3 centerPosition_inWorldSpace { get; private set; }
+    public Vector3 originPosition_inWorldSpace { get; private set; }
     public List<WorldRegion> worldRegions = new List<WorldRegion>();
-    public void CreateRegions()
+
+    public void Initialize()
     {
+        // >>
+        this.worldCoordinate = Vector2Int.zero;
+
+        float worldWidthRadius = GetWorldWidth_inWorldSpace() * 0.5f;
+        float regionWidthRadius = GetFullRegionWidth_inWorldSpace() * 0.5f;
+
+        // >> Center Position
+        this.centerPosition_inWorldSpace = transform.position;
+
+        // >> Origin Coordinate Position { Bottom Left }
+        this.originPosition_inWorldSpace = new Vector3(this.worldCoordinate.x, 0, this.worldCoordinate.y) * WorldGeneration.GetWorldWidth_inWorldSpace();
+        originPosition_inWorldSpace -= worldWidthRadius * new Vector3(1, 0, 1);
+        originPosition_inWorldSpace += regionWidthRadius * new Vector3(1, 0, 1);
+
+        // << CREATE REGIONS >>
+        this._regionCoordinateMap = new CoordinateMap(this);
         worldRegions = new();
-        WorldGeneration.InitializeRandomSeed();
+        InitializeRandomSeed();
 
-        for (int x = 0; x < WorldWidth_inRegions; x++)
+        for (int i = 0; i < _regionCoordinateMap.allCoordinates.Count; i++)
         {
-            for (int y = 0; y < WorldWidth_inRegions; y++)
-            {
-                GameObject regionObject = new GameObject($"New Region ({x} , {y})");
-                WorldRegion region = regionObject.AddComponent<WorldRegion>();
-                Vector2Int regionCoordinate = new Vector2Int(x, y);
-                region.Initialize(this, regionCoordinate);
+            Coordinate regionCoordinate = _regionCoordinateMap.allCoordinates[i];
 
-                regionObject.transform.parent = this.transform;
+            // Create a new object for each region
+            GameObject regionObject = new GameObject($"New Region ({regionCoordinate.localPosition})");
+            WorldRegion region = regionObject.AddComponent<WorldRegion>();
+            region.Initialize(this, regionCoordinate);
 
-                worldRegions.Add(region);
-            }
+            regionObject.transform.parent = this.transform;
+
+            worldRegions.Add(region);
         }
+
+        initialized = true;
     }
 
-    public void DestroyRegions()
+    public void Reset()
     {
         for (int i = 0; i < worldRegions.Count; i++)
         {
             worldRegions[i].Destroy();
         }
         worldRegions.Clear();
+        this._regionCoordinateMap = null;
+
+        initialized = false;
     }
 
     public Material GetChunkMaterial()
@@ -131,24 +139,12 @@ public class WorldGeneration : MonoBehaviour
     #region == INITIALIZE ======
     public void StartGeneration()
     {
-        // Reset Generation
-        if (generation_finished)
-        {
-            Reset();
-            if (_worldGenerationRoutine != null) { StopCoroutine(_worldGenerationRoutine); }
-        }
-
         foreach(WorldRegion region in worldRegions)
         {
             region.CreateChunkMeshObjects();
         }
     }
 
-    public void Reset()
-    {
-        Destroy(_worldGenerationObject);
-        Destroy(_worldBorderObject);
-    }
     #endregion
 
     /*

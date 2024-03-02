@@ -17,7 +17,6 @@ public class WorldSpawnDebug : MonoBehaviour
         _worldSpawnMap = FindObjectOfType<WorldSpawnMap>();
 
         if (_worldGeneration == null) return;
-        if (_worldGeneration.generation_finished == false) return;
         if (_worldSpawnMap.initialized)
         {
             gizmoSelectedTypeChunks = _worldSpawnMap.GetAllChunksOfType(gizmoType);

@@ -28,30 +28,32 @@ public class WorldRegion : MonoBehaviour
     // PUBLIC VARIABLES
     public WorldGeneration worldGeneration;
     public CoordinateMap coordinateMap;
+    public Coordinate coordinate;
     public WorldChunkMap worldChunkMap;
 
-    public Vector2Int regionCoordinate;
+    public Vector2Int localCoordinatePosition;
     public Vector3 centerPosition_inWorldSpace;
     public Vector3 originPosition_inWorldSpace;
 
     public Material defaultMaterial;
 
-    public void Initialize(WorldGeneration worldGeneration, Vector2Int regionCoordinate)
+    public void Initialize(WorldGeneration worldGeneration, Coordinate regionCoordinate)
     {
         this.worldGeneration = worldGeneration;
-        this.regionCoordinate = regionCoordinate;
+        this.coordinate = regionCoordinate;
+        this.localCoordinatePosition = regionCoordinate.localPosition;
 
         float worldWidthRadius = _worldWidth_inWorldSpace * 0.5f;
         float regionWidthRadius = _fullRegionWidth_inWorldSpace * 0.5f;
         float chunkWidthRadius = WorldGeneration.GetChunkWidth_inWorldSpace() * 0.5f;
 
         // >> Center Position
-        centerPosition_inWorldSpace = new Vector3(this.regionCoordinate.x, 0, this.regionCoordinate.y) * _fullRegionWidth_inWorldSpace;
+        centerPosition_inWorldSpace = new Vector3(this.localCoordinatePosition.x, 0, this.localCoordinatePosition.y) * _fullRegionWidth_inWorldSpace;
         centerPosition_inWorldSpace -= worldWidthRadius * new Vector3(1, 0, 1);
         centerPosition_inWorldSpace += regionWidthRadius * new Vector3(1, 0, 1);
 
         // >> Origin Coordinate Position { Bottom Left }
-        originPosition_inWorldSpace = new Vector3(this.regionCoordinate.x, 0, this.regionCoordinate.y) * _fullRegionWidth_inWorldSpace;
+        originPosition_inWorldSpace = new Vector3(this.localCoordinatePosition.x, 0, this.localCoordinatePosition.y) * _fullRegionWidth_inWorldSpace;
         originPosition_inWorldSpace -= worldWidthRadius * new Vector3(1, 0, 1);
         originPosition_inWorldSpace += chunkWidthRadius * new Vector3(1, 0, 1);
 
@@ -60,11 +62,8 @@ public class WorldRegion : MonoBehaviour
 
         // Create the coordinate map for the region
         this.coordinateMap = new CoordinateMap(this);
-        this.coordinateMap.GenerateRandomExits();
-        this.coordinateMap.GeneratePathsBetweenExits();
-        this.coordinateMap.GenerateRandomZones(1, 3);
-
         this.worldChunkMap = new WorldChunkMap(this, this.coordinateMap);
+
         _initialized = true;
     }
 

@@ -75,9 +75,6 @@ public class WorldChunk
         originCoordinatePosition = groundPosition;
         originCoordinatePosition -= WorldGeneration.GetChunkWidth_inWorldSpace() * new Vector3(0.5f, 0, 0.5f);
 
-
-
-
         // Create coordinate map
         this.cellCoordinateMap = new CoordinateMap(this);
     }
