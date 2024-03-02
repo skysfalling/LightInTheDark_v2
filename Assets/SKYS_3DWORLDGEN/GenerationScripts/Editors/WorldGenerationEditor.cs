@@ -3,12 +3,14 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
+using System.Linq;
 
 [CustomEditor(typeof(WorldGeneration))]
 public class WorldGenerationEditor : Editor
 {
     private SerializedObject serializedWorldGen;
-    private bool toggleBoundaries;
+    static Coordinate.TYPE showCoordinateType = Coordinate.TYPE.EXIT;
+
 
     GUIStyle centeredStyle;
 
@@ -93,6 +95,14 @@ public class WorldGenerationEditor : Editor
             {
                 worldGen.Reset();
             }
+
+            // >> select debug view
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Debug View  =>");
+            showCoordinateType = (Coordinate.TYPE)EditorGUILayout.EnumPopup(showCoordinateType);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
         }
 
 
@@ -144,6 +154,16 @@ public class WorldGenerationEditor : Editor
                 {
                     DarklightGizmos.DrawWireSquare_withLabel($"World Region {region.localCoordinatePosition}" +
                         $"\n neighbors : {regionNeighbors.Count}", region.centerPosition_inWorldSpace, WorldGeneration.GetFullRegionWidth_inWorldSpace(), Color.blue, labelStyle);
+
+                    List<Vector2Int> coordinatesOfType = region.coordinateChunkMap.GetAllPositionsOfType(showCoordinateType).ToList();
+                    for (int i = 0; i < coordinatesOfType.Count; i++)
+                    {
+                        Coordinate coordinate = region.coordinateChunkMap.GetCoordinateAt(coordinatesOfType[i]);
+
+                        DarklightGizmos.DrawWireSquare_withLabel($"{showCoordinateType}", coordinate.WorldPosition, 
+                            WorldGeneration.GetChunkWidth_inWorldSpace(), coordinate.debugColor, labelStyle);
+                    }
+                
                 }
 
                 DrawCoordinateNeighbors(region.coordinate);
