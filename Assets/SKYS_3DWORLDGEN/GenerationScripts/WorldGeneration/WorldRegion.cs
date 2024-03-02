@@ -14,7 +14,7 @@ public class WorldRegion : MonoBehaviour
 
     // >>>> Play Region
     private int _playRegionWidth_inChunks = WorldGeneration.PlayRegionWidth_inChunks;
-    private int _playRegionBoundaryOffset = WorldGeneration.PlayRegionBoundaryOffset;
+    private int _playRegionBoundaryOffset = WorldGeneration.BoundaryWallCount;
     private int _playRegionWidth_inCells = WorldGeneration.GetPlayRegionWidth_inCells();
 
     // >>>> Full Region
@@ -23,7 +23,7 @@ public class WorldRegion : MonoBehaviour
     private int _fullRegionWidth_inWorldSpace = WorldGeneration.GetFullRegionWidth_inWorldSpace();
 
     // >>>> Region Height
-    private int _regionMaxGroundHeight = WorldGeneration.RegionMaxGroundHeight;
+    private int _regionMaxGroundHeight = WorldGeneration.MaxChunkHeight;
 
     // PUBLIC VARIABLES
     public WorldGeneration worldGeneration;

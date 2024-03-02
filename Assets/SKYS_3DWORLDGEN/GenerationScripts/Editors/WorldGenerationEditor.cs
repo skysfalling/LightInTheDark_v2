@@ -48,14 +48,23 @@ public class WorldGenerationEditor : Editor
 
         EditorGUILayout.LabelField("World Generation", DarklightEditor.TitleHeaderStyle);
         EditorGUILayout.Space(20);
+        DarklightEditor.CreateIntegerControl("World Width In Regions", WorldGeneration.WorldWidth_inRegions, 1, 16, (value) => WorldGeneration.WorldWidth_inRegions = value);
 
-        DarklightEditor.CreateIntegerControl("Cell Size", WorldGeneration.CellWidth_inWorldSpace, 1, 8, (value) => WorldGeneration.CellWidth_inWorldSpace = value);
-        DarklightEditor.CreateIntegerControl("Chunk Width", WorldGeneration.ChunkWidth_inCells, 1, 10, (value) => WorldGeneration.ChunkWidth_inCells = value);
-        DarklightEditor.CreateIntegerControl("Chunk Depth", WorldGeneration.ChunkDepth_inCells, 1, 10, (value) => WorldGeneration.ChunkDepth_inCells = value);
 
-        DarklightEditor.CreateIntegerControl("Playable Area In Chunks", WorldGeneration.PlayRegionWidth_inChunks, 1, 10, (value) => WorldGeneration.PlayRegionWidth_inChunks = value);
-        DarklightEditor.CreateIntegerControl("Boundary Offset", WorldGeneration.PlayRegionBoundaryOffset, 0, 10, (value) => WorldGeneration.PlayRegionBoundaryOffset = value);
-        DarklightEditor.CreateIntegerControl("Max Ground Height", WorldGeneration.RegionMaxGroundHeight, 5, 25, (value) => WorldGeneration.RegionMaxGroundHeight = value);
+        EditorGUILayout.LabelField("World Region", DarklightEditor.Header2Style);
+        EditorGUILayout.Space(20);
+        DarklightEditor.CreateIntegerControl("Playable Area In Chunks", WorldGeneration.PlayRegionWidth_inChunks, 1, 16, (value) => WorldGeneration.PlayRegionWidth_inChunks = value);
+        DarklightEditor.CreateIntegerControl("Boundary Wall Count", WorldGeneration.BoundaryWallCount, 0, 3, (value) => WorldGeneration.BoundaryWallCount = value);
+
+        EditorGUILayout.LabelField("World Chunk", DarklightEditor.Header2Style);
+        EditorGUILayout.Space(20);
+        DarklightEditor.CreateIntegerControl("Chunk Width in Cells", WorldGeneration.ChunkWidth_inCells, 1, 16, (value) => WorldGeneration.ChunkWidth_inCells = value);
+        DarklightEditor.CreateIntegerControl("Chunk Depth in Cells", WorldGeneration.ChunkDepth_inCells, 1, 16, (value) => WorldGeneration.ChunkDepth_inCells = value);
+        DarklightEditor.CreateIntegerControl("Max Ground Height", WorldGeneration.MaxChunkHeight, 4, 32, (value) => WorldGeneration.MaxChunkHeight = value);
+
+        EditorGUILayout.LabelField("World Cell", DarklightEditor.Header2Style);
+        EditorGUILayout.Space(20);
+        DarklightEditor.CreateIntegerControl("Cell Size", WorldGeneration.CellWidth_inWorldSpace, 1, 16, (value) => WorldGeneration.CellWidth_inWorldSpace = value);
 
         EditorGUILayout.EndVertical();
 
@@ -115,7 +124,10 @@ public class WorldGenerationEditor : Editor
 
         DarklightGizmos.DrawWireSquare_withLabel("World Generation Size", worldGen.centerPosition_inWorldSpace, WorldGeneration.GetWorldWidth_inWorldSpace(), Color.black, labelStyle);
         
-        DarklightGizmos.DrawWireSquare_withLabel("Origin Region", worldGen.originPosition_inWorldSpace, WorldGeneration.GetChunkWidth_inWorldSpace(), Color.red, labelStyle);
+        if (worldGen.initialized)
+        {
+            DarklightGizmos.DrawWireSquare_withLabel("Origin Region", worldGen.originPosition_inWorldSpace, WorldGeneration.GetChunkWidth_inWorldSpace(), Color.red, labelStyle);
+        }
 
         DarklightGizmos.DrawWireSquare_withLabel("World Chunk Size", worldGen.centerPosition_inWorldSpace, WorldGeneration.GetChunkWidth_inWorldSpace(), Color.black, labelStyle);
         DarklightGizmos.DrawWireSquare_withLabel("World Cell Size", worldGen.centerPosition_inWorldSpace, WorldGeneration.CellWidth_inWorldSpace, Color.black, labelStyle);
@@ -135,6 +147,32 @@ public class WorldGenerationEditor : Editor
                 }
 
                 DrawCoordinateNeighbors(region.coordinate);
+            }
+        }
+
+        DrawCoordinates();
+    }
+
+    void DrawCoordinates()
+    {
+        WorldGeneration worldGen = (WorldGeneration)target;
+        if (worldGen.coordinateRegionMap == null) { return; }
+
+        GUIStyle coordLabelStyle = new GUIStyle()
+        {
+            fontStyle = FontStyle.Bold, // Example style
+            fontSize = 12, // Example font size
+            normal = new GUIStyleState { textColor = Color.blue } // Set the text color
+        };
+        // Draw Coordinates
+        CoordinateMap coordinateMap = worldGen.coordinateRegionMap;
+        if (coordinateMap.IsInitialized() && coordinateMap.allPositions.Count > 0)
+        {
+            foreach (Vector2Int position in coordinateMap.allPositions)
+            {
+                Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
+                DarklightGizmos.DrawWireSquare(coordinate.worldPosition, WorldGeneration.CellWidth_inWorldSpace, coordinate.debugColor);
+                DarklightGizmos.DrawLabel($"{coordinate.type}", coordinate.worldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
             }
         }
     }

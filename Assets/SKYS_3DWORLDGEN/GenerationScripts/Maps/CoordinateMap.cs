@@ -101,10 +101,10 @@ public class CoordinateMap
                 _coordinateMap[x][y] = new Coordinate(this, newPosition, worldGeneration); // Create and store Region Coordinate
                 _coordinates.Add(_coordinateMap[x][y]);
                 _positionMap[newPosition] = _coordinateMap[x][y];
-
-                
             }
         }
+
+        SetAllCoordinatesToDefault(coordMax, WorldGeneration.BoundaryWallCount);
 
         _initialized = true;
     }
@@ -133,7 +133,7 @@ public class CoordinateMap
             }
         }
 
-        SetAllCoordinatesToDefault(coordMax, WorldGeneration.PlayRegionBoundaryOffset);
+        SetAllCoordinatesToDefault(coordMax, WorldGeneration.BoundaryWallCount);
 
         _initialized = true;
     }
@@ -162,7 +162,7 @@ public class CoordinateMap
             }
         }
 
-        SetAllCoordinatesToDefault(coordMax, WorldGeneration.PlayRegionBoundaryOffset);
+        SetAllCoordinatesToDefault(coordMax, WorldGeneration.BoundaryWallCount);
 
         _initialized = true;
     }

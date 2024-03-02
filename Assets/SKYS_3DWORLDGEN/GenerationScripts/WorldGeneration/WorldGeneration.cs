@@ -54,16 +54,16 @@ public class WorldGeneration : MonoBehaviour
 
     // >>>> WorldRegion { in WorldChunk Units }
     public static int PlayRegionWidth_inChunks = 5; // in World Chunks
-    public static int PlayRegionBoundaryOffset = 0; // Boundary offset value 
-    public static int RegionMaxGroundHeight = 10; // Maximum chunk height
+    public static int BoundaryWallCount = 0; // Boundary offset value 
+    public static int MaxChunkHeight = 10; // Maximum chunk height
     public static int GetPlayRegionWidth_inCells() { return PlayRegionWidth_inChunks * ChunkWidth_inCells; }
-    public static int GetFullRegionWidth_inChunks() { return PlayRegionWidth_inChunks + (PlayRegionBoundaryOffset * 2); } // Include BoundaryOffset on both sides
+    public static int GetFullRegionWidth_inChunks() { return PlayRegionWidth_inChunks + (BoundaryWallCount * 2); } // Include BoundaryOffset on both sides
     public static int GetFullRegionWidth_inCells() { return GetFullRegionWidth_inChunks() * ChunkWidth_inCells; }
     public static int GetFullRegionWidth_inWorldSpace() { return GetFullRegionWidth_inChunks() * ChunkWidth_inCells * CellWidth_inWorldSpace; }
 
 
     // >>>> WorldGeneration { in WorldRegion Units }
-    public static int WorldWidth_inRegions = 3;
+    public static int WorldWidth_inRegions = 3; // in World Regions
     public static int GetWorldWidth_inCells() { return WorldWidth_inRegions * GetFullRegionWidth_inChunks() * ChunkWidth_inCells; }
     public static int GetWorldWidth_inWorldSpace() { return GetWorldWidth_inCells() * CellWidth_inWorldSpace; }
     #endregion ========================================================
@@ -72,11 +72,14 @@ public class WorldGeneration : MonoBehaviour
     GameObject _worldGenerationObject;
     GameObject _worldBorderObject;
     Coroutine _worldGenerationRoutine;
-    CoordinateMap _regionCoordinateMap;
 
     public bool initialized { get; private set; }
     public string gameSeed = GameSeed; // inspector value ( updated by custom editor )
-    public Vector2Int worldCoordinate { get; private set; }
+
+    public CoordinateMap coordinateRegionMap;
+
+
+    public Vector2Int worldPosition { get; private set; }
     public Vector3 centerPosition_inWorldSpace { get; private set; }
     public Vector3 originPosition_inWorldSpace { get; private set; }
     public List<WorldRegion> worldRegions = new List<WorldRegion>();
@@ -84,7 +87,7 @@ public class WorldGeneration : MonoBehaviour
     public void Initialize()
     {
         // >>
-        this.worldCoordinate = Vector2Int.zero;
+        this.worldPosition = Vector2Int.zero;
 
         float worldWidthRadius = GetWorldWidth_inWorldSpace() * 0.5f;
         float regionWidthRadius = GetFullRegionWidth_inWorldSpace() * 0.5f;
@@ -93,18 +96,18 @@ public class WorldGeneration : MonoBehaviour
         this.centerPosition_inWorldSpace = transform.position;
 
         // >> Origin Coordinate Position { Bottom Left }
-        this.originPosition_inWorldSpace = new Vector3(this.worldCoordinate.x, 0, this.worldCoordinate.y) * WorldGeneration.GetWorldWidth_inWorldSpace();
+        this.originPosition_inWorldSpace = new Vector3(this.worldPosition.x, 0, this.worldPosition.y) * WorldGeneration.GetWorldWidth_inWorldSpace();
         originPosition_inWorldSpace -= worldWidthRadius * new Vector3(1, 0, 1);
         originPosition_inWorldSpace += regionWidthRadius * new Vector3(1, 0, 1);
 
         // << CREATE REGIONS >>
-        this._regionCoordinateMap = new CoordinateMap(this);
+        this.coordinateRegionMap = new CoordinateMap(this);
         worldRegions = new();
         InitializeRandomSeed();
 
-        for (int i = 0; i < _regionCoordinateMap.allCoordinates.Count; i++)
+        for (int i = 0; i < coordinateRegionMap.allCoordinates.Count; i++)
         {
-            Coordinate regionCoordinate = _regionCoordinateMap.allCoordinates[i];
+            Coordinate regionCoordinate = coordinateRegionMap.allCoordinates[i];
 
             // Create a new object for each region
             GameObject regionObject = new GameObject($"New Region ({regionCoordinate.localPosition})");
@@ -126,7 +129,7 @@ public class WorldGeneration : MonoBehaviour
             worldRegions[i].Destroy();
         }
         worldRegions.Clear();
-        this._regionCoordinateMap = null;
+        this.coordinateRegionMap = null;
 
         initialized = false;
     }

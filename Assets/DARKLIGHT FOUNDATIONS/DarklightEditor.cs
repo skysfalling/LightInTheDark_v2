@@ -21,6 +21,18 @@ public static class DarklightEditor
         }
     }
 
+    public static GUIStyle CenteredStyle
+    {
+        get
+        {
+            return new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 12,
+                fontStyle = FontStyle.Bold            };
+        }
+    }
+
     public static GUIStyle Header1Style
     {
         get
@@ -62,11 +74,10 @@ public static class DarklightEditor
     {
         GUIStyle controlBackgroundStyle = new GUIStyle();
         controlBackgroundStyle.normal.background = MakeTex(1, 1, new Color(1.0f, 1.0f, 1.0f, 0.1f));
-        controlBackgroundStyle.alignment = TextAnchor.UpperCenter;
+        controlBackgroundStyle.alignment = TextAnchor.MiddleCenter;
         controlBackgroundStyle.margin = new RectOffset(20, 20, 0, 0);
 
         EditorGUILayout.BeginVertical(controlBackgroundStyle);
-
         EditorGUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
         EditorGUILayout.LabelField(title);
@@ -78,7 +89,7 @@ public static class DarklightEditor
         {
             setValue(Mathf.Max(minValue, currentValue - 1));
         }
-        EditorGUILayout.LabelField($"{currentValue}", GUILayout.MaxWidth(50));
+        EditorGUILayout.LabelField($"{currentValue}", CenteredStyle ,GUILayout.MaxWidth(50));
         if (GUILayout.Button("+", GUILayout.MaxWidth(20)))
         {
             setValue(Mathf.Min(maxValue, currentValue + 1));

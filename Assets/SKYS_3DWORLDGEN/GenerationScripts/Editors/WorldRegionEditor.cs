@@ -448,7 +448,7 @@ public class WorldRegionEditor : Editor
                         chunkDebugString = $"{chunk.type}";
                         break;
                     case ChunkMapDebug.CHUNK_HEIGHT:
-                        chunkDebugColor = Color.Lerp(Color.black, Color.white, (float)chunk.groundHeight / (float)WorldGeneration.RegionMaxGroundHeight);
+                        chunkDebugColor = Color.Lerp(Color.black, Color.white, (float)chunk.groundHeight / (float)WorldGeneration.MaxChunkHeight);
                         chunkDebugString = $"{chunk.groundHeight}";
                         break;
                 }
