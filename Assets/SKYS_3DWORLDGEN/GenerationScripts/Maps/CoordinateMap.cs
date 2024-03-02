@@ -620,7 +620,7 @@ public class CoordinateMap
             zonesCreated++;
         }
 
-        Debug.Log($"Attempted to create {numZonesToCreate} zones. Successfully created {zonesCreated}.");
+        Debug.Log($"Attempted to create {numZonesToCreate} zones. Successfully created {zonesCreated}.", this._worldRegion.gameObject);
     }
 
     WorldZone.TYPE GetRandomWorldZoneType()

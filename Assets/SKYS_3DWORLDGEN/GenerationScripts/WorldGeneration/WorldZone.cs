@@ -1,8 +1,4 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 [System.Serializable]
@@ -13,7 +9,7 @@ public class WorldZone
     CoordinateMap _coordinateMap;
     Coordinate _centerCoordinate;
     TYPE _zoneType;
-    int _zoneHeight;
+    public int zoneHeight { get; private set; }
 
     public enum TYPE { FULL, NATURAL_CROSS, DIAGONAL_CROSS, HORIZONTAL, VERTICAL }
     public List<Coordinate> coordinates { get; private set; }
@@ -24,7 +20,7 @@ public class WorldZone
         this._coordinateMap = coordinateMap;
         this._centerCoordinate = centerCoordinate;
         this._zoneType = zoneType;
-        this._zoneHeight = zoneHeight;
+        this.zoneHeight = zoneHeight;
 
         // Get affected neighbors
         List<Coordinate> neighborsInZone = new();

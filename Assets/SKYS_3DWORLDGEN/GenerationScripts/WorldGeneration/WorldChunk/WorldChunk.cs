@@ -42,7 +42,7 @@ public class WorldChunk
     public Vector2Int localPosition { get; private set; }
     public bool generation_finished { get; private set; }
 
-    public Coordinate chunkCoordinate { get; private set; }
+    public Coordinate coordinate { get; private set; }
     public Vector3 groundPosition { get; private set; }
     public Vector3 groundMeshDimensions { get; private set; }
     public Vector3 originCoordinatePosition { get; }
@@ -60,7 +60,7 @@ public class WorldChunk
     public WorldChunk(WorldChunkMap chunkMap, Coordinate coordinate)
     {
         this.chunkMap = chunkMap;
-        this.chunkCoordinate = coordinate;
+        this.coordinate = coordinate;
         this.localPosition = coordinate.Value;
 
         // >> set perlin noise height
@@ -131,7 +131,7 @@ public class WorldChunk
     void RecalcuatePosition()
     {
         if (localPosition == null) return;
-        groundPosition = new Vector3(chunkCoordinate.WorldPosition.x, _realChunkHeight, chunkCoordinate.WorldPosition.z);
+        groundPosition = new Vector3(coordinate.WorldPosition.x, _realChunkHeight, coordinate.WorldPosition.z);
         groundMeshDimensions = new Vector3(_chunkWidth, _realChunkHeight, _chunkWidth);
     }
 

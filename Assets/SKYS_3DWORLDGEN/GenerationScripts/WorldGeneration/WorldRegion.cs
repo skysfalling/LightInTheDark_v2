@@ -28,7 +28,7 @@ public class WorldRegion : MonoBehaviour
 
     // PUBLIC VARIABLES
     public WorldGeneration worldGeneration;
-    public CoordinateMap coordinateChunkMap;
+    public CoordinateMap coordinateMap;
     public Coordinate coordinate;
     public WorldChunkMap worldChunkMap;
 
@@ -62,14 +62,14 @@ public class WorldRegion : MonoBehaviour
         transform.position = centerPosition_inWorldSpace;
 
         // Create the coordinate map for the region
-        this.coordinateChunkMap = new CoordinateMap(this);
-        this.worldChunkMap = new WorldChunkMap(this, this.coordinateChunkMap);
+        this.coordinateMap = new CoordinateMap(this);
+        this.worldChunkMap = new WorldChunkMap(this, this.coordinateMap);
 
 
         _initialized = true;
     }
 
-    public void GenerateNecessaryExits()
+    public void GenerateNecessaryExits(bool createExits)
     {
         WorldRegion currentRegion = this;
         Coordinate currentRegionCoordinate = this.coordinate;
@@ -91,7 +91,7 @@ public class WorldRegion : MonoBehaviour
             if (this.worldGeneration.coordinateRegionMap.GetCoordinateAt(neighborPosition) == null)
             {
                 // Neighbor not found
-                currentRegion.coordinateChunkMap.CloseMapBorder(currentBorderWithNeighbor); // close borders on chunks
+                currentRegion.coordinateMap.CloseMapBorder(currentBorderWithNeighbor); // close borders on chunks
 
                 Debug.Log($"REGION {currentRegion.coordinate.Value} -> CLOSED {getCurrentBorder} Border");
             }
@@ -103,7 +103,7 @@ public class WorldRegion : MonoBehaviour
 
                 // if neighbor has exits on shared border
                 MapBorder matchingBorderOnNeighbor = (MapBorder)CoordinateMap.GetOppositeBorder(currentBorderWithNeighbor);
-                HashSet<Vector2Int> neighborBorderExits = neighborRegion.coordinateChunkMap.GetExitsOnBorder(matchingBorderOnNeighbor);
+                HashSet<Vector2Int> neighborBorderExits = neighborRegion.coordinateMap.GetExitsOnBorder(matchingBorderOnNeighbor);
 
                 // if neighbor has exits, match exits
                 if (neighborBorderExits != null && neighborBorderExits.Count > 0)
@@ -113,14 +113,14 @@ public class WorldRegion : MonoBehaviour
                     foreach (Vector2Int exit in neighborBorderExits)
                     {
                         //Debug.Log($"Region {currentRegionCoordinate.Value} Border {getCurrentBorder} ->");
-                        currentRegion.coordinateChunkMap.SetMatchingExit(matchingBorderOnNeighbor, exit);
+                        currentRegion.coordinateMap.SetMatchingExit(matchingBorderOnNeighbor, exit);
                     }
                 }
                 // if neighbor has no exits, randomly make some
-                else
+                else if (createExits)
                 {
                     // randomly decide how many 
-                    currentRegion.coordinateChunkMap.GenerateRandomExitOnBorder(currentBorderWithNeighbor);
+                    currentRegion.coordinateMap.GenerateRandomExitOnBorder(currentBorderWithNeighbor);
                 }
             }
 
@@ -134,7 +134,7 @@ public class WorldRegion : MonoBehaviour
 
     public void ResetChunkMap()
     {
-        this.worldChunkMap = new WorldChunkMap(this, this.coordinateChunkMap);
+        this.worldChunkMap = new WorldChunkMap(this, this.coordinateMap);
     }
 
     public void CreateChunkMeshObjects()

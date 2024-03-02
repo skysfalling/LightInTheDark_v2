@@ -127,7 +127,39 @@ public class WorldGeneration : MonoBehaviour
         // >> set necessary region borders & exits
         for (int i = 0; i < worldRegions.Count; i++)
         {
-            worldRegions[i].GenerateNecessaryExits();
+            worldRegions[i].GenerateNecessaryExits(true);
+        }
+
+        // >>>> 2nd pass of connecting exits, without creating new ones this time
+        for (int i = 0; i < worldRegions.Count; i++)
+        {
+            worldRegions[i].GenerateNecessaryExits(false);
+        }
+
+        // >> connect paths
+        for (int i = 0; i < worldRegions.Count; i++)
+        {
+            worldRegions[i].coordinateMap.GeneratePathsBetweenExits();
+        }
+
+        // >> generate zones
+        for (int i = 0; i < worldRegions.Count; i++)
+        {
+            worldRegions[i].coordinateMap.GenerateRandomZones(1, 3);
+        }
+
+        // >> assign heights
+        for (int i = 0; i < worldRegions.Count; i++)
+        {
+            foreach(WorldPath path in worldRegions[i].coordinateMap.worldPaths)
+            {
+                worldRegions[i].worldChunkMap.SetChunksToHeightFromPath(path);
+            }
+
+            foreach (WorldZone zone in worldRegions[i].coordinateMap.worldZones)
+            {
+                worldRegions[i].worldChunkMap.SetChunksToHeightFromPositions(zone.positions, zone.zoneHeight);
+            }
         }
 
         initialized = true;

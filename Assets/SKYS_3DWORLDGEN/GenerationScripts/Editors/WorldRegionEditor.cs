@@ -127,13 +127,13 @@ public class WorldRegionEditor : Editor
     void DrawCoordinateMapInspector()
     {
         // [[ COORDINATE MAP ]]
-        CoordinateMap coordinateMap = region.coordinateChunkMap;
+        CoordinateMap coordinateMap = region.coordinateMap;
 
         EditorGUILayout.LabelField("Region Coordinate Map", h2Style);
         EditorGUILayout.Space(10);
 
         // >> initialize button
-        if (region.coordinateChunkMap == null)
+        if (region.coordinateMap == null)
         {
             return;
         }
@@ -142,16 +142,16 @@ public class WorldRegionEditor : Editor
         if (GUILayout.Button("Seed Generation"))
         {
             WorldGeneration.InitializeRandomSeed();
-            region.coordinateChunkMap = new CoordinateMap(region);
-            region.coordinateChunkMap.GenerateRandomExits();
-            region.coordinateChunkMap.GeneratePathsBetweenExits();
-            region.coordinateChunkMap.GenerateRandomZones(1, 3);
+            region.coordinateMap = new CoordinateMap(region);
+            region.coordinateMap.GenerateRandomExits();
+            region.coordinateMap.GeneratePathsBetweenExits();
+            region.coordinateMap.GenerateRandomZones(1, 3);
         }
 
         // >> reset button
         if (GUILayout.Button("Reset Coordinate Map"))
         {
-            region.coordinateChunkMap = new CoordinateMap(region);
+            region.coordinateMap = new CoordinateMap(region);
         }
 
         // >> generate necessary exits
@@ -177,6 +177,9 @@ public class WorldRegionEditor : Editor
             EditorGUILayout.LabelField($"BORDER TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.BORDER).Count}", rightAlignedStyle);
             EditorGUILayout.LabelField($"CLOSED TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.CLOSED).Count}", rightAlignedStyle);
             EditorGUILayout.LabelField($"EXIT TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.EXIT).Count}", rightAlignedStyle);
+            EditorGUILayout.LabelField($"PATH TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.PATH).Count}", rightAlignedStyle);
+            EditorGUILayout.LabelField($"ZONE TYPE : {coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.ZONE).Count}", rightAlignedStyle);
+
         }
         // EDITOR >> edit the coordinates in the map
         else if (coordinateMapDebugType == CoordinateMapDebug.EDITOR) {
@@ -321,9 +324,9 @@ public class WorldRegionEditor : Editor
         EditorGUILayout.BeginVertical();
         EditorGUILayout.LabelField("Selected Chunk", h2Style);
         EditorGUILayout.Space(10);
-        if (selectedChunk != null && selectedChunk.chunkCoordinate != null)
+        if (selectedChunk != null && selectedChunk.coordinate != null)
         {
-            EditorGUILayout.LabelField($"Coordinate Local Position:  {selectedChunk.chunkCoordinate.Value}");
+            EditorGUILayout.LabelField($"Coordinate Local Position:  {selectedChunk.coordinate.Value}");
             EditorGUILayout.LabelField($"Chunk Ground Height:  {selectedChunk.groundHeight}");
             EditorGUILayout.LabelField($"Chunk Type:  {selectedChunk.type}");
         }
@@ -377,7 +380,7 @@ public class WorldRegionEditor : Editor
 
     void DrawRegionView()
     {
-        if (region == null || region.coordinateChunkMap == null) { return; }
+        if (region == null || region.coordinateMap == null) { return; }
 
         GUIStyle coordLabelStyle = new GUIStyle()
         {
@@ -387,7 +390,7 @@ public class WorldRegionEditor : Editor
         };
 
         // Draw Coordinates
-        CoordinateMap coordinateMap = region.coordinateChunkMap;
+        CoordinateMap coordinateMap = region.coordinateMap;
         if (coordinateMap.IsInitialized() && coordinateMap.allPositions.Count > 0)
         {   
             foreach (Vector2Int position in coordinateMap.allPositions)
@@ -448,8 +451,8 @@ public class WorldRegionEditor : Editor
                 switch(chunkMapDebugType)
                 {
                     case ChunkMapDebug.COORDINATE_TYPE:
-                        chunkDebugColor = chunk.chunkCoordinate.debugColor;
-                        chunkDebugString = $"{chunk.chunkCoordinate.type}";
+                        chunkDebugColor = chunk.coordinate.debugColor;
+                        chunkDebugString = $"{chunk.coordinate.type}";
                         break;
                     case ChunkMapDebug.CHUNK_TYPE:
                         chunkDebugColor = chunk.debugColor;

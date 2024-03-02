@@ -43,7 +43,7 @@ public class WorldChunkMesh
     public WorldChunkMesh(WorldChunk chunk, int groundHeight, Vector3 groundPosition)
     {
         this._chunk = chunk;
-        this._worldCoordinate = chunk.chunkCoordinate;
+        this._worldCoordinate = chunk.coordinate;
         this._worldChunkMap = chunk.chunkMap;
 
         List<FaceType> facesToGenerate = new List<FaceType>()

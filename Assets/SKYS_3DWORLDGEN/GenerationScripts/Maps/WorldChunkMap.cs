@@ -86,14 +86,65 @@ public class WorldChunkMap
         }
     }
 
-    public void SetChunksToHeightFromCoordinates(List<Coordinate> worldCoords, int chunkHeight)
+    public void SetChunksToHeightFromPositions(List<Vector2Int> positions, int chunkHeight)
     {
-        foreach (Coordinate coord in worldCoords)
+        foreach (Vector2Int pos in positions)
         {
-            WorldChunk chunk = GetChunkAt(coord);
+            WorldChunk chunk = GetChunkAt(pos);
             if (chunk != null)
             {
                 chunk.SetGroundHeight(chunkHeight);
+            }
+        }
+    }
+
+    public void SetChunksToHeightFromPath(WorldPath path, float heightAdjustChance = 1f)
+    {
+        int startHeight = GetChunkAt(path.start).groundHeight;
+        int endHeight = GetChunkAt(path.end).groundHeight;
+
+        // Calculate height difference
+        int endpointHeightDifference = endHeight - startHeight;
+        int currHeightLevel = startHeight; // current height level starting from the startHeight
+        int heightLeft = endpointHeightDifference; // initialize height left
+
+        // Iterate through the chunks
+        for (int i = 0; i < path.positions.Count; i++)
+        {
+            WorldChunk currentChunk = GetChunkAt(path.positions[i]);
+
+            // Assign start/end chunk heights & CONTINUE
+            if (i == 0) { currentChunk.SetGroundHeight(startHeight); continue; }
+            else if (i == path.positions.Count - 1) { currentChunk.SetGroundHeight(endHeight); continue; }
+            else
+            {
+                // Determine heightOffset 
+                int heightOffset = 0;
+
+                // Determine the direction of the last & next chunk in path
+                WorldChunk previousChunk = GetChunkAt(path.positions[i - 1]);
+                WorldChunk nextChunk = GetChunkAt(path.positions[i + 1]);
+                WorldDirection? lastChunkDirection = currentChunk.coordinate.GetWorldDirectionOfNeighbor(previousChunk.coordinate);
+                WorldDirection? nextChunkDirection = currentChunk.coordinate.GetWorldDirectionOfNeighbor(nextChunk.coordinate);
+                if (lastChunkDirection != null && nextChunkDirection != null)
+                {
+                    // if previous chunk is direct opposite of next chunk, allow for change in the current chunk
+                    if (currentChunk.coordinate.GetNeighborInOppositeDirection((WorldDirection)nextChunkDirection) == previousChunk.coordinate)
+                    {
+                        // Valid transition chunk
+                        if (heightLeft > 0) { heightOffset = 1; } // if height left is greater
+                        else if (heightLeft < 0) { heightOffset = -1; } // if height left is less than 0
+                        else { heightOffset = 0; } // if height left is equal to 0
+                    }
+
+                }
+
+                // Set the new height level
+                currHeightLevel += heightOffset;
+                currentChunk.SetGroundHeight(currHeightLevel);
+
+                // Recalculate heightLeft with the new current height level
+                heightLeft = endHeight - currHeightLevel;
             }
         }
     }

@@ -155,10 +155,10 @@ public class WorldGenerationEditor : Editor
                     DarklightGizmos.DrawWireSquare_withLabel($"World Region {region.localCoordinatePosition}" +
                         $"\n neighbors : {regionNeighbors.Count}", region.centerPosition_inWorldSpace, WorldGeneration.GetFullRegionWidth_inWorldSpace(), Color.blue, labelStyle);
 
-                    List<Vector2Int> coordinatesOfType = region.coordinateChunkMap.GetAllPositionsOfType(showCoordinateType).ToList();
+                    List<Vector2Int> coordinatesOfType = region.coordinateMap.GetAllPositionsOfType(showCoordinateType).ToList();
                     for (int i = 0; i < coordinatesOfType.Count; i++)
                     {
-                        Coordinate coordinate = region.coordinateChunkMap.GetCoordinateAt(coordinatesOfType[i]);
+                        Coordinate coordinate = region.coordinateMap.GetCoordinateAt(coordinatesOfType[i]);
 
                         DarklightGizmos.DrawWireSquare_withLabel($"{showCoordinateType}", coordinate.WorldPosition, 
                             WorldGeneration.GetChunkWidth_inWorldSpace(), coordinate.debugColor, labelStyle);

@@ -280,7 +280,7 @@ public class WorldRegionMapEditor : Editor
             }
             else
             {
-                Coordinate coord = selectedChunk.chunkCoordinate;
+                Coordinate coord = selectedChunk.coordinate;
                 try
                 {
                     string chunkParameters =
