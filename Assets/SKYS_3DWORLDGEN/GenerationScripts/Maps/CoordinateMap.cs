@@ -89,8 +89,8 @@ public class CoordinateMap
     }
     #endregion
 
-    bool _initialized;
-    public bool IsInitialized() {  return _initialized; }
+    // public access variables
+    public bool Initialized { get; private set; }
 
     // >> main coordinate reference
     WorldGeneration _worldGeneration = null;
@@ -143,7 +143,7 @@ public class CoordinateMap
 
         SetAllCoordinatesToDefault(coordMax, WorldGeneration.BoundaryWallCount);
 
-        _initialized = true;
+        Initialized = true;
     }
 
     public CoordinateMap(WorldRegion region)
@@ -172,7 +172,7 @@ public class CoordinateMap
 
         SetAllCoordinatesToDefault(coordMax, WorldGeneration.BoundaryWallCount);
 
-        _initialized = true;
+        Initialized = true;
     }
 
     public CoordinateMap(WorldChunk chunk)
@@ -201,13 +201,13 @@ public class CoordinateMap
 
         SetAllCoordinatesToDefault(coordMax, WorldGeneration.BoundaryWallCount);
 
-        _initialized = true;
+        Initialized = true;
     }
 
     // == [[ GET COORDINATE ]] ======================================================================== >>>>
     public Coordinate GetCoordinateAt(Vector2Int position)
     {
-        if (_initialized && _positions.Contains(position))
+        if (Initialized && _positions.Contains(position))
         {
             return _positionMap[position];
         }
@@ -216,7 +216,7 @@ public class CoordinateMap
 
     public Coordinate.TYPE? GetCoordinateTypeAt(Vector2Int position)
     {
-        if (_initialized && _positions.Contains(position))
+        if (Initialized && _positions.Contains(position))
         {
             return _positionMap[position].type;
         }
@@ -414,7 +414,7 @@ public class CoordinateMap
         if (coordinate == null) return;
         if (coordinate.type != Coordinate.TYPE.BORDER)
         {
-            Debug.Log($"Cannot convert non border coordinate {coordinate.Value} {coordinate.type} to exit");
+            //Debug.Log($"Cannot convert non border coordinate {coordinate.Value} {coordinate.type} to exit");
             return;
         }
 
@@ -465,7 +465,7 @@ public class CoordinateMap
             ConvertCoordinateToExit(coordinate);
         }
 
-        Debug.Log($"{numberOfExits} exits have been created on the map borders.");
+        //Debug.Log($"{numberOfExits} exits have been created on the map borders.");
     }
 
     public void GenerateRandomExitOnBorder(MapBorder borderType)
@@ -523,7 +523,7 @@ public class CoordinateMap
 
         // Assign Path Type
         SetCoordinatesToType(newPath.positions, Coordinate.TYPE.PATH);
-        Debug.Log($"Created Path from {start} to {end} with {newPath.positions.Count}");
+        //Debug.Log($"Created Path from {start} to {end} with {newPath.positions.Count}");
     }
 
     public void GeneratePathsBetweenExits()
@@ -550,7 +550,7 @@ public class CoordinateMap
         //Connect the last exit back to the first to ensure all exits are interconnected
         CreatePathFrom(sortedExits[sortedExits.Count - 1], sortedExits[0]);
 
-        Debug.Log($"Generated new paths connecting all exits.");
+        //Debug.Log($"Generated new paths connecting all exits.");
     }
 
     public bool IsCoordinateValidForPathfinding(Vector2Int candidate)
@@ -569,7 +569,7 @@ public class CoordinateMap
     // == [[ WORLD ZONES ]] ================================================================================ >>>>
     public bool CreateWorldZone(Vector2Int position, WorldZone.TYPE zoneType, int zoneHeight)
     {
-        Debug.Log($"Attempting to create zone at {position}");
+        //Debug.Log($"Attempting to create zone at {position}");
 
         // Temporarily create the zone to check its positions
         WorldZone tempZone = new WorldZone(this, GetCoordinateAt(position), zoneType, zoneHeight);
@@ -581,14 +581,14 @@ public class CoordinateMap
         bool hasInvalidPosition = tempZone.positions.Any(pos => !validPositions.Contains(pos));
         if (hasInvalidPosition)
         {
-            Debug.Log($"Zone at {position} includes invalid coordinate types. Zone creation aborted.");
+            //Debug.Log($"Zone at {position} includes invalid coordinate types. Zone creation aborted.");
             return false; // Abort the creation of the zone
         }
 
         // If no invalid positions are found, add the zone
         worldZones.Add(tempZone);
         SetCoordinatesToType(tempZone.positions, Coordinate.TYPE.ZONE);
-        Debug.Log($"Zone successfully created at {position} with type {zoneType}.");
+        //Debug.Log($"Zone successfully created at {position} with type {zoneType}.");
         return true;
     }
 
@@ -620,7 +620,7 @@ public class CoordinateMap
             zonesCreated++;
         }
 
-        Debug.Log($"Attempted to create {numZonesToCreate} zones. Successfully created {zonesCreated}.", this._worldRegion.gameObject);
+        //Debug.Log($"Attempted to create {numZonesToCreate} zones. Successfully created {zonesCreated}.", this._worldRegion.gameObject);
     }
 
     WorldZone.TYPE GetRandomWorldZoneType()

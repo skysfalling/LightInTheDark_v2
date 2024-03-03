@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class WorldRegion : MonoBehaviour
@@ -61,10 +62,18 @@ public class WorldRegion : MonoBehaviour
         // Set the transform to the center
         transform.position = centerPosition_inWorldSpace;
 
+        StartCoroutine(InitializationSequence());
+    }
+
+    IEnumerator InitializationSequence() // Default delay of 1 second
+    {
         // Create the coordinate map for the region
         this.coordinateMap = new CoordinateMap(this);
-        this.worldChunkMap = new WorldChunkMap(this, this.coordinateMap);
+        yield return new WaitUntil(() => this.coordinateMap.Initialized);
 
+        // Create the chunk map for the region
+        this.worldChunkMap = new WorldChunkMap(this, this.coordinateMap);
+        yield return new WaitUntil(() => this.worldChunkMap.Initialized);
 
         _initialized = true;
     }
@@ -93,7 +102,7 @@ public class WorldRegion : MonoBehaviour
                 // Neighbor not found
                 currentRegion.coordinateMap.CloseMapBorder(currentBorderWithNeighbor); // close borders on chunks
 
-                Debug.Log($"REGION {currentRegion.coordinate.Value} -> CLOSED {getCurrentBorder} Border");
+                //Debug.Log($"REGION {currentRegion.coordinate.Value} -> CLOSED {getCurrentBorder} Border");
             }
             // else if shares a neighbor...
             else
@@ -108,7 +117,7 @@ public class WorldRegion : MonoBehaviour
                 // if neighbor has exits, match exits
                 if (neighborBorderExits != null && neighborBorderExits.Count > 0)
                 {
-                    Debug.Log($"REGION {currentRegion.coordinate.Value} & REGION {neighborRegion.coordinate.Value} share exit");
+                    //Debug.Log($"REGION {currentRegion.coordinate.Value} & REGION {neighborRegion.coordinate.Value} share exit");
 
                     foreach (Vector2Int exit in neighborBorderExits)
                     {
@@ -140,7 +149,7 @@ public class WorldRegion : MonoBehaviour
     public void CreateChunkMeshObjects()
     {
         ResetChunkMap();
-        foreach (WorldChunk chunk in worldChunkMap.allChunks)
+        foreach (WorldChunk chunk in worldChunkMap.AllChunks)
         {
             chunk.CreateChunkMeshObject(this);
         }

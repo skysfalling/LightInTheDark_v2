@@ -186,7 +186,7 @@ public class WorldGenerationEditor : Editor
         };
         // Draw Coordinates
         CoordinateMap coordinateMap = worldGen.coordinateRegionMap;
-        if (coordinateMap.IsInitialized() && coordinateMap.allPositions.Count > 0)
+        if (coordinateMap.Initialized && coordinateMap.allPositions.Count > 0)
         {
             foreach (Vector2Int position in coordinateMap.allPositions)
             {

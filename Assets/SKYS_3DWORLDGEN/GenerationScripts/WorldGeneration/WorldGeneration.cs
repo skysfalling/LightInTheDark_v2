@@ -89,7 +89,7 @@ public class WorldGeneration : MonoBehaviour
 
     public void Initialize()
     {
-        // >>
+        // >> center of the world location in the unity scene
         this.worldPosition = Vector2Int.zero;
 
         float worldWidthRadius = GetWorldWidth_inWorldSpace() * 0.5f;
@@ -109,6 +109,7 @@ public class WorldGeneration : MonoBehaviour
         InitializeRandomSeed();
 
         // >> create a region at each coordinate
+        Debug.Log($"{_prefix} Begin Initialization => Creating {coordinateRegionMap.allCoordinates.Count} Regions");
         for (int i = 0; i < coordinateRegionMap.allCoordinates.Count; i++)
         {
             Coordinate regionCoordinate = coordinateRegionMap.allCoordinates[i];
@@ -124,45 +125,54 @@ public class WorldGeneration : MonoBehaviour
             regionMap[regionCoordinate.Value] = region;
         }
 
-        // >> set necessary region borders & exits
-        for (int i = 0; i < worldRegions.Count; i++)
-        {
-            worldRegions[i].GenerateNecessaryExits(true);
-        }
+        StartCoroutine(InitializationSequence());
+    }
 
-        // >>>> 2nd pass of connecting exits, without creating new ones this time
-        for (int i = 0; i < worldRegions.Count; i++)
-        {
-            worldRegions[i].GenerateNecessaryExits(false);
-        }
+    public IEnumerator InitializationSequence()
+    {
 
-        // >> connect paths
-        for (int i = 0; i < worldRegions.Count; i++)
-        {
-            worldRegions[i].coordinateMap.GeneratePathsBetweenExits();
-        }
+        float stage_delay = 0.1f;
+        float startTime = Time.time; // Capture the start time of the initialization
 
-        // >> generate zones
-        for (int i = 0; i < worldRegions.Count; i++)
+        // Grouped operations: Initial exits generation
+        foreach (var region in worldRegions)
         {
-            worldRegions[i].coordinateMap.GenerateRandomZones(1, 3);
+            region.GenerateNecessaryExits(true);
         }
+        yield return new WaitForSeconds(stage_delay);
+        Debug.Log($"Stage 1: Exits Generation (First Pass) completed in {Time.time - startTime} seconds.");
 
-        // >> assign heights
-        for (int i = 0; i < worldRegions.Count; i++)
+        startTime = Time.time; // Reset start time for the next stage
+                               // Grouped operations: Second pass for exits and path generation
+        foreach (var region in worldRegions)
         {
-            foreach(WorldPath path in worldRegions[i].coordinateMap.worldPaths)
+            region.GenerateNecessaryExits(false); // Second pass without creating new
+            region.coordinateMap.GeneratePathsBetweenExits(); // Assuming independent of exits generation
+        }
+        yield return new WaitForSeconds(stage_delay);
+        Debug.Log($"Stage 2: Exits Generation (Second Pass) and Path Generation completed in {Time.time - startTime} seconds.");
+
+        startTime = Time.time; // Reset start time for the next stage
+                               // Combined zones and height assignments in a single step to minimize delays
+        foreach (var region in worldRegions)
+        {
+            region.coordinateMap.GenerateRandomZones(1, 3); // Zone generation
+
+            // Assign heights to paths and zones together
+            foreach (WorldPath path in region.coordinateMap.worldPaths)
             {
-                worldRegions[i].worldChunkMap.SetChunksToHeightFromPath(path);
+                region.worldChunkMap.SetChunksToHeightFromPath(path);
             }
-
-            foreach (WorldZone zone in worldRegions[i].coordinateMap.worldZones)
+            foreach (WorldZone zone in region.coordinateMap.worldZones)
             {
-                worldRegions[i].worldChunkMap.SetChunksToHeightFromPositions(zone.positions, zone.zoneHeight);
+                region.worldChunkMap.SetChunksToHeightFromPositions(zone.positions, zone.zoneHeight);
             }
         }
+        yield return new WaitForSeconds(stage_delay);
+        Debug.Log($"Stage 3: Zone Generation and Height Assignments completed in {Time.time - startTime} seconds.");
 
         initialized = true;
+        Debug.Log($"Total Initialization Time: {Time.time - startTime} seconds.");
     }
 
     public void Reset()

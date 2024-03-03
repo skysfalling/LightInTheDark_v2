@@ -391,7 +391,7 @@ public class WorldRegionEditor : Editor
 
         // Draw Coordinates
         CoordinateMap coordinateMap = region.coordinateMap;
-        if (coordinateMap.IsInitialized() && coordinateMap.allPositions.Count > 0)
+        if (coordinateMap.Initialized && coordinateMap.allPositions.Count > 0)
         {   
             foreach (Vector2Int position in coordinateMap.allPositions)
             {
@@ -441,9 +441,9 @@ public class WorldRegionEditor : Editor
         };
 
         WorldChunkMap chunkMap = region.worldChunkMap;
-        if (chunkMap.initialized)
+        if (chunkMap.Initialized)
         {
-            foreach (WorldChunk chunk in chunkMap.allChunks)
+            foreach (WorldChunk chunk in chunkMap.AllChunks)
             {
                 Color chunkDebugColor = Color.green;
                 string chunkDebugString = "Chunk";
@@ -489,9 +489,9 @@ public class WorldRegionEditor : Editor
         };
 
         WorldChunkMap chunkMap = region.worldChunkMap;
-        if (chunkMap.initialized)
+        if (chunkMap.Initialized)
         {
-            foreach (WorldChunk chunk in chunkMap.allChunks)
+            foreach (WorldChunk chunk in chunkMap.AllChunks)
             {
                 Color chunkDebugColor = Color.white;
                 string chunkDebugString = "";

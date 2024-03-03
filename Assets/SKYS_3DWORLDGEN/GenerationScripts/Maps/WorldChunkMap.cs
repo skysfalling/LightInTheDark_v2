@@ -8,15 +8,15 @@ public class WorldChunkMap
     HashSet<WorldChunk> _chunks = new();
     Dictionary<Vector2Int, WorldChunk> _chunkMap = new();
 
-    public bool initialized { get; private set; }
-    public WorldRegion worldRegion { get; private set; }
-    public CoordinateMap coordinateMap { get; private set; }
-    public HashSet<WorldChunk> allChunks { get { return _chunks; } private set { } }
+    public bool Initialized { get; private set; }
+    public WorldRegion WorldRegion { get; private set; }
+    public CoordinateMap CoordinateMap { get; private set; }
+    public HashSet<WorldChunk> AllChunks { get { return _chunks; } private set { } }
 
     public WorldChunkMap(WorldRegion worldRegion, CoordinateMap coordinateMap)
     {
-        this.worldRegion = worldRegion;
-        this.coordinateMap = coordinateMap;
+        this.WorldRegion = worldRegion;
+        this.CoordinateMap = coordinateMap;
         foreach (Vector2Int position in coordinateMap.allPositions)
         {
             Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
@@ -27,14 +27,20 @@ public class WorldChunkMap
             Coordinate.TYPE type = (Coordinate.TYPE)coordinateMap.GetCoordinateTypeAt(position);
             switch(type)
             {
-                case Coordinate.TYPE.PATH:
-                case Coordinate.TYPE.ZONE:
                 case Coordinate.TYPE.EXIT:
-                    newChunk.SetGroundHeight(0); break;
+                    // try to make sure that all exits are accessible
+                    int exitMin = Mathf.Abs(WorldGeneration.MaxChunkHeight - WorldGeneration.PlayRegionWidth_inChunks);
+                    int exitMax = Mathf.Abs(WorldGeneration.MaxChunkHeight - 1);
+
+
+                    newChunk.SetGroundHeight(Random.Range(exitMin, exitMax)); break;
+
+                case Coordinate.TYPE.CLOSED:
+                    newChunk.SetGroundHeight(WorldGeneration.MaxChunkHeight); break;
             }
         }
 
-        initialized = true;
+        Initialized = true;
 
         // Apply heights
 
@@ -47,19 +53,19 @@ public class WorldChunkMap
 
     public WorldChunk GetChunkAt(Vector2Int position)
     {
-        if (!initialized || !coordinateMap.allPositions.Contains(position)) { return null; }
+        if (!Initialized || !CoordinateMap.allPositions.Contains(position)) { return null; }
         return _chunkMap[position];
     }
 
     public WorldChunk GetChunkAt(Coordinate worldCoord)
     {
-        if (!initialized || worldCoord == null) { return null; }
+        if (!Initialized || worldCoord == null) { return null; }
         return GetChunkAt(worldCoord.Value);
     }
 
     public List<WorldChunk> GetChunksAtCoordinates(List<Coordinate> worldCoords)
     {
-        if (!initialized) { return new List<WorldChunk>(); }
+        if (!Initialized) { return new List<WorldChunk>(); }
 
         List<WorldChunk> chunks = new List<WorldChunk>();
         foreach (Coordinate worldCoord in worldCoords)
@@ -72,7 +78,7 @@ public class WorldChunkMap
 
     public void ResetAllChunkHeights()
     {
-        foreach (WorldChunk chunk in allChunks)
+        foreach (WorldChunk chunk in AllChunks)
         {
             chunk.SetGroundHeight(0);
         }
