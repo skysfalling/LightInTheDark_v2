@@ -26,17 +26,27 @@ public enum WorldSpace { World, Region, Chunk, Cell }
 [RequireComponent(typeof(WorldMaterialLibrary))]
 public class WorldGeneration : MonoBehaviour
 {
+    static string _gameSeed = "Default Game Seed";
+    static int _cellWidthInWorldSpace = 2;
+    static int _chunkWidthInCells = 10;
+    static int _chunkDepthInCells = 10;
+    static int _playRegionWidthInChunks = 7;
+    static int _boundaryWallCount = 0;
+    static int _maxChunkHeight = 25;
+    static int _worldWidthInRegions = 5;
+
+
+
     #region [[ STATIC VARIABLES ]] ======================================================================
     // STATIC GENERATION VALUES ========================================================= ///
-    public static string GameSeed = "Default Game Seed";
-    public static int CurrentSeed { get { return GameSeed.GetHashCode(); }}
+    public static int CurrentSeed { get { return _gameSeed.GetHashCode(); }}
     public static void InitializeRandomSeed(string newGameSeed = "")
     {
 
-        if (newGameSeed != "" && newGameSeed != GameSeed)
+        if (newGameSeed != "" && newGameSeed != _gameSeed)
         {
-            GameSeed = newGameSeed;
-            Debug.Log($"Initialize Random Seed to => {GameSeed} :: {CurrentSeed}");
+            _gameSeed = newGameSeed;
+            Debug.Log($"Initialize Random Seed to => {_gameSeed} :: {CurrentSeed}");
         }
 
         UnityEngine.Random.InitState(CurrentSeed);
@@ -44,20 +54,20 @@ public class WorldGeneration : MonoBehaviour
 
     // STATIC GENERATION DIMENSIONS ==================================== ///
     // >>>> WorldCell { in Unity Worldspace Units }
-    public static int CellWidth_inWorldSpace = 2; // Size of each WorldCell 
+    public static int CellWidth_inWorldSpace { get{ return _cellWidthInWorldSpace; } } // Size of each WorldCell 
 
     // >>>> WorldChunk { in WorldCell Units }
-    public static int ChunkWidth_inCells = 10; 
-    public static int ChunkDepth_inCells = 10;
-    public static Vector3Int GetChunkVec3Dimensions_inCells() { return new Vector3Int(ChunkWidth_inCells, ChunkDepth_inCells, ChunkWidth_inCells); }
+    public static int ChunkWidth_inCells { get { return _chunkWidthInCells; } }
+    public static int ChunkDepth_inCells { get { return _chunkDepthInCells; } }
+    public static Vector3Int ChunkVec3Dimensions_inCells() { return new Vector3Int(ChunkWidth_inCells, ChunkDepth_inCells, ChunkWidth_inCells); }
     public static Vector3Int GetChunkVec3Dimensions_inWorldSpace() { return new Vector3Int(ChunkWidth_inCells, ChunkDepth_inCells, ChunkWidth_inCells) * CellWidth_inWorldSpace; }
     public static int GetChunkWidth_inWorldSpace() { return ChunkWidth_inCells * CellWidth_inWorldSpace; }
 
 
     // >>>> WorldRegion { in WorldChunk Units }
-    public static int PlayRegionWidth_inChunks = 7; // in World Chunks
-    public static int BoundaryWallCount = 0; // Boundary offset value 
-    public static int MaxChunkHeight = 25; // Maximum chunk height
+    public static int PlayRegionWidth_inChunks { get { return _playRegionWidthInChunks; } } // in World Chunks
+    public static int BoundaryWallCount { get { return _boundaryWallCount; } } // Boundary offset value 
+    public static int MaxChunkHeight { get { return _maxChunkHeight; } } // Maximum chunk height
     public static int GetPlayRegionWidth_inCells() { return PlayRegionWidth_inChunks * ChunkWidth_inCells; }
     public static int GetFullRegionWidth_inChunks() { return PlayRegionWidth_inChunks + (BoundaryWallCount * 2); } // Include BoundaryOffset on both sides
     public static int GetFullRegionWidth_inCells() { return GetFullRegionWidth_inChunks() * ChunkWidth_inCells; }
@@ -65,7 +75,7 @@ public class WorldGeneration : MonoBehaviour
 
 
     // >>>> WorldGeneration { in WorldRegion Units }
-    public static int WorldWidth_inRegions = 5; // in World Regions
+    public static int WorldWidth_inRegions { get { return _worldWidthInRegions; } } // in World Regions
     public static int GetWorldWidth_inCells() { return WorldWidth_inRegions * GetFullRegionWidth_inChunks() * ChunkWidth_inCells; }
     public static int GetWorldWidth_inWorldSpace() { return GetWorldWidth_inCells() * CellWidth_inWorldSpace; }
     #endregion ========================================================
@@ -76,7 +86,7 @@ public class WorldGeneration : MonoBehaviour
     Coroutine _generationSequence;
 
     public bool Initialized { get; private set; }
-    public string gameSeed = GameSeed; // inspector value ( updated by custom editor )
+    public string gameSeed = _gameSeed; // inspector value ( updated by custom editor )
 
     public CoordinateMap coordinateRegionMap;
 

@@ -41,34 +41,38 @@ public class WorldGenerationEditor : Editor
         EditorGUILayout.LabelField("============///");
 
 
+        // [[ WORLD GENERATION PARAMETER EDITOR ]]
+
+        /*
         EditorGUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
         EditorGUILayout.BeginVertical();
 
         EditorGUILayout.LabelField("World Generation", DarklightEditor.TitleHeaderStyle);
         EditorGUILayout.Space(20);
-        DarklightEditor.CreateIntegerControl("World Width In Regions", WorldGeneration.WorldWidth_inRegions, 1, 16, (value) => WorldGeneration.WorldWidth_inRegions = value);
+        DarklightEditor.CreateIntegerControl("World Width In Regions", WorldGeneration.WorldWidth_inRegions, 1, 16, WorldGeneration.WorldWidth_inRegions);
 
 
         EditorGUILayout.LabelField("World Region", DarklightEditor.Header2Style);
         EditorGUILayout.Space(20);
-        DarklightEditor.CreateIntegerControl("Playable Area In Chunks", WorldGeneration.PlayRegionWidth_inChunks, 1, 16, (value) => WorldGeneration.PlayRegionWidth_inChunks = value);
-        DarklightEditor.CreateIntegerControl("Boundary Wall Count", WorldGeneration.BoundaryWallCount, 0, 3, (value) => WorldGeneration.BoundaryWallCount = value);
+        DarklightEditor.CreateIntegerControl("Playable Area In Chunks", WorldGeneration.PlayRegionWidth_inChunks, 1, 16, WorldGeneration.PlayRegionWidth_inChunks);
+        DarklightEditor.CreateIntegerControl("Boundary Wall Count", WorldGeneration.BoundaryWallCount, 0, 3, WorldGeneration.BoundaryWallCount);
 
         EditorGUILayout.LabelField("World Chunk", DarklightEditor.Header2Style);
         EditorGUILayout.Space(20);
-        DarklightEditor.CreateIntegerControl("Chunk Width in Cells", WorldGeneration.ChunkWidth_inCells, 1, 16, (value) => WorldGeneration.ChunkWidth_inCells = value);
-        DarklightEditor.CreateIntegerControl("Chunk Depth in Cells", WorldGeneration.ChunkDepth_inCells, 1, 16, (value) => WorldGeneration.ChunkDepth_inCells = value);
-        DarklightEditor.CreateIntegerControl("Max Ground Height", WorldGeneration.MaxChunkHeight, 4, 32, (value) => WorldGeneration.MaxChunkHeight = value);
+        DarklightEditor.CreateIntegerControl("Chunk Width in Cells", WorldGeneration.ChunkWidth_inCells, 1, 16, WorldGeneration.ChunkWidth_inCells);
+        DarklightEditor.CreateIntegerControl("Chunk Depth in Cells", WorldGeneration.ChunkDepth_inCells, 1, 16, WorldGeneration.ChunkDepth_inCells);
+        DarklightEditor.CreateIntegerControl("Max Ground Height", WorldGeneration.MaxChunkHeight, 4, 32, WorldGeneration.MaxChunkHeight);
 
         EditorGUILayout.LabelField("World Cell", DarklightEditor.Header2Style);
         EditorGUILayout.Space(20);
-        DarklightEditor.CreateIntegerControl("Cell Size", WorldGeneration.CellWidth_inWorldSpace, 1, 16, (value) => WorldGeneration.CellWidth_inWorldSpace = value);
+        DarklightEditor.CreateIntegerControl("Cell Size", WorldGeneration.CellWidth_inWorldSpace, 1, 16, WorldGeneration.CellWidth_inWorldSpace);
 
         EditorGUILayout.EndVertical();
 
         GUILayout.FlexibleSpace();
         EditorGUILayout.EndHorizontal();
+        */
 
         #endregion
 
