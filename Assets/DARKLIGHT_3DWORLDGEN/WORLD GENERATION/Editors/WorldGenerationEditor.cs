@@ -68,12 +68,6 @@ public class WorldGenerationEditor : Editor
 
         EditorGUILayout.Space();
 
-        // Ensure the settings are saved if modified
-        if (GUI.changed)
-        {
-            EditorUtility.SetDirty(settings);
-        }
-
         if (worldGen.worldSettings != null)
         {
             if (GUILayout.Button("Load Settings"))

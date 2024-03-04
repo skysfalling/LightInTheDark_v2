@@ -122,7 +122,8 @@ public class WorldGeneration : MonoBehaviour
     {
         for (int i = 0; i < worldRegions.Count; i++)
         {
-            worldRegions[i].Destroy();
+            if (worldRegions[i] != null)
+                worldRegions[i].Destroy();
         }
         worldRegions.Clear();
         this.coordinateRegionMap = null;

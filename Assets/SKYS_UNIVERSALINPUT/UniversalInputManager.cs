@@ -8,24 +8,31 @@ using UnityEngine.InputSystem;
 public class UniversalInputManager : MonoBehaviour
 {
     string prefix = ":: UNIVERSAL INPUT MANAGER >> ";
-    public enum InputType { NULL, TOUCH, MOUSE, CONTROLLER }
+    public enum InputType { NULL, TOUCH, MOUSE_ONLY, MOUSE_AND_KEYBOARD, CONTROLLER }
     [HideInInspector] public InputType inputType = InputType.NULL;
 
-    [Header("Input Actions")]
+    [Header("Input Action Map")]
     public InputActionAsset UniversalBasicInputActions;
     InputActionMap BasicTouchActionMap;
     InputActionMap BasicMouseActionMap;
     InputActionMap BasicControllerActionMap;
+    InputActionMap KeyboardMovementActionMap;
 
+    // Input Actions
     [HideInInspector] public InputAction pointerScreenPosition;
     [HideInInspector]public InputAction primaryInteract;
     [HideInInspector] public InputAction secondaryInteract;
+    [HideInInspector] public InputAction moveInput;
 
     [System.Serializable]
     public class WorldPointerEvent : UnityEvent<Vector3> { }
     public WorldPointerEvent activePointerPositionEvent;
     public WorldPointerEvent primaryInteractionEvent;
     public WorldPointerEvent secondaryInteractionEvent;
+
+    [System.Serializable]
+    public class MoveInputEvent : UnityEvent<Vector2> { }
+    public MoveInputEvent moveInputEvent;
 
 
     private void OnEnable()
@@ -43,6 +50,7 @@ public class UniversalInputManager : MonoBehaviour
         BasicTouchActionMap = UniversalBasicInputActions.FindActionMap("BasicTouch");
         BasicMouseActionMap = UniversalBasicInputActions.FindActionMap("BasicMouse");
         BasicControllerActionMap = UniversalBasicInputActions.FindActionMap("BasicController");
+        KeyboardMovementActionMap = UniversalBasicInputActions.FindActionMap("KeyboardMovement");
 
         bool deviceFound = DetectAndEnableInputDevice();
         if (deviceFound)
@@ -50,6 +58,8 @@ public class UniversalInputManager : MonoBehaviour
             pointerScreenPosition.performed += context => InvokeActivePointerPositionEvent(pointerScreenPosition.ReadValue<Vector2>());
             primaryInteract.performed += context => InvokePrimaryInteractionEvent(pointerScreenPosition.ReadValue<Vector2>());
             secondaryInteract.performed += context => InvokeSecondaryInteractionEvent(pointerScreenPosition.ReadValue<Vector2>());
+
+            moveInput.performed += context => InvokeMoveInteractionEvent(moveInput.ReadValue<Vector2>());
         }
     }
 
@@ -79,8 +89,23 @@ public class UniversalInputManager : MonoBehaviour
             primaryInteract = BasicMouseActionMap.FindAction("PrimaryInteract");
             secondaryInteract = BasicMouseActionMap.FindAction("SecondaryInteract");
 
-            inputType = InputType.MOUSE;
             Debug.Log(prefix + $" BasicMouseActionMap Enabled");
+
+            if (Keyboard.current != null)
+            {
+                inputType = InputType.MOUSE_AND_KEYBOARD;
+                KeyboardMovementActionMap.Enable();
+                Debug.Log(prefix + $" Keyboard Movement Enabled");
+
+                moveInput = KeyboardMovementActionMap.FindAction("MoveInput");
+
+            }
+            else
+            {
+                inputType = InputType.MOUSE_ONLY;
+            }
+
+
         }
         else if (Gamepad.current != null)
         {
@@ -141,5 +166,10 @@ public class UniversalInputManager : MonoBehaviour
             secondaryInteractionEvent.Invoke(worldPointerPosition);
             //Debug.Log(prefix + $" Invoke SecondaryInteractionEvent {worldPointerPosition})");
         }
+    }
+
+    void InvokeMoveInteractionEvent(Vector2 moveInput)
+    {
+        moveInputEvent.Invoke(moveInput);
     }
 }

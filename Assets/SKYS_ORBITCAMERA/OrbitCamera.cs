@@ -30,9 +30,9 @@ public class OrbitCamera : MonoBehaviour
     public Transform focusTarget;
     [Range(0.1f, 10f)] public float focusSpeed = 2;
 
-    [Space(10), Header("Dolly Target")]
-    public Transform dollyTarget;
-    [Range(0.1f, 10f)] public float dollySpeed = 2;
+    [Space(10), Header("Follow Target")]
+    public Transform followTarget;
+    [Range(0.1f, 10f)] public float followSpeed = 2;
 
     [Space(10), Header("Orbit")]
     [Range(0.1f, 1f)]public float orbitSensitivity = 0.1f;
@@ -62,7 +62,8 @@ public class OrbitCamera : MonoBehaviour
             actionMap.FindAction("PinchStart").performed += context =>_handlePinchZoom = true;
             actionMap.FindAction("PinchStart").canceled += context => _handlePinchZoom = false;
         }
-        else if (_universalInputManager.inputType == UniversalInputManager.InputType.MOUSE)
+        else if (_universalInputManager.inputType == UniversalInputManager.InputType.MOUSE_ONLY 
+            || _universalInputManager.inputType == UniversalInputManager.InputType.MOUSE_AND_KEYBOARD)
         {
             actionMap = orbitCameraInteraction.FindActionMap("Mouse");
             InputAction scrollZoom = actionMap.FindAction("ScrollZoom");
@@ -82,7 +83,7 @@ public class OrbitCamera : MonoBehaviour
         _targetZoomPosition = connectedCamera.transform.localPosition;
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (_handleDragOrbit)
         {
@@ -95,13 +96,13 @@ public class OrbitCamera : MonoBehaviour
             Vector2 touch1Position = actionMap.FindAction("Touch1Position").ReadValue<Vector2>();
             HandlePinch(touch0Position, touch1Position);
         }
-        else if (_universalInputManager.inputType == UniversalInputManager.InputType.MOUSE)
+        else if (_universalInputManager.inputType == UniversalInputManager.InputType.MOUSE_ONLY)
         {
 
         }
 
         // << UPDATE CAM POSITION >>
-        transform.position = Vector3.Slerp(transform.position, dollyTarget.position, dollySpeed * Time.deltaTime);
+        transform.position = Vector3.Slerp(transform.position, followTarget.position, followSpeed * Time.deltaTime);
 
         // << UPDATE CAM ROTATION TO FOCUSTARGET >>
         Quaternion targetQuaternion = Quaternion.Euler(_targetOrbitRotation);
