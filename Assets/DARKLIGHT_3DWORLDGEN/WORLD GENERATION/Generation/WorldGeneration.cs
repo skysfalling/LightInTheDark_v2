@@ -21,9 +21,7 @@ public enum DebugColor { BLACK, WHITE, RED, YELLOW, GREEN, BLUE, CLEAR }
 public enum WorldDirection { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
 public enum WorldSpace { World, Region, Chunk, Cell }
 
-[RequireComponent(typeof(WorldInteractor))]
-[RequireComponent(typeof(WorldStatTracker))]
-[RequireComponent(typeof(WorldMaterialLibrary))]
+[System.Serializable]
 public class WorldGeneration : MonoBehaviour
 {
     static string _seed = "Default Game Seed";

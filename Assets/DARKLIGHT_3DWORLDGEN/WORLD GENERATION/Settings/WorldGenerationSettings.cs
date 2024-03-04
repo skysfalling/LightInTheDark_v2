@@ -1,16 +1,18 @@
+using System;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "WorldGenerationSettings", menuName = "WorldGeneration/Settings", order = 0)]
+
+[Serializable, CreateAssetMenu(fileName = "WorldGenerationSettings", menuName = "WorldGeneration/Settings", order = 0)]
 public class WorldGenerationSettings : ScriptableObject
 {
-    [SerializeField] private string _gameSeed = "Default Game Seed";
-    [SerializeField] private int _cellWidthInWorldSpace = 2;
-    [SerializeField] private int _chunkWidthInCells = 10;
-    [SerializeField] private int _chunkDepthInCells = 10;
-    [SerializeField] private int _playRegionWidthInChunks = 7;
-    [SerializeField] private int _boundaryWallCount = 0;
-    [SerializeField] private int _maxChunkHeight = 25;
-    [SerializeField] private int _worldWidthInRegions = 5;
+    [SerializeField] private string _gameSeed;
+    [SerializeField] private int _cellWidthInWorldSpace;
+    [SerializeField] private int _chunkWidthInCells;
+    [SerializeField] private int _chunkDepthInCells;
+    [SerializeField] private int _playRegionWidthInChunks;
+    [SerializeField] private int _boundaryWallCount;
+    [SerializeField] private int _maxChunkHeight;
+    [SerializeField] private int _worldWidthInRegions;
 
     public string Seed => _gameSeed;
     public int CellWidthInWorldSpace => _cellWidthInWorldSpace;
@@ -20,6 +22,4 @@ public class WorldGenerationSettings : ScriptableObject
     public int BoundaryWallCount => _boundaryWallCount;
     public int MaxChunkHeight => _maxChunkHeight;
     public int WorldWidthInRegions => _worldWidthInRegions;
-
-    // Add methods or logic as needed for your game's specific requirements
 }

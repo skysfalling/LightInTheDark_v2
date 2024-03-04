@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 120f46b0fe239b94383d50e164a3ba76, type: 3}
-  m_Name: Test_1_Settings
+  m_Name: DefaultWorldSettings
   m_EditorClassIdentifier: 
-  _gameSeed: yes this is in fact test 1
+  _gameSeed: Default World
   _cellWidthInWorldSpace: 2
   _chunkWidthInCells: 10
   _chunkDepthInCells: 10
   _playRegionWidthInChunks: 7
   _boundaryWallCount: 0
   _maxChunkHeight: 25
-  _worldWidthInRegions: 2
+  _worldWidthInRegions: 5
