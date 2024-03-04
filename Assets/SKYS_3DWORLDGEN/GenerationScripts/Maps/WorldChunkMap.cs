@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class WorldChunkMap
 {
@@ -17,34 +18,42 @@ public class WorldChunkMap
     {
         this.WorldRegion = worldRegion;
         this.CoordinateMap = coordinateMap;
+
+        // [[ CREATE WORLD CHUNKS ]]
         foreach (Vector2Int position in coordinateMap.allPositions)
         {
             Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
             WorldChunk newChunk = new WorldChunk(this, coordinate);
             _chunks.Add(newChunk);
             _chunkMap[coordinate.Value] = newChunk;
-
-            Coordinate.TYPE type = (Coordinate.TYPE)coordinateMap.GetCoordinateTypeAt(position);
-            switch(type)
-            {
-                case Coordinate.TYPE.EXIT:
-                    // try to make sure that all exits are accessible
-                    int exitMin = Mathf.Abs(WorldGeneration.MaxChunkHeight - WorldGeneration.PlayRegionWidth_inChunks);
-                    int exitMax = Mathf.Abs(WorldGeneration.MaxChunkHeight - 1);
-
-
-                    newChunk.SetGroundHeight(Random.Range(exitMin, exitMax)); break;
-
-                case Coordinate.TYPE.CLOSED:
-                    newChunk.SetGroundHeight(WorldGeneration.MaxChunkHeight); break;
-            }
         }
 
         Initialized = true;
+    }
 
-        // Apply heights
+    public void UpdateMap()
+    {
+        foreach (WorldChunk chunk in _chunks)
+        {
+            Coordinate.TYPE type = (Coordinate.TYPE)CoordinateMap.GetCoordinateTypeAt(chunk.coordinate.Value);
 
-        // Create Chunk Meshes
+            switch (type)
+            {
+                case Coordinate.TYPE.NULL: 
+                    break; // Allow default Perlin Noise
+                case Coordinate.TYPE.CLOSED:
+                    chunk.SetGroundHeight(WorldGeneration.MaxChunkHeight); 
+                    break; // Set to max height
+                default:
+                    chunk.SetGroundHeight(0); // Set to default 0
+                    break;
+            }
+        }
+    }
+
+
+    public void GenerateChunkMeshes()
+    {
         foreach (WorldChunk chunk in _chunks)
         {
             chunk.CreateChunkMesh();

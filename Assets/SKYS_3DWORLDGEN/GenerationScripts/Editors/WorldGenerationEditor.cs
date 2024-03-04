@@ -20,9 +20,6 @@ public class WorldGenerationEditor : Editor
         serializedWorldGen = new SerializedObject(target);
         WorldGeneration.InitializeRandomSeed();
 
-        WorldGeneration worldGen = (WorldGeneration)target;
-        worldGen.Reset();
-
     }
 
     public override void OnInspectorGUI()
@@ -134,7 +131,7 @@ public class WorldGenerationEditor : Editor
 
         DarklightGizmos.DrawWireSquare_withLabel("World Generation Size", worldGen.centerPosition_inWorldSpace, WorldGeneration.GetWorldWidth_inWorldSpace(), Color.black, labelStyle);
         
-        if (worldGen.initialized)
+        if (worldGen.Initialized)
         {
             DarklightGizmos.DrawWireSquare_withLabel("Origin Region", worldGen.originPosition_inWorldSpace, WorldGeneration.GetChunkWidth_inWorldSpace(), Color.red, labelStyle);
         }
@@ -143,14 +140,14 @@ public class WorldGenerationEditor : Editor
         DarklightGizmos.DrawWireSquare_withLabel("World Cell Size", worldGen.centerPosition_inWorldSpace, WorldGeneration.CellWidth_inWorldSpace, Color.black, labelStyle);
 
 
-        if (worldGen.initialized && worldGen.worldRegions.Count > 0)
+        if (worldGen.Initialized && worldGen.worldRegions.Count > 0)
         {
             foreach (WorldRegion region in worldGen.worldRegions)
             {
 
                 List<Coordinate> regionNeighbors = region.coordinate.GetAllValidNeighbors();
 
-                if (region != null && region.IsInitialized())
+                if (region != null && region.Initialized)
                 {
                     DarklightGizmos.DrawWireSquare_withLabel($"World Region {region.localCoordinatePosition}" +
                         $"\n neighbors : {regionNeighbors.Count}", region.centerPosition_inWorldSpace, WorldGeneration.GetFullRegionWidth_inWorldSpace(), Color.blue, labelStyle);

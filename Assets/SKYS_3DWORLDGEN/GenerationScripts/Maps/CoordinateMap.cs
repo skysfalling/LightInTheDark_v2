@@ -106,7 +106,7 @@ public class CoordinateMap
     Dictionary<MapBorder, HashSet<Vector2Int>> _borderPositionsMap = new(); // Enum , Sorted List of Border Coordinates
     Dictionary<MapBorder, HashSet<Vector2Int>> _borderExitMap = new();
     Dictionary<MapBorder, Vector2Int[]> _borderIndexMap = new();
-
+    Dictionary<MapBorder, (Vector2Int, Vector2Int)> _borderCornersMap = new Dictionary<MapBorder, (Vector2Int, Vector2Int)>();
     // >> public access lists
     public int maxCoordinateValue { get; private set; } = 0;
     public List<Vector2Int> allPositions { get { return _positions.ToList(); } }
@@ -272,19 +272,26 @@ public class CoordinateMap
 
         // >> store coordinate range
         Vector2Int playableMapRange = new Vector2Int(borderOffset, coordMax - (borderOffset + 1));
-        HashSet<Vector2Int> cornerCoordinates = new HashSet<Vector2Int>() {
-            new Vector2Int(playableMapRange.x, playableMapRange.x), // 0 0
-            new Vector2Int(playableMapRange.y, playableMapRange.y), // max max
-            new Vector2Int(playableMapRange.x, playableMapRange.y), // 0 max
-            new Vector2Int(playableMapRange.y, playableMapRange.x)  // max 0
+
+        // >> store border corners
+        List<Vector2Int> cornerCoordinates = new List<Vector2Int>() {
+            new Vector2Int(playableMapRange.x, playableMapRange.x), // 0 0 { SOUTH WEST }
+            new Vector2Int(playableMapRange.y, playableMapRange.y), // max max { NORTH EAST }
+            new Vector2Int(playableMapRange.x, playableMapRange.y), // 0 max { NORTH WEST }
+            new Vector2Int(playableMapRange.y, playableMapRange.x)  // max 0 { SOUTH EAST }
             };
+        _borderCornersMap[MapBorder.NORTH] = (cornerCoordinates[2], cornerCoordinates[1]); // NW, NE
+        _borderCornersMap[MapBorder.SOUTH] = (cornerCoordinates[0], cornerCoordinates[3]); // SW, SE
+        _borderCornersMap[MapBorder.EAST] = (cornerCoordinates[1], cornerCoordinates[3]); // NE, SE
+        _borderCornersMap[MapBorder.WEST] = (cornerCoordinates[0], cornerCoordinates[2]); // SW, NW
 
         // >> iterate through positions
         foreach (Vector2Int pos in _positions)
         {
-            if (cornerCoordinates.Contains(pos) || pos.x < playableMapRange.x || pos.x > playableMapRange.y || pos.y < playableMapRange.x || pos.y > playableMapRange.y)
+            if (cornerCoordinates.Contains(pos) || // is corner
+                (pos.x < playableMapRange.x || pos.x > playableMapRange.y || pos.y < playableMapRange.x || pos.y > playableMapRange.y)) // or is outside bounds
             {
-                // Set Type to Closed
+                // Set Corners to Closed
                 SetCoordinateToType(pos, Coordinate.TYPE.CLOSED);
             }
             else if (pos.x == playableMapRange.x || pos.x == playableMapRange.y || pos.y == playableMapRange.x || pos.y == playableMapRange.y)
@@ -342,7 +349,7 @@ public class CoordinateMap
         switch (newType)
         {
             case Coordinate.TYPE.CLOSED: coordinate.debugColor = Color.black; break;
-            case Coordinate.TYPE.BORDER: coordinate.debugColor = Color.black; break;
+            case Coordinate.TYPE.BORDER: coordinate.debugColor = Color.magenta; break;
             case Coordinate.TYPE.NULL: coordinate.debugColor = Color.grey; break;
             case Coordinate.TYPE.EXIT: coordinate.debugColor = Color.red; break;
             case Coordinate.TYPE.PATH: coordinate.debugColor = Color.white; break;
@@ -392,20 +399,18 @@ public class CoordinateMap
         }
     }
 
-    public void NullifyMapBorder(MapBorder mapBorder)
-    {
-        // Destroy that border >:#!! 
-        List<Vector2Int> positions = _borderPositionsMap[mapBorder].ToList();
-
-        SetCoordinatesToType(positions, Coordinate.TYPE.NULL);
-    }
-
     public void CloseMapBorder(MapBorder mapBorder)
     {
         // Destroy that border >:#!! 
         List<Vector2Int> positions = _borderPositionsMap[mapBorder].ToList();
 
         SetCoordinatesToType(positions, Coordinate.TYPE.CLOSED);
+
+        // Retrieve and nullify corners for the specific border
+        if (_borderCornersMap.TryGetValue(mapBorder, out var corners))
+        {
+            SetCoordinatesToType(new List<Vector2Int> { corners.Item1, corners.Item2 }, Coordinate.TYPE.CLOSED);
+        }
     }
 
     // == [[ WORLD EXITS ]] ======================================================================== >>>>

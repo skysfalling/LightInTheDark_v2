@@ -44,20 +44,20 @@ public class WorldGeneration : MonoBehaviour
 
     // STATIC GENERATION DIMENSIONS ==================================== ///
     // >>>> WorldCell { in Unity Worldspace Units }
-    public static int CellWidth_inWorldSpace = 4; // Size of each WorldCell 
+    public static int CellWidth_inWorldSpace = 2; // Size of each WorldCell 
 
     // >>>> WorldChunk { in WorldCell Units }
     public static int ChunkWidth_inCells = 10; 
-    public static int ChunkDepth_inCells = 5;
+    public static int ChunkDepth_inCells = 10;
     public static Vector3Int GetChunkVec3Dimensions_inCells() { return new Vector3Int(ChunkWidth_inCells, ChunkDepth_inCells, ChunkWidth_inCells); }
     public static Vector3Int GetChunkVec3Dimensions_inWorldSpace() { return new Vector3Int(ChunkWidth_inCells, ChunkDepth_inCells, ChunkWidth_inCells) * CellWidth_inWorldSpace; }
     public static int GetChunkWidth_inWorldSpace() { return ChunkWidth_inCells * CellWidth_inWorldSpace; }
 
 
     // >>>> WorldRegion { in WorldChunk Units }
-    public static int PlayRegionWidth_inChunks = 5; // in World Chunks
+    public static int PlayRegionWidth_inChunks = 7; // in World Chunks
     public static int BoundaryWallCount = 0; // Boundary offset value 
-    public static int MaxChunkHeight = 10; // Maximum chunk height
+    public static int MaxChunkHeight = 25; // Maximum chunk height
     public static int GetPlayRegionWidth_inCells() { return PlayRegionWidth_inChunks * ChunkWidth_inCells; }
     public static int GetFullRegionWidth_inChunks() { return PlayRegionWidth_inChunks + (BoundaryWallCount * 2); } // Include BoundaryOffset on both sides
     public static int GetFullRegionWidth_inCells() { return GetFullRegionWidth_inChunks() * ChunkWidth_inCells; }
@@ -65,7 +65,7 @@ public class WorldGeneration : MonoBehaviour
 
 
     // >>>> WorldGeneration { in WorldRegion Units }
-    public static int WorldWidth_inRegions = 3; // in World Regions
+    public static int WorldWidth_inRegions = 5; // in World Regions
     public static int GetWorldWidth_inCells() { return WorldWidth_inRegions * GetFullRegionWidth_inChunks() * ChunkWidth_inCells; }
     public static int GetWorldWidth_inWorldSpace() { return GetWorldWidth_inCells() * CellWidth_inWorldSpace; }
     #endregion ========================================================
@@ -73,9 +73,9 @@ public class WorldGeneration : MonoBehaviour
     string _prefix = "[ WORLD GENERATION ] ";
     GameObject _worldGenerationObject;
     GameObject _worldBorderObject;
-    Coroutine _worldGenerationRoutine;
+    Coroutine _generationSequence;
 
-    public bool initialized { get; private set; }
+    public bool Initialized { get; private set; }
     public string gameSeed = GameSeed; // inspector value ( updated by custom editor )
 
     public CoordinateMap coordinateRegionMap;
@@ -87,6 +87,7 @@ public class WorldGeneration : MonoBehaviour
     public List<WorldRegion> worldRegions = new List<WorldRegion>();
     public Dictionary<Vector2Int, WorldRegion> regionMap { get; private set; } = new();
 
+    #region == INITIALIZE ====================================== >>>>
     public void Initialize()
     {
         // >> center of the world location in the unity scene
@@ -108,6 +109,15 @@ public class WorldGeneration : MonoBehaviour
         worldRegions = new();
         InitializeRandomSeed();
 
+        StartCoroutine(InitializationSequence());
+    }
+
+    public IEnumerator InitializationSequence()
+    {
+
+        float stage_delay = 0.1f;
+        float startTime = Time.time; // Capture the start time of the initialization
+
         // >> create a region at each coordinate
         Debug.Log($"{_prefix} Begin Initialization => Creating {coordinateRegionMap.allCoordinates.Count} Regions");
         for (int i = 0; i < coordinateRegionMap.allCoordinates.Count; i++)
@@ -118,21 +128,16 @@ public class WorldGeneration : MonoBehaviour
             GameObject regionObject = new GameObject($"New Region ({regionCoordinate.Value})");
             WorldRegion region = regionObject.AddComponent<WorldRegion>();
             region.Initialize(this, regionCoordinate);
-
             regionObject.transform.parent = this.transform;
 
             worldRegions.Add(region);
             regionMap[regionCoordinate.Value] = region;
+
+            yield return new WaitUntil(() => region.Initialized);
+
         }
-
-        StartCoroutine(InitializationSequence());
-    }
-
-    public IEnumerator InitializationSequence()
-    {
-
-        float stage_delay = 0.1f;
-        float startTime = Time.time; // Capture the start time of the initialization
+        yield return new WaitForSeconds(stage_delay);
+        Debug.Log($"Stage 0: Region Initialization {Time.time - startTime} seconds.");
 
         // Grouped operations: Initial exits generation
         foreach (var region in worldRegions)
@@ -158,20 +163,26 @@ public class WorldGeneration : MonoBehaviour
         {
             region.coordinateMap.GenerateRandomZones(1, 3); // Zone generation
 
+            region.worldChunkMap.UpdateMap(); // update chunk map to match coordinate type values
+
+
             // Assign heights to paths and zones together
+            /*
             foreach (WorldPath path in region.coordinateMap.worldPaths)
             {
                 region.worldChunkMap.SetChunksToHeightFromPath(path);
             }
+
             foreach (WorldZone zone in region.coordinateMap.worldZones)
             {
                 region.worldChunkMap.SetChunksToHeightFromPositions(zone.positions, zone.zoneHeight);
             }
+            */
         }
         yield return new WaitForSeconds(stage_delay);
         Debug.Log($"Stage 3: Zone Generation and Height Assignments completed in {Time.time - startTime} seconds.");
 
-        initialized = true;
+        Initialized = true;
         Debug.Log($"Total Initialization Time: {Time.time - startTime} seconds.");
     }
 
@@ -184,143 +195,40 @@ public class WorldGeneration : MonoBehaviour
         worldRegions.Clear();
         this.coordinateRegionMap = null;
 
-        initialized = false;
+        Initialized = false;
     }
 
-    public Material GetChunkMaterial()
-    {
-        return GetComponent<WorldMaterialLibrary>().chunkMaterial;
-    }
 
-    #region == INITIALIZE ======
+    #endregion ============================================================ ////
+
     public void StartGeneration()
     {
-        foreach(WorldRegion region in worldRegions)
+        if (_generationSequence == null)
         {
-            region.CreateChunkMeshObjects();
+            _generationSequence = StartCoroutine(GenerationSequence());
         }
     }
 
-    #endregion
-
-    /*
-    #region == GENERATE CHUNKS ================================================ ///
-    IEnumerator GenerateRegionChunks(float delay = 0.25f)
+    public IEnumerator GenerationSequence()
     {
-        generation_finished = false;
-        if (_worldGenerationObject != null) { Reset(); }
+        yield return new WaitUntil(() => Initialized); // wait until self initialization
 
-        //CoordinateMap worldCoordMap = FindObjectOfType<CoordinateMap>();
-
-        float startTime = Time.realtimeSinceStartup;
-        Debug.Log($"WORLD GENERATION :: START GENERATION");
-
-        // [[ STAGE 0 ]] ==> INITIALIZE MAPS
-        
-        if (!CoordinateMap.coordMapInitialized || !WorldChunkMap.chunkMapInitialized)
+        foreach (WorldRegion region in worldRegions)
         {
-            //FindObjectOfType<WorldRegionMap>().UpdateRegionMap();
+            region.worldChunkMap.GenerateChunkMeshes();
         }
-        yield return new WaitUntil(() => CoordinateMap.coordMapInitialized);
-        yield return new WaitUntil(() => WorldChunkMap.chunkMapInitialized);
 
-        float stage0Time = Time.realtimeSinceStartup - startTime;
-        Debug.Log($"WORLD GENERATION :: MAPS INITIALIZED :: Stage Duration {stage0Time}");
 
-        // [[ STAGE 1 ]] ==> INITIALIZE ZONES
-        yield return new WaitUntil(() => CoordinateMap.zonesInitialized);
-        float stage1Time = Time.realtimeSinceStartup - stage0Time;
-        Debug.Log($"WORLD GENERATION :: ZONES INITIALIZED :: Stage Duration {stage1Time}");
-
-        // [[ STAGE 2 ]] ==> INITIALIZE PATHS
-        yield return new WaitUntil(() => CoordinateMap.exitPathsInitialized);
-        float stage2Time = Time.realtimeSinceStartup - stage1Time;
-        Debug.Log($"WORLD GENERATION :: PATHS INITIALIZED :: Stage Duration {stage2Time}");
-        
-
-        // [[ STAGE 3 ]] ==> INITIALIZE CHUNKS
-        foreach (WorldChunk chunk in WorldChunkMap._chunkList)
+        foreach (WorldRegion region in worldRegions)
         {
-            yield return new WaitUntil(() => chunk.generation_finished);
-
-            CreateMeshObject($"Chunk {chunk.coordinate} :: height {chunk.groundHeight}",
-                chunk.chunkMesh.mesh, WorldMaterialLibrary.Instance.chunkMaterial);
+            region.CreateCombinedChunkMesh();
         }
-        //float stage3Time = Time.realtimeSinceStartup - stage2Time;
-        //Debug.Log($"WORLD GENERATION :: CHUNK MESH CREATED :: Stage Duration {stage2Time}" +
-            //$"\n -> {WorldChunkMap.ChunkList.Count} CHUNKS");
 
-        // [[ GENERATE COMBINED MESHES ]] ========================================== >>
-        
-        // Create Combined Mesh of world chunks
-        Mesh combinedMesh = CombineChunks(WorldChunkMap.ChunkList);
-        _worldGenerationObject = CreateCombinedMeshObject(combinedMesh, WorldMaterialLibrary.Instance.chunkMaterial);
-        _worldGenerationObject.transform.parent = transform;
-        _worldGenerationObject.name = "(WORLD GENERATION) Combined Ground Mesh";
-        MeshCollider collider = _worldGenerationObject.AddComponent<MeshCollider>();
-        collider.sharedMesh = combinedMesh;
-
-    // Create Combined Mesh
-    Mesh combinedBorderMesh = CombineChunks(_borderChunks);
-    _worldBorderObject = CreateCombinedMeshObject(combinedBorderMesh, WorldMaterialLibrary.chunkMaterial);
-    _worldBorderObject.transform.parent = transform;
-    _worldBorderObject.name = "(WORLD GENERATION) Combined Ground Border";  
-
-
-    generation_finished = true;
-        _worldGenerationRoutine = null;
+        _generationSequence = null;
     }
-    #endregion
-    */
 
-    #region == CREATE COMBINED CHUNK MESH ==============================================
-    /// <summary>
-    /// Combines multiple Mesh objects into a single mesh. This is useful for optimizing rendering by reducing draw calls.
-    /// </summary>
-    /// <param name="meshes">A List of Mesh objects to be combined.</param>
-    /// <returns>A single combined Mesh object.</returns>
-    Mesh CombineChunks(List<WorldChunk> chunks)
-    {
-        // Get Meshes from chunks
-        List<Mesh> meshes = new List<Mesh>();
-        foreach (WorldChunk chunk in chunks)
-        {
-            meshes.Add(chunk.chunkMesh.mesh);
-        }
+    #region == WORLD GENERATION ============================================== >>>>
 
-        List<Vector3> newVertices = new List<Vector3>();
-        List<int> newTriangles = new List<int>();
-        List<Vector2> newUVs = new List<Vector2>(); // Add a list for the new UVs
-
-        int vertexOffset = 0; // Keep track of the vertex offset
-
-        foreach (Mesh mesh in meshes)
-        {
-            newVertices.AddRange(mesh.vertices); // Add all vertices
-
-            // Add all UVs from the current mesh
-            newUVs.AddRange(mesh.uv);
-
-            // Add the triangles, adjusted by the current vertex offset
-            foreach (var tri in mesh.triangles)
-            {
-                newTriangles.Add(tri + vertexOffset);
-            }
-
-            // Update the vertex offset for the next mesh
-            vertexOffset += mesh.vertexCount;
-        }
-
-        Mesh combinedMesh = new Mesh();
-        combinedMesh.vertices = newVertices.ToArray();
-        combinedMesh.triangles = newTriangles.ToArray();
-        combinedMesh.uv = newUVs.ToArray(); // Set the combined UVs
-
-        combinedMesh.RecalculateBounds();
-        combinedMesh.RecalculateNormals();
-
-        return combinedMesh;
-    }
 
     public static GameObject CreateMeshObject(string name, Mesh mesh, Material material)
     {
@@ -355,5 +263,10 @@ public class WorldGeneration : MonoBehaviour
         }
     }
     #endregion
+
+    public Material GetChunkMaterial()
+    {
+        return GetComponent<WorldMaterialLibrary>().chunkMaterial;
+    }
 
 }

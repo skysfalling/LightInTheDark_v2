@@ -7,8 +7,7 @@ using UnityEngine;
 public class WorldRegion : MonoBehaviour
 {
     // >>>> Init
-    private bool _initialized = false;
-    public bool IsInitialized() { return _initialized; }
+    public bool Initialized { get; private set; }
 
     // >>>> World Size
     private int _worldWidth_inRegions = WorldGeneration.WorldWidth_inRegions;
@@ -27,16 +26,19 @@ public class WorldRegion : MonoBehaviour
     // >>>> Region Height
     private int _regionMaxGroundHeight = WorldGeneration.MaxChunkHeight;
 
-    // PUBLIC VARIABLES
-    public WorldGeneration worldGeneration;
-    public CoordinateMap coordinateMap;
-    public Coordinate coordinate;
-    public WorldChunkMap worldChunkMap;
+    // >>>> Combined Chunk Mesh
+    private GameObject combinedChunkMeshObject;
 
-    public Vector2Int localCoordinatePosition;
-    public Vector3 centerPosition_inWorldSpace;
-    public Vector3 originPosition_inWorldSpace;
+    // PUBLIC REFERENCE VARIABLES
+    public WorldGeneration worldGeneration { get; private set; }
+    public CoordinateMap coordinateMap { get; private set; }
+    public Coordinate coordinate { get; private set; }
+    public WorldChunkMap worldChunkMap { get; private set; }
+    public Vector2Int localCoordinatePosition { get; private set; }
+    public Vector3 centerPosition_inWorldSpace { get; private set; }
+    public Vector3 originPosition_inWorldSpace { get; private set; }
 
+    // PUBLIC INSPECTOR VARIABLES
     public Material defaultMaterial;
 
     public void Initialize(WorldGeneration worldGeneration, Coordinate regionCoordinate)
@@ -75,7 +77,11 @@ public class WorldRegion : MonoBehaviour
         this.worldChunkMap = new WorldChunkMap(this, this.coordinateMap);
         yield return new WaitUntil(() => this.worldChunkMap.Initialized);
 
-        _initialized = true;
+        this.worldChunkMap.UpdateMap();
+
+        Initialized = true;
+        //Debug.Log($">>>> REGION {localCoordinatePosition} Initialized");
+
     }
 
     public void GenerateNecessaryExits(bool createExits)
@@ -141,17 +147,85 @@ public class WorldRegion : MonoBehaviour
         WorldGeneration.DestroyGameObject(this.gameObject);
     }
 
+    public void NewSeedGeneration()
+    {
+        WorldGeneration.InitializeRandomSeed();
+        coordinateMap = new CoordinateMap(this);
+        coordinateMap.GenerateRandomExits();
+        coordinateMap.GeneratePathsBetweenExits();
+        coordinateMap.GenerateRandomZones(1, 3);
+    }
+
+    public void ResetCoordinateMap()
+    {
+        coordinateMap = new CoordinateMap(this);
+    }
+
     public void ResetChunkMap()
     {
         this.worldChunkMap = new WorldChunkMap(this, this.coordinateMap);
     }
 
-    public void CreateChunkMeshObjects()
+
+    // [[ GENERATE COMBINED MESHES ]] ========================================== >>
+    /// <summary>
+    /// Combines multiple Mesh objects into a single mesh. This is useful for optimizing rendering by reducing draw calls.
+    /// </summary>
+    /// <param name="meshes">A List of Mesh objects to be combined.</param>
+    /// <returns>A single combined Mesh object.</returns>
+    Mesh CombineChunks(List<WorldChunk> chunks)
     {
-        ResetChunkMap();
-        foreach (WorldChunk chunk in worldChunkMap.AllChunks)
+        // Get Meshes from chunks
+        List<Mesh> meshes = new List<Mesh>();
+        foreach (WorldChunk chunk in chunks)
         {
-            chunk.CreateChunkMeshObject(this);
+            meshes.Add(chunk.chunkMesh.mesh);
         }
+
+        List<Vector3> newVertices = new List<Vector3>();
+        List<int> newTriangles = new List<int>();
+        List<Vector2> newUVs = new List<Vector2>(); // Add a list for the new UVs
+
+        int vertexOffset = 0; // Keep track of the vertex offset
+
+        foreach (Mesh mesh in meshes)
+        {
+            newVertices.AddRange(mesh.vertices); // Add all vertices
+
+            // Add all UVs from the current mesh
+            newUVs.AddRange(mesh.uv);
+
+            // Add the triangles, adjusted by the current vertex offset
+            foreach (var tri in mesh.triangles)
+            {
+                newTriangles.Add(tri + vertexOffset);
+            }
+
+            // Update the vertex offset for the next mesh
+            vertexOffset += mesh.vertexCount;
+        }
+
+        Mesh combinedMesh = new Mesh();
+        combinedMesh.vertices = newVertices.ToArray();
+        combinedMesh.triangles = newTriangles.ToArray();
+        combinedMesh.uv = newUVs.ToArray(); // Set the combined UVs
+
+        combinedMesh.RecalculateBounds();
+        combinedMesh.RecalculateNormals();
+
+        return combinedMesh;
+    }
+
+
+    public void CreateCombinedChunkMesh()
+    {
+        this.worldChunkMap.UpdateMap();
+
+        // Create Combined Mesh of world chunks
+        Mesh combinedMesh = CombineChunks(this.worldChunkMap.AllChunks.ToList());
+        this.combinedChunkMeshObject = WorldGeneration.CreateMeshObject($"CombinedChunkMesh", combinedMesh, worldGeneration.GetChunkMaterial());
+        this.combinedChunkMeshObject.transform.parent = this.transform;
+        MeshCollider collider = combinedChunkMeshObject.AddComponent<MeshCollider>();
+        collider.sharedMesh = combinedMesh;
     }
 }

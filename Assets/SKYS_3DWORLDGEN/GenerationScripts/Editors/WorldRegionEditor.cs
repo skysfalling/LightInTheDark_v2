@@ -104,7 +104,7 @@ public class WorldRegionEditor : Editor
         EditorGUILayout.LabelField("Region Coordinate:", region.localCoordinatePosition.ToString());
         EditorGUILayout.LabelField("Center Position:", region.centerPosition_inWorldSpace.ToString());
         EditorGUILayout.LabelField("Origin Coordinate Position:", region.originPosition_inWorldSpace.ToString());
-        EditorGUILayout.LabelField("Region Initialized:", region.IsInitialized().ToString());
+        EditorGUILayout.LabelField("Region Initialized:", region.Initialized.ToString());
 
         // >> default material
         EditorGUILayout.PropertyField(defaultMaterialProperty); // Show the material field in the inspector
@@ -141,26 +141,14 @@ public class WorldRegionEditor : Editor
         // >> generation
         if (GUILayout.Button("Seed Generation"))
         {
-            WorldGeneration.InitializeRandomSeed();
-            region.coordinateMap = new CoordinateMap(region);
-            region.coordinateMap.GenerateRandomExits();
-            region.coordinateMap.GeneratePathsBetweenExits();
-            region.coordinateMap.GenerateRandomZones(1, 3);
+            region.NewSeedGeneration();
         }
 
         // >> reset button
         if (GUILayout.Button("Reset Coordinate Map"))
         {
-            region.coordinateMap = new CoordinateMap(region);
+            region.ResetCoordinateMap();
         }
-
-        // >> generate necessary exits
-        /*
-        if (GUILayout.Button("Generate Necessary Exits"))
-        {
-            region.GenerateNecessaryExits();
-        }
-        */
 
         // >> select debug view
         EditorGUILayout.BeginVertical();
@@ -296,9 +284,9 @@ public class WorldRegionEditor : Editor
         // >> initialize button
         if (region.worldChunkMap != null)
         {
-            if (GUILayout.Button("Create Chunk Mesh Objects"))
+            if (GUILayout.Button("Create Combined Chunk Mesh"))
             {
-                region.CreateChunkMeshObjects();
+                region.CreateCombinedChunkMesh();
             }
 
             if (GUILayout.Button("Reset Chunk Map"))
