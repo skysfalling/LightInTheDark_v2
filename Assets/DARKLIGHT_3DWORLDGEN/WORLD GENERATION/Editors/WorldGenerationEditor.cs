@@ -31,52 +31,56 @@ public class WorldGenerationEditor : Editor
             alignment = TextAnchor.MiddleCenter
         };
 
-        #region GENERATION PARAMETERS ===========================================
-        // Store the current state to check for changes later
         EditorGUI.BeginChangeCheck();
 
-        SerializedProperty gameSeedProperty = serializedWorldGen.FindProperty("gameSeed");
-        EditorGUILayout.PropertyField(gameSeedProperty);
-        EditorGUILayout.LabelField("Encoded Seed", WorldGeneration.CurrentSeed.ToString());
-        EditorGUILayout.LabelField("============///");
-
-
-        // [[ WORLD GENERATION PARAMETER EDITOR ]]
-
-        /*
-        EditorGUILayout.BeginHorizontal();
-        GUILayout.FlexibleSpace();
-        EditorGUILayout.BeginVertical();
-
-        EditorGUILayout.LabelField("World Generation", DarklightEditor.TitleHeaderStyle);
+        EditorGUILayout.LabelField("Generation Seed", DarklightEditor.Header2Style);
         EditorGUILayout.Space(20);
-        DarklightEditor.CreateIntegerControl("World Width In Regions", WorldGeneration.WorldWidth_inRegions, 1, 16, WorldGeneration.WorldWidth_inRegions);
 
 
-        EditorGUILayout.LabelField("World Region", DarklightEditor.Header2Style);
-        EditorGUILayout.Space(20);
-        DarklightEditor.CreateIntegerControl("Playable Area In Chunks", WorldGeneration.PlayRegionWidth_inChunks, 1, 16, WorldGeneration.PlayRegionWidth_inChunks);
-        DarklightEditor.CreateIntegerControl("Boundary Wall Count", WorldGeneration.BoundaryWallCount, 0, 3, WorldGeneration.BoundaryWallCount);
 
-        EditorGUILayout.LabelField("World Chunk", DarklightEditor.Header2Style);
-        EditorGUILayout.Space(20);
-        DarklightEditor.CreateIntegerControl("Chunk Width in Cells", WorldGeneration.ChunkWidth_inCells, 1, 16, WorldGeneration.ChunkWidth_inCells);
-        DarklightEditor.CreateIntegerControl("Chunk Depth in Cells", WorldGeneration.ChunkDepth_inCells, 1, 16, WorldGeneration.ChunkDepth_inCells);
-        DarklightEditor.CreateIntegerControl("Max Ground Height", WorldGeneration.MaxChunkHeight, 4, 32, WorldGeneration.MaxChunkHeight);
 
-        EditorGUILayout.LabelField("World Cell", DarklightEditor.Header2Style);
-        EditorGUILayout.Space(20);
-        DarklightEditor.CreateIntegerControl("Cell Size", WorldGeneration.CellWidth_inWorldSpace, 1, 16, WorldGeneration.CellWidth_inWorldSpace);
+        EditorGUILayout.Space(40);
 
-        EditorGUILayout.EndVertical();
 
-        GUILayout.FlexibleSpace();
-        EditorGUILayout.EndHorizontal();
-        */
-
-        #endregion
-
+        // ----------------------------------------------------------------
+        // WORLD GENERATION SETTINGS
+        // ----------------------------------------------------------------
         WorldGeneration worldGen = (WorldGeneration)target;
+        EditorGUILayout.LabelField("Generation Settings", DarklightEditor.Header2Style);
+        EditorGUILayout.Space(20);
+        SerializedProperty worldSettings = serializedWorldGen.FindProperty("worldSettings");
+        EditorGUILayout.PropertyField(worldSettings);
+
+        // Add a custom UI for the WorldGenerationSettings
+        WorldGenerationSettings settings = worldGen.worldSettings;
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("World Generation Parameters", EditorStyles.boldLabel);
+
+        DarklightEditor.CreateSettingsLabel("Seed", WorldGeneration.Seed);
+        DarklightEditor.CreateSettingsLabel("Cell Width In World Space", $"{WorldGeneration.CellWidth_inWorldSpace}");
+        DarklightEditor.CreateSettingsLabel("Chunk Width In Cells", $"{WorldGeneration.ChunkWidth_inCells}");
+        DarklightEditor.CreateSettingsLabel("Chunk Depth In Cells", $"{WorldGeneration.ChunkDepth_inCells}");
+        DarklightEditor.CreateSettingsLabel("Play Region Width In Chunks", $"{WorldGeneration.PlayRegionWidth_inChunks}");
+        DarklightEditor.CreateSettingsLabel("Boundary Wall Count", $"{WorldGeneration.BoundaryWallCount}");
+        DarklightEditor.CreateSettingsLabel("Max Chunk Height", $"{WorldGeneration.MaxChunkHeight}");
+        DarklightEditor.CreateSettingsLabel("World Width In Regions", $"{WorldGeneration.WorldWidth_inRegions}");
+
+        EditorGUILayout.Space();
+
+        // Ensure the settings are saved if modified
+        if (GUI.changed)
+        {
+            EditorUtility.SetDirty(settings);
+        }
+
+        if (worldGen.worldSettings != null)
+        {
+            if (GUILayout.Button("Load Settings"))
+            {
+                WorldGeneration.LoadWorldGenerationSettings(worldGen.worldSettings);
+            }
+        }
 
         if (worldGen.worldRegions.Count == 0)
         {
@@ -114,8 +118,6 @@ public class WorldGenerationEditor : Editor
         {
             // If there were changes, apply them to the serialized object
             serializedWorldGen.ApplyModifiedProperties();
-
-            WorldGeneration.InitializeRandomSeed(gameSeedProperty.stringValue);
 
             // Optionally, mark the target object as dirty to ensure the changes are saved
             EditorUtility.SetDirty(target);

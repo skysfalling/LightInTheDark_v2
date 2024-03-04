@@ -26,7 +26,7 @@ public enum WorldSpace { World, Region, Chunk, Cell }
 [RequireComponent(typeof(WorldMaterialLibrary))]
 public class WorldGeneration : MonoBehaviour
 {
-    static string _gameSeed = "Default Game Seed";
+    static string _seed = "Default Game Seed";
     static int _cellWidthInWorldSpace = 2;
     static int _chunkWidthInCells = 10;
     static int _chunkDepthInCells = 10;
@@ -35,21 +35,43 @@ public class WorldGeneration : MonoBehaviour
     static int _maxChunkHeight = 25;
     static int _worldWidthInRegions = 5;
 
+    public WorldGenerationSettings worldSettings;
 
+    public static void LoadWorldGenerationSettings(WorldGenerationSettings worldSettings)
+    {
+        if (worldSettings == null)
+        {
+            Debug.LogError("WorldGenerationSettings ScriptableObject is not assigned.");
+            return;
+        }
+
+        // Load settings from the ScriptableObject
+        _seed = worldSettings.Seed;
+        _cellWidthInWorldSpace = worldSettings.CellWidthInWorldSpace;
+        _chunkWidthInCells = worldSettings.ChunkWidthInCells;
+        _chunkDepthInCells = worldSettings.ChunkDepthInCells;
+        _playRegionWidthInChunks = worldSettings.PlayRegionWidthInChunks;
+        _boundaryWallCount = worldSettings.BoundaryWallCount;
+        _maxChunkHeight = worldSettings.MaxChunkHeight;
+        _worldWidthInRegions = worldSettings.WorldWidthInRegions;
+
+        Debug.Log($"LoadWorldGenerationSettings with seed {_seed}");
+    }
 
     #region [[ STATIC VARIABLES ]] ======================================================================
     // STATIC GENERATION VALUES ========================================================= ///
-    public static int CurrentSeed { get { return _gameSeed.GetHashCode(); }}
-    public static void InitializeRandomSeed(string newGameSeed = "")
+    public static string Seed { get { return _seed; } }
+    public static int EncodedSeed { get { return _seed.GetHashCode(); }}
+    public static void InitializeRandomSeed(string newSeed = "")
     {
 
-        if (newGameSeed != "" && newGameSeed != _gameSeed)
+        if (newSeed != "" && newSeed != _seed)
         {
-            _gameSeed = newGameSeed;
-            Debug.Log($"Initialize Random Seed to => {_gameSeed} :: {CurrentSeed}");
+            _seed = newSeed;
+            Debug.Log($"Initialize Random Seed to => {_seed} :: {EncodedSeed}");
         }
 
-        UnityEngine.Random.InitState(CurrentSeed);
+        UnityEngine.Random.InitState(EncodedSeed);
     }
 
     // STATIC GENERATION DIMENSIONS ==================================== ///
@@ -86,16 +108,29 @@ public class WorldGeneration : MonoBehaviour
     Coroutine _generationSequence;
 
     public bool Initialized { get; private set; }
-    public string gameSeed = _gameSeed; // inspector value ( updated by custom editor )
-
-    public CoordinateMap coordinateRegionMap;
-
-
+    public CoordinateMap coordinateRegionMap { get; private set; }
     public Vector2Int worldPosition { get; private set; }
     public Vector3 centerPosition_inWorldSpace { get; private set; }
     public Vector3 originPosition_inWorldSpace { get; private set; }
     public List<WorldRegion> worldRegions = new List<WorldRegion>();
     public Dictionary<Vector2Int, WorldRegion> regionMap { get; private set; } = new();
+
+    public void Awake()
+    {
+        LoadWorldGenerationSettings(worldSettings);
+    }
+
+    public void Reset()
+    {
+        for (int i = 0; i < worldRegions.Count; i++)
+        {
+            worldRegions[i].Destroy();
+        }
+        worldRegions.Clear();
+        this.coordinateRegionMap = null;
+
+        Initialized = false;
+    }
 
     #region == INITIALIZE ====================================== >>>>
     public void Initialize()
@@ -195,20 +230,6 @@ public class WorldGeneration : MonoBehaviour
         Initialized = true;
         Debug.Log($"Total Initialization Time: {Time.time - startTime} seconds.");
     }
-
-    public void Reset()
-    {
-        for (int i = 0; i < worldRegions.Count; i++)
-        {
-            worldRegions[i].Destroy();
-        }
-        worldRegions.Clear();
-        this.coordinateRegionMap = null;
-
-        Initialized = false;
-    }
-
-
     #endregion ============================================================ ////
 
     public void StartGeneration()
@@ -238,8 +259,6 @@ public class WorldGeneration : MonoBehaviour
     }
 
     #region == WORLD GENERATION ============================================== >>>>
-
-
     public static GameObject CreateMeshObject(string name, Mesh mesh, Material material)
     {
         GameObject worldObject = new GameObject(name);

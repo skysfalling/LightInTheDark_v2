@@ -101,6 +101,14 @@ public static class DarklightEditor
         GUI.backgroundColor = Color.white;
     }
 
+    public static void CreateSettingsLabel(string label, string value)
+    {
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.PrefixLabel(label);
+        EditorGUILayout.LabelField(value);
+        EditorGUILayout.EndHorizontal();
+    }
+
     private static Texture2D MakeTex(int width, int height, Color col)
     {
         Color[] pix = new Color[width * height];
