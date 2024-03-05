@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+[System.Serializable]
 public class WorldChunk
 {
     public enum FaceType{ Front, Back, Left, Right, Top, Bottom }
@@ -45,7 +46,7 @@ public class WorldChunk
     public Coordinate coordinate { get; private set; }
     public Vector3 groundPosition { get; private set; }
     public Vector3 groundMeshDimensions { get; private set; }
-    public Vector3 originCoordinatePosition { get; }
+    public Vector3 originPosition_inWorldSpace { get; }
     // Active Edges
     bool _northEdgeActive;
     bool _southEdgeActive;  
@@ -72,8 +73,8 @@ public class WorldChunk
         groundMeshDimensions = new Vector3(_chunkWidth, _realChunkHeight, _chunkWidth);
 
         // >> Origin Coordinate Position { Bottom Left }
-        originCoordinatePosition = groundPosition;
-        originCoordinatePosition -= WorldGeneration.GetChunkWidth_inWorldSpace() * new Vector3(0.5f, 0, 0.5f);
+        originPosition_inWorldSpace = groundPosition;
+        originPosition_inWorldSpace -= WorldGeneration.GetChunkWidth_inWorldSpace() * new Vector3(0.5f, 0, 0.5f);
 
         // Create coordinate map
         this.coordinateCellMap = new CoordinateMap(this);

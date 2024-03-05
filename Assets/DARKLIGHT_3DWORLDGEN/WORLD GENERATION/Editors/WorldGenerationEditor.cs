@@ -18,7 +18,7 @@ public class WorldGenerationEditor : Editor
     {
         // Cache the SerializedObject
         serializedWorldGen = new SerializedObject(target);
-        WorldGeneration.InitializeRandomSeed();
+        WorldGeneration.InitializeSeedRandom();
 
     }
 
@@ -48,11 +48,8 @@ public class WorldGenerationEditor : Editor
         WorldGeneration worldGen = (WorldGeneration)target;
         EditorGUILayout.LabelField("Generation Settings", DarklightEditor.Header2Style);
         EditorGUILayout.Space(20);
-        SerializedProperty worldSettings = serializedWorldGen.FindProperty("worldSettings");
-        EditorGUILayout.PropertyField(worldSettings);
-
-        // Add a custom UI for the WorldGenerationSettings
-        WorldGenerationSettings settings = worldGen.worldSettings;
+        //SerializedProperty worldSettings = serializedWorldGen.FindProperty("worldSettings");
+        //EditorGUILayout.PropertyField(worldSettings);
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("World Generation Parameters", EditorStyles.boldLabel);
@@ -68,15 +65,7 @@ public class WorldGenerationEditor : Editor
 
         EditorGUILayout.Space();
 
-        if (worldGen.worldSettings != null)
-        {
-            if (GUILayout.Button("Load Settings"))
-            {
-                WorldGeneration.LoadWorldGenerationSettings(worldGen.worldSettings);
-            }
-        }
-
-        if (worldGen.worldRegions.Count == 0)
+        if (worldGen.AllRegions.Count == 0)
         {
             if (GUILayout.Button("Initialize"))
             {
@@ -129,20 +118,20 @@ public class WorldGenerationEditor : Editor
             fontSize = 12, // Example font size
         };
 
-        DarklightGizmos.DrawWireSquare_withLabel("World Generation Size", worldGen.centerPosition_inWorldSpace, WorldGeneration.GetWorldWidth_inWorldSpace(), Color.black, labelStyle);
+        DarklightGizmos.DrawWireSquare_withLabel("World Generation Size", worldGen.CenterPosition, WorldGeneration.GetWorldWidth_inWorldSpace(), Color.black, labelStyle);
         
         if (worldGen.Initialized)
         {
-            DarklightGizmos.DrawWireSquare_withLabel("Origin Region", worldGen.originPosition_inWorldSpace, WorldGeneration.GetChunkWidth_inWorldSpace(), Color.red, labelStyle);
+            DarklightGizmos.DrawWireSquare_withLabel("Origin Region", worldGen.OriginPosition, WorldGeneration.GetChunkWidth_inWorldSpace(), Color.red, labelStyle);
         }
 
-        DarklightGizmos.DrawWireSquare_withLabel("World Chunk Size", worldGen.centerPosition_inWorldSpace, WorldGeneration.GetChunkWidth_inWorldSpace(), Color.black, labelStyle);
-        DarklightGizmos.DrawWireSquare_withLabel("World Cell Size", worldGen.centerPosition_inWorldSpace, WorldGeneration.CellWidth_inWorldSpace, Color.black, labelStyle);
+        DarklightGizmos.DrawWireSquare_withLabel("World Chunk Size", worldGen.CenterPosition, WorldGeneration.GetChunkWidth_inWorldSpace(), Color.black, labelStyle);
+        DarklightGizmos.DrawWireSquare_withLabel("World Cell Size", worldGen.CenterPosition, WorldGeneration.CellWidth_inWorldSpace, Color.black, labelStyle);
 
 
-        if (worldGen.Initialized && worldGen.worldRegions.Count > 0)
+        if (worldGen.Initialized && worldGen.AllRegions.Count > 0)
         {
-            foreach (WorldRegion region in worldGen.worldRegions)
+            foreach (WorldRegion region in worldGen.AllRegions)
             {
 
                 List<Coordinate> regionNeighbors = region.coordinate.GetAllValidNeighbors();
@@ -158,7 +147,7 @@ public class WorldGenerationEditor : Editor
                         Coordinate coordinate = region.coordinateMap.GetCoordinateAt(coordinatesOfType[i]);
 
                         DarklightGizmos.DrawWireSquare_withLabel($"{showCoordinateType}", coordinate.WorldPosition, 
-                            WorldGeneration.GetChunkWidth_inWorldSpace(), coordinate.debugColor, labelStyle);
+                            WorldGeneration.GetChunkWidth_inWorldSpace(), coordinate.typeColor, labelStyle);
                     }
                 
                 }
@@ -173,7 +162,7 @@ public class WorldGenerationEditor : Editor
     void DrawCoordinates()
     {
         WorldGeneration worldGen = (WorldGeneration)target;
-        if (worldGen.coordinateRegionMap == null) { return; }
+        if (worldGen.CoordinateMap == null) { return; }
 
         GUIStyle coordLabelStyle = new GUIStyle()
         {
@@ -182,13 +171,13 @@ public class WorldGenerationEditor : Editor
             normal = new GUIStyleState { textColor = Color.blue } // Set the text color
         };
         // Draw Coordinates
-        CoordinateMap coordinateMap = worldGen.coordinateRegionMap;
-        if (coordinateMap.Initialized && coordinateMap.allPositions.Count > 0)
+        CoordinateMap coordinateMap = worldGen.CoordinateMap;
+        if (coordinateMap.Initialized && coordinateMap.AllPositions.Count > 0)
         {
-            foreach (Vector2Int position in coordinateMap.allPositions)
+            foreach (Vector2Int position in coordinateMap.AllPositions)
             {
                 Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
-                DarklightGizmos.DrawWireSquare(coordinate.WorldPosition, WorldGeneration.CellWidth_inWorldSpace, coordinate.debugColor);
+                DarklightGizmos.DrawWireSquare(coordinate.WorldPosition, WorldGeneration.CellWidth_inWorldSpace, coordinate.typeColor);
                 DarklightGizmos.DrawLabel($"{coordinate.type}", coordinate.WorldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
             }
         }

@@ -5,6 +5,7 @@ using UnityEngine;
 using static WorldChunk;
 using FaceType = WorldChunk.FaceType;
 
+[System.Serializable]
 public class MeshQuad
 {
     public FaceType faceType;
@@ -26,6 +27,7 @@ public class MeshQuad
     }
 }
 
+[System.Serializable]
 public class WorldChunkMesh
 {
     int _cellSize = WorldGeneration.CellWidth_inWorldSpace;

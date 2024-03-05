@@ -9,25 +9,8 @@ public class WorldRegion : MonoBehaviour
     // >>>> Init
     public bool Initialized { get; private set; }
 
-    // >>>> World Size
-    private int _worldWidth_inRegions = WorldGeneration.WorldWidth_inRegions;
-    private int _worldWidth_inWorldSpace = WorldGeneration.GetWorldWidth_inWorldSpace();
-
-    // >>>> Play Region
-    private int _playRegionWidth_inChunks = WorldGeneration.PlayRegionWidth_inChunks;
-    private int _playRegionBoundaryOffset = WorldGeneration.BoundaryWallCount;
-    private int _playRegionWidth_inCells = WorldGeneration.GetPlayRegionWidth_inCells();
-
-    // >>>> Full Region
-    private int _fullRegionWidth_inChunks = WorldGeneration.GetFullRegionWidth_inChunks();
-    private int _fullRegionWidth_inCells = WorldGeneration.GetFullRegionWidth_inChunks();
-    private int _fullRegionWidth_inWorldSpace = WorldGeneration.GetFullRegionWidth_inWorldSpace();
-
-    // >>>> Region Height
-    private int _regionMaxGroundHeight = WorldGeneration.MaxChunkHeight;
-
     // >>>> Combined Chunk Mesh
-    private GameObject combinedChunkMeshObject;
+    private GameObject _combinedChunkMeshObject;
 
     // PUBLIC REFERENCE VARIABLES
     public WorldGeneration worldGeneration { get; private set; }
@@ -47,17 +30,19 @@ public class WorldRegion : MonoBehaviour
         this.coordinate = regionCoordinate;
         this.localCoordinatePosition = regionCoordinate.Value;
 
-        float worldWidthRadius = _worldWidth_inWorldSpace * 0.5f;
-        float regionWidthRadius = _fullRegionWidth_inWorldSpace * 0.5f;
+        int worldWidth = WorldGeneration.GetWorldWidth_inWorldSpace();
+        int fullRegionWidth = WorldGeneration.GetFullRegionWidth_inWorldSpace();
+        float worldWidthRadius = worldWidth * 0.5f;
+        float regionWidthRadius = fullRegionWidth * 0.5f;
         float chunkWidthRadius = WorldGeneration.GetChunkWidth_inWorldSpace() * 0.5f;
 
         // >> Center Position
-        centerPosition_inWorldSpace = new Vector3(this.localCoordinatePosition.x, 0, this.localCoordinatePosition.y) * _fullRegionWidth_inWorldSpace;
+        centerPosition_inWorldSpace = new Vector3(this.localCoordinatePosition.x, 0, this.localCoordinatePosition.y) * fullRegionWidth;
         centerPosition_inWorldSpace -= worldWidthRadius * new Vector3(1, 0, 1);
         centerPosition_inWorldSpace += regionWidthRadius * new Vector3(1, 0, 1);
 
         // >> Origin Coordinate Position { Bottom Left }
-        originPosition_inWorldSpace = new Vector3(this.localCoordinatePosition.x, 0, this.localCoordinatePosition.y) * _fullRegionWidth_inWorldSpace;
+        originPosition_inWorldSpace = new Vector3(this.localCoordinatePosition.x, 0, this.localCoordinatePosition.y) * fullRegionWidth;
         originPosition_inWorldSpace -= worldWidthRadius * new Vector3(1, 0, 1);
         originPosition_inWorldSpace += chunkWidthRadius * new Vector3(1, 0, 1);
 
@@ -103,7 +88,7 @@ public class WorldRegion : MonoBehaviour
             MapBorder currentBorderWithNeighbor = (MapBorder)getCurrentBorder;
 
             // close borders that dont share a neighbor
-            if (this.worldGeneration.coordinateRegionMap.GetCoordinateAt(neighborPosition) == null)
+            if (this.worldGeneration.CoordinateMap.GetCoordinateAt(neighborPosition) == null)
             {
                 // Neighbor not found
                 currentRegion.coordinateMap.CloseMapBorder(currentBorderWithNeighbor); // close borders on chunks
@@ -113,8 +98,8 @@ public class WorldRegion : MonoBehaviour
             // else if shares a neighbor...
             else
             {
-                Coordinate neighborRegionCoordinate = this.worldGeneration.coordinateRegionMap.GetCoordinateAt(neighborPosition);
-                WorldRegion neighborRegion = this.worldGeneration.regionMap[neighborRegionCoordinate.Value];
+                Coordinate neighborRegionCoordinate = this.worldGeneration.CoordinateMap.GetCoordinateAt(neighborPosition);
+                WorldRegion neighborRegion = this.worldGeneration.RegionMap[neighborRegionCoordinate.Value];
 
                 // if neighbor has exits on shared border
                 MapBorder matchingBorderOnNeighbor = (MapBorder)CoordinateMap.GetOppositeBorder(currentBorderWithNeighbor);
@@ -149,7 +134,7 @@ public class WorldRegion : MonoBehaviour
 
     public void NewSeedGeneration()
     {
-        WorldGeneration.InitializeRandomSeed();
+        WorldGeneration.InitializeSeedRandom();
         coordinateMap = new CoordinateMap(this);
         coordinateMap.GenerateRandomExits();
         coordinateMap.GeneratePathsBetweenExits();
@@ -223,9 +208,9 @@ public class WorldRegion : MonoBehaviour
 
         // Create Combined Mesh of world chunks
         Mesh combinedMesh = CombineChunks(this.worldChunkMap.AllChunks.ToList());
-        this.combinedChunkMeshObject = WorldGeneration.CreateMeshObject($"CombinedChunkMesh", combinedMesh, worldGeneration.GetChunkMaterial());
-        this.combinedChunkMeshObject.transform.parent = this.transform;
-        MeshCollider collider = combinedChunkMeshObject.AddComponent<MeshCollider>();
+        this._combinedChunkMeshObject = WorldGeneration.CreateMeshObject($"CombinedChunkMesh", combinedMesh, worldGeneration.GetChunkMaterial());
+        this._combinedChunkMeshObject.transform.parent = this.transform;
+        MeshCollider collider = _combinedChunkMeshObject.AddComponent<MeshCollider>();
         collider.sharedMesh = combinedMesh;
     }
 }

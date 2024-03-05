@@ -179,7 +179,6 @@ public class WorldRegionEditor : Editor
             EditorGUILayout.Space(10);
             if (selectedCoordinate != null)
             {
-                EditorGUILayout.LabelField($"Space:  {selectedCoordinate.WorldSpace}");
                 EditorGUILayout.LabelField($"Local Coordinate: {selectedCoordinate.Value}");
                 EditorGUILayout.LabelField($"Type: {selectedCoordinate.type}");
                 EditorGUILayout.LabelField($"World Position: {selectedCoordinate.WorldPosition}");
@@ -379,9 +378,9 @@ public class WorldRegionEditor : Editor
 
         // Draw Coordinates
         CoordinateMap coordinateMap = region.coordinateMap;
-        if (coordinateMap.Initialized && coordinateMap.allPositions.Count > 0)
+        if (coordinateMap.Initialized && coordinateMap.AllPositions.Count > 0)
         {   
-            foreach (Vector2Int position in coordinateMap.allPositions)
+            foreach (Vector2Int position in coordinateMap.AllPositions)
             {
                 Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
 
@@ -404,8 +403,8 @@ public class WorldRegionEditor : Editor
                         break;
                     case CoordinateMapDebug.TYPE:
                     case CoordinateMapDebug.EDITOR:
-                        coordLabelStyle.normal.textColor = coordinate.debugColor;
-                        DarklightGizmos.DrawWireSquare(coordinate.WorldPosition, WorldGeneration.CellWidth_inWorldSpace, coordinate.debugColor);
+                        coordLabelStyle.normal.textColor = coordinate.typeColor;
+                        DarklightGizmos.DrawWireSquare(coordinate.WorldPosition, WorldGeneration.CellWidth_inWorldSpace, coordinate.typeColor);
                         DarklightGizmos.DrawLabel($"{coordinate.type}", coordinate.WorldPosition - (Vector3.forward * WorldGeneration.CellWidth_inWorldSpace), coordLabelStyle);
                         break;
                 }
@@ -439,7 +438,7 @@ public class WorldRegionEditor : Editor
                 switch(chunkMapDebugType)
                 {
                     case ChunkMapDebug.COORDINATE_TYPE:
-                        chunkDebugColor = chunk.coordinate.debugColor;
+                        chunkDebugColor = chunk.coordinate.typeColor;
                         chunkDebugString = $"{chunk.coordinate.type}";
                         break;
                     case ChunkMapDebug.CHUNK_TYPE:

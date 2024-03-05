@@ -17,10 +17,10 @@ public class WorldPathfinder
         // fCost is gCost + hCost
 
         // Initialize Random Seed :: IMPORTANT To keep the same results per seed
-        WorldGeneration.InitializeRandomSeed();
+        WorldGeneration.InitializeSeedRandom();
 
         // Store all possible positions from the coordinate map
-        List<Vector2Int> positions = coordinateMap.allPositions;
+        List<Vector2Int> positions = coordinateMap.AllPositions;
         // Initialize the open set with the start coordinate
         List<Vector2Int> openSet = new List<Vector2Int> { startCoord };
         // Initialize the closed set as an empty collection of Vector2Int
@@ -29,7 +29,7 @@ public class WorldPathfinder
         // Initialize costs for all coordinates to infinity, except the start coordinate
         Dictionary<Vector2Int, float> gCost = new Dictionary<Vector2Int, float>();
         Dictionary<Vector2Int, Vector2Int> parents = new Dictionary<Vector2Int, Vector2Int>();
-        foreach (Vector2Int pos in coordinateMap.allPositions)
+        foreach (Vector2Int pos in coordinateMap.AllPositions)
         {
             gCost[pos] = float.MaxValue;
         }

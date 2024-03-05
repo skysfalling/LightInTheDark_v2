@@ -6,6 +6,7 @@ using Random = UnityEngine.Random;
 
 public enum MapBorder { NORTH, SOUTH, EAST, WEST }
 
+[System.Serializable]
 public class CoordinateMap
 {
     #region << STATIC FUNCTIONS <<
@@ -25,7 +26,6 @@ public class CoordinateMap
                 return null;
         }
     }
-
     public static MapBorder? GetOppositeBorder(MapBorder border)
     {
         switch (border)
@@ -41,7 +41,6 @@ public class CoordinateMap
             default: return null;
         }
     }
-
     public static Dictionary<WorldDirection, Vector2Int> _directionVectorMap = new() {
         { WorldDirection.NORTH, new Vector2Int(0, 1) },
         { WorldDirection.SOUTH, new Vector2Int(0, -1) },
@@ -89,120 +88,96 @@ public class CoordinateMap
     }
     #endregion
 
-    // public access variables
-    public bool Initialized { get; private set; }
-
     // >> main coordinate reference
     WorldGeneration _worldGeneration = null;
     WorldRegion _worldRegion = null;
     WorldChunk _worldChunk = null;
-    Coordinate[][] _coordinateMap;
 
-    // >> _coordinateMap reference lists
+    // [[ DATA STORAGE ]]
+    Coordinate[][] _coordinateMap; // Main 2D Array of Coordinates
+    Vector2Int[] _exitCoordinates;
+    Vector2Int[] _worldPaths;
+    Vector2Int[] _worldZones;
+
+
+    // >> _coordinateMap quick reference lists
     HashSet<Vector2Int> _positions = new();
     HashSet<Coordinate> _coordinates = new();
     Dictionary<Vector2Int, Coordinate> _positionMap = new();
     Dictionary<Coordinate.TYPE, HashSet<Vector2Int>> _typeMap = new();
-    Dictionary<MapBorder, HashSet<Vector2Int>> _borderPositionsMap = new(); // Enum , Sorted List of Border Coordinates
+
+    // >>>> Map Border References
+    Dictionary<MapBorder, HashSet<Vector2Int>> _borderPositionsMap = new();
     Dictionary<MapBorder, HashSet<Vector2Int>> _borderExitMap = new();
     Dictionary<MapBorder, Vector2Int[]> _borderIndexMap = new();
-    Dictionary<MapBorder, (Vector2Int, Vector2Int)> _borderCornersMap = new Dictionary<MapBorder, (Vector2Int, Vector2Int)>();
-    // >> public access lists
+    Dictionary<MapBorder, (Vector2Int, Vector2Int)> _borderCornersMap = new();
+
+    // >> public access variables
+    public bool Initialized { get; private set; }
     public int maxCoordinateValue { get; private set; } = 0;
-    public List<Vector2Int> allPositions { get { return _positions.ToList(); } }
-    public List<Coordinate> allCoordinates { get { return _coordinates.ToList(); } }
+    public List<Vector2Int> AllPositions { get { return _positions.ToList(); } }
+    public List<Coordinate> AllCoordinates { get { return _coordinates.ToList(); } }
+
     public List<Vector2Int> exitPositions = new List<Vector2Int>();
     public List<WorldPath> worldPaths = new List<WorldPath>();
     public List<WorldZone> worldZones = new List<WorldZone>();
 
     // == [[ CONSTRUCTOR ]] ======================================================================== >>>>
-
-    public CoordinateMap(WorldGeneration worldGeneration)
+    public CoordinateMap(object parent)
     {
-        _worldGeneration = worldGeneration;
+        Vector2 originPosition;
+        int width;
+        int size;
+        float groundHeight = 0; // Default groundHeight for non-WorldChunk cases
 
-        // << CREATE WORLD COORDINATES >> =================================================================
+        // Determine parameters based on parent type
+        if (parent is WorldGeneration worldGeneration)
+        {
+            originPosition = worldGeneration.OriginPosition;
+            width = WorldGeneration.WorldWidth_inRegions;
+            size = WorldGeneration.GetWorldWidth_inWorldSpace();
+        }
+        else if (parent is WorldRegion region)
+        {
+            originPosition = region.originPosition_inWorldSpace;
+            width = WorldGeneration.GetFullRegionWidth_inChunks();
+            size = WorldGeneration.GetFullRegionWidth_inWorldSpace();
+        }
+        else if (parent is WorldChunk chunk)
+        {
+            originPosition = chunk.originPosition_inWorldSpace;
+            width = WorldGeneration.ChunkWidth_inCells;
+            size = WorldGeneration.GetChunkWidth_inWorldSpace();
+            groundHeight = chunk.groundHeight;
+        }
+        else
+        {
+            throw new ArgumentException("Unsupported parent type for CoordinateMap.");
+        }
 
-        int fullRegionWidth = WorldGeneration.WorldWidth_inRegions;
-        int coordMax = fullRegionWidth;
+        // Calculate coordMax based on the size
+        int coordMax = width; // This is a simplification; adjust based on actual logic to determine coordMax
 
-        _coordinateMap = new Coordinate[coordMax][]; // initialize row
+        // Initialize Coordinate grid
+        _coordinateMap = new Coordinate[coordMax][];
         for (int x = 0; x < coordMax; x++)
         {
-            _coordinateMap[x] = new Coordinate[coordMax]; // initialize column
-
+            _coordinateMap[x] = new Coordinate[coordMax];
             for (int y = 0; y < coordMax; y++)
             {
                 Vector2Int newPosition = new Vector2Int(x, y);
                 _positions.Add(newPosition);
-                _coordinateMap[x][y] = new Coordinate(this, newPosition, worldGeneration); // Create and store Region Coordinate
+                // Create Coordinate with the unified constructor
+                _coordinateMap[x][y] = new Coordinate(this, newPosition, originPosition, size, groundHeight);
                 _coordinates.Add(_coordinateMap[x][y]);
                 _positionMap[newPosition] = _coordinateMap[x][y];
             }
         }
 
         SetAllCoordinatesToDefault(coordMax, WorldGeneration.BoundaryWallCount);
-
         Initialized = true;
     }
 
-    public CoordinateMap(WorldRegion region)
-    {
-        _worldRegion = region;
-
-        // << CREATE REGION COORDINATES >> =================================================================
-
-        int fullRegionWidth = WorldGeneration.GetFullRegionWidth_inChunks();
-        int coordMax = fullRegionWidth;
-
-        _coordinateMap = new Coordinate[coordMax][]; // initialize row
-        for (int x = 0; x < coordMax; x++)
-        {
-            _coordinateMap[x] = new Coordinate[coordMax]; // initialize column
-
-            for (int y = 0; y < coordMax; y++)
-            {
-                Vector2Int newPosition = new Vector2Int(x, y);
-                _positions.Add(newPosition);
-                _coordinateMap[x][y] = new Coordinate(this, newPosition, region); // Create and store Region Coordinate
-                _coordinates.Add(_coordinateMap[x][y]);
-                _positionMap[newPosition] = _coordinateMap[x][y];
-            }
-        }
-
-        SetAllCoordinatesToDefault(coordMax, WorldGeneration.BoundaryWallCount);
-
-        Initialized = true;
-    }
-
-    public CoordinateMap(WorldChunk chunk)
-    {
-        _worldChunk = chunk;
-
-        // << CREATE REGION COORDINATES >> =================================================================
-
-        int fullChunkWidth = WorldGeneration.ChunkWidth_inCells;
-        int coordMax = fullChunkWidth;
-
-        _coordinateMap = new Coordinate[coordMax][]; // initialize row
-        for (int x = 0; x < coordMax; x++)
-        {
-            _coordinateMap[x] = new Coordinate[coordMax]; // initialize column
-
-            for (int y = 0; y < coordMax; y++)
-            {
-                Vector2Int newPosition = new Vector2Int(x, y);
-                _positions.Add(newPosition);
-                _coordinateMap[x][y] = new Coordinate(this, newPosition, chunk); // Create and store Chunk Coordinate
-                _coordinates.Add(_coordinateMap[x][y]);
-                _positionMap[newPosition] = _coordinateMap[x][y];
-            }
-        }
-
-        SetAllCoordinatesToDefault(coordMax, WorldGeneration.BoundaryWallCount);
-
-        Initialized = true;
-    }
 
     // == [[ GET COORDINATE ]] ======================================================================== >>>>
     public Coordinate GetCoordinateAt(Vector2Int position)
@@ -348,12 +323,12 @@ public class CoordinateMap
         coordinate.type = newType;
         switch (newType)
         {
-            case Coordinate.TYPE.CLOSED: coordinate.debugColor = Color.black; break;
-            case Coordinate.TYPE.BORDER: coordinate.debugColor = Color.magenta; break;
-            case Coordinate.TYPE.NULL: coordinate.debugColor = Color.grey; break;
-            case Coordinate.TYPE.EXIT: coordinate.debugColor = Color.red; break;
-            case Coordinate.TYPE.PATH: coordinate.debugColor = Color.white; break;
-            case Coordinate.TYPE.ZONE: coordinate.debugColor = Color.green; break;
+            case Coordinate.TYPE.CLOSED: coordinate.typeColor = Color.black; break;
+            case Coordinate.TYPE.BORDER: coordinate.typeColor = Color.magenta; break;
+            case Coordinate.TYPE.NULL: coordinate.typeColor = Color.grey; break;
+            case Coordinate.TYPE.EXIT: coordinate.typeColor = Color.red; break;
+            case Coordinate.TYPE.PATH: coordinate.typeColor = Color.white; break;
+            case Coordinate.TYPE.ZONE: coordinate.typeColor = Color.green; break;
         }
 
         // If new TYPE key not found, create

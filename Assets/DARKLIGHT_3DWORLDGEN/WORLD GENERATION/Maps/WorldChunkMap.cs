@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+[System.Serializable]
 public class WorldChunkMap
 {
     HashSet<WorldChunk> _chunks = new();
@@ -20,7 +21,7 @@ public class WorldChunkMap
         this.CoordinateMap = coordinateMap;
 
         // [[ CREATE WORLD CHUNKS ]]
-        foreach (Vector2Int position in coordinateMap.allPositions)
+        foreach (Vector2Int position in coordinateMap.AllPositions)
         {
             Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
             WorldChunk newChunk = new WorldChunk(this, coordinate);
@@ -62,7 +63,7 @@ public class WorldChunkMap
 
     public WorldChunk GetChunkAt(Vector2Int position)
     {
-        if (!Initialized || !CoordinateMap.allPositions.Contains(position)) { return null; }
+        if (!Initialized || !CoordinateMap.AllPositions.Contains(position)) { return null; }
         return _chunkMap[position];
     }
 

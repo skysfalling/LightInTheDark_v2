@@ -24,7 +24,7 @@ public class WorldSave : MonoBehaviour
     [EasyButtons.Button]
     public void SaveWorldSettings()
     {
-        WorldSaveData saveData = new WorldSaveData(WorldGenerationSettings);
+        WorldSettingsData saveData = new WorldSettingsData(WorldGenerationSettings);
 
         // Since we are now loading the actual WorldGenerationSettings object, we can directly log the values
         Debug.Log($"Saving Data:\nSeed: {saveData.gameSeed}\n" +
@@ -35,8 +35,6 @@ public class WorldSave : MonoBehaviour
                   $"Boundary Wall Count: {saveData.boundaryWallCount}\n" +
                   $"Max Chunk Height: {saveData.maxChunkHeight}\n" +
                   $"World Width: {saveData.worldWidthInRegions}");
-
-
 
         long startTime = DateTime.Now.Ticks;
         if (DataService.SaveData("/world-data.json", saveData, EncryptionEnabled))
@@ -57,7 +55,7 @@ public class WorldSave : MonoBehaviour
         try
         {
             // Assuming DataService is an instance of JsonDataService
-            WorldSaveData worldSaveData = DataService.LoadData<WorldSaveData>("/world-data.json", EncryptionEnabled);
+            WorldSettingsData worldSaveData = DataService.LoadData<WorldSettingsData>("/world-data.json", EncryptionEnabled);
             if (worldSaveData == null)
             {
                 Debug.LogError("Failed to load world data or world data is null.");
