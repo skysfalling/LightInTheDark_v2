@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0777da32624bf64b8c4703d9bd7725b, type: 3}
+  m_Name: SmallWorldSettings
+  m_EditorClassIdentifier: 
+  _seed: test settings
+  _cellSize: 2
+  _chunkWidth: 7
+  _chunkDepth: 10
+  _chunkMaxHeight: 25
+  _regionWidth: 7
+  _regionBoundaryOffset: 0
+  _worldWidth: 3
