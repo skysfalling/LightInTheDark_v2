@@ -271,7 +271,7 @@ GameObject:
   - component: {fileID: 688497792}
   - component: {fileID: 688497793}
   m_Layer: 0
-  m_Name: WorldSave
+  m_Name: WorldSaveSystem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -304,8 +304,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48b31e767e52d57489b8d9de094efc3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WorldGenerationSettings: {fileID: 11400000, guid: ca8f32e334de3a84e89a6f224b6a9c11,
-    type: 2}
 --- !u!1001 &2008134856
 PrefabInstance:
   m_ObjectHideFlags: 0
