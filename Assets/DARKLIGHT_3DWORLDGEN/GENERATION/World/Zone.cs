@@ -5,85 +5,60 @@ namespace Darklight.ThirdDimensional.World
 {
     public class Zone
     {
-        bool _initialized;
-        CoordinateMap _coordinateMap;
-        Coordinate _centerCoordinate;
-        TYPE _zoneType;
-        public int zoneHeight { get; private set; }
-
         public enum TYPE { FULL, NATURAL_CROSS, DIAGONAL_CROSS, HORIZONTAL, VERTICAL }
-        public List<Coordinate> coordinates { get; private set; }
-        public List<Vector2Int> positions { get; private set; }
 
-        public Zone(CoordinateMap coordinateMap, Coordinate centerCoordinate, TYPE zoneType, int zoneHeight)
+        // [[ PRIVATE VARIABLES ]]
+        Coordinate _coordinate;
+        TYPE _zoneType;
+        int _zoneHeight;
+        List<Vector2Int> _zonePositions = new();
+
+        public TYPE Type => _zoneType;
+        public List<Vector2Int> AllPositions { get; private set; }
+
+        public Zone(Coordinate coordinate, TYPE zoneType, int zoneHeight)
         {
-            this._coordinateMap = coordinateMap;
-            this._centerCoordinate = centerCoordinate;
+            this._coordinate = coordinate;
             this._zoneType = zoneType;
-            this.zoneHeight = zoneHeight;
+            this._zoneHeight = zoneHeight;
 
             // Get affected neighbors
             List<Coordinate> neighborsInZone = new();
             switch (_zoneType)
             {
                 case TYPE.FULL:
-                    neighborsInZone = _centerCoordinate.GetAllValidNeighbors();
+                    neighborsInZone = _coordinate.GetAllValidNeighbors();
                     break;
                 case TYPE.NATURAL_CROSS:
-                    neighborsInZone = _centerCoordinate.GetValidNaturalNeighbors();
+                    neighborsInZone = _coordinate.GetValidNaturalNeighbors();
                     break;
                 case TYPE.DIAGONAL_CROSS:
-                    neighborsInZone = _centerCoordinate.GetValidDiagonalNeighbors();
+                    neighborsInZone = _coordinate.GetValidDiagonalNeighbors();
                     break;
                 case TYPE.HORIZONTAL:
-                    neighborsInZone.Add(_centerCoordinate.GetNeighborInDirection(WorldDirection.WEST));
-                    neighborsInZone.Add(_centerCoordinate.GetNeighborInDirection(WorldDirection.EAST));
+                    neighborsInZone.Add(_coordinate.GetNeighborInDirection(WorldDirection.WEST));
+                    neighborsInZone.Add(_coordinate.GetNeighborInDirection(WorldDirection.EAST));
                     break;
                 case TYPE.VERTICAL:
-                    neighborsInZone.Add(_centerCoordinate.GetNeighborInDirection(WorldDirection.NORTH));
-                    neighborsInZone.Add(_centerCoordinate.GetNeighborInDirection(WorldDirection.SOUTH));
+                    neighborsInZone.Add(_coordinate.GetNeighborInDirection(WorldDirection.NORTH));
+                    neighborsInZone.Add(_coordinate.GetNeighborInDirection(WorldDirection.SOUTH));
                     break;
             }
 
             // Assign Zone Coordinates
-            coordinates = new List<Coordinate> { _centerCoordinate };
-            coordinates.AddRange(neighborsInZone);
+            List<Coordinate> zoneCoordinates = new List<Coordinate> { _coordinate };
+            zoneCoordinates.AddRange(neighborsInZone);
 
             // Extract positions
-            positions = new();
-            for (int i = 0; i < coordinates.Count; i++)
-            {
-                positions.Add(coordinates[i].Value);
+            _zonePositions = new();
+            foreach (Coordinate coord in zoneCoordinates) { 
+
+                if (coord.Type == Coordinate.TYPE.NULL)
+                {
+                    _zonePositions.Add(coord.Value);
+                }
             }
-
-            // Leave uninitialized if positions are invalid
-            HashSet<Vector2Int> validPositions = coordinateMap.GetAllPositionsOfType(Coordinate.TYPE.NULL);
-            foreach (Vector2Int position in validPositions)
-            {
-                if (!validPositions.Contains(position)) { return; }
-            }
-
-
-            _initialized = true;
-            //Debug.Log($"Initialized WORLD ZONE : {_coordinateVector} : height {zoneHeight}");
         }
-
-        public void Initialize()
-        {
-            if (_initialized) { return; }
-            _initialized = false;
-
-            // Update private variables
-
-        }
-
-        public void Reset()
-        {
-            _initialized = false;
-        }
-
-        public List<Coordinate> GetZoneCoordinates() { return coordinates; }
-
     }
 }
 

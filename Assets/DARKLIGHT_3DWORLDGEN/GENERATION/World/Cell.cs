@@ -15,42 +15,32 @@ namespace Darklight.ThirdDimensional.World
     public class WorldCell
     {
         public enum TYPE { EMPTY, EDGE, CORNER, OBSTACLE, SPAWN_POINT }
-        public TYPE type = TYPE.EMPTY;
 
-        Generation _generation;
-        int _chunkCellIndex;
-        WorldMaterialLibrary _materialLibrary;
+        // [[ PRIVATE DATA VARIABLES ]]
+        MeshQuad _meshQuad;
+        TYPE _type;
 
-        public WorldChunk chunkParent { get; private set; }
-        public MeshQuad meshQuad { get; private set; }
-
-        GameObject _debugCubeObject;
-        float _defaultRelativeScale = 0.25f;
-        float _debugCubeRelativeScale = 0.25f; // percentage of the WorldGeneration cellSize
-
-        public Vector3[] vertices; // Corners of the cell  
-        public Vector3 worldPosition;     // Center position of the cell
-        public Vector3 normal; // Normal Direction of the cell
-
-        public WorldCell(WorldChunk chunkParent, MeshQuad meshQuad)
+        // [[ PUBLIC REFERENCE VARIABLES ]]
+        public Chunk ChunkParent { get; private set; }
+        public MeshQuad MeshQuad => _meshQuad;
+        public TYPE Type => _type;
+        public Vector3 Position
         {
-            this.chunkParent = chunkParent;
-            this._materialLibrary = WorldMaterialLibrary.Instance;
-            this.meshQuad = meshQuad;
+            get
+            {
+                return ChunkParent.CenterPosition + MeshQuad.GetCenterPosition();
+            }
+        }
 
-            // Set Position [[ parent position offset + center of corresponding quad ]]
-            this.worldPosition = this.chunkParent.CenterPosition + meshQuad.GetCenterPosition();
-            this.normal = meshQuad.faceNormal;
+        public WorldCell(Chunk chunkParent, MeshQuad meshQuad)
+        {
+            this.ChunkParent = chunkParent;
+            this._meshQuad = meshQuad;
         }
 
         public void SetCellType(TYPE type)
         {
-            this.type = type;
-        }
-
-        public WorldChunk GetChunk()
-        {
-            return this.chunkParent;
+            this._type = type;
         }
     }
 }

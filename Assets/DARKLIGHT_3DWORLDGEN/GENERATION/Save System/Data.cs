@@ -19,7 +19,7 @@ namespace Darklight.ThirdDimensional.World.Data
 
         public CoordinateData(Coordinate coord)
         {
-            typeID = (int)coord.type;
+            typeID = (int)coord.Type;
             X = coord.Value.x;
             Y = coord.Value.y;
         }

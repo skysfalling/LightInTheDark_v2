@@ -34,11 +34,11 @@ namespace Darklight.ThirdDimensional.World
         string prefix = "{ WORLD ENVIRONMENT } ";
         public bool generation_finished = false;
         Generation _worldGeneration;
-        WorldChunkMap _worldChunkMap;
+        ChunkMap _worldChunkMap;
 
         string parentObjectPrefix = "env_parent :: ";
-        Dictionary<WorldChunk, Transform> _worldChunkEnvParentMap = new Dictionary<WorldChunk, Transform>();
-        Dictionary<WorldChunk, Transform> _borderChunkEnvParentMap = new Dictionary<WorldChunk, Transform>();
+        Dictionary<Chunk, Transform> _worldChunkEnvParentMap = new Dictionary<Chunk, Transform>();
+        Dictionary<Chunk, Transform> _borderChunkEnvParentMap = new Dictionary<Chunk, Transform>();
 
         [Header("PLAYER")]
         public GameObject playerPrefab;
@@ -125,16 +125,16 @@ namespace Darklight.ThirdDimensional.World
         }
 
         // ======================= CREATE CHUNK ENVIRONMENT =========================================
-        private void CreateChunkEnvironment(WorldChunk chunk, List<EnvironmentObject> envObjects, Dictionary<WorldChunk, Transform> parentMap)
+        private void CreateChunkEnvironment(Chunk chunk, List<EnvironmentObject> envObjects, Dictionary<Chunk, Transform> parentMap)
         {
             if (envObjects.Count == 0) { return; }
             EnvironmentObject envObj = envObjects[Random.Range(0, envObjects.Count)];
 
             foreach (WorldCell cell in chunk.localCells)
             {
-                if (cell.type == WorldCell.TYPE.EDGE || cell.type == WorldCell.TYPE.CORNER)
+                if (cell.Type == WorldCell.TYPE.EDGE || cell.Type == WorldCell.TYPE.CORNER)
                 {
-                    SpawnPrefab(wall_0, cell, parentMap[cell.GetChunk()], Generation.Settings.CellSize_inGameUnits);
+                    SpawnPrefab(wall_0, cell, parentMap[cell.ChunkParent], Generation.Settings.CellSize_inGameUnits);
                 }
 
                 // TRY TO SPAWN ENV OBJECT
@@ -150,7 +150,7 @@ namespace Darklight.ThirdDimensional.World
                     if (foundSpace == null) { continue; }
                     if (foundSpace.Count == req_spaceArea)
                     {
-                        SpawnEnvObject(envObj, parentMap[cell.GetChunk()], foundSpace);
+                        SpawnEnvObject(envObj, parentMap[cell.ChunkParent], foundSpace);
                     }
                 }
             }
@@ -169,16 +169,16 @@ namespace Darklight.ThirdDimensional.World
             */
 
             // Mark Cell Area
-            startCell.GetChunk().MarkArea(spawnArea, envObj.cellTypeConversion);
+            startCell.ChunkParent.MarkArea(spawnArea, envObj.cellTypeConversion);
 
             return newObject;
         }
 
         private GameObject SpawnPrefab(GameObject prefab, WorldCell cell, Transform parent, float scaleMultiplier = 1)
         {
-            GameObject newObject = Instantiate(prefab, cell.worldPosition, Quaternion.identity);
+            GameObject newObject = Instantiate(prefab, cell.Position, Quaternion.identity);
             newObject.transform.parent = parent;
-            newObject.transform.position = cell.worldPosition;
+            newObject.transform.position = cell.Position;
             newObject.transform.localScale *= scaleMultiplier;
             return newObject;
         }

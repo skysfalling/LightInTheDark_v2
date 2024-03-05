@@ -11,7 +11,7 @@ namespace Darklight.ThirdDimensional.World.Interaction
     public class Interactor : MonoBehaviour
     {
         Generation _worldGeneration;
-        WorldChunkMap _worldChunkMap;
+        ChunkMap _worldChunkMap;
         WorldEnvironment _worldEnvironment;
 
         [Header("World Cursor")]

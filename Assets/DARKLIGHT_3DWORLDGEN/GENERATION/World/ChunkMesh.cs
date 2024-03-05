@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Darklight.ThirdDimensional.World
 {
     using WorldGen = Generation;
-    using Face = WorldChunk.Face;
+    using Face = Chunk.Face;
 
     [System.Serializable]
     public class MeshQuad
@@ -31,20 +31,20 @@ namespace Darklight.ThirdDimensional.World
     }
 
     [System.Serializable]
-    public class WorldChunkMesh
+    public class ChunkMesh
     {
         Vector3Int default_chunkMeshDimensions = WorldGen.Settings.ChunkVec3Dimensions_inCellUnits;
         Vector3Int current_chunkMeshDimensions;
-        WorldChunk _chunk;
+        Chunk _chunk;
         Coordinate _worldCoordinate;
-        WorldChunkMap _worldChunkMap;
+        ChunkMap _worldChunkMap;
         Dictionary<Face, List<Vector3>> _meshVertices = new();
         Dictionary<Face, List<Vector2>> _meshUVs = new();
         public List<MeshQuad> meshQuads = new();
 
         public Mesh mesh;
 
-        public WorldChunkMesh(WorldChunk chunk, int groundHeight, Vector3 groundPosition)
+        public ChunkMesh(Chunk chunk, int groundHeight, Vector3 groundPosition)
         {
             this._chunk = chunk;
             this._worldCoordinate = chunk.Coordinate;
@@ -250,7 +250,7 @@ namespace Darklight.ThirdDimensional.World
 
                 if (neighborCoord != null)
                 {
-                    WorldChunk neighborChunk = _worldChunkMap.GetChunkAt(neighborCoord);
+                    Chunk neighborChunk = _worldChunkMap.GetChunkAt(neighborCoord);
                     if (neighborChunk != null)
                     {
                         faceHeight -= neighborChunk.GroundHeight; // subtract based on neighbor height

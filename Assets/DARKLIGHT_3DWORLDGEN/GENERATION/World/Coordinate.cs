@@ -8,21 +8,27 @@ namespace Darklight.ThirdDimensional.World
     public class Coordinate
     {
         public enum TYPE { NULL, BORDER, EXIT, PATH, ZONE, CLOSED }
-        public TYPE type;
-        public Color typeColor;
 
-        public CoordinateMap CoordinateMapParent { get; private set; }
-        public Vector2Int Value { get; private set; }
-        public Vector3 Position { get; private set; }
-        public bool Initialized { get; private set; }
-
+        // [[ PRIVATE VARIABLES ]]
+        TYPE _type;
+        Vector2Int _value;
         HashSet<Vector2Int> _neighborPositions = new();
         Dictionary<WorldDirection, Vector2Int> _neighborDirectionMap = new();
-        public Dictionary<WorldDirection, Vector2Int> NeighborDirectionMap { get { return _neighborDirectionMap; } }
+
+        // [[ PUBLIC REFERENCE VARIABLES ]]
+        public CoordinateMap CoordinateMapParent { get; private set; }
+        public TYPE Type => _type;
+        public Vector2Int Value => _value;
+        public Vector3 Position { get; private set; }
+        public bool Initialized { get; private set; }
+        public Color TypeColor { get; private set; } = Color.black;
+        public Dictionary<WorldDirection, Vector2Int> NeighborDirectionMap => _neighborDirectionMap;
+
+        // [[ CONSTRUCTOR ]]
         public Coordinate(CoordinateMap mapParent, Vector3 mapOriginPosition, Vector2Int value, int size)
         {
             this.CoordinateMapParent = mapParent;
-            this.Value = value;
+            this._value = value;
 
             // Calculate Coordinate Position in game world
             this.Position = mapOriginPosition + (new Vector3(value.x, 0, value.y) * size);
@@ -31,6 +37,21 @@ namespace Darklight.ThirdDimensional.World
 
             this.Initialized = true;
         }
+
+        public void SetType(TYPE newType) 
+        { 
+            _type = newType;
+            switch (newType)
+            {
+                case TYPE.CLOSED: TypeColor = Color.black; break;
+                case TYPE.BORDER: TypeColor = Color.magenta; break;
+                case TYPE.NULL: TypeColor = Color.grey; break;
+                case TYPE.EXIT: TypeColor = Color.red; break;
+                case TYPE.PATH: TypeColor = Color.white; break;
+                case TYPE.ZONE: TypeColor = Color.green; break;
+            }
+        }
+
         void SetNeighbors()
         {
             _neighborPositions = new();

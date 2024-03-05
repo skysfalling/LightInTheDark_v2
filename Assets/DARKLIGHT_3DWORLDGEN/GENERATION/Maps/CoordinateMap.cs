@@ -89,17 +89,11 @@ namespace Darklight.ThirdDimensional.World
         }
         #endregion
 
-        // >> main coordinate reference
-        WorldGen _worldGeneration = null;
-        Region _worldRegion = null;
-        WorldChunk _worldChunk = null;
-
         // [[ DATA STORAGE ]]
         Coordinate[][] _coordinateMap; // Main 2D Array of Coordinates
         Vector2Int[] _exitCoordinates;
         Vector2Int[] _worldPaths;
         Vector2Int[] _worldZones;
-
 
         // >> _coordinateMap quick reference lists
         HashSet<Vector2Int> _positions = new();
@@ -145,7 +139,7 @@ namespace Darklight.ThirdDimensional.World
                 coordinateSize = WorldGen.Settings.ChunkWidth_inGameUnits;
             }
             // [[ CREATE CELL COORDINATE MAP ]]
-            else if (parent is WorldChunk chunk)
+            else if (parent is Chunk chunk)
             {
                 mapOriginPosition = chunk.OriginPosition;
                 mapWidthCount = WorldGen.Settings.ChunkWidth_inCellUnits;
@@ -194,7 +188,7 @@ namespace Darklight.ThirdDimensional.World
         {
             if (Initialized && _positions.Contains(position))
             {
-                return _positionMap[position].type;
+                return _positionMap[position].Type;
             }
             return null;
         }
@@ -314,23 +308,15 @@ namespace Darklight.ThirdDimensional.World
 
             // Remove Old Type
             Coordinate coordinate = _positionMap[position];
-            Coordinate.TYPE currentType = coordinate.type;
+            Coordinate.TYPE currentType = coordinate.Type;
             if (_typeMap.ContainsKey(currentType))
             {
                 _typeMap[currentType].Remove(position);
             }
 
             // Assign New Type
-            coordinate.type = newType;
-            switch (newType)
-            {
-                case Coordinate.TYPE.CLOSED: coordinate.typeColor = Color.black; break;
-                case Coordinate.TYPE.BORDER: coordinate.typeColor = Color.magenta; break;
-                case Coordinate.TYPE.NULL: coordinate.typeColor = Color.grey; break;
-                case Coordinate.TYPE.EXIT: coordinate.typeColor = Color.red; break;
-                case Coordinate.TYPE.PATH: coordinate.typeColor = Color.white; break;
-                case Coordinate.TYPE.ZONE: coordinate.typeColor = Color.green; break;
-            }
+            coordinate.SetType(newType);
+
 
             // If new TYPE key not found, create
             if (!_typeMap.ContainsKey(newType))
@@ -366,7 +352,7 @@ namespace Darklight.ThirdDimensional.World
                     Coordinate coordinate = _positionMap[pos];
 
                     // Check if the coordinate's current type matches the targetType
-                    if (coordinate.type == targetType)
+                    if (coordinate.Type == targetType)
                     {
                         // If so, set the coordinate to the new convertType
                         SetCoordinateToType(pos, convertType);
@@ -393,7 +379,7 @@ namespace Darklight.ThirdDimensional.World
         public void ConvertCoordinateToExit(Coordinate coordinate)
         {
             if (coordinate == null) return;
-            if (coordinate.type != Coordinate.TYPE.BORDER)
+            if (coordinate.Type != Coordinate.TYPE.BORDER)
             {
                 //Debug.Log($"Cannot convert non border coordinate {coordinate.Value} {coordinate.type} to exit");
                 return;
@@ -538,9 +524,9 @@ namespace Darklight.ThirdDimensional.World
         {
             // Check Types
             if (_positionMap.ContainsKey(candidate) && _positionMap[candidate] != null
-                && (_positionMap[candidate].type == Coordinate.TYPE.NULL
-                || _positionMap[candidate].type == Coordinate.TYPE.PATH
-                || _positionMap[candidate].type == Coordinate.TYPE.EXIT))
+                && (_positionMap[candidate].Type == Coordinate.TYPE.NULL
+                || _positionMap[candidate].Type == Coordinate.TYPE.PATH
+                || _positionMap[candidate].Type == Coordinate.TYPE.EXIT))
             {
                 return true;
             }
@@ -553,13 +539,13 @@ namespace Darklight.ThirdDimensional.World
             //Debug.Log($"Attempting to create zone at {position}");
 
             // Temporarily create the zone to check its positions
-            Zone tempZone = new Zone(this, GetCoordinateAt(position), zoneType, zoneHeight);
+            Zone tempZone = new Zone(GetCoordinateAt(position), zoneType, zoneHeight);
 
             // Check if any of the zone's positions are in the BORDER or CLOSED categories
             HashSet<Vector2Int> validPositions = GetAllPositionsOfType(Coordinate.TYPE.NULL);
 
             // Check for intersection between the zone's positions and invalid positions
-            bool hasInvalidPosition = tempZone.positions.Any(pos => !validPositions.Contains(pos));
+            bool hasInvalidPosition = tempZone.AllPositions.Any(pos => !validPositions.Contains(pos));
             if (hasInvalidPosition)
             {
                 //Debug.Log($"Zone at {position} includes invalid coordinate types. Zone creation aborted.");
@@ -568,7 +554,7 @@ namespace Darklight.ThirdDimensional.World
 
             // If no invalid positions are found, add the zone
             Zones.Add(tempZone);
-            SetCoordinatesToType(tempZone.positions, Coordinate.TYPE.ZONE);
+            SetCoordinatesToType(tempZone.AllPositions, Coordinate.TYPE.ZONE);
             //Debug.Log($"Zone successfully created at {position} with type {zoneType}.");
             return true;
         }

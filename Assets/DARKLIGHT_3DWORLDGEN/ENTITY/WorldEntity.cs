@@ -29,7 +29,7 @@ namespace Darklight.ThirdDimensional.World.Entity
         {
             if (_currentCell != null)
             {
-                transform.position = Vector3.Lerp(transform.position, _currentCell.worldPosition, moveSpeed * Time.deltaTime);
+                transform.position = Vector3.Lerp(transform.position, _currentCell.Position, moveSpeed * Time.deltaTime);
             }
         }
 

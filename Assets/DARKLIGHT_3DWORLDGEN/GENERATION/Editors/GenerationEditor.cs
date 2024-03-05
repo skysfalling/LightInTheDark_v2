@@ -150,7 +150,7 @@ namespace Darklight.ThirdDimensional.World.Editor
                             Coordinate coordinate = region.CoordinateMap.GetCoordinateAt(coordinatesOfType[i]);
 
                             DarklightGizmos.DrawWireSquare_withLabel($"{showCoordinateType}", coordinate.Position,
-                                WorldGen.Settings.ChunkWidth_inGameUnits, coordinate.typeColor, labelStyle);
+                                WorldGen.Settings.ChunkWidth_inGameUnits, coordinate.TypeColor, labelStyle);
                         }
 
                     }
@@ -180,8 +180,8 @@ namespace Darklight.ThirdDimensional.World.Editor
                 foreach (Vector2Int position in coordinateMap.AllPositions)
                 {
                     Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
-                    DarklightGizmos.DrawWireSquare(coordinate.Position, WorldGen.Settings.CellSize_inGameUnits, coordinate.typeColor);
-                    DarklightGizmos.DrawLabel($"{coordinate.type}", coordinate.Position - (Vector3.forward * WorldGen.Settings.CellSize_inGameUnits), coordLabelStyle);
+                    DarklightGizmos.DrawWireSquare(coordinate.Position, WorldGen.Settings.CellSize_inGameUnits, coordinate.TypeColor);
+                    DarklightGizmos.DrawLabel($"{coordinate.Type}", coordinate.Position - (Vector3.forward * WorldGen.Settings.CellSize_inGameUnits), coordLabelStyle);
                 }
             }
         }

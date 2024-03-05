@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using TMPro;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -66,7 +68,16 @@ namespace Darklight.ThirdDimensional.World
 
     public class Generation : MonoBehaviour
     {
-        public static GenerationSettings Settings { get; private set; } = new();
+        // [[ PRIVATE VARIABLES ]] 
+        string _prefix = "[ WORLD GENERATION ] ";
+        Coroutine _generationSequence;
+        static GenerationSettings _settings = new();
+        CoordinateMap _coordinateMap;
+        List<Region> _regions = new();
+        Dictionary<Vector2Int, Region> _regionMap = new();
+
+        // [[ PUBLIC STATIC VARIABLES ]]
+        public static GenerationSettings Settings { get { return _settings; } }
         public static string Seed { get { return Settings.Seed; } }
         public static int EncodedSeed { get { return Settings.Seed.GetHashCode(); } }
         public static void InitializeSeedRandom()
@@ -74,13 +85,9 @@ namespace Darklight.ThirdDimensional.World
             UnityEngine.Random.InitState(EncodedSeed);
         }
 
-        // [[ PRIVATE VARIABLES ]] 
-        string _prefix = "[ WORLD GENERATION ] ";
-        Coroutine _generationSequence;
-
         // [[ PUBLIC ACCESS VARIABLES ]]
         public bool Initialized { get; private set; }
-        public CoordinateMap CoordinateMap { get; private set; }
+        public CoordinateMap CoordinateMap { get { return _coordinateMap; } }
         public Vector3 CenterPosition { get { return transform.position; } }
         public Vector3 OriginPosition
         {
@@ -92,22 +99,9 @@ namespace Darklight.ThirdDimensional.World
                 return origin;
             }
         }
+        public List<Region> AllRegions { get { return _regions; } }
+        public Dictionary<Vector2Int, Region> RegionMap { get { return _regionMap; } }
 
-        public List<Region> AllRegions { get; private set; } = new();
-        public Dictionary<Vector2Int, Region> RegionMap { get; private set; } = new();
-
-        public void Reset()
-        {
-            for (int i = 0; i < AllRegions.Count; i++)
-            {
-                if (AllRegions[i] != null)
-                    AllRegions[i].Destroy();
-            }
-            AllRegions.Clear();
-            this.CoordinateMap = null;
-
-            Initialized = false;
-        }
 
         #region == INITIALIZE ====================================== >>>>
         public void Initialize()
@@ -123,8 +117,8 @@ namespace Darklight.ThirdDimensional.World
             float startTime = Time.time; // Capture the start time of the initialization
 
             // << CREATE REGIONS >>
-            this.CoordinateMap = new CoordinateMap(this);
-            this.AllRegions = new();
+            this._coordinateMap = new CoordinateMap(this);
+            this._regions = new();
 
             // >> create a region at each coordinate
             Debug.Log($"{_prefix} Begin Initialization => Creating {CoordinateMap.AllCoordinates.Count} Regions");
@@ -135,15 +129,15 @@ namespace Darklight.ThirdDimensional.World
                 // Create a new object for each region
                 GameObject regionObject = new GameObject($"New Region ({regionCoordinate.Value})");
                 Region region = regionObject.AddComponent<Region>();
-                region.SetReferences(this, regionCoordinate);
+                region.SetReferences(this, regionCoordinate); // << Set References to parent & Coordinate
                 regionObject.transform.parent = this.transform;
 
-                AllRegions.Add(region);
-                RegionMap[regionCoordinate.Value] = region;
+                _regions.Add(region);
+                _regionMap[regionCoordinate.Value] = region;
             }
 
             // >> initialize each region
-            foreach (Region region in AllRegions)
+            foreach (Region region in _regions)
             {
                 region.Initialize();
                 yield return new WaitUntil(() => region.Initialized);
@@ -153,7 +147,7 @@ namespace Darklight.ThirdDimensional.World
             Debug.Log($"Stage 0: Region Initialization {Time.time - startTime} seconds.");
 
             // Grouped operations: Initial exits generation
-            foreach (var region in AllRegions)
+            foreach (var region in _regions)
             {
                 region.GenerateNecessaryExits(true);
             }
@@ -162,7 +156,7 @@ namespace Darklight.ThirdDimensional.World
 
             startTime = Time.time; // Reset start time for the next stage
                                    // Grouped operations: Second pass for exits and path generation
-            foreach (var region in AllRegions)
+            foreach (var region in _regions)
             {
                 region.GenerateNecessaryExits(false); // Second pass without creating new
                 region.CoordinateMap.GeneratePathsBetweenExits(); // Assuming independent of exits generation
@@ -172,11 +166,11 @@ namespace Darklight.ThirdDimensional.World
 
             startTime = Time.time; // Reset start time for the next stage
                                    // Combined zones and height assignments in a single step to minimize delays
-            foreach (var region in AllRegions)
+            foreach (var region in _regions)
             {
                 region.CoordinateMap.GenerateRandomZones(1, 3); // Zone generation
 
-                region.WorldChunkMap.UpdateMap(); // update chunk map to match coordinate type values
+                region.ChunkMap.UpdateMap(); // update chunk map to match coordinate type values
 
 
                 // Assign heights to paths and zones together
@@ -198,6 +192,7 @@ namespace Darklight.ThirdDimensional.World
             Initialized = true;
             Debug.Log($"Total Initialization Time: {Time.time - startTime} seconds.");
         }
+
         #endregion ============================================================ ////
 
         public void StartGeneration()
@@ -214,7 +209,7 @@ namespace Darklight.ThirdDimensional.World
 
             foreach (Region region in AllRegions)
             {
-                region.WorldChunkMap.GenerateChunkMeshes();
+                region.ChunkMap.GenerateChunkMeshes();
             }
 
             foreach (Region region in AllRegions)
@@ -265,6 +260,18 @@ namespace Darklight.ThirdDimensional.World
             return GetComponent<WorldMaterialLibrary>().chunkMaterial;
         }
 
+        public void Reset()
+        {
+            for (int i = 0; i < _regions.Count; i++)
+            {
+                if (_regions[i] != null)
+                    _regions[i].Destroy();
+            }
+            _regions.Clear();
+            _regionMap.Clear();
+            this._coordinateMap = null;
 
+            Initialized = false;
+        }
     }
 }

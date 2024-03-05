@@ -31,7 +31,7 @@ namespace Darklight.ThirdDimensional.World.Editor
         // Chunk Map
         enum ChunkMapDebug { NONE, COORDINATE_TYPE, CHUNK_TYPE, CHUNK_HEIGHT }
         static ChunkMapDebug chunkMapDebugType = ChunkMapDebug.COORDINATE_TYPE;
-        WorldChunk selectedChunk = null;
+        Chunk selectedChunk = null;
 
         SerializedProperty defaultMaterialProperty;
 
@@ -109,8 +109,6 @@ namespace Darklight.ThirdDimensional.World.Editor
             EditorGUILayout.LabelField("Origin Coordinate Position:", _region.OriginPosition.ToString());
             EditorGUILayout.LabelField("Region Initialized:", _region.Initialized.ToString());
 
-            // >> default material
-            EditorGUILayout.PropertyField(defaultMaterialProperty); // Show the material field in the inspector
             EditorGUILayout.EndVertical(); // ======================================= ////
 
             switch (editorViewSpace)
@@ -184,7 +182,7 @@ namespace Darklight.ThirdDimensional.World.Editor
                 if (selectedCoordinate != null)
                 {
                     EditorGUILayout.LabelField($"Local Coordinate: {selectedCoordinate.Value}");
-                    EditorGUILayout.LabelField($"Type: {selectedCoordinate.type}");
+                    EditorGUILayout.LabelField($"Type: {selectedCoordinate.Type}");
                     EditorGUILayout.LabelField($"World Position: {selectedCoordinate.Position}");
                     EditorGUILayout.LabelField($"Neighbor Count: {selectedCoordinate.GetAllValidNeighbors().Count}");
                 }
@@ -279,13 +277,13 @@ namespace Darklight.ThirdDimensional.World.Editor
 
         void DrawChunkMapInspector()
         {
-            WorldChunkMap chunkMap = _region.WorldChunkMap;
+            ChunkMap chunkMap = _region.ChunkMap;
 
             EditorGUILayout.LabelField("Region Chunk Map", h2Style);
             EditorGUILayout.Space(10);
 
             // >> initialize button
-            if (_region.WorldChunkMap != null)
+            if (_region.ChunkMap != null)
             {
                 if (GUILayout.Button("Create Combined Chunk Mesh"))
                 {
@@ -407,9 +405,9 @@ namespace Darklight.ThirdDimensional.World.Editor
                             break;
                         case CoordinateMapDebug.TYPE:
                         case CoordinateMapDebug.EDITOR:
-                            coordLabelStyle.normal.textColor = coordinate.typeColor;
-                            DarklightGizmos.DrawWireSquare(coordinate.Position, WorldGen.Settings.CellSize_inGameUnits, coordinate.typeColor);
-                            DarklightGizmos.DrawLabel($"{coordinate.type}", coordinate.Position - (Vector3.forward * WorldGen.Settings.CellSize_inGameUnits), coordLabelStyle);
+                            coordLabelStyle.normal.textColor = coordinate.TypeColor;
+                            DarklightGizmos.DrawWireSquare(coordinate.Position, WorldGen.Settings.CellSize_inGameUnits, coordinate.TypeColor);
+                            DarklightGizmos.DrawLabel($"{coordinate.Type}", coordinate.Position - (Vector3.forward * WorldGen.Settings.CellSize_inGameUnits), coordLabelStyle);
                             break;
                     }
                 }
@@ -422,7 +420,7 @@ namespace Darklight.ThirdDimensional.World.Editor
 
         void DrawChunkView()
         {
-            if (_region == null || _region.WorldChunkMap == null) { return; }
+            if (_region == null || _region.ChunkMap == null) { return; }
             GUIStyle chunkLabelStyle = new GUIStyle()
             {
                 fontStyle = FontStyle.Bold, // Example style
@@ -431,10 +429,10 @@ namespace Darklight.ThirdDimensional.World.Editor
                 normal = new GUIStyleState { textColor = Color.black } // Set the text color
             };
 
-            WorldChunkMap chunkMap = _region.WorldChunkMap;
+            ChunkMap chunkMap = _region.ChunkMap;
             if (chunkMap.Initialized)
             {
-                foreach (WorldChunk chunk in chunkMap.AllChunks)
+                foreach (Chunk chunk in chunkMap.AllChunks)
                 {
                     Color chunkDebugColor = Color.green;
                     string chunkDebugString = "Chunk";
@@ -442,8 +440,8 @@ namespace Darklight.ThirdDimensional.World.Editor
                     switch (chunkMapDebugType)
                     {
                         case ChunkMapDebug.COORDINATE_TYPE:
-                            chunkDebugColor = chunk.Coordinate.typeColor;
-                            chunkDebugString = $"{chunk.Coordinate.type}";
+                            chunkDebugColor = chunk.Coordinate.TypeColor;
+                            chunkDebugString = $"{chunk.Coordinate.Type}";
                             break;
                         case ChunkMapDebug.CHUNK_TYPE:
                             chunkDebugColor = chunk.TypeColor;
@@ -470,7 +468,7 @@ namespace Darklight.ThirdDimensional.World.Editor
 
         void DrawCellView()
         {
-            if (_region == null || _region.WorldChunkMap == null) { return; }
+            if (_region == null || _region.ChunkMap == null) { return; }
             GUIStyle cellLabelStyle = new GUIStyle()
             {
                 fontStyle = FontStyle.Bold, // Example style
@@ -479,10 +477,10 @@ namespace Darklight.ThirdDimensional.World.Editor
                 normal = new GUIStyleState { textColor = Color.white } // Set the text color
             };
 
-            WorldChunkMap chunkMap = _region.WorldChunkMap;
+            ChunkMap chunkMap = _region.ChunkMap;
             if (chunkMap.Initialized)
             {
-                foreach (WorldChunk chunk in chunkMap.AllChunks)
+                foreach (Chunk chunk in chunkMap.AllChunks)
                 {
                     Color chunkDebugColor = Color.white;
                     string chunkDebugString = "";
@@ -498,8 +496,8 @@ namespace Darklight.ThirdDimensional.World.Editor
                 {
                     foreach (WorldCell cell in selectedChunk.localCells)
                     {
-                        DarklightGizmos.DrawFilledSquareAt(cell.worldPosition, WorldGen.Settings.CellSize_inGameUnits * 0.75f, cell.meshQuad.faceNormal, Color.grey);
-                        DarklightGizmos.DrawLabel($"{cell.meshQuad.faceCoord}", cell.worldPosition, cellLabelStyle);
+                        DarklightGizmos.DrawFilledSquareAt(cell.Position, WorldGen.Settings.CellSize_inGameUnits * 0.75f, cell.MeshQuad.faceNormal, Color.grey);
+                        DarklightGizmos.DrawLabel($"{cell.MeshQuad.faceCoord}", cell.Position, cellLabelStyle);
                     }
                 }
             }
@@ -512,7 +510,7 @@ namespace Darklight.ThirdDimensional.World.Editor
             Repaint();
         }
 
-        void SelectChunk(WorldChunk chunk)
+        void SelectChunk(Chunk chunk)
         {
             selectedChunk = chunk;
             Repaint();

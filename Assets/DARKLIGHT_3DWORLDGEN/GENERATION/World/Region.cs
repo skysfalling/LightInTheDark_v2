@@ -6,22 +6,21 @@ using UnityEngine;
 
 namespace Darklight.ThirdDimensional.World
 {
-    using WorldGen = Generation;
-
     public class Region : MonoBehaviour
     {
-        // >>>> Init
-        public bool Initialized { get; private set; }
-
-        // >>>> Combined Chunk Mesh
-        private GameObject _combinedChunkMeshObject;
+        // [[ PRIVATE VARIABLES ]]
+        Generation _generationParent;
+        Coordinate _coordinate;
+        CoordinateMap _coordinateMap;
+        ChunkMap _chunkMap;
+        GameObject _combinedMeshObject;
 
         // [[ PUBLIC REFERENCE VARIABLES ]]
-        public Generation WorldGenerationParent { get; private set; }
+        public bool Initialized { get; private set; }
+        public Generation GenerationParent { get; private set; }
         public Coordinate Coordinate { get; private set; }
-        public CoordinateMap CoordinateMap { get; private set; }
-        public WorldChunkMap WorldChunkMap { get; private set; }
-        public Vector2Int localCoordinatePosition { get; private set; }
+        public CoordinateMap CoordinateMap => _coordinateMap;
+        public ChunkMap ChunkMap => _chunkMap;
         public Vector3 CenterPosition
         {
             get
@@ -35,18 +34,14 @@ namespace Darklight.ThirdDimensional.World
             get
             {
                 Vector3 origin = CenterPosition;
-                origin -= WorldGen.Settings.RegionFullWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
-                origin += WorldGen.Settings.ChunkWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
+                origin -= Generation.Settings.RegionFullWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
+                origin += Generation.Settings.ChunkWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
                 return origin;
             }
         }
-
-        // PUBLIC INSPECTOR VARIABLES
-        public Material defaultMaterial;
-
-        public void SetReferences(Generation worldGeneration, Coordinate coordinate)
+        public void SetReferences(Generation parent, Coordinate coordinate)
         {
-            this.WorldGenerationParent = worldGeneration;
+            this.GenerationParent = parent;
             this.Coordinate = coordinate;
 
             // Set the transform to the center
@@ -61,14 +56,14 @@ namespace Darklight.ThirdDimensional.World
         IEnumerator InitializationSequence()
         {
             // Create the coordinate map for the region
-            this.CoordinateMap = new CoordinateMap(this);
-            yield return new WaitUntil(() => this.CoordinateMap.Initialized);
+            this._coordinateMap = new CoordinateMap(this);
+            yield return new WaitUntil(() => this._coordinateMap.Initialized);
 
             // Create the chunk map for the region
-            this.WorldChunkMap = new WorldChunkMap(this, this.CoordinateMap);
-            yield return new WaitUntil(() => this.WorldChunkMap.Initialized);
+            this._chunkMap = new ChunkMap(this, this._coordinateMap);
+            yield return new WaitUntil(() => this._chunkMap.Initialized);
 
-            this.WorldChunkMap.UpdateMap();
+            this._chunkMap.UpdateMap();
 
             Initialized = true;
         }
@@ -84,7 +79,7 @@ namespace Darklight.ThirdDimensional.World
             for (int j = 0; j < allNeighborDirections.Count; j++)
             {
                 WorldDirection neighborDirection = allNeighborDirections[j];
-                Vector2Int neighborPosition = neighborDirectionMap[allNeighborDirections[j]];
+                Vector2Int neighborCoordinateValue = neighborDirectionMap[allNeighborDirections[j]];
                 BorderDirection? getCurrentBorder = CoordinateMap.GetMapBorderInNaturalDirection(neighborDirection); // get region border
                 if (getCurrentBorder == null) continue;
 
@@ -92,7 +87,7 @@ namespace Darklight.ThirdDimensional.World
                 BorderDirection currentBorderWithNeighbor = (BorderDirection)getCurrentBorder;
 
                 // close borders that dont share a neighbor
-                if (this.WorldGenerationParent.CoordinateMap.GetCoordinateAt(neighborPosition) == null)
+                if (this.GenerationParent.CoordinateMap.GetCoordinateAt(neighborCoordinateValue) == null)
                 {
                     // Neighbor not found
                     currentRegion.CoordinateMap.CloseMapBorder(currentBorderWithNeighbor); // close borders on chunks
@@ -102,8 +97,7 @@ namespace Darklight.ThirdDimensional.World
                 // else if shares a neighbor...
                 else
                 {
-                    Coordinate neighborRegionCoordinate = this.WorldGenerationParent.CoordinateMap.GetCoordinateAt(neighborPosition);
-                    Region neighborRegion = this.WorldGenerationParent.RegionMap[neighborRegionCoordinate.Value];
+                    Region neighborRegion = this.GenerationParent.RegionMap[neighborCoordinateValue];
 
                     // if neighbor has exits on shared border
                     BorderDirection matchingBorderOnNeighbor = (BorderDirection)CoordinateMap.GetOppositeBorder(currentBorderWithNeighbor);
@@ -133,26 +127,26 @@ namespace Darklight.ThirdDimensional.World
 
         public void Destroy()
         {
-            WorldGen.DestroyGameObject(this.gameObject);
+            Generation.DestroyGameObject(this.gameObject);
         }
 
         public void NewSeedGeneration()
         {
-            WorldGen.InitializeSeedRandom();
-            CoordinateMap = new CoordinateMap(this);
-            CoordinateMap.GenerateRandomExits();
-            CoordinateMap.GeneratePathsBetweenExits();
-            CoordinateMap.GenerateRandomZones(1, 3);
+            Generation.InitializeSeedRandom();
+            _coordinateMap = new CoordinateMap(this);
+            _coordinateMap.GenerateRandomExits();
+            _coordinateMap.GeneratePathsBetweenExits();
+            _coordinateMap.GenerateRandomZones(1, 3);
         }
 
         public void ResetCoordinateMap()
         {
-            CoordinateMap = new CoordinateMap(this);
+            _coordinateMap = new CoordinateMap(this);
         }
 
         public void ResetChunkMap()
         {
-            this.WorldChunkMap = new WorldChunkMap(this, this.CoordinateMap);
+            _chunkMap = new ChunkMap(this, _coordinateMap);
         }
 
 
@@ -162,11 +156,11 @@ namespace Darklight.ThirdDimensional.World
         /// </summary>
         /// <param name="meshes">A List of Mesh objects to be combined.</param>
         /// <returns>A single combined Mesh object.</returns>
-        Mesh CombineChunks(List<WorldChunk> chunks)
+        Mesh CombineChunks(List<Chunk> chunks)
         {
             // Get Meshes from chunks
             List<Mesh> meshes = new List<Mesh>();
-            foreach (WorldChunk chunk in chunks)
+            foreach (Chunk chunk in chunks)
             {
                 meshes.Add(chunk.ChunkMesh.mesh);
             }
@@ -208,13 +202,13 @@ namespace Darklight.ThirdDimensional.World
 
         public void CreateCombinedChunkMesh()
         {
-            this.WorldChunkMap.UpdateMap();
+            this.ChunkMap.UpdateMap();
 
             // Create Combined Mesh of world chunks
-            Mesh combinedMesh = CombineChunks(this.WorldChunkMap.AllChunks.ToList());
-            this._combinedChunkMeshObject = WorldGen.CreateMeshObject($"CombinedChunkMesh", combinedMesh, WorldGenerationParent.GetChunkMaterial());
-            this._combinedChunkMeshObject.transform.parent = this.transform;
-            MeshCollider collider = _combinedChunkMeshObject.AddComponent<MeshCollider>();
+            Mesh combinedMesh = CombineChunks(this.ChunkMap.AllChunks.ToList());
+            this._combinedMeshObject = Generation.CreateMeshObject($"CombinedChunkMesh", combinedMesh, GenerationParent.GetChunkMaterial());
+            this._combinedMeshObject.transform.parent = this.transform;
+            MeshCollider collider = _combinedMeshObject.AddComponent<MeshCollider>();
             collider.sharedMesh = combinedMesh;
         }
     }

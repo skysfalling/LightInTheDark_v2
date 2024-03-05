@@ -6,26 +6,27 @@ namespace Darklight.ThirdDimensional.World
 {
     using WorldGen = Generation;
 
-    public class WorldChunk
+    public class Chunk
     {
         public enum Face { Front, Back, Left, Right, Top, Bottom }
-        string prefix = " [[ WORLD CHUNK ]]";
 
-        public WorldChunkMap ChunkMapParent { get; private set; }
-        public Coordinate Coordinate { get; private set; }
-        public CoordinateMap CoordinateMap { get; private set; }
-        public GameObject ChunkGameObject { get; private set; }
-        public WorldChunkMesh ChunkMesh { get; private set; }
+        // [[ PRIVATE VARIABLES ]]
+        Coordinate _coordinate;
+        CoordinateMap _coordinateMap;
+        int _groundHeight = 2;
 
-
-        public int GroundHeight { get; private set; } = 2;
+        // [[ PUBLIC ACCESS VARIABLES ]] 
+        public ChunkMap ChunkMapParent { get; private set; }
+        public Coordinate Coordinate => _coordinate;
+        public CoordinateMap CoordinateMap => _coordinateMap;
+        public GameObject ChunkObject { get; private set; }
+        public ChunkMesh ChunkMesh { get; private set; }
+        public int GroundHeight => _groundHeight;
         public Color TypeColor { get; private set; } = Color.white;
-
         public Vector3 CenterPosition
         {
             get
             {
-
                 Vector3 center = Coordinate.Position;
                 center += (GroundHeight * WorldGen.Settings.CellSize_inGameUnits) * Vector3Int.up;
                 return center;
@@ -47,7 +48,6 @@ namespace Darklight.ThirdDimensional.World
                 return WorldGen.Settings.ChunkVec3Dimensions_inCellUnits + new Vector3Int(0, GroundHeight, 0);
             }
         }
-
 
         /// <summary>
         /// Defines World Chunks based on wall count / location
@@ -82,23 +82,23 @@ namespace Darklight.ThirdDimensional.World
         public List<WorldCell> localCells = new List<WorldCell>();
         Dictionary<WorldCell.TYPE, List<WorldCell>> _cellTypeMap = new();
         Dictionary<Face, HashSet<WorldCell>> _cellFaceMap = new();
-        public WorldChunk(WorldChunkMap chunkMap, Coordinate coordinate)
+        public Chunk(ChunkMap chunkMap, Coordinate coordinate)
         {
             this.ChunkMapParent = chunkMap;
-            this.Coordinate = coordinate;
+            this._coordinate = coordinate;
 
             // >> set perlin noise height
             Vector2Int perlinOffset = new Vector2Int((int)coordinate.Position.x, (int)coordinate.Position.z);
-            this.GroundHeight = PerlinNoise.CalculateHeightFromNoise(perlinOffset);
+            this._groundHeight = PerlinNoise.CalculateHeightFromNoise(perlinOffset);
 
             // Create coordinate map
-            this.CoordinateMap = new CoordinateMap(this);
+            this._coordinateMap = new CoordinateMap(this);
         }
 
         public void CreateChunkMesh()
         {
             // Create chunkMesh
-            ChunkMesh = new WorldChunkMesh(this, GroundHeight, CenterPosition);
+            ChunkMesh = new ChunkMesh(this, GroundHeight, CenterPosition);
 
             // Create Cells
             localCells.Clear();
@@ -122,19 +122,19 @@ namespace Darklight.ThirdDimensional.World
 
         public void CreateChunkMeshObject(Region region)
         {
-            if (this.ChunkGameObject != null)
+            if (this.ChunkObject != null)
             {
-                WorldGen.DestroyGameObject(ChunkGameObject);
+                WorldGen.DestroyGameObject(ChunkObject);
             }
 
-            this.ChunkGameObject = WorldGen.CreateMeshObject($"Chunk {Coordinate.Value} " +
-                $":: height {GroundHeight}", ChunkMesh.mesh, region.WorldGenerationParent.GetChunkMaterial());
-            this.ChunkGameObject.transform.parent = region.transform;
+            this.ChunkObject = WorldGen.CreateMeshObject($"Chunk {Coordinate.Value} " +
+                $":: height {GroundHeight}", ChunkMesh.mesh, region.GenerationParent.GetChunkMaterial());
+            this.ChunkObject.transform.parent = region.transform;
         }
 
         public void SetGroundHeight(int height)
         {
-            this.GroundHeight = height;
+            this._groundHeight = height;
         }
 
         #region ================ INITIALIZE WORLD CHUNK ============================= >>
@@ -156,21 +156,21 @@ namespace Darklight.ThirdDimensional.World
             // Find the edge positions
             foreach (WorldCell cell in localCells)
             {
-                if (cell.worldPosition.z > northEdgeZ) northEdgeZ = cell.worldPosition.z;
-                if (cell.worldPosition.z < southEdgeZ) southEdgeZ = cell.worldPosition.z;
-                if (cell.worldPosition.x > eastEdgeX) eastEdgeX = cell.worldPosition.x;
-                if (cell.worldPosition.x < westEdgeX) westEdgeX = cell.worldPosition.x;
+                if (cell.Position.z > northEdgeZ) northEdgeZ = cell.Position.z;
+                if (cell.Position.z < southEdgeZ) southEdgeZ = cell.Position.z;
+                if (cell.Position.x > eastEdgeX) eastEdgeX = cell.Position.x;
+                if (cell.Position.x < westEdgeX) westEdgeX = cell.Position.x;
             }
 
             // Check each cell
             foreach (WorldCell cell in localCells)
             {
-                if (cell.type == WorldCell.TYPE.EMPTY)
+                if (cell.Type == WorldCell.TYPE.EMPTY)
                 {
-                    if (cell.worldPosition.z == northEdgeZ) _northEdgeActive = false;
-                    if (cell.worldPosition.z == southEdgeZ) _southEdgeActive = false;
-                    if (cell.worldPosition.x == eastEdgeX) _eastEdgeActive = false;
-                    if (cell.worldPosition.x == westEdgeX) _westEdgeActive = false;
+                    if (cell.Position.z == northEdgeZ) _northEdgeActive = false;
+                    if (cell.Position.z == southEdgeZ) _southEdgeActive = false;
+                    if (cell.Position.x == eastEdgeX) _eastEdgeActive = false;
+                    if (cell.Position.x == westEdgeX) _westEdgeActive = false;
                 }
             }
 
@@ -217,12 +217,12 @@ namespace Darklight.ThirdDimensional.World
             foreach (WorldCell cell in localCells)
             {
                 // Create new List for new key
-                if (!_cellTypeMap.ContainsKey(cell.type))
+                if (!_cellTypeMap.ContainsKey(cell.Type))
                 {
-                    _cellTypeMap[cell.type] = new List<WorldCell>();
+                    _cellTypeMap[cell.Type] = new List<WorldCell>();
                 }
 
-                _cellTypeMap[cell.type].Add(cell);
+                _cellTypeMap[cell.Type].Add(cell);
             }
         }
 
@@ -262,13 +262,13 @@ namespace Darklight.ThirdDimensional.World
             // Check Validity of Cell Types
             foreach (WorldCell cell in cellsInArea)
             {
-                if (!requiredTypes.Contains(cell.type)) { return false; }
+                if (!requiredTypes.Contains(cell.Type)) { return false; }
             }
 
             string cellAreaList = "";
             foreach (WorldCell cell in cellsInArea)
             {
-                cellAreaList += $"{cell.worldPosition} {cell.type}\n";
+                cellAreaList += $"{cell.Position} {cell.Type}\n";
             }
 
             /*
@@ -293,7 +293,7 @@ namespace Darklight.ThirdDimensional.World
             {
                 for (int z = 0; z < space.y; z++)
                 {
-                    WorldCell cell = GetCellAt(startCell.worldPosition.x + (x * cellSize), startCell.worldPosition.z + (z * cellSize));
+                    WorldCell cell = GetCellAt(startCell.Position.x + (x * cellSize), startCell.Position.z + (z * cellSize));
                     if (cell != null && !areaCells.Contains(cell))
                     {
                         areaCells.Add(cell);
@@ -310,7 +310,7 @@ namespace Darklight.ThirdDimensional.World
 
             foreach (WorldCell cell in localCells)
             {
-                if (cell.worldPosition.x == x && cell.worldPosition.z == z) { return cell; }
+                if (cell.Position.x == x && cell.Position.z == z) { return cell; }
             }
 
             return null;

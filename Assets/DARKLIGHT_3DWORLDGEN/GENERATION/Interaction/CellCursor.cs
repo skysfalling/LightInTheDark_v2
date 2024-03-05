@@ -41,7 +41,7 @@ namespace Darklight.ThirdDimensional.World.Interaction
             CreateCursorAt(_hoverCursorCell, CURSOR_TYPE.HOVERED_OVER);
 
             // Move transform to cell
-            transform.position = _hoverCursorCell.worldPosition;
+            transform.position = _hoverCursorCell.Position;
         }
 
         private void SetSelectedCursorCell(WorldCell cell)
@@ -59,7 +59,7 @@ namespace Darklight.ThirdDimensional.World.Interaction
             RemoveCursorAt(cell);
 
             // Create New Cursor
-            GameObject cursor = Instantiate(cursorPrefab, cell.worldPosition, Quaternion.identity);
+            GameObject cursor = Instantiate(cursorPrefab, cell.Position, Quaternion.identity);
             cursor.transform.localScale = Vector3.one * localScaleMultiplier;
             cursor.name = $"{cursorPrefab.name} :: {type}";
             _activeCursors[cell] = cursor;

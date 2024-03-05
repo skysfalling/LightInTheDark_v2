@@ -8,8 +8,8 @@ namespace Darklight.ThirdDimensional.World.Interaction
 
     public class WorldChunkCursor : MonoBehaviour
     {
-        WorldChunk _activeChunk;
-        Dictionary<WorldChunk, GameObject> _activeChunkCursors = new();
+        Chunk _activeChunk;
+        Dictionary<Chunk, GameObject> _activeChunkCursors = new();
 
         public GameObject cursorPrefab;
 
@@ -28,7 +28,7 @@ namespace Darklight.ThirdDimensional.World.Interaction
         }
         #endregion
 
-        void SelectChunk(WorldChunk chunk)
+        void SelectChunk(Chunk chunk)
         {
             if (chunk == null) { return; }
             if (_activeChunk != null && chunk == _activeChunk) { return; }
@@ -45,7 +45,7 @@ namespace Darklight.ThirdDimensional.World.Interaction
             CreateCursorAt(_activeChunk);
         }
 
-        void CreateCursorAt(WorldChunk chunk)
+        void CreateCursorAt(Chunk chunk)
         {
             GameObject cursor = null;
 
@@ -65,7 +65,7 @@ namespace Darklight.ThirdDimensional.World.Interaction
 
         }
 
-        void RemoveCursorAt(WorldChunk cell)
+        void RemoveCursorAt(Chunk cell)
         {
             if (cell != null && _activeChunkCursors.ContainsKey(cell))
             {
