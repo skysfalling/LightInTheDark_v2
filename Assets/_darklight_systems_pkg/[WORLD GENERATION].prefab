@@ -58,6 +58,7 @@ GameObject:
   - component: {fileID: 5845749257906015333}
   - component: {fileID: 2186029314147007492}
   - component: {fileID: 7975659058563263201}
+  - component: {fileID: 8089628886061786029}
   m_Layer: 0
   m_Name: '[WORLD GENERATION]'
   m_TagString: Untagged
@@ -94,7 +95,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 620745325a50846479f301ec54b3a337, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  customWorldGenSettings: {fileID: 0}
+  customWorldGenSettings: {fileID: 11400000, guid: dbb543a9a63c30f4cbcafcb226da6e09,
+    type: 2}
   materialLibrary: {fileID: 11400000, guid: 0b9d3ca5a1c90ee47a56ab2cf34f5823, type: 2}
 --- !u!114 &7975659058563263201
 MonoBehaviour:
@@ -108,7 +110,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48b31e767e52d57489b8d9de094efc3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  worldGeneration: {fileID: 0}
+--- !u!114 &8089628886061786029
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3048074976327827359}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3c77c79f9aea1e41aa60385d504ea06, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  editMode: 0
+  worldView: 0
+  regionView: 1
+  coordinateMapView: 2
+  chunkMapDebugType: 0
+  selectedRegion: {fileID: 0}
 --- !u!1 &5561459159524278966
 GameObject:
   m_ObjectHideFlags: 0

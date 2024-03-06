@@ -7,7 +7,7 @@ namespace Darklight
 {
     public static class CustomGizmoLibrary
     {
-        public static void DrawWireSquare(Vector3 position, int size, Color color)
+        public static void DrawWireSquare(Vector3 position, float size, Color color)
         {
             if (color == null)
             {
@@ -70,10 +70,10 @@ namespace Darklight
         }
 
         // Draws a Handles.Button and executes the given action when clicked.
-        public static void DrawButtonHandle(Vector3 position, Vector3 rotation, float size, Color color, System.Action onClick)
+        public static void DrawButtonHandle(Vector3 position, Quaternion rotation, float size, Color color, System.Action onClick, Handles.CapFunction capFunction)
         {
             Handles.color = color;
-            if (Handles.Button(position, Quaternion.Euler(rotation), size, size, Handles.DotHandleCap))
+            if (Handles.Button(position, rotation, size, size, capFunction))
             {
                 onClick?.Invoke(); // Invoke the action if the button is clicked
             }

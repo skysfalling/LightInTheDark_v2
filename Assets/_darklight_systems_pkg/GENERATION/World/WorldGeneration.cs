@@ -51,9 +51,10 @@ namespace Darklight.ThirdDimensional.World
 
             // >>>> WORLD REGION
             public int RegionWidth_inChunkUnits => _regionWidth;
+            public int RegionWidth_inCellUnits => _regionWidth * _chunkWidth;
+            public int RegionWidth_inGameUnits => RegionWidth_inCellUnits * _cellSize;
             public int RegionBoundaryOffset_inChunkUnits => _regionBoundaryOffset;
             public int RegionFullWidth_inChunkUnits => RegionWidth_inChunkUnits + (_regionBoundaryOffset * 2);
-            public int RegionWidth_inCellUnits => _regionWidth * _chunkWidth;
             public int RegionFullWidth_inCellUnits => RegionFullWidth_inChunkUnits * _chunkWidth;
             public int RegionFullWidth_inGameUnits => RegionFullWidth_inCellUnits * _cellSize;
 

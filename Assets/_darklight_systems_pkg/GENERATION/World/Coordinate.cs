@@ -19,7 +19,7 @@ namespace Darklight.ThirdDimensional.World
         public CoordinateMap CoordinateMapParent { get; private set; }
         public TYPE Type => _type;
         public Vector2Int Value => _value;
-        public Vector3 Position { get; private set; }
+        public Vector3 ScenePosition { get; private set; }
         public bool Initialized { get; private set; }
         public Color TypeColor { get; private set; } = Color.black;
         public Dictionary<WorldDirection, Vector2Int> NeighborDirectionMap => _neighborDirectionMap;
@@ -31,7 +31,7 @@ namespace Darklight.ThirdDimensional.World
             this._value = value;
 
             // Calculate Coordinate Position in game world
-            this.Position = mapOriginPosition + (new Vector3(value.x, 0, value.y) * size);
+            this.ScenePosition = mapOriginPosition + (new Vector3(value.x, 0, value.y) * size);
 
             SetNeighbors();
 

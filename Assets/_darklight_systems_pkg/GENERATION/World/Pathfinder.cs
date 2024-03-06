@@ -21,7 +21,7 @@ namespace Darklight.ThirdDimensional.World
             WorldGeneration.InitializeSeedRandom();
 
             // Store all possible positions from the coordinate map
-            List<Vector2Int> positions = coordinateMap.AllPositions;
+            List<Vector2Int> positions = coordinateMap.AllCoordinateValues;
             // Initialize the open set with the start coordinate
             List<Vector2Int> openSet = new List<Vector2Int> { startCoord };
             // Initialize the closed set as an empty collection of Vector2Int
@@ -30,7 +30,7 @@ namespace Darklight.ThirdDimensional.World
             // Initialize costs for all coordinates to infinity, except the start coordinate
             Dictionary<Vector2Int, float> gCost = new Dictionary<Vector2Int, float>();
             Dictionary<Vector2Int, Vector2Int> parents = new Dictionary<Vector2Int, Vector2Int>();
-            foreach (Vector2Int pos in coordinateMap.AllPositions)
+            foreach (Vector2Int pos in coordinateMap.AllCoordinateValues)
             {
                 gCost[pos] = float.MaxValue;
             }

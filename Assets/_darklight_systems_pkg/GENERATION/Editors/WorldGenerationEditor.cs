@@ -17,11 +17,6 @@ namespace Darklight.ThirdDimensional.World.Editor
 
         static bool showGenerationSettingsFoldout = false;
 
-        static List<Coordinate.TYPE> visibleCoordinateTypes = new List<Coordinate.TYPE> { Coordinate.TYPE.CLOSED, Coordinate.TYPE.EXIT };
-
-        Region selectedRegion = null;
-        Chunk selectedChunk = null;
-        Cell selectedCell = null;
 
         private void OnEnable()
         {
@@ -119,29 +114,7 @@ namespace Darklight.ThirdDimensional.World.Editor
                     worldGen.Reset();
                 }
 
-                // >> select debug view
-                EditorGUILayout.BeginVertical();
 
-                // Assuming 'Coordinate.TYPE' is your enum
-                foreach (Coordinate.TYPE type in Enum.GetValues(typeof(Coordinate.TYPE)))
-                {
-                    bool isSelected = visibleCoordinateTypes.Contains(type);
-                    bool newIsSelected = EditorGUILayout.ToggleLeft(type.ToString(), isSelected);
-
-                    if (newIsSelected != isSelected)
-                    {
-                        if (newIsSelected)
-                        {
-                            visibleCoordinateTypes.Add(type);
-                        }
-                        else
-                        {
-                            visibleCoordinateTypes.Remove(type);
-                        }
-                    }
-                }
-
-                EditorGUILayout.EndVertical();
             }
 
             // Check if any changes were made in the Inspector
@@ -155,86 +128,7 @@ namespace Darklight.ThirdDimensional.World.Editor
             }
         }
 
-        void OnSceneGUI()
-        {
-            WorldGeneration worldGen = (WorldGeneration)target;
-            Transform transform = worldGen.transform;
 
-            GUIStyle labelStyle = new GUIStyle()
-            {
-                fontStyle = FontStyle.Bold, // Example style
-                fontSize = 12, // Example font size
-            };
-
-            if (worldGen.Initialized && worldGen.AllRegions.Count > 0)
-            {
-                foreach (Region region in worldGen.AllRegions)
-                {
-
-                    List<Coordinate> regionNeighbors = region.Coordinate.GetAllValidNeighbors();
-
-                    if (region != null && region.Initialized)
-                    {
-
-                        CustomGizmoLibrary.DrawButtonHandle(region.Position, Vector3.right * 90, WorldGeneration.Settings.RegionFullWidth_inGameUnits * 0.5f, Color.black, () =>
-                        {
-                            SelectRegion(region);
-                            DarklightCustomEditor.FocusSceneView(region.Position, WorldGeneration.Settings.RegionFullWidth_inGameUnits);
-
-                        });
-
-                        CustomGizmoLibrary.DrawWireSquare_withLabel($"World Region {region.Coordinate.Value}", region.Position, WorldGeneration.Settings.RegionFullWidth_inGameUnits, Color.blue, labelStyle);
-
-                        List<Coordinate> allCoordinates = region.CoordinateMap.AllCoordinates;
-                        for (int i = 0; i < allCoordinates.Count; i++)
-                        {
-                            Coordinate coordinate = allCoordinates[i];
-
-                            // Check if this coordinate's type is in the selected types (showCoordinateType)
-                            if (visibleCoordinateTypes.Contains(coordinate.Type)) // This line checks for matching types
-                            {
-                                CustomGizmoLibrary.DrawWireSquare_withLabel($"{coordinate.Type}", coordinate.Position,
-                                    WorldGeneration.Settings.ChunkWidth_inGameUnits, coordinate.TypeColor, labelStyle);
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                CustomGizmoLibrary.DrawWireSquare_withLabel("World Generation Size", worldGen.CenterPosition, WorldGeneration.Settings.WorldWidth_inGameUnits, Color.black, labelStyle);
-                CustomGizmoLibrary.DrawWireSquare_withLabel("Origin Region", worldGen.OriginPosition, WorldGeneration.Settings.RegionFullWidth_inGameUnits, Color.red, labelStyle);
-
-                CustomGizmoLibrary.DrawWireSquare_withLabel("World Chunk Size", worldGen.OriginPosition, WorldGeneration.Settings.ChunkWidth_inGameUnits, Color.black, labelStyle);
-                CustomGizmoLibrary.DrawWireSquare_withLabel("World Cell Size", worldGen.OriginPosition, WorldGeneration.Settings.CellSize_inGameUnits, Color.black, labelStyle);
-            }
-
-            DrawCoordinates();
-        }
-
-        void DrawCoordinates()
-        {
-            WorldGeneration worldGen = (WorldGeneration)target;
-            if (worldGen.CoordinateMap == null) { return; }
-
-            GUIStyle coordLabelStyle = new GUIStyle()
-            {
-                fontStyle = FontStyle.Bold, // Example style
-                fontSize = 12, // Example font size
-                normal = new GUIStyleState { textColor = Color.blue } // Set the text color
-            };
-            // Draw Coordinates
-            CoordinateMap coordinateMap = worldGen.CoordinateMap;
-            if (coordinateMap.Initialized && coordinateMap.AllPositions.Count > 0)
-            {
-                foreach (Vector2Int position in coordinateMap.AllPositions)
-                {
-                    Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
-                    CustomGizmoLibrary.DrawWireSquare(coordinate.Position, WorldGeneration.Settings.CellSize_inGameUnits, coordinate.TypeColor);
-                    CustomGizmoLibrary.DrawLabel($"{coordinate.Type}", coordinate.Position - (Vector3.forward * WorldGeneration.Settings.CellSize_inGameUnits), coordLabelStyle);
-                }
-            }
-        }
 
         void DrawCoordinateNeighbors(Coordinate coordinate)
         {
@@ -248,7 +142,7 @@ namespace Darklight.ThirdDimensional.World.Editor
                     Vector2Int directionVector = CoordinateMap.GetDirectionVector(neighborDirection);
                     Vector3 direction = new Vector3(directionVector.x, 0, directionVector.y) * WorldGeneration.Settings.ChunkWidth_inGameUnits * 0.25f;
 
-                    CustomGizmoLibrary.DrawArrow(coordinate.Position, direction, Color.red);
+                    CustomGizmoLibrary.DrawArrow(coordinate.ScenePosition, direction, Color.red);
                 }
 
                 List<Coordinate> diagonal_neighbors = coordinate.GetValidDiagonalNeighbors();
@@ -258,33 +152,9 @@ namespace Darklight.ThirdDimensional.World.Editor
                     Vector2Int directionVector = CoordinateMap.GetDirectionVector(neighborDirection);
                     Vector3 direction = new Vector3(directionVector.x, 0, directionVector.y) * WorldGeneration.Settings.ChunkWidth_inGameUnits * 0.25f;
 
-                    CustomGizmoLibrary.DrawArrow(coordinate.Position, direction, Color.yellow);
+                    CustomGizmoLibrary.DrawArrow(coordinate.ScenePosition, direction, Color.yellow);
                 }
             }
-        }
-
-        void SelectRegion(Region region)
-        {
-            Debug.Log($"Selected Region {region.Coordinate.Value}");
-            selectedRegion = region;
-            selectedChunk = null;
-            selectedCell = null;
-        }
-
-        void SelectChunk(Chunk chunk)
-        {
-            Debug.Log($"Selected Chunk {chunk.Coordinate.Value}");
-            selectedRegion = null;
-            selectedChunk = chunk;
-            selectedCell = null;
-        }
-
-        void SelectCell(Cell cell)
-        {
-            Debug.Log($"Selected Cell {cell.Position}");
-            selectedRegion = null;
-            selectedChunk = null;
-            selectedCell = cell;
         }
     }
 }

@@ -23,19 +23,6 @@ namespace Darklight
             }
         }
 
-        public static GUIStyle CenteredStyle
-        {
-            get
-            {
-                return new GUIStyle(GUI.skin.label)
-                {
-                    alignment = TextAnchor.MiddleCenter,
-                    fontSize = 12,
-                    fontStyle = FontStyle.Bold
-                };
-            }
-        }
-
         public static GUIStyle Header1Style
         {
             get
@@ -62,6 +49,64 @@ namespace Darklight
             }
         }
 
+        public static GUIStyle LeftAlignedStyle
+        {
+            get
+            {
+                return new GUIStyle(GUI.skin.label)
+                {
+                    alignment = TextAnchor.MiddleLeft
+                };
+            }
+        }
+
+        public static GUIStyle CenteredStyle
+        {
+            get
+            {
+                return new GUIStyle(GUI.skin.label)
+                {
+                    alignment = TextAnchor.MiddleCenter
+                };
+            }
+        }
+
+        public static GUIStyle RightAlignedStyle
+        {
+            get
+            {
+                return new GUIStyle(GUI.skin.label)
+                {
+                    alignment = TextAnchor.MiddleRight
+                };
+            }
+        }
+
+        public static GUIStyle BoldStyle
+        {
+            get
+            {
+                return new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 12,
+                    fontStyle = FontStyle.Bold
+                };
+            }
+        }
+
+        public static GUIStyle BoldCenteredStyle
+        {
+            get
+            {
+                return new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 12,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter
+                };
+            }
+        }
+
         public static void FocusSceneView(Vector3 focusPoint, float size)
         {
             if (SceneView.lastActiveSceneView != null)
@@ -72,18 +117,6 @@ namespace Darklight
 
                 // Repaint the scene view to immediately reflect changes
                 SceneView.lastActiveSceneView.Repaint();
-            }
-        }
-
-
-        // The helper function to draw a button and invoke a callback when pressed
-        public static void DrawHandlesButton_atTransform(Transform transform, float size, Action onButtonPressed, Handles.CapFunction capFunction)
-        {
-            float pickSize = size * 2f;
-
-            if (Handles.Button(transform.position, Quaternion.identity, size, pickSize, capFunction))
-            {
-                onButtonPressed?.Invoke();
             }
         }
 
@@ -140,6 +173,18 @@ namespace Darklight
             return result;
         }
 
+        // Helper function to create a labeled enum dropdown in the editor
+        public static void DrawLabeledEnumPopup<TEnum>(ref TEnum currentValue, string label) where TEnum : System.Enum
+        {
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(label); // Adjust the width as needed
 
+            GUILayout.FlexibleSpace();
+
+            currentValue = (TEnum)EditorGUILayout.EnumPopup(currentValue);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+        }
     }
 }

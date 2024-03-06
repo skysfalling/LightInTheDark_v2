@@ -27,7 +27,7 @@ namespace Darklight.ThirdDimensional.World
         {
             get
             {
-                Vector3 center = Coordinate.Position;
+                Vector3 center = Coordinate.ScenePosition;
                 center += (GroundHeight * WorldGen.Settings.CellSize_inGameUnits) * Vector3Int.up;
                 return center;
             }
@@ -88,7 +88,7 @@ namespace Darklight.ThirdDimensional.World
             this._coordinate = coordinate;
 
             // >> set perlin noise height
-            Vector2Int perlinOffset = new Vector2Int((int)coordinate.Position.x, (int)coordinate.Position.z);
+            Vector2Int perlinOffset = new Vector2Int((int)coordinate.ScenePosition.x, (int)coordinate.ScenePosition.z);
             this._groundHeight = PerlinNoise.CalculateHeightFromNoise(perlinOffset);
 
             // Create coordinate map

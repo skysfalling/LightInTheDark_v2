@@ -22,7 +22,7 @@ namespace Darklight.ThirdDimensional.World
             this.CoordinateMap = coordinateMap;
 
             // [[ CREATE WORLD CHUNKS ]]
-            foreach (Vector2Int position in coordinateMap.AllPositions)
+            foreach (Vector2Int position in coordinateMap.AllCoordinateValues)
             {
                 Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
                 Chunk newChunk = new Chunk(this, coordinate);
@@ -64,7 +64,7 @@ namespace Darklight.ThirdDimensional.World
 
         public Chunk GetChunkAt(Vector2Int position)
         {
-            if (!Initialized || !CoordinateMap.AllPositions.Contains(position)) { return null; }
+            if (!Initialized || !CoordinateMap.AllCoordinateValues.Contains(position)) { return null; }
             return _chunkMap[position];
         }
 

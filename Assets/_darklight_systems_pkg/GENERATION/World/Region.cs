@@ -25,7 +25,7 @@ namespace Darklight.ThirdDimensional.World
         {
             get
             {
-                Vector3 center = Coordinate.Position;
+                Vector3 center = Coordinate.ScenePosition;
                 return center;
             }
         }
