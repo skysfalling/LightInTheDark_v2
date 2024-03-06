@@ -19,6 +19,8 @@ namespace Darklight.ThirdDimensional.World
 
     public class WorldGeneration : MonoBehaviour
     {
+
+        #region [[ GENERATION SETTINGS ]]
         public class GenerationSettings
         {
             // [[ STORED SETTINGS DATA ]] 
@@ -75,8 +77,19 @@ namespace Darklight.ThirdDimensional.World
                 _worldWidth = worldGenSettings.WorldWidth;
             }
         }
-
-
+        public static GenerationSettings Settings { get { return _settings; } }
+        public void OverrideSettings(CustomWorldGenerationSettings customSettings)
+        {
+            if (customSettings == null) { _settings = new GenerationSettings(); return; }
+            _settings = new GenerationSettings(customSettings);
+        }
+        public static string Seed { get { return Settings.Seed; } }
+        public static int EncodedSeed { get { return Settings.Seed.GetHashCode(); } }
+        public static void InitializeSeedRandom()
+        {
+            UnityEngine.Random.InitState(EncodedSeed);
+        }
+        #endregion
 
         // [[ PRIVATE VARIABLES ]] 
         string _prefix = "[ WORLD GENERATION ] ";
@@ -86,16 +99,7 @@ namespace Darklight.ThirdDimensional.World
         List<Region> _regions = new();
         Dictionary<Vector2Int, Region> _regionMap = new();
 
-        // [[ PUBLIC STATIC VARIABLES ]]
-        public static GenerationSettings Settings { get { return _settings; } }
-        public static string Seed { get { return Settings.Seed; } }
-        public static int EncodedSeed { get { return Settings.Seed.GetHashCode(); } }
-        public static void InitializeSeedRandom()
-        {
-            UnityEngine.Random.InitState(EncodedSeed);
-        }
-
-        // [[ PUBLIC ACCESS VARIABLES ]]
+        // [[ PUBLIC REFERENCE VARIABLES ]]
         public bool Initialized { get; private set; }
         public CoordinateMap CoordinateMap { get { return _coordinateMap; } }
         public Vector3 CenterPosition { get { return transform.position; } }
@@ -112,17 +116,14 @@ namespace Darklight.ThirdDimensional.World
         public List<Region> AllRegions { get { return _regions; } }
         public Dictionary<Vector2Int, Region> RegionMap { get { return _regionMap; } }
 
+        // [[ PUBLIC INSPECTOR VARIABLES ]] 
+        public CustomWorldGenerationSettings customWorldGenSettings; // Settings Scriptable Object
+        public MaterialLibrary materialLibrary; // Settings Scriptable Object
 
-        public CustomWorldGenerationSettings customWorldGenSettings;
 
-        #region == INITIALIZE ====================================== >>>>
         public void Initialize()
         {
-            if (customWorldGenSettings != null)
-            {
-                Debug.Log($"World Generation Initializing with Custom Settings :: {customWorldGenSettings.Seed}");
-                _settings = new GenerationSettings(customWorldGenSettings);
-            }
+            OverrideSettings(customWorldGenSettings);
 
             StartCoroutine(InitializationSequence());
         }
@@ -210,8 +211,6 @@ namespace Darklight.ThirdDimensional.World
             Debug.Log($"Total Initialization Time: {Time.time - startTime} seconds.");
         }
 
-        #endregion ============================================================ ////
-
         public void StartGeneration()
         {
             if (_generationSequence == null)
@@ -271,11 +270,6 @@ namespace Darklight.ThirdDimensional.World
             }
         }
         #endregion
-
-        public Material GetChunkMaterial()
-        {
-            return GetComponent<WorldMaterialLibrary>().chunkMaterial;
-        }
 
         public void Reset()
         {

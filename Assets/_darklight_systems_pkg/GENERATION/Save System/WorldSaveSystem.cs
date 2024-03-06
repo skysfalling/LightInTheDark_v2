@@ -8,8 +8,6 @@ namespace Darklight.ThirdDimensional.World.Data
 {
     public class WorldSaveSystem : MonoBehaviour
     {
-        [SerializeField] public WorldGeneration worldGeneration;
-
         private IDataService DataService = new JsonDataService(); // Assuming JsonDataService implements IDataService
         private bool EncryptionEnabled = false;
         private long SaveTime;
@@ -23,6 +21,8 @@ namespace Darklight.ThirdDimensional.World.Data
         [EasyButtons.Button]
         public void SaveWorldSettings()
         {
+            WorldGeneration worldGeneration = GetComponent<WorldGeneration>();
+
             WorldData saveData = new WorldData(worldGeneration);
 
             long startTime = DateTime.Now.Ticks;

@@ -8,6 +8,7 @@ using System.Linq;
 namespace Darklight.ThirdDimensional.World.Editor
 {
     using WorldGen = WorldGeneration;
+    using Editor = UnityEditor.Editor;
 
     [CustomEditor(typeof(WorldGeneration))]
     public class WorldGenerationEditor : UnityEditor.Editor
@@ -33,25 +34,53 @@ namespace Darklight.ThirdDimensional.World.Editor
             // WORLD GENERATION SETTINGS
             // ----------------------------------------------------------------
             WorldGeneration worldGen = (WorldGen)target;
-            EditorGUILayout.LabelField("Generation Settings", DarklightEditor.Header2Style);
-            EditorGUILayout.Space(20);
+
+
+
+            SerializedProperty materialLibraryProperty = serializedWorldGen.FindProperty("materialLibrary");
+            EditorGUILayout.PropertyField(materialLibraryProperty);
 
             SerializedProperty customWorldGenSettingsProperty = serializedWorldGen.FindProperty("customWorldGenSettings");
             EditorGUILayout.PropertyField(customWorldGenSettingsProperty);
 
-            EditorGUILayout.LabelField("World Generation Parameters", EditorStyles.boldLabel);
+            if (worldGen.customWorldGenSettings != null)
+            {
 
-            DarklightEditor.CreateSettingsLabel("Seed", WorldGen.Settings.Seed);
-            DarklightEditor.CreateSettingsLabel("Cell Width In World Space", $"{WorldGen.Settings.CellSize_inGameUnits}");
+                EditorGUILayout.LabelField("Custom World Generation Settings", EditorStyles.boldLabel);
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.Space();
+                EditorGUILayout.BeginVertical();
 
-            DarklightEditor.CreateSettingsLabel("Chunk Width In Cells", $"{WorldGen.Settings.ChunkDepth_inCellUnits}");
-            DarklightEditor.CreateSettingsLabel("Chunk Depth In Cells", $"{WorldGen.Settings.ChunkDepth_inCellUnits}");
-            DarklightEditor.CreateSettingsLabel("Max Chunk Height", $"{WorldGen.Settings.ChunkMaxHeight_inCellUnits}");
+                Editor editor = CreateEditor(worldGen.customWorldGenSettings);
+                editor.OnInspectorGUI(); // Draw the editor for the ScriptableObject
 
-            DarklightEditor.CreateSettingsLabel("Play Region Width In Chunks", $"{WorldGen.Settings.RegionWidth_inChunkUnits}");
-            DarklightEditor.CreateSettingsLabel("Boundary Wall Count", $"{WorldGen.Settings.RegionBoundaryOffset_inChunkUnits}");
+                EditorGUILayout.EndVertical();
+                EditorGUILayout.EndHorizontal();
 
-            DarklightEditor.CreateSettingsLabel("World Width In Regions", $"{WorldGen.Settings.WorldWidth_inRegionUnits}");
+                worldGen.OverrideSettings((CustomWorldGenerationSettings)customWorldGenSettingsProperty.objectReferenceValue);
+            }
+            else
+            {
+                worldGen.OverrideSettings(null);
+
+                EditorGUILayout.LabelField("Default World Generation Settings", EditorStyles.boldLabel);
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.Space();
+                EditorGUILayout.BeginVertical();
+                DarklightEditor.CreateSettingsLabel("Seed", WorldGen.Settings.Seed);
+                DarklightEditor.CreateSettingsLabel("Cell Width In World Space", $"{WorldGen.Settings.CellSize_inGameUnits}");
+
+                DarklightEditor.CreateSettingsLabel("Chunk Width In Cells", $"{WorldGen.Settings.ChunkDepth_inCellUnits}");
+                DarklightEditor.CreateSettingsLabel("Chunk Depth In Cells", $"{WorldGen.Settings.ChunkDepth_inCellUnits}");
+                DarklightEditor.CreateSettingsLabel("Max Chunk Height", $"{WorldGen.Settings.ChunkMaxHeight_inCellUnits}");
+
+                DarklightEditor.CreateSettingsLabel("Play Region Width In Chunks", $"{WorldGen.Settings.RegionWidth_inChunkUnits}");
+                DarklightEditor.CreateSettingsLabel("Boundary Wall Count", $"{WorldGen.Settings.RegionBoundaryOffset_inChunkUnits}");
+
+                DarklightEditor.CreateSettingsLabel("World Width In Regions", $"{WorldGen.Settings.WorldWidth_inRegionUnits}");
+                EditorGUILayout.EndVertical();
+                EditorGUILayout.EndHorizontal();
+            }
 
             EditorGUILayout.Space();
 
@@ -91,6 +120,8 @@ namespace Darklight.ThirdDimensional.World.Editor
             {
                 // If there were changes, apply them to the serialized object
                 serializedWorldGen.ApplyModifiedProperties();
+
+
 
                 // Optionally, mark the target object as dirty to ensure the changes are saved
                 EditorUtility.SetDirty(target);

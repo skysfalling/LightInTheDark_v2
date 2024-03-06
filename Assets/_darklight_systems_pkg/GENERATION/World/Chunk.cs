@@ -128,7 +128,7 @@ namespace Darklight.ThirdDimensional.World
             }
 
             this.ChunkObject = WorldGen.CreateMeshObject($"Chunk {Coordinate.Value} " +
-                $":: height {GroundHeight}", ChunkMesh.mesh, region.GenerationParent.GetChunkMaterial());
+                $":: height {GroundHeight}", ChunkMesh.mesh, region.GenerationParent.materialLibrary.DefaultGroundMaterial);
             this.ChunkObject.transform.parent = region.transform;
         }
 

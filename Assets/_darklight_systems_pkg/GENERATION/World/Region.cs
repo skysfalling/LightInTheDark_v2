@@ -123,6 +123,9 @@ namespace Darklight.ThirdDimensional.World
                 }
 
             }
+
+            // Clean up inactive corners
+            CoordinateMap.SetInactiveCornersToType(Coordinate.TYPE.BORDER);
         }
 
         public void Destroy()
@@ -206,7 +209,7 @@ namespace Darklight.ThirdDimensional.World
 
             // Create Combined Mesh of world chunks
             Mesh combinedMesh = CombineChunks(this.ChunkMap.AllChunks.ToList());
-            this._combinedMeshObject = WorldGeneration.CreateMeshObject($"CombinedChunkMesh", combinedMesh, GenerationParent.GetChunkMaterial());
+            this._combinedMeshObject = WorldGeneration.CreateMeshObject($"CombinedChunkMesh", combinedMesh, GenerationParent.materialLibrary.DefaultGroundMaterial);
             this._combinedMeshObject.transform.parent = this.transform;
             MeshCollider collider = _combinedMeshObject.AddComponent<MeshCollider>();
             collider.sharedMesh = combinedMesh;

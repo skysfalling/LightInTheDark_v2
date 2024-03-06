@@ -100,6 +100,7 @@ namespace Darklight.ThirdDimensional.World
         Dictionary<BorderDirection, HashSet<Vector2Int>> _borderExitMap = new();
         Dictionary<BorderDirection, Vector2Int[]> _borderIndexMap = new();
         Dictionary<BorderDirection, (Vector2Int, Vector2Int)> _borderCornersMap = new();
+        Dictionary<BorderDirection, bool> _activeBordersMap = new();
 
         // >>>> Custom Generation References
         public List<Vector2Int> Exits = new();
@@ -217,7 +218,7 @@ namespace Darklight.ThirdDimensional.World
             _borderPositionsMap[BorderDirection.EAST] = new();
             _borderPositionsMap[BorderDirection.WEST] = new();
 
-
+            // >> initialize _border indexes
             _borderIndexMap[BorderDirection.NORTH] = new Vector2Int[coordMax];
             _borderIndexMap[BorderDirection.SOUTH] = new Vector2Int[coordMax];
             _borderIndexMap[BorderDirection.EAST] = new Vector2Int[coordMax];
@@ -238,15 +239,21 @@ namespace Darklight.ThirdDimensional.World
 
             // >> store border corners
             List<Vector2Int> cornerCoordinates = new List<Vector2Int>() {
-            new Vector2Int(playableMapRange.x, playableMapRange.x), // 0 0 { SOUTH WEST }
-            new Vector2Int(playableMapRange.y, playableMapRange.y), // max max { NORTH EAST }
-            new Vector2Int(playableMapRange.x, playableMapRange.y), // 0 max { NORTH WEST }
-            new Vector2Int(playableMapRange.y, playableMapRange.x)  // max 0 { SOUTH EAST }
+                new Vector2Int(playableMapRange.x, playableMapRange.x), // min min { SOUTH WEST }
+                new Vector2Int(playableMapRange.y, playableMapRange.y), // max max { NORTH EAST }
+                new Vector2Int(playableMapRange.x, playableMapRange.y), // min max { NORTH WEST }
+                new Vector2Int(playableMapRange.y, playableMapRange.x)  // max min { SOUTH EAST }
             };
+
             _borderCornersMap[BorderDirection.NORTH] = (cornerCoordinates[2], cornerCoordinates[1]); // NW, NE
             _borderCornersMap[BorderDirection.SOUTH] = (cornerCoordinates[0], cornerCoordinates[3]); // SW, SE
             _borderCornersMap[BorderDirection.EAST] = (cornerCoordinates[1], cornerCoordinates[3]); // NE, SE
             _borderCornersMap[BorderDirection.WEST] = (cornerCoordinates[0], cornerCoordinates[2]); // SW, NW
+
+            _activeBordersMap[BorderDirection.NORTH] = false;
+            _activeBordersMap[BorderDirection.SOUTH] = false;
+            _activeBordersMap[BorderDirection.EAST] = false;
+            _activeBordersMap[BorderDirection.WEST] = false;
 
             // >> iterate through positions
             foreach (Vector2Int pos in _positions)
@@ -357,15 +364,51 @@ namespace Darklight.ThirdDimensional.World
         public void CloseMapBorder(BorderDirection mapBorder)
         {
             // Destroy that border >:#!! 
+
+            _activeBordersMap[mapBorder] = true;
+
             List<Vector2Int> positions = _borderPositionsMap[mapBorder].ToList();
 
             SetCoordinatesToType(positions, Coordinate.TYPE.CLOSED);
+        }
 
-            // Retrieve and nullify corners for the specific border
-            if (_borderCornersMap.TryGetValue(mapBorder, out var corners))
+        public void SetInactiveCornersToType(Coordinate.TYPE type)
+        {
+            List<Vector2Int> inactiveCorners = new List<Vector2Int>();
+
+            // Mapping corners to their adjacent borders
+            var cornerBordersMap = new Dictionary<Vector2Int, List<BorderDirection>>
             {
-                SetCoordinatesToType(new List<Vector2Int> { corners.Item1, corners.Item2 }, Coordinate.TYPE.CLOSED);
+                [_borderCornersMap[BorderDirection.NORTH].Item1] = new List<BorderDirection> { BorderDirection.NORTH, BorderDirection.WEST }, // NW
+                [_borderCornersMap[BorderDirection.NORTH].Item2] = new List<BorderDirection> { BorderDirection.NORTH, BorderDirection.EAST }, // NE
+                [_borderCornersMap[BorderDirection.SOUTH].Item1] = new List<BorderDirection> { BorderDirection.SOUTH, BorderDirection.WEST }, // SW
+                [_borderCornersMap[BorderDirection.SOUTH].Item2] = new List<BorderDirection> { BorderDirection.SOUTH, BorderDirection.EAST }, // SE
+            };
+
+            // Iterate through each corner
+            foreach (var corner in cornerBordersMap)
+            {
+                bool allBordersInactive = true;
+
+                // Check if all adjacent borders of the corner are inactive
+                foreach (var border in corner.Value)
+                {
+                    if (_activeBordersMap[border])
+                    {
+                        allBordersInactive = false;
+                        break;
+                    }
+                }
+
+                // If all adjacent borders are inactive, add the corner to the list
+                if (allBordersInactive)
+                {
+                    inactiveCorners.Add(corner.Key);
+                }
             }
+
+            // Set inactive corners
+            SetCoordinatesToType(inactiveCorners, type);
         }
 
         // == [[ WORLD EXITS ]] ======================================================================== >>>>
