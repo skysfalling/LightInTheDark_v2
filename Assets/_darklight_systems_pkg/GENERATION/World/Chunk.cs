@@ -8,6 +8,28 @@ namespace Darklight.ThirdDimensional.World
 
     public class Chunk
     {
+        /// <summary>
+        /// Defines World Chunks based on wall count / location
+        /// </summary>
+        public enum TYPE
+        {
+            /// <summary>No walls present.</summary>
+            EMPTY,
+            /// <summary>One sidewall present.</summary>
+            WALL,
+            /// <summary>Two parallel walls present, forming a hallway.</summary>
+            HALLWAY,
+            /// <summary>Two perpendicular walls present, forming a corner.</summary>
+            CORNER,
+            /// <summary>Three walls present, forming a dead end.</summary>
+            DEADEND,
+            /// <summary>Enclosed by walls on all four sides.</summary>
+            CLOSED,
+            /// <summary>Indicates a boundary limit, set by WorldCoordinateMap.</summary>
+            BORDER,
+            /// <summary>Indicates an exit point, set by WorldExit.</summary>
+            EXIT
+        }
         public enum FaceType { Front, Back, Left, Right, Top, Bottom }
 
         // [[ PRIVATE VARIABLES ]]
@@ -15,9 +37,11 @@ namespace Darklight.ThirdDimensional.World
         CoordinateMap _coordinateMap;
         ChunkMesh _chunkMesh;
         CellMap _cellMap;
+        TYPE _type;
         int _groundHeight = 2;
 
         // [[ PUBLIC ACCESS VARIABLES ]] 
+        public int Width => WorldGeneration.Settings.ChunkWidth_inGameUnits;
         public ChunkMap ChunkMapParent { get; private set; }
         public Coordinate Coordinate => _coordinate;
         public CoordinateMap CoordinateMap => _coordinateMap;
@@ -25,6 +49,7 @@ namespace Darklight.ThirdDimensional.World
         public ChunkMesh ChunkMesh => _chunkMesh;
         public CellMap CellMap => _cellMap;
         public int GroundHeight => _groundHeight;
+        public TYPE Type => _type;
         public Color TypeColor { get; private set; } = Color.white;
         public Vector3 CenterPosition => Coordinate.ScenePosition;
         public Vector3 OriginPosition
@@ -48,38 +73,6 @@ namespace Darklight.ThirdDimensional.World
         }
         public Vector3 ChunkMeshDimensions => WorldGen.Settings.ChunkVec3Dimensions_inCellUnits + new Vector3Int(0, GroundHeight, 0);
 
-        /// <summary>
-        /// Defines World Chunks based on wall count / location
-        /// </summary>
-        public enum TYPE
-        {
-            /// <summary>No walls present.</summary>
-            EMPTY,
-            /// <summary>One sidewall present.</summary>
-            WALL,
-            /// <summary>Two parallel walls present, forming a hallway.</summary>
-            HALLWAY,
-            /// <summary>Two perpendicular walls present, forming a corner.</summary>
-            CORNER,
-            /// <summary>Three walls present, forming a dead end.</summary>
-            DEADEND,
-            /// <summary>Enclosed by walls on all four sides.</summary>
-            CLOSED,
-            /// <summary>Indicates a boundary limit, set by WorldCoordinateMap.</summary>
-            BORDER,
-            /// <summary>Indicates an exit point, set by WorldExit.</summary>
-            EXIT
-        }
-        public TYPE type;
-        public bool generation_finished { get; private set; }
-
-        // Active Edges
-        bool _northEdgeActive;
-        bool _southEdgeActive;
-        bool _eastEdgeActive;
-        bool _westEdgeActive;
-        public List<Cell> localCells = new List<Cell>();
-
         public Chunk(ChunkMap chunkMap, Coordinate coordinate)
         {
             this.ChunkMapParent = chunkMap;
@@ -102,8 +95,7 @@ namespace Darklight.ThirdDimensional.World
             _cellMap = new CellMap(this, _chunkMesh);
 
 
-            //DetermineChunkEdges();
-            //SetChunkType();
+            DetermineChunkType();
         }
 
         public void CreateChunkMeshObject(Region region)
@@ -123,86 +115,90 @@ namespace Darklight.ThirdDimensional.World
             this._groundHeight = height;
         }
 
-        #region ================ INITIALIZE WORLD CHUNK ============================= >>
-
-        void DetermineChunkEdges()
+        void DetermineChunkType()
         {
-            // Initialize all edges as active
-            _northEdgeActive = true;
-            _southEdgeActive = true;
-            _eastEdgeActive = true;
-            _westEdgeActive = true;
-
-            // Define the edge positions
-            float northEdgeZ = float.MinValue;
-            float southEdgeZ = float.MaxValue;
-            float eastEdgeX = float.MinValue;
-            float westEdgeX = float.MaxValue;
-
-            // Find the edge positions
-            foreach (Cell cell in localCells)
+            // [[ ITERATE THROUGH CHUNK NEIGHBORS ]] 
+            Dictionary<WorldDirection, Chunk> naturalNeighborMap = GetNaturalNeighborMap();
+            foreach(WorldDirection direction in naturalNeighborMap.Keys.ToList())
             {
-                if (cell.Position.z > northEdgeZ) northEdgeZ = cell.Position.z;
-                if (cell.Position.z < southEdgeZ) southEdgeZ = cell.Position.z;
-                if (cell.Position.x > eastEdgeX) eastEdgeX = cell.Position.x;
-                if (cell.Position.x < westEdgeX) westEdgeX = cell.Position.x;
-            }
-
-            // Check each cell
-            foreach (Cell cell in localCells)
-            {
-                if (cell.Type == Cell.TYPE.EMPTY)
+                Chunk neighborChunk = naturalNeighborMap[direction];
+                if (neighborChunk != null && neighborChunk.GroundHeight != this.GroundHeight)
                 {
-                    if (cell.Position.z == northEdgeZ) _northEdgeActive = false;
-                    if (cell.Position.z == southEdgeZ) _southEdgeActive = false;
-                    if (cell.Position.x == eastEdgeX) _eastEdgeActive = false;
-                    if (cell.Position.x == westEdgeX) _westEdgeActive = false;
+                    BorderDirection? neighborBorder = CoordinateMap.GetBorderDirection(direction); // get chunk border
+                    if (neighborBorder == null) continue;
+
+                    CoordinateMap.CloseMapBorder((BorderDirection)neighborBorder); // close the chunk border
                 }
             }
 
-            /*
-            // Log the active edges
-            Debug.Log($"North Edge Active: {NorthEdgeActive}\n " +
-                      $"South Edge Active: {SouthEdgeActive}\n " +
-                      $"East Edge Active: {EastEdgeActive}\n " +
-                      $"West Edge Active: {WestEdgeActive}\n ");
-            */
-        }
-        void SetChunkType()
-        {
-            // Get Edge Count
-            int activeEdgeCount = 0;
-            if (_northEdgeActive) { activeEdgeCount++; }
-            if (_southEdgeActive) { activeEdgeCount++; }
-            if (_eastEdgeActive) { activeEdgeCount++; }
-            if (_westEdgeActive) { activeEdgeCount++; }
+            // ========================================================
 
-            // Set Type
-            if (activeEdgeCount == 4) { type = TYPE.CLOSED; return; }
-            if (activeEdgeCount == 3) { type = TYPE.DEADEND; return; }
-            if (activeEdgeCount == 2)
+            // [[ DETERMINE TYPE FROM BORDERS ]]
+            Dictionary<BorderDirection, bool> activeBorderMap = CoordinateMap.ActiveBorderMap;
+
+            // Count active borders directly from the dictionary
+            int activeBorderCount = activeBorderMap.Count(kv => kv.Value == true);
+
+            // Determine type based on active edge count and their positions
+            switch (activeBorderCount)
             {
-                // Check for parallel edges
-                if (_northEdgeActive && _southEdgeActive) { type = TYPE.HALLWAY; return; }
-                if (_eastEdgeActive && _westEdgeActive) { type = TYPE.HALLWAY; return; }
-                type = TYPE.CORNER;
+                case 4:
+                    SetType(TYPE.CLOSED); break;
+                case 3:
+                    SetType(TYPE.DEADEND); break;
+                case 2:
+                    // Check for parallel edges
+                    if (activeBorderMap[BorderDirection.NORTH] && activeBorderMap[BorderDirection.SOUTH]) 
+                        { SetType(TYPE.HALLWAY); break; }
+                    if (activeBorderMap[BorderDirection.EAST] && activeBorderMap[BorderDirection.WEST]) 
+                        { SetType(TYPE.HALLWAY); break; }
+
+                    // Otherwise chunk is in corner
+                    SetType(TYPE.CORNER); break;
+                case 1:
+                    SetType(TYPE.WALL); break;
+                case 0:
+                    SetType(TYPE.EMPTY); break;
             }
-            if (activeEdgeCount == 1) { type = TYPE.WALL; return; }
-            if (activeEdgeCount == 0) { type = TYPE.EMPTY; return; }
         }
 
-        #endregion
+        public void SetType(TYPE newType)
+        {
+            _type = newType;
+            switch (newType)
+            {
+                case TYPE.CLOSED: TypeColor = Color.black; break;
+                case TYPE.DEADEND: TypeColor = Color.red; break;
+                case TYPE.HALLWAY: TypeColor = Color.yellow; break;
+                case TYPE.CORNER: TypeColor = Color.blue; break;
+                case TYPE.WALL: TypeColor = Color.green; break;
+                case TYPE.EMPTY: TypeColor = Color.white; break;
+            }
+        }
 
-        // ================ CREATE & INITIALIZE WORLD CELLS ============================== >>
+        public Dictionary<WorldDirection, Chunk> GetNaturalNeighborMap()
+        {
+            Dictionary<WorldDirection, Chunk> neighborMap = new();
 
+            List<WorldDirection> naturalNeighborDirections = new List<WorldDirection> { WorldDirection.NORTH, WorldDirection.SOUTH, WorldDirection.EAST, WorldDirection.WEST };
+            foreach (WorldDirection direction in naturalNeighborDirections)
+            {
+                Vector2Int neighborCoordinateValue = CoordinateMap.CalculateNeighborCoordinateValue(Coordinate.Value, direction);
+                neighborMap[direction] = ChunkMapParent.GetChunkAt(neighborCoordinateValue);
+            }
 
+            return neighborMap;
+        }
 
         // ================== SPAWN OBJECTS ============= >>
+
+
         public List<Cell> FindSpace(EnvironmentObject envObj)
         {
             Dictionary<int, List<Cell>> availableSpace = new Dictionary<int, List<Cell>>();
             int spaceIndex = 0;
 
+            /*
             foreach (Cell startCell in localCells)
             {
                 if (IsSpaceAvailable(startCell, envObj))
@@ -211,6 +207,7 @@ namespace Darklight.ThirdDimensional.World
                     spaceIndex++;
                 }
             }
+            */
 
             // Get Random Available Space
             if (availableSpace.Count > 0)
@@ -221,6 +218,7 @@ namespace Darklight.ThirdDimensional.World
             // Return Empty
             return new List<Cell>();
         }
+
         public bool IsSpaceAvailable(Cell startCell, EnvironmentObject envObj)
         {
             List<Cell> cellsInArea = GetCellsInArea(startCell, envObj.space);
@@ -279,10 +277,12 @@ namespace Darklight.ThirdDimensional.World
         {
             //Debug.Log($"{prefix} GetCellAt {x} {z}\n");
 
+            /*
             foreach (Cell cell in localCells)
             {
                 if (cell.Position.x == x && cell.Position.z == z) { return cell; }
             }
+            */
 
             return null;
         }

@@ -79,7 +79,7 @@ namespace Darklight.ThirdDimensional.World
 
             // Get Offset
             Vector2Int offset = neighbor.Value - this.Value;
-            return CoordinateMap.GetDirectionEnum(offset);
+            return CoordinateMap.GetEnumFromDirectionVector(offset);
         }
 
         public List<Coordinate> GetValidNaturalNeighbors()
@@ -87,11 +87,11 @@ namespace Darklight.ThirdDimensional.World
             if (!Initialized) return new();
 
             List<Coordinate> neighbors = new List<Coordinate> {
-            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.WEST]),
-            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.EAST]),
-            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTH]),
-            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTH])
-        };
+                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.WEST]),
+                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.EAST]),
+                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTH]),
+                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTH])
+            };
             neighbors.RemoveAll(item => item == null);
             return neighbors;
         }
@@ -101,11 +101,11 @@ namespace Darklight.ThirdDimensional.World
             if (!Initialized) return new();
 
             List<Coordinate> neighbors = new List<Coordinate> {
-            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTHWEST]),
-            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTHEAST]),
-            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTHWEST]),
-            CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTHEAST])
-        };
+                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTHWEST]),
+                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTHEAST]),
+                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTHWEST]),
+                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTHEAST])
+            };
             neighbors.RemoveAll(item => item == null);
             return neighbors;
         }
@@ -146,30 +146,26 @@ namespace Darklight.ThirdDimensional.World
             return null;
         }
 
-        public List<Vector2Int> GetValidNaturalNeighborCoordinateValues()
+        public List<Vector2Int> GetNaturalNeighborCoordinateValues()
         {
-            if (!Initialized) return new();
-
             List<Vector2Int> neighbors = new List<Vector2Int> {
-            _neighborDirectionMap[WorldDirection.WEST],
-            _neighborDirectionMap[WorldDirection.EAST],
-            _neighborDirectionMap[WorldDirection.NORTH],
-            _neighborDirectionMap[WorldDirection.SOUTH],
-        };
+                _neighborDirectionMap[WorldDirection.WEST],
+                _neighborDirectionMap[WorldDirection.EAST],
+                _neighborDirectionMap[WorldDirection.NORTH],
+                _neighborDirectionMap[WorldDirection.SOUTH],
+            };
             neighbors.RemoveAll(item => item == null);
             return neighbors;
         }
 
-        public List<Vector2Int> GetValidDiagonalNeighborCoordinates()
+        public List<Vector2Int> GetDiagonalNeighborCoordinateValues()
         {
-            if (!Initialized) return new();
-
             List<Vector2Int> neighbors = new List<Vector2Int> {
-            _neighborDirectionMap[WorldDirection.NORTHWEST],
-            _neighborDirectionMap[WorldDirection.NORTHEAST],
-            _neighborDirectionMap[WorldDirection.SOUTHWEST],
-            _neighborDirectionMap[WorldDirection.SOUTHEAST],
-        };
+                _neighborDirectionMap[WorldDirection.NORTHWEST],
+                _neighborDirectionMap[WorldDirection.NORTHEAST],
+                _neighborDirectionMap[WorldDirection.SOUTHWEST],
+                _neighborDirectionMap[WorldDirection.SOUTHEAST],
+            };
             neighbors.RemoveAll(item => item == null);
             return neighbors;
         }

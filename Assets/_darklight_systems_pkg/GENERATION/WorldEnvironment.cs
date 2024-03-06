@@ -130,6 +130,7 @@ namespace Darklight.ThirdDimensional.World
             if (envObjects.Count == 0) { return; }
             EnvironmentObject envObj = envObjects[Random.Range(0, envObjects.Count)];
 
+            /*
             foreach (Cell cell in chunk.localCells)
             {
                 if (cell.Type == Cell.TYPE.EDGE || cell.Type == Cell.TYPE.CORNER)
@@ -154,6 +155,7 @@ namespace Darklight.ThirdDimensional.World
                     }
                 }
             }
+            */
         }
 
         private GameObject SpawnEnvObject(EnvironmentObject envObj, Transform envParent, List<Cell> spawnArea)

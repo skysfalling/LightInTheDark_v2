@@ -11,7 +11,7 @@ namespace Darklight.ThirdDimensional.World
     public class CoordinateMap
     {
         #region << STATIC FUNCTIONS <<
-        public static BorderDirection? GetMapBorderInNaturalDirection(WorldDirection direction)
+        public static BorderDirection? GetBorderDirection(WorldDirection direction)
         {
             switch (direction)
             {
@@ -43,20 +43,21 @@ namespace Darklight.ThirdDimensional.World
             }
         }
         public static Dictionary<WorldDirection, Vector2Int> _directionVectorMap = new() {
-        { WorldDirection.NORTH, new Vector2Int(0, 1) },
-        { WorldDirection.SOUTH, new Vector2Int(0, -1) },
-        { WorldDirection.WEST, new Vector2Int(-1, 0) },
-        { WorldDirection.EAST, new Vector2Int(1, 0) },
-        { WorldDirection.NORTHWEST, new Vector2Int(-1, 1) },
-        { WorldDirection.NORTHEAST, new Vector2Int(1, 1) },
-        { WorldDirection.SOUTHWEST, new Vector2Int(-1, -1) },
-        { WorldDirection.SOUTHEAST, new Vector2Int(1, -1) }
-    };
+            { WorldDirection.NORTH, new Vector2Int(0, 1) },
+            { WorldDirection.SOUTH, new Vector2Int(0, -1) },
+            { WorldDirection.WEST, new Vector2Int(-1, 0) },
+            { WorldDirection.EAST, new Vector2Int(1, 0) },
+            { WorldDirection.NORTHWEST, new Vector2Int(-1, 1) },
+            { WorldDirection.NORTHEAST, new Vector2Int(1, 1) },
+            { WorldDirection.SOUTHWEST, new Vector2Int(-1, -1) },
+            { WorldDirection.SOUTHEAST, new Vector2Int(1, -1) }
+        };
+
         public static Vector2Int GetDirectionVector(WorldDirection direction)
         {
             return _directionVectorMap[direction];
         }
-        public static WorldDirection? GetDirectionEnum(Vector2Int direction)
+        public static WorldDirection? GetEnumFromDirectionVector(Vector2Int direction)
         {
             foreach (var pair in _directionVectorMap)
             {
@@ -67,25 +68,31 @@ namespace Darklight.ThirdDimensional.World
             }
             return null;
         }
-        public static List<Vector2Int> CalculateNaturalNeighborPositions(Vector2Int center)
+
+        public static Vector2Int CalculateNeighborCoordinateValue(Vector2Int center,  WorldDirection direction)
         {
-            return new List<Vector2Int>()
-        {
-            center + _directionVectorMap[WorldDirection.NORTH],
-            center + _directionVectorMap[WorldDirection.SOUTH],
-            center + _directionVectorMap[WorldDirection.EAST],
-            center + _directionVectorMap[WorldDirection.WEST]
-        };
+            return center + _directionVectorMap[direction];
         }
-        public static List<Vector2Int> CalculateDiagonalNeighborPositions(Vector2Int center)
+
+        public static List<Vector2Int> CalculateNaturalNeighborCoordinateValues(Vector2Int center)
         {
             return new List<Vector2Int>()
+            {
+                CalculateNeighborCoordinateValue(center, WorldDirection.NORTH),
+                CalculateNeighborCoordinateValue(center, WorldDirection.SOUTH),
+                CalculateNeighborCoordinateValue(center, WorldDirection.EAST),
+                CalculateNeighborCoordinateValue(center, WorldDirection.WEST)
+            };
+        }
+        public static List<Vector2Int> CalculateDiagonalNeighborCoordinateValues(Vector2Int center)
         {
-            center + _directionVectorMap[WorldDirection.NORTHEAST],
-            center + _directionVectorMap[WorldDirection.NORTHWEST],
-            center + _directionVectorMap[WorldDirection.SOUTHEAST],
-            center + _directionVectorMap[WorldDirection.SOUTHWEST]
-        };
+            return new List<Vector2Int>()
+            {
+                CalculateNeighborCoordinateValue(center, WorldDirection.NORTHWEST),
+                CalculateNeighborCoordinateValue(center, WorldDirection.NORTHEAST),
+                CalculateNeighborCoordinateValue(center, WorldDirection.SOUTHWEST),
+                CalculateNeighborCoordinateValue(center, WorldDirection.SOUTHEAST)
+            };
         }
         #endregion
 
@@ -106,7 +113,7 @@ namespace Darklight.ThirdDimensional.World
         Dictionary<BorderDirection, HashSet<Vector2Int>> _borderExitMap = new();
         Dictionary<BorderDirection, Vector2Int[]> _borderIndexMap = new();
         Dictionary<BorderDirection, (Vector2Int, Vector2Int)> _borderCornersMap = new();
-        Dictionary<BorderDirection, bool> _activeBordersMap = new();
+        Dictionary<BorderDirection, bool> _activeBorderMap = new();
 
         // >>>> Custom Generation References
         public List<Vector2Int> Exits = new();
@@ -115,11 +122,12 @@ namespace Darklight.ThirdDimensional.World
 
         // >> public access variables
         public bool Initialized { get; private set; }
-        public int MaxCoordinateValue { get; private set; } = 0;
-        public List<Vector2Int> AllCoordinateValues { get { return _values.ToList(); } }
-        public List<Coordinate> AllCoordinates { get { return _coordinates.ToList(); } }
+        public int MaxCoordinateValue { get; private set; }
         public UnitSpace UnitSpace => _mapUnitSpace;
         public int CoordinateSize => _coordinateSize;
+        public List<Vector2Int> AllCoordinateValues { get { return _values.ToList(); } }
+        public List<Coordinate> AllCoordinates { get { return _coordinates.ToList(); } }
+        public Dictionary<BorderDirection, bool> ActiveBorderMap => _activeBorderMap;
 
         // == [[ CONSTRUCTOR ]] ======================================================================== >>>>
         public CoordinateMap(object parent)
@@ -257,10 +265,10 @@ namespace Darklight.ThirdDimensional.World
             _borderCornersMap[BorderDirection.EAST] = (cornerCoordinates[1], cornerCoordinates[3]); // NE, SE
             _borderCornersMap[BorderDirection.WEST] = (cornerCoordinates[0], cornerCoordinates[2]); // SW, NW
 
-            _activeBordersMap[BorderDirection.NORTH] = false;
-            _activeBordersMap[BorderDirection.SOUTH] = false;
-            _activeBordersMap[BorderDirection.EAST] = false;
-            _activeBordersMap[BorderDirection.WEST] = false;
+            _activeBorderMap[BorderDirection.NORTH] = false;
+            _activeBorderMap[BorderDirection.SOUTH] = false;
+            _activeBorderMap[BorderDirection.EAST] = false;
+            _activeBorderMap[BorderDirection.WEST] = false;
 
             // >> iterate through positions
             foreach (Vector2Int pos in _values)
@@ -372,7 +380,7 @@ namespace Darklight.ThirdDimensional.World
         {
             // Destroy that border >:#!! 
 
-            _activeBordersMap[mapBorder] = true;
+            _activeBorderMap[mapBorder] = true;
 
             List<Vector2Int> positions = _borderPositionsMap[mapBorder].ToList();
 
@@ -400,7 +408,7 @@ namespace Darklight.ThirdDimensional.World
                 // Check if all adjacent borders of the corner are inactive
                 foreach (var border in corner.Value)
                 {
-                    if (_activeBordersMap[border])
+                    if (_activeBorderMap[border])
                     {
                         allBordersInactive = false;
                         break;

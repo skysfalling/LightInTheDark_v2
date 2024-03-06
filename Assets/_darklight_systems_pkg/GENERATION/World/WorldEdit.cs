@@ -34,11 +34,11 @@ namespace Darklight.ThirdDimensional.World
         public RegionView regionView = RegionView.COORDINATE_MAP;
 
         // Chunk View
-        public enum ChunkView { OUTLINE, COORDINATE_MAP, CELL_MAP }
+        public enum ChunkView { OUTLINE, TYPE, HEIGHT, COORDINATE_MAP, CELL_MAP }
         public ChunkView chunkView = ChunkView.COORDINATE_MAP;
 
         // Cell View
-        public enum CellView { OUTLINE, FACE }
+        public enum CellView { OUTLINE, TYPE, FACE }
         public CellView cellView = CellView.OUTLINE;
 
         // Coordinate Map
@@ -296,7 +296,7 @@ namespace Darklight.ThirdDimensional.World
         }
 
 
-
+        // ==== DRAW WORLD UNITS ====================================================================================================
         void DrawRegion(Region region, RegionView type)
         {
             if (region == null || region.CoordinateMap == null ) { return; }
@@ -331,16 +331,35 @@ namespace Darklight.ThirdDimensional.World
 
         void DrawChunk(Chunk chunk, ChunkView type)
         {
-            switch(type)
+            GUIStyle chunkLabelStyle = CustomEditorLibrary.CenteredStyle;
+
+            switch (type)
             {
                 case ChunkView.OUTLINE:
 
                     // Draw Selection Rectangle
-                    CustomGizmoLibrary.DrawButtonHandle(chunk.GroundPosition, Vector3.up, WorldGeneration.Settings.ChunkWidth_inGameUnits * 0.475f, Color.black, () =>
+                    CustomGizmoLibrary.DrawButtonHandle(chunk.GroundPosition, Vector3.up, chunk.Width * 0.475f, Color.black, () =>
                     {
                         _worldEditScript.SelectChunk(chunk);
                     }, Handles.RectangleHandleCap);
 
+                    break;
+                case ChunkView.TYPE:
+                    chunkLabelStyle.normal.textColor = chunk.TypeColor;
+                    CustomGizmoLibrary.DrawLabel($"{chunk.Type.ToString()[0]}", chunk.CenterPosition, chunkLabelStyle);
+
+                    CustomGizmoLibrary.DrawButtonHandle(chunk.CenterPosition, Vector3.up, chunk.Width * 0.475f, chunk.TypeColor, () =>
+                    {
+                        _worldEditScript.SelectChunk(chunk);
+                    }, Handles.RectangleHandleCap);
+                    break;
+                case ChunkView.HEIGHT:
+                    CustomGizmoLibrary.DrawLabel($"{chunk.GroundHeight}", chunk.GroundPosition, chunkLabelStyle);
+
+                    CustomGizmoLibrary.DrawButtonHandle(chunk.GroundPosition, Vector3.up, chunk.Width * 0.475f, Color.grey, () =>
+                    {
+                        _worldEditScript.SelectChunk(chunk);
+                    }, Handles.RectangleHandleCap);
                     break;
                 case ChunkView.COORDINATE_MAP:
 
@@ -357,11 +376,27 @@ namespace Darklight.ThirdDimensional.World
 
         void DrawCell(Cell cell, CellView type)
         {
-            // Draw Selection Rectangle
-            CustomGizmoLibrary.DrawButtonHandle(cell.Position, cell.Normal, cell.Size * 0.475f, Color.black, () =>
+            GUIStyle cellLabelStyle = CustomEditorLibrary.CenteredStyle;
+
+            switch (type)
             {
-                _worldEditScript.SelectCell(cell);
-            }, Handles.RectangleHandleCap);
+                case CellView.OUTLINE:
+                    // Draw Selection Rectangle
+                    CustomGizmoLibrary.DrawButtonHandle(cell.Position, cell.Normal, cell.Size * 0.475f, Color.black, () =>
+                    {
+                        _worldEditScript.SelectCell(cell);
+                    }, Handles.RectangleHandleCap);
+                    break;
+                case CellView.TYPE:
+                    // Draw Face Type Label
+                    CustomGizmoLibrary.DrawLabel($"{cell.Type.ToString()[0]}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
+                    CustomGizmoLibrary.DrawFilledSquareAt(cell.Position, cell.Size * 0.75f, cell.Normal, cell.TypeColor);
+                    break;
+                case CellView.FACE:
+                    // Draw Face Type Label
+                    CustomGizmoLibrary.DrawLabel($"{cell.FaceType}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
+                    break;
+            }
         }
 
         void DrawCoordinateMap(CoordinateMap coordinateMap, CoordinateMapView mapView, System.Action<Coordinate> onCoordinateSelect)
@@ -415,23 +450,12 @@ namespace Darklight.ThirdDimensional.World
                     switch (mapView)
                     {
                         case ChunkMapView.TYPE:
-
-                            CustomGizmoLibrary.DrawFilledSquareAt(chunk.GroundPosition, WorldGeneration.Settings.ChunkWidth_inGameUnits, Vector3.up, Color.grey);
-
-                            DrawChunk(chunk, ChunkView.OUTLINE);
-
+                            DrawChunk(chunk, ChunkView.TYPE);
                             break;
                         case ChunkMapView.HEIGHT:
-
-                            // Draw Height Label
-                            CustomGizmoLibrary.DrawLabel($"{chunk.GroundHeight}", chunk.GroundPosition + (Vector3.up * WorldGeneration.Settings.CellSize_inGameUnits), chunkLabelStyle);
-
-                            DrawChunk(chunk, ChunkView.OUTLINE);
-
+                            DrawChunk(chunk, ChunkView.HEIGHT);
                             break;
                     }
-
-
                 }
             }
         }
@@ -447,19 +471,10 @@ namespace Darklight.ThirdDimensional.World
                 switch (mapView)
                 {
                     case CellMapView.TYPE:
-                        // Draw Face Type Label
-                        CustomGizmoLibrary.DrawLabel($"{cell.Type}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
-
-                        CustomGizmoLibrary.DrawFilledSquareAt(cell.Position, cell.Size * 0.75f, cell.Normal, Color.white);
-
+                        DrawCell(cell, CellView.TYPE);
                         break;
                     case CellMapView.FACE:
-
-                        // Draw Face Type Label
-                        CustomGizmoLibrary.DrawLabel($"{cell.FaceType}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
-
-                        CustomGizmoLibrary.DrawFilledSquareAt(cell.Position, cell.Size * 0.75f, cell.Normal, Color.grey);
-
+                        DrawCell(cell, CellView.FACE);
                         break;
                 }
             }

@@ -24,6 +24,7 @@ namespace Darklight.ThirdDimensional.World
         public Chunk ChunkParent { get; private set; }
         public MeshQuad MeshQuad => _meshQuad;
         public TYPE Type => _type;
+        public Color TypeColor { get; private set; } = Color.white;
         public Vector3 Position
         {
             get
@@ -44,9 +45,17 @@ namespace Darklight.ThirdDimensional.World
             this._meshQuad = meshQuad;
         }
 
-        public void SetCellType(TYPE type)
+        public void SetCellType(TYPE newType)
         {
-            this._type = type;
+            this._type = newType; 
+            switch (newType)
+            {
+                case TYPE.EMPTY: TypeColor = Color.clear; break;
+                case TYPE.EDGE: TypeColor = Color.red; break;
+                case TYPE.CORNER: TypeColor = Color.yellow; break;
+                case TYPE.OBSTACLE: TypeColor = Color.black; break;
+                case TYPE.SPAWN_POINT: TypeColor = Color.yellow; break;
+            }
         }
     }
 }

@@ -74,14 +74,14 @@ namespace Darklight.ThirdDimensional.World
             return GetChunkAt(worldCoord.Value);
         }
 
-        public List<Chunk> GetChunksAtCoordinates(List<Coordinate> worldCoords)
+        public List<Chunk> GetChunksAtCoordinateValues(List<Vector2Int> values)
         {
             if (!Initialized) { return new List<Chunk>(); }
 
             List<Chunk> chunks = new List<Chunk>();
-            foreach (Coordinate worldCoord in worldCoords)
+            foreach (Vector2Int value in values)
             {
-                chunks.Add(GetChunkAt(worldCoord));
+                chunks.Add(GetChunkAt(value));
             }
 
             return chunks;

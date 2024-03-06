@@ -73,7 +73,7 @@ namespace Darklight.ThirdDimensional.World
             {
                 WorldDirection neighborDirection = allNeighborDirections[j];
                 Vector2Int neighborCoordinateValue = neighborDirectionMap[allNeighborDirections[j]];
-                BorderDirection? getCurrentBorder = CoordinateMap.GetMapBorderInNaturalDirection(neighborDirection); // get region border
+                BorderDirection? getCurrentBorder = CoordinateMap.GetBorderDirection(neighborDirection); // get region border
                 if (getCurrentBorder == null) continue;
 
                 // defined map border variable

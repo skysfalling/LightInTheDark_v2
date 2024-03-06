@@ -69,7 +69,7 @@ namespace Darklight.ThirdDimensional.World
 
 
                 // [[ ITERATE THROUGH NATURAL NEIGHBORS ]]
-                foreach (Vector2Int pos in CoordinateMap.CalculateNaturalNeighborPositions(current))
+                foreach (Vector2Int pos in CoordinateMap.CalculateNaturalNeighborCoordinateValues(current))
                 {
                     if (closedSet.Contains(pos) || !coordinateMap.IsCoordinateValidForPathfinding(pos))
                         continue; // Skip non-traversable neighbors and those already evaluated
