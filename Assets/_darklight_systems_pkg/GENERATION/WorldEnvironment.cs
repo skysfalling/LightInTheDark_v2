@@ -9,8 +9,8 @@ namespace Darklight.ThirdDimensional.World
     {
         public GameObject prefab;
         public Vector2Int space = new Vector2Int(1, 1);
-        public List<WorldCell.TYPE> spawnCellTypeRequirements = new List<WorldCell.TYPE>();
-        public WorldCell.TYPE cellTypeConversion;
+        public List<Cell.TYPE> spawnCellTypeRequirements = new List<Cell.TYPE>();
+        public Cell.TYPE cellTypeConversion;
 
         [Header("Scale")]
         public float minScale = 1f;
@@ -42,7 +42,7 @@ namespace Darklight.ThirdDimensional.World
 
         [Header("PLAYER")]
         public GameObject playerPrefab;
-        [HideInInspector] public WorldCell playerSpawnCell;
+        [HideInInspector] public Cell playerSpawnCell;
         [HideInInspector] public GameObject instantiatedPlayer;
 
         [Header("WALLS")]
@@ -130,9 +130,9 @@ namespace Darklight.ThirdDimensional.World
             if (envObjects.Count == 0) { return; }
             EnvironmentObject envObj = envObjects[Random.Range(0, envObjects.Count)];
 
-            foreach (WorldCell cell in chunk.localCells)
+            foreach (Cell cell in chunk.localCells)
             {
-                if (cell.Type == WorldCell.TYPE.EDGE || cell.Type == WorldCell.TYPE.CORNER)
+                if (cell.Type == Cell.TYPE.EDGE || cell.Type == Cell.TYPE.CORNER)
                 {
                     SpawnPrefab(wall_0, cell, parentMap[cell.ChunkParent], WorldGeneration.Settings.CellSize_inGameUnits);
                 }
@@ -145,7 +145,7 @@ namespace Darklight.ThirdDimensional.World
 
                     // Get Required Space Area
                     int req_spaceArea = envObj.space.x * envObj.space.y;
-                    List<WorldCell> foundSpace = chunk.FindSpace(envObj);
+                    List<Cell> foundSpace = chunk.FindSpace(envObj);
 
                     if (foundSpace == null) { continue; }
                     if (foundSpace.Count == req_spaceArea)
@@ -156,9 +156,9 @@ namespace Darklight.ThirdDimensional.World
             }
         }
 
-        private GameObject SpawnEnvObject(EnvironmentObject envObj, Transform envParent, List<WorldCell> spawnArea)
+        private GameObject SpawnEnvObject(EnvironmentObject envObj, Transform envParent, List<Cell> spawnArea)
         {
-            WorldCell startCell = spawnArea[0]; // start cell ( top left )
+            Cell startCell = spawnArea[0]; // start cell ( top left )
 
             // spawn object in center of area
             GameObject newObject = SpawnPrefab(envObj.prefab, startCell, envParent, envObj.GetRandomScaleMultiplier());
@@ -174,7 +174,7 @@ namespace Darklight.ThirdDimensional.World
             return newObject;
         }
 
-        private GameObject SpawnPrefab(GameObject prefab, WorldCell cell, Transform parent, float scaleMultiplier = 1)
+        private GameObject SpawnPrefab(GameObject prefab, Cell cell, Transform parent, float scaleMultiplier = 1)
         {
             GameObject newObject = Instantiate(prefab, cell.Position, Quaternion.identity);
             newObject.transform.parent = parent;

@@ -16,7 +16,7 @@ namespace Darklight.ThirdDimensional.World.Interaction
 
         [Header("World Cursor")]
         public Transform worldCursor; // related transform to the cursor
-        public WorldCell currCursorCell = null;
+        public Cell currCursorCell = null;
 
         [Header("Select Entity")]
         public WorldEntity selectedEntity;

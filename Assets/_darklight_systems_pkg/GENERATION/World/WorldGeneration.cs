@@ -13,6 +13,7 @@ using UnityEditor;
 
 namespace Darklight.ThirdDimensional.World
 {
+    public enum UnitSpace{ WORLD, REGION, CHUNK, CELL, GAME }
     public enum WorldDirection { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
     public enum BorderDirection { NORTH, SOUTH, EAST, WEST }
 

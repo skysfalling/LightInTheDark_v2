@@ -79,9 +79,9 @@ namespace Darklight.ThirdDimensional.World
         bool _southEdgeActive;
         bool _eastEdgeActive;
         bool _westEdgeActive;
-        public List<WorldCell> localCells = new List<WorldCell>();
-        Dictionary<WorldCell.TYPE, List<WorldCell>> _cellTypeMap = new();
-        Dictionary<Face, HashSet<WorldCell>> _cellFaceMap = new();
+        public List<Cell> localCells = new List<Cell>();
+        Dictionary<Cell.TYPE, List<Cell>> _cellTypeMap = new();
+        Dictionary<Face, HashSet<Cell>> _cellFaceMap = new();
         public Chunk(ChunkMap chunkMap, Coordinate coordinate)
         {
             this.ChunkMapParent = chunkMap;
@@ -107,7 +107,7 @@ namespace Darklight.ThirdDimensional.World
                 // Spawn top face cells
                 if (quad.faceType != Face.Bottom)
                 {
-                    WorldCell newCell = new WorldCell(this, quad);
+                    Cell newCell = new Cell(this, quad);
                     localCells.Add(newCell);
 
                     if (!_cellFaceMap.ContainsKey(quad.faceType)) { _cellFaceMap[quad.faceType] = new(); }
@@ -154,7 +154,7 @@ namespace Darklight.ThirdDimensional.World
             float westEdgeX = float.MaxValue;
 
             // Find the edge positions
-            foreach (WorldCell cell in localCells)
+            foreach (Cell cell in localCells)
             {
                 if (cell.Position.z > northEdgeZ) northEdgeZ = cell.Position.z;
                 if (cell.Position.z < southEdgeZ) southEdgeZ = cell.Position.z;
@@ -163,9 +163,9 @@ namespace Darklight.ThirdDimensional.World
             }
 
             // Check each cell
-            foreach (WorldCell cell in localCells)
+            foreach (Cell cell in localCells)
             {
-                if (cell.Type == WorldCell.TYPE.EMPTY)
+                if (cell.Type == Cell.TYPE.EMPTY)
                 {
                     if (cell.Position.z == northEdgeZ) _northEdgeActive = false;
                     if (cell.Position.z == southEdgeZ) _southEdgeActive = false;
@@ -214,12 +214,12 @@ namespace Darklight.ThirdDimensional.World
         void CreateCellTypeMap()
         {
             _cellTypeMap.Clear();
-            foreach (WorldCell cell in localCells)
+            foreach (Cell cell in localCells)
             {
                 // Create new List for new key
                 if (!_cellTypeMap.ContainsKey(cell.Type))
                 {
-                    _cellTypeMap[cell.Type] = new List<WorldCell>();
+                    _cellTypeMap[cell.Type] = new List<Cell>();
                 }
 
                 _cellTypeMap[cell.Type].Add(cell);
@@ -227,12 +227,12 @@ namespace Darklight.ThirdDimensional.World
         }
 
         // ================== SPAWN OBJECTS ============= >>
-        public List<WorldCell> FindSpace(EnvironmentObject envObj)
+        public List<Cell> FindSpace(EnvironmentObject envObj)
         {
-            Dictionary<int, List<WorldCell>> availableSpace = new Dictionary<int, List<WorldCell>>();
+            Dictionary<int, List<Cell>> availableSpace = new Dictionary<int, List<Cell>>();
             int spaceIndex = 0;
 
-            foreach (WorldCell startCell in localCells)
+            foreach (Cell startCell in localCells)
             {
                 if (IsSpaceAvailable(startCell, envObj))
                 {
@@ -248,25 +248,25 @@ namespace Darklight.ThirdDimensional.World
             }
 
             // Return Empty
-            return new List<WorldCell>();
+            return new List<Cell>();
         }
-        public bool IsSpaceAvailable(WorldCell startCell, EnvironmentObject envObj)
+        public bool IsSpaceAvailable(Cell startCell, EnvironmentObject envObj)
         {
-            List<WorldCell> cellsInArea = GetCellsInArea(startCell, envObj.space);
-            List<WorldCell.TYPE> requiredTypes = envObj.spawnCellTypeRequirements;
+            List<Cell> cellsInArea = GetCellsInArea(startCell, envObj.space);
+            List<Cell.TYPE> requiredTypes = envObj.spawnCellTypeRequirements;
 
             // Check Cell Count ( Also Area Size )
             int spawnAreaSize = envObj.space.x * envObj.space.y;
             if (cellsInArea.Count != spawnAreaSize) { return false; }
 
             // Check Validity of Cell Types
-            foreach (WorldCell cell in cellsInArea)
+            foreach (Cell cell in cellsInArea)
             {
                 if (!requiredTypes.Contains(cell.Type)) { return false; }
             }
 
             string cellAreaList = "";
-            foreach (WorldCell cell in cellsInArea)
+            foreach (Cell cell in cellsInArea)
             {
                 cellAreaList += $"{cell.Position} {cell.Type}\n";
             }
@@ -284,16 +284,16 @@ namespace Darklight.ThirdDimensional.World
         }
 
         // NOTE :: This is specifically starting with the top left cell.
-        private List<WorldCell> GetCellsInArea(WorldCell startCell, Vector2Int space)
+        private List<Cell> GetCellsInArea(Cell startCell, Vector2Int space)
         {
-            List<WorldCell> areaCells = new List<WorldCell>();
+            List<Cell> areaCells = new List<Cell>();
             int cellSize = WorldGen.Settings.CellSize_inGameUnits;
 
             for (int x = 0; x < space.x; x++)
             {
                 for (int z = 0; z < space.y; z++)
                 {
-                    WorldCell cell = GetCellAt(startCell.Position.x + (x * cellSize), startCell.Position.z + (z * cellSize));
+                    Cell cell = GetCellAt(startCell.Position.x + (x * cellSize), startCell.Position.z + (z * cellSize));
                     if (cell != null && !areaCells.Contains(cell))
                     {
                         areaCells.Add(cell);
@@ -304,11 +304,11 @@ namespace Darklight.ThirdDimensional.World
             return areaCells;
         }
 
-        private WorldCell GetCellAt(float x, float z)
+        private Cell GetCellAt(float x, float z)
         {
             //Debug.Log($"{prefix} GetCellAt {x} {z}\n");
 
-            foreach (WorldCell cell in localCells)
+            foreach (Cell cell in localCells)
             {
                 if (cell.Position.x == x && cell.Position.z == z) { return cell; }
             }
@@ -316,23 +316,23 @@ namespace Darklight.ThirdDimensional.World
             return null;
         }
 
-        public void MarkArea(List<WorldCell> area, WorldCell.TYPE markType)
+        public void MarkArea(List<Cell> area, Cell.TYPE markType)
         {
-            foreach (WorldCell cell in area) { cell.SetCellType(markType); }
+            foreach (Cell cell in area) { cell.SetCellType(markType); }
         }
 
         // ================= HELPER FUNCTIONS ============================== >>
-        public List<WorldCell> GetCellsOfType(WorldCell.TYPE cellType)
+        public List<Cell> GetCellsOfType(Cell.TYPE cellType)
         {
-            if (!generation_finished) { return new List<WorldCell>(); }
-            if (!_cellTypeMap.ContainsKey(cellType)) { _cellTypeMap[cellType] = new List<WorldCell>(); }
+            if (!generation_finished) { return new List<Cell>(); }
+            if (!_cellTypeMap.ContainsKey(cellType)) { _cellTypeMap[cellType] = new List<Cell>(); }
             return _cellTypeMap[cellType];
         }
 
-        public WorldCell GetRandomCellOfType(WorldCell.TYPE cellType)
+        public Cell GetRandomCellOfType(Cell.TYPE cellType)
         {
             if (!generation_finished) { return null; }
-            List<WorldCell> cells = GetCellsOfType(cellType);
+            List<Cell> cells = GetCellsOfType(cellType);
             return cells[UnityEngine.Random.Range(0, cells.Count)];
         }
     }

@@ -21,7 +21,7 @@ namespace Darklight.ThirdDimensional.World
         public Coordinate Coordinate { get; private set; }
         public CoordinateMap CoordinateMap => _coordinateMap;
         public ChunkMap ChunkMap => _chunkMap;
-        public Vector3 CenterPosition
+        public Vector3 Position
         {
             get
             {
@@ -33,7 +33,7 @@ namespace Darklight.ThirdDimensional.World
         {
             get
             {
-                Vector3 origin = CenterPosition;
+                Vector3 origin = Position;
                 origin -= WorldGeneration.Settings.RegionFullWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
                 origin += WorldGeneration.Settings.ChunkWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
                 return origin;
@@ -45,7 +45,7 @@ namespace Darklight.ThirdDimensional.World
             this.Coordinate = coordinate;
 
             // Set the transform to the center
-            transform.position = CenterPosition;
+            transform.position = Position;
         }
 
         public void Initialize()

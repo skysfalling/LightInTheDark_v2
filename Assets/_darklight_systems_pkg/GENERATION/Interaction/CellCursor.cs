@@ -8,9 +8,9 @@ namespace Darklight.ThirdDimensional.World.Interaction
     {
         public enum CURSOR_TYPE { HOVERED_OVER, SELECTED }
 
-        WorldCell _hoverCursorCell;
-        WorldCell _selectedCursorCell;
-        Dictionary<WorldCell, GameObject> _activeCursors = new();
+        Cell _hoverCursorCell;
+        Cell _selectedCursorCell;
+        Dictionary<Cell, GameObject> _activeCursors = new();
 
         public GameObject cursorPrefab;
         [Range(0.1f, 10f)] public float localScaleMultiplier;
@@ -32,7 +32,7 @@ namespace Darklight.ThirdDimensional.World.Interaction
         #endregion
 
 
-        void SetHoverCursorCell(WorldCell cell)
+        void SetHoverCursorCell(Cell cell)
         {
             if (_selectedCursorCell == _hoverCursorCell) { return; }
             if (_hoverCursorCell != null) { RemoveCursorAt(_hoverCursorCell); }
@@ -44,7 +44,7 @@ namespace Darklight.ThirdDimensional.World.Interaction
             transform.position = _hoverCursorCell.Position;
         }
 
-        private void SetSelectedCursorCell(WorldCell cell)
+        private void SetSelectedCursorCell(Cell cell)
         {
             if (_selectedCursorCell != null) { RemoveCursorAt(_selectedCursorCell); }
 
@@ -54,7 +54,7 @@ namespace Darklight.ThirdDimensional.World.Interaction
 
 
         #region == CURSOR CREATION ===================================== >>>>>
-        void CreateCursorAt(WorldCell cell, CURSOR_TYPE type)
+        void CreateCursorAt(Cell cell, CURSOR_TYPE type)
         {
             RemoveCursorAt(cell);
 
@@ -65,7 +65,7 @@ namespace Darklight.ThirdDimensional.World.Interaction
             _activeCursors[cell] = cursor;
         }
 
-        void RemoveCursorAt(WorldCell cell)
+        void RemoveCursorAt(Cell cell)
         {
             if (_activeCursors.ContainsKey(cell))
             {

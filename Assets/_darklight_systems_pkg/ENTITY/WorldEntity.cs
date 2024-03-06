@@ -8,11 +8,11 @@ namespace Darklight.ThirdDimensional.World.Entity
     {
         WorldEntityManager _entityManager;
 
-        List<WorldCell> _affectedPath = new List<WorldCell>();
-        List<WorldCell> _movePath = new();
+        List<Cell> _affectedPath = new List<Cell>();
+        List<Cell> _movePath = new();
         int _currPathIndex = 0;
-        WorldCell _currentCell = null;
-        WorldCell _targetCell = null;
+        Cell _currentCell = null;
+        Cell _targetCell = null;
 
         [Header("Attributes")]
         public int moveSpeed = 1;
@@ -47,11 +47,11 @@ namespace Darklight.ThirdDimensional.World.Entity
             else
             {
                 _currPathIndex = 0;
-                _movePath = new List<WorldCell>();
+                _movePath = new List<Cell>();
             }
         }
 
-        public void SetTargetCell(WorldCell cell)
+        public void SetTargetCell(Cell cell)
         {
             _targetCell = cell;
             SetMovePathTo(_targetCell);
@@ -63,7 +63,7 @@ namespace Darklight.ThirdDimensional.World.Entity
             //SetMovePathTo(_targetCell);
         }
 
-        public void SetMovePathTo(WorldCell targetCell)
+        public void SetMovePathTo(Cell targetCell)
         {
             if (_currentCell == null) return;
             if (targetCell == null) return;

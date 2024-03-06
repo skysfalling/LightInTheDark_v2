@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Darklight.ThirdDimensional.World
 {
-    public class WorldCell
+    public class Cell
     {
         public enum TYPE { EMPTY, EDGE, CORNER, OBSTACLE, SPAWN_POINT }
 
@@ -32,7 +32,7 @@ namespace Darklight.ThirdDimensional.World
             }
         }
 
-        public WorldCell(Chunk chunkParent, MeshQuad meshQuad)
+        public Cell(Chunk chunkParent, MeshQuad meshQuad)
         {
             this.ChunkParent = chunkParent;
             this._meshQuad = meshQuad;

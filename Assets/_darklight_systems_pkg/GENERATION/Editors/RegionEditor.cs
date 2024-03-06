@@ -99,7 +99,7 @@ namespace Darklight.ThirdDimensional.World.Editor
             EditorGUILayout.LabelField("Region", h1Style);
             EditorGUILayout.Space(10);
             EditorGUILayout.LabelField("Region Coordinate:", _region.Coordinate.Value.ToString());
-            EditorGUILayout.LabelField("Center Position:", _region.CenterPosition.ToString());
+            EditorGUILayout.LabelField("Center Position:", _region.Position.ToString());
             EditorGUILayout.LabelField("Origin Coordinate Position:", _region.OriginPosition.ToString());
             EditorGUILayout.LabelField("Region Initialized:", _region.Initialized.ToString());
 
@@ -302,8 +302,8 @@ namespace Darklight.ThirdDimensional.World.Editor
                 fontSize = 12, // Example font size
             };
 
-            DarklightGizmos.DrawWireSquare_withLabel("World Generation", worldGen.transform.position, WorldGen.Settings.WorldWidth_inGameUnits, Color.black, labelStyle);
-            DarklightGizmos.DrawWireSquare_withLabel("World Region", transform.position, WorldGen.Settings.RegionFullWidth_inGameUnits, Color.blue, labelStyle);
+            CustomGizmoLibrary.DrawWireSquare_withLabel("World Generation", worldGen.transform.position, WorldGen.Settings.WorldWidth_inGameUnits, Color.black, labelStyle);
+            CustomGizmoLibrary.DrawWireSquare_withLabel("World Region", transform.position, WorldGen.Settings.RegionFullWidth_inGameUnits, Color.blue, labelStyle);
 
             switch (editorViewSpace)
             {
@@ -344,7 +344,7 @@ namespace Darklight.ThirdDimensional.World.Editor
                         continue;
                     }
 
-                    DarklightGizmos.DrawButtonHandle(coordinate.Position, Vector3.right * 90, WorldGen.Settings.CellSize_inGameUnits, Color.black, () =>
+                    CustomGizmoLibrary.DrawButtonHandle(coordinate.Position, Vector3.right * 90, WorldGen.Settings.CellSize_inGameUnits, Color.black, () =>
                     {
                         SelectCoordinate(coordinate);
                     });
@@ -352,21 +352,21 @@ namespace Darklight.ThirdDimensional.World.Editor
                     switch (coordinateMapDebugType)
                     {
                         case CoordinateMapDebug.COORDINATE:
-                            DarklightGizmos.DrawWireSquare(coordinate.Position, WorldGen.Settings.CellSize_inGameUnits, Color.blue);
-                            DarklightGizmos.DrawLabel($"{coordinate.Value}", coordinate.Position - (Vector3.forward * WorldGen.Settings.CellSize_inGameUnits), coordLabelStyle);
+                            CustomGizmoLibrary.DrawWireSquare(coordinate.Position, WorldGen.Settings.CellSize_inGameUnits, Color.blue);
+                            CustomGizmoLibrary.DrawLabel($"{coordinate.Value}", coordinate.Position - (Vector3.forward * WorldGen.Settings.CellSize_inGameUnits), coordLabelStyle);
                             break;
                         case CoordinateMapDebug.TYPE:
                         case CoordinateMapDebug.EDITOR:
                             coordLabelStyle.normal.textColor = coordinate.TypeColor;
-                            DarklightGizmos.DrawWireSquare(coordinate.Position, WorldGen.Settings.CellSize_inGameUnits, coordinate.TypeColor);
-                            DarklightGizmos.DrawLabel($"{coordinate.Type}", coordinate.Position - (Vector3.forward * WorldGen.Settings.CellSize_inGameUnits), coordLabelStyle);
+                            CustomGizmoLibrary.DrawWireSquare(coordinate.Position, WorldGen.Settings.CellSize_inGameUnits, coordinate.TypeColor);
+                            CustomGizmoLibrary.DrawLabel($"{coordinate.Type}", coordinate.Position - (Vector3.forward * WorldGen.Settings.CellSize_inGameUnits), coordLabelStyle);
                             break;
                     }
                 }
             }
             else
             {
-                DarklightGizmos.DrawWireSquare_withLabel($"region origin", _region.OriginPosition, 10, Color.red, coordLabelStyle);
+                CustomGizmoLibrary.DrawWireSquare_withLabel($"region origin", _region.OriginPosition, 10, Color.red, coordLabelStyle);
             }
         }
 
@@ -406,10 +406,10 @@ namespace Darklight.ThirdDimensional.World.Editor
                     }
 
 
-                    DarklightGizmos.DrawFilledSquareAt(chunk.CenterPosition, WorldGen.Settings.ChunkWidth_inGameUnits * 0.75f, Vector3.up, chunkDebugColor);
-                    DarklightGizmos.DrawLabel(chunkDebugString, chunk.CenterPosition - (Vector3.forward * WorldGen.Settings.CellSize_inGameUnits * 2), chunkLabelStyle);
+                    CustomGizmoLibrary.DrawFilledSquareAt(chunk.CenterPosition, WorldGen.Settings.ChunkWidth_inGameUnits * 0.75f, Vector3.up, chunkDebugColor);
+                    CustomGizmoLibrary.DrawLabel(chunkDebugString, chunk.CenterPosition - (Vector3.forward * WorldGen.Settings.CellSize_inGameUnits * 2), chunkLabelStyle);
 
-                    DarklightGizmos.DrawButtonHandle(chunk.CenterPosition, Vector3.right * 90, WorldGen.Settings.CellSize_inGameUnits * 0.5f, Color.black, () =>
+                    CustomGizmoLibrary.DrawButtonHandle(chunk.CenterPosition, Vector3.right * 90, WorldGen.Settings.CellSize_inGameUnits * 0.5f, Color.black, () =>
                     {
                         SelectChunk(chunk);
                     });
@@ -437,7 +437,7 @@ namespace Darklight.ThirdDimensional.World.Editor
                     Color chunkDebugColor = Color.white;
                     string chunkDebugString = "";
 
-                    DarklightGizmos.DrawButtonHandle(chunk.CenterPosition, Vector3.right * 90, WorldGen.Settings.CellSize_inGameUnits * 0.5f, Color.black, () =>
+                    CustomGizmoLibrary.DrawButtonHandle(chunk.CenterPosition, Vector3.right * 90, WorldGen.Settings.CellSize_inGameUnits * 0.5f, Color.black, () =>
                     {
                         SelectChunk(chunk);
                     });
@@ -446,10 +446,10 @@ namespace Darklight.ThirdDimensional.World.Editor
 
                 if (selectedChunk != null)
                 {
-                    foreach (WorldCell cell in selectedChunk.localCells)
+                    foreach (Cell cell in selectedChunk.localCells)
                     {
-                        DarklightGizmos.DrawFilledSquareAt(cell.Position, WorldGen.Settings.CellSize_inGameUnits * 0.75f, cell.MeshQuad.faceNormal, Color.grey);
-                        DarklightGizmos.DrawLabel($"{cell.MeshQuad.faceCoord}", cell.Position, cellLabelStyle);
+                        CustomGizmoLibrary.DrawFilledSquareAt(cell.Position, WorldGen.Settings.CellSize_inGameUnits * 0.75f, cell.MeshQuad.faceNormal, Color.grey);
+                        CustomGizmoLibrary.DrawLabel($"{cell.MeshQuad.faceCoord}", cell.Position, cellLabelStyle);
                     }
                 }
             }
@@ -484,7 +484,7 @@ namespace Darklight.ThirdDimensional.World.Editor
                     Vector2Int directionVector = CoordinateMap.GetDirectionVector(neighborDirection);
                     Vector3 direction = new Vector3(directionVector.x, 0, directionVector.y) * WorldGen.Settings.ChunkWidth_inGameUnits * 0.25f;
 
-                    DarklightGizmos.DrawArrow(coordinate.Position, direction, Color.red);
+                    CustomGizmoLibrary.DrawArrow(coordinate.Position, direction, Color.red);
                 }
 
                 List<Coordinate> diagonal_neighbors = coordinate.GetValidDiagonalNeighbors();
@@ -494,7 +494,7 @@ namespace Darklight.ThirdDimensional.World.Editor
                     Vector2Int directionVector = CoordinateMap.GetDirectionVector(neighborDirection);
                     Vector3 direction = new Vector3(directionVector.x, 0, directionVector.y) * WorldGen.Settings.ChunkWidth_inGameUnits * 0.25f;
 
-                    DarklightGizmos.DrawArrow(coordinate.Position, direction, Color.yellow);
+                    CustomGizmoLibrary.DrawArrow(coordinate.Position, direction, Color.yellow);
                 }
             }
         }
