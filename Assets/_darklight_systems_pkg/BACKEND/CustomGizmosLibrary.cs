@@ -70,10 +70,10 @@ namespace Darklight
         }
 
         // Draws a Handles.Button and executes the given action when clicked.
-        public static void DrawButtonHandle(Vector3 position, Quaternion rotation, float size, Color color, System.Action onClick, Handles.CapFunction capFunction)
+        public static void DrawButtonHandle(Vector3 position, Vector3 rotation, float size, Color color, System.Action onClick, Handles.CapFunction capFunction)
         {
             Handles.color = color;
-            if (Handles.Button(position, rotation, size, size, capFunction))
+            if (Handles.Button(position, Quaternion.LookRotation(rotation), size, size, capFunction))
             {
                 onClick?.Invoke(); // Invoke the action if the button is clicked
             }

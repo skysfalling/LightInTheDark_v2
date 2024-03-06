@@ -21,19 +21,12 @@ namespace Darklight.ThirdDimensional.World
         public Coordinate Coordinate { get; private set; }
         public CoordinateMap CoordinateMap => _coordinateMap;
         public ChunkMap ChunkMap => _chunkMap;
-        public Vector3 Position
-        {
-            get
-            {
-                Vector3 center = Coordinate.ScenePosition;
-                return center;
-            }
-        }
+        public Vector3 CenterPosition => Coordinate.ScenePosition;
         public Vector3 OriginPosition
         {
             get
             {
-                Vector3 origin = Position;
+                Vector3 origin = CenterPosition;
                 origin -= WorldGeneration.Settings.RegionFullWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
                 origin += WorldGeneration.Settings.ChunkWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
                 return origin;
@@ -45,7 +38,7 @@ namespace Darklight.ThirdDimensional.World
             this.Coordinate = coordinate;
 
             // Set the transform to the center
-            transform.position = Position;
+            transform.position = CenterPosition;
         }
 
         public void Initialize()
@@ -165,7 +158,7 @@ namespace Darklight.ThirdDimensional.World
             List<Mesh> meshes = new List<Mesh>();
             foreach (Chunk chunk in chunks)
             {
-                meshes.Add(chunk.ChunkMesh.mesh);
+                meshes.Add(chunk.ChunkMesh.Mesh);
             }
 
             List<Vector3> newVertices = new List<Vector3>();

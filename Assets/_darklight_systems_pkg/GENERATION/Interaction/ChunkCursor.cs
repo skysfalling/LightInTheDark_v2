@@ -41,7 +41,7 @@ namespace Darklight.ThirdDimensional.World.Interaction
 
             // New active chunk
             _activeChunk = chunk;
-            transform.position = _activeChunk.CenterPosition;
+            transform.position = _activeChunk.GroundPosition;
             CreateCursorAt(_activeChunk);
         }
 
@@ -55,7 +55,7 @@ namespace Darklight.ThirdDimensional.World.Interaction
             }
 
             // Create New Cursor
-            cursor = Instantiate(cursorPrefab, chunk.CenterPosition, Quaternion.identity);
+            cursor = Instantiate(cursorPrefab, chunk.GroundPosition, Quaternion.identity);
 
             int chunkCursorWidth = (WorldGen.Settings.ChunkWidth_inCellUnits + 1) * WorldGen.Settings.CellSize_inGameUnits;
             cursor.transform.localScale = new Vector3(chunkCursorWidth, 1, chunkCursorWidth);

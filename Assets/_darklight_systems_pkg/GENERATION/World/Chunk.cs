@@ -8,11 +8,13 @@ namespace Darklight.ThirdDimensional.World
 
     public class Chunk
     {
-        public enum Face { Front, Back, Left, Right, Top, Bottom }
+        public enum FaceType { Front, Back, Left, Right, Top, Bottom }
 
         // [[ PRIVATE VARIABLES ]]
         Coordinate _coordinate;
         CoordinateMap _coordinateMap;
+        ChunkMesh _chunkMesh;
+        CellMap _cellMap;
         int _groundHeight = 2;
 
         // [[ PUBLIC ACCESS VARIABLES ]] 
@@ -20,34 +22,31 @@ namespace Darklight.ThirdDimensional.World
         public Coordinate Coordinate => _coordinate;
         public CoordinateMap CoordinateMap => _coordinateMap;
         public GameObject ChunkObject { get; private set; }
-        public ChunkMesh ChunkMesh { get; private set; }
+        public ChunkMesh ChunkMesh => _chunkMesh;
+        public CellMap CellMap => _cellMap;
         public int GroundHeight => _groundHeight;
         public Color TypeColor { get; private set; } = Color.white;
-        public Vector3 CenterPosition
-        {
-            get
-            {
-                Vector3 center = Coordinate.ScenePosition;
-                center += (GroundHeight * WorldGen.Settings.CellSize_inGameUnits) * Vector3Int.up;
-                return center;
-            }
-        }
+        public Vector3 CenterPosition => Coordinate.ScenePosition;
         public Vector3 OriginPosition
         {
             get
             {
                 Vector3 origin = CenterPosition;
                 origin -= WorldGen.Settings.ChunkWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
+                origin += WorldGen.Settings.CellSize_inGameUnits * new Vector3(0.5f, 0, 0.5f);
                 return origin;
             }
         }
-        public Vector3 ChunkMeshDimensions
+        public Vector3 GroundPosition
         {
             get
             {
-                return WorldGen.Settings.ChunkVec3Dimensions_inCellUnits + new Vector3Int(0, GroundHeight, 0);
+                Vector3 groundPosition = CenterPosition;
+                groundPosition += (GroundHeight * WorldGen.Settings.CellSize_inGameUnits) * Vector3Int.up;
+                return groundPosition;
             }
         }
+        public Vector3 ChunkMeshDimensions => WorldGen.Settings.ChunkVec3Dimensions_inCellUnits + new Vector3Int(0, GroundHeight, 0);
 
         /// <summary>
         /// Defines World Chunks based on wall count / location
@@ -80,8 +79,7 @@ namespace Darklight.ThirdDimensional.World
         bool _eastEdgeActive;
         bool _westEdgeActive;
         public List<Cell> localCells = new List<Cell>();
-        Dictionary<Cell.TYPE, List<Cell>> _cellTypeMap = new();
-        Dictionary<Face, HashSet<Cell>> _cellFaceMap = new();
+
         public Chunk(ChunkMap chunkMap, Coordinate coordinate)
         {
             this.ChunkMapParent = chunkMap;
@@ -98,26 +96,14 @@ namespace Darklight.ThirdDimensional.World
         public void CreateChunkMesh()
         {
             // Create chunkMesh
-            ChunkMesh = new ChunkMesh(this, GroundHeight, CenterPosition);
+            _chunkMesh = new ChunkMesh(this, GroundHeight, GroundPosition);
 
-            // Create Cells
-            localCells.Clear();
-            foreach (MeshQuad quad in ChunkMesh.meshQuads)
-            {
-                // Spawn top face cells
-                if (quad.faceType != Face.Bottom)
-                {
-                    Cell newCell = new Cell(this, quad);
-                    localCells.Add(newCell);
+            // Create cellMap
+            _cellMap = new CellMap(this, _chunkMesh);
 
-                    if (!_cellFaceMap.ContainsKey(quad.faceType)) { _cellFaceMap[quad.faceType] = new(); }
-                    _cellFaceMap[quad.faceType].Add(newCell);
-                }
-            }
 
-            DetermineChunkEdges();
-            SetChunkType();
-            CreateCellTypeMap();
+            //DetermineChunkEdges();
+            //SetChunkType();
         }
 
         public void CreateChunkMeshObject(Region region)
@@ -128,7 +114,7 @@ namespace Darklight.ThirdDimensional.World
             }
 
             this.ChunkObject = WorldGen.CreateMeshObject($"Chunk {Coordinate.Value} " +
-                $":: height {GroundHeight}", ChunkMesh.mesh, region.GenerationParent.materialLibrary.DefaultGroundMaterial);
+                $":: height {GroundHeight}", ChunkMesh.Mesh, region.GenerationParent.materialLibrary.DefaultGroundMaterial);
             this.ChunkObject.transform.parent = region.transform;
         }
 
@@ -210,21 +196,6 @@ namespace Darklight.ThirdDimensional.World
         // ================ CREATE & INITIALIZE WORLD CELLS ============================== >>
 
 
-
-        void CreateCellTypeMap()
-        {
-            _cellTypeMap.Clear();
-            foreach (Cell cell in localCells)
-            {
-                // Create new List for new key
-                if (!_cellTypeMap.ContainsKey(cell.Type))
-                {
-                    _cellTypeMap[cell.Type] = new List<Cell>();
-                }
-
-                _cellTypeMap[cell.Type].Add(cell);
-            }
-        }
 
         // ================== SPAWN OBJECTS ============= >>
         public List<Cell> FindSpace(EnvironmentObject envObj)
@@ -322,18 +293,5 @@ namespace Darklight.ThirdDimensional.World
         }
 
         // ================= HELPER FUNCTIONS ============================== >>
-        public List<Cell> GetCellsOfType(Cell.TYPE cellType)
-        {
-            if (!generation_finished) { return new List<Cell>(); }
-            if (!_cellTypeMap.ContainsKey(cellType)) { _cellTypeMap[cellType] = new List<Cell>(); }
-            return _cellTypeMap[cellType];
-        }
-
-        public Cell GetRandomCellOfType(Cell.TYPE cellType)
-        {
-            if (!generation_finished) { return null; }
-            List<Cell> cells = GetCellsOfType(cellType);
-            return cells[UnityEngine.Random.Range(0, cells.Count)];
-        }
     }
 }

@@ -6,17 +6,16 @@ using UnityEngine;
 namespace Darklight.ThirdDimensional.World
 {
     using WorldGen = WorldGeneration;
-    using Face = Chunk.Face;
+    using FaceType = Chunk.FaceType;
 
-    [System.Serializable]
     public class MeshQuad
     {
-        public Face faceType;
+        public FaceType faceType;
         public Vector2Int faceCoord;
         public Vector3 faceNormal;
         List<Vector3> vertices = new();
 
-        public MeshQuad(Face faceType, Vector2Int faceCoord, Vector3 faceNormal, List<Vector3> vertices)
+        public MeshQuad(FaceType faceType, Vector2Int faceCoord, Vector3 faceNormal, List<Vector3> vertices)
         {
             this.faceType = faceType;
             this.faceCoord = faceCoord;
@@ -30,38 +29,39 @@ namespace Darklight.ThirdDimensional.World
         }
     }
 
-    [System.Serializable]
     public class ChunkMesh
     {
-        Vector3Int default_chunkMeshDimensions = WorldGen.Settings.ChunkVec3Dimensions_inCellUnits;
-        Vector3Int current_chunkMeshDimensions;
+        Vector3Int _defaultDimensions = WorldGen.Settings.ChunkVec3Dimensions_inCellUnits;
+        Vector3Int _currentDimensions;
         Chunk _chunk;
-        Coordinate _worldCoordinate;
-        ChunkMap _worldChunkMap;
-        Dictionary<Face, List<Vector3>> _meshVertices = new();
-        Dictionary<Face, List<Vector2>> _meshUVs = new();
-        public List<MeshQuad> meshQuads = new();
+        Mesh _mesh;
+        Coordinate _chunkCoordinate;
+        ChunkMap _chunkMapParent;
+        Dictionary<FaceType, List<Vector3>> _meshVertices = new();
+        Dictionary<FaceType, List<Vector2>> _meshUVs = new();
+        Dictionary<FaceType, HashSet<MeshQuad>> _meshQuads = new();
 
-        public Mesh mesh;
+        public Mesh Mesh => _mesh;
+        public Dictionary<FaceType, HashSet<MeshQuad>> MeshQuads => _meshQuads;
 
-        public ChunkMesh(Chunk chunk, int groundHeight, Vector3 groundPosition)
+        public ChunkMesh(Chunk chunk, int groundHeight, Vector3 position)
         {
             this._chunk = chunk;
-            this._worldCoordinate = chunk.Coordinate;
-            this._worldChunkMap = chunk.ChunkMapParent;
+            this._chunkCoordinate = chunk.Coordinate;
+            this._chunkMapParent = chunk.ChunkMapParent;
 
-            List<Face> facesToGenerate = new List<Face>()
-        {
-            Face.Front , Face.Back ,
-            Face.Left, Face.Right,
-            Face.Top, Face.Bottom
-        };
+            List<FaceType> facesToGenerate = new List<FaceType>()
+            {
+                FaceType.Front , FaceType.Back ,
+                FaceType.Left, FaceType.Right,
+                FaceType.Top, FaceType.Bottom
+            };
 
-            this.mesh = CreateMesh(groundHeight, facesToGenerate);
-            OffsetMesh(groundPosition);
+            this._mesh = CreateMesh(groundHeight, facesToGenerate);
+            OffsetMesh(position);
         }
 
-        Mesh CreateMesh(int groundHeight, List<Face> facesToGenerate)
+        Mesh CreateMesh(int groundHeight, List<FaceType> facesToGenerate)
         {
             int cellSize = WorldGen.Settings.CellSize_inGameUnits;
             Mesh newMesh = new Mesh();
@@ -71,7 +71,7 @@ namespace Darklight.ThirdDimensional.World
 
 
             // << UPDATE DIMENSIONS >>
-            current_chunkMeshDimensions = default_chunkMeshDimensions + (Vector3Int.up * groundHeight); // Add ground height to default dimensions
+            _currentDimensions = _defaultDimensions + (Vector3Int.up * groundHeight); // Add ground height to default dimensions
 
             // << CREATE MESH FACES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             // Updates meshVertices dictionary with < FaceType , List<Vector3> vertices >
@@ -81,7 +81,7 @@ namespace Darklight.ThirdDimensional.World
                 for (int faceIndex = 0; faceIndex < facesToGenerate.Count; faceIndex++)
                 {
                     // Determine face plane values
-                    Face faceType = facesToGenerate[faceIndex];
+                    FaceType faceType = facesToGenerate[faceIndex];
 
                     (Vector3 u, Vector3 v) = GetFaceUVDirectionalVectors(faceType); // Directional Vectors
                     (int uDivisions, int vDivisions) = GetFaceUVDivisions(faceType); // Divisions of Plane
@@ -123,7 +123,7 @@ namespace Darklight.ThirdDimensional.World
 
                 for (int faceIndex = 0; faceIndex < facesToGenerate.Count; faceIndex++)
                 {
-                    Face faceType = facesToGenerate[faceIndex];
+                    FaceType faceType = facesToGenerate[faceIndex];
 
                     // SET U & V DIVISIONS
                     (int uDivisions, int vDivisions) = GetFaceUVDivisions(faceType);
@@ -172,7 +172,9 @@ namespace Darklight.ThirdDimensional.World
 
 
                             MeshQuad quad = new MeshQuad(faceType, faceCoordinate, GetFaceNormal(faceType), quadVertices);
-                            meshQuads.Add(quad);
+                            
+                            if (!_meshQuads.ContainsKey(faceType)) { _meshQuads[faceType] = new(); }
+                            _meshQuads[faceType].Add(quad);
 
                             // Add two triangles for each square
                             List<int> newSquareMesh = new List<int>() { bottomLeft, topRight, topLeft, topRight, bottomLeft, bottomRight };
@@ -184,16 +186,16 @@ namespace Darklight.ThirdDimensional.World
                     switch (faceType)
                     {
                         // Side Faces XY plane
-                        case Face.Front:
-                        case Face.Back:
-                        case Face.Left:
-                        case Face.Right:
-                            currentVertexIndex += (current_chunkMeshDimensions.x + 1) * (vDivisions + 1);
+                        case FaceType.Front:
+                        case FaceType.Back:
+                        case FaceType.Left:
+                        case FaceType.Right:
+                            currentVertexIndex += (_currentDimensions.x + 1) * (vDivisions + 1);
                             break;
                         // Top Faces XZ plane
-                        case Face.Top:
-                        case Face.Bottom:
-                            currentVertexIndex += (current_chunkMeshDimensions.x + 1) * (current_chunkMeshDimensions.z + 1);
+                        case FaceType.Top:
+                        case FaceType.Bottom:
+                            currentVertexIndex += (_currentDimensions.x + 1) * (_currentDimensions.z + 1);
                             break;
                     }
                 }
@@ -220,41 +222,41 @@ namespace Darklight.ThirdDimensional.World
 
         // [[[[ FACES ]]]] 
 
-        (int, int) GetFaceUVDivisions(Face faceType)
+        (int, int) GetFaceUVDivisions(FaceType faceType)
         {
             // [[ GET VISIBLE DIVISIONS ]]
             // based on neighbors
-            int GetVisibleVDivisions(Face type)
+            int GetVisibleVDivisions(FaceType type)
             {
-                int faceHeight = current_chunkMeshDimensions.y; // Get current height
+                int faceHeight = _currentDimensions.y; // Get current height
                 Coordinate neighborCoord = null;
 
                 switch (type)
                 {
-                    case Face.Front:
-                        neighborCoord = _worldCoordinate.GetNeighborInDirection(WorldDirection.NORTH);
+                    case FaceType.Front:
+                        neighborCoord = _chunkCoordinate.GetNeighborInDirection(WorldDirection.NORTH);
                         break;
-                    case Face.Back:
-                        neighborCoord = _worldCoordinate.GetNeighborInDirection(WorldDirection.SOUTH);
+                    case FaceType.Back:
+                        neighborCoord = _chunkCoordinate.GetNeighborInDirection(WorldDirection.SOUTH);
                         break;
-                    case Face.Left:
-                        neighborCoord = _worldCoordinate.GetNeighborInDirection(WorldDirection.WEST);
+                    case FaceType.Left:
+                        neighborCoord = _chunkCoordinate.GetNeighborInDirection(WorldDirection.WEST);
                         break;
-                    case Face.Right:
-                        neighborCoord = _worldCoordinate.GetNeighborInDirection(WorldDirection.EAST);
+                    case FaceType.Right:
+                        neighborCoord = _chunkCoordinate.GetNeighborInDirection(WorldDirection.EAST);
                         break;
-                    case Face.Top:
-                    case Face.Bottom:
+                    case FaceType.Top:
+                    case FaceType.Bottom:
                         break;
                 }
 
                 if (neighborCoord != null)
                 {
-                    Chunk neighborChunk = _worldChunkMap.GetChunkAt(neighborCoord);
+                    Chunk neighborChunk = _chunkMapParent.GetChunkAt(neighborCoord);
                     if (neighborChunk != null)
                     {
                         faceHeight -= neighborChunk.GroundHeight; // subtract based on neighbor height
-                        faceHeight -= default_chunkMeshDimensions.y; // subtract 'underground' amount
+                        faceHeight -= _defaultDimensions.y; // subtract 'underground' amount
                         faceHeight = Mathf.Max(faceHeight, 0); // set to 0 as minimum
                     }
 
@@ -268,22 +270,22 @@ namespace Darklight.ThirdDimensional.World
             switch (faceType)
             {
                 // Side Faces XY plane
-                case Face.Front:
-                case Face.Back:
-                    uDivisions = current_chunkMeshDimensions.x;
+                case FaceType.Front:
+                case FaceType.Back:
+                    uDivisions = _currentDimensions.x;
                     vDivisions = GetVisibleVDivisions(faceType);
                     break;
                 // Side Faces ZY plane
-                case Face.Left:
-                case Face.Right:
-                    uDivisions = current_chunkMeshDimensions.z;
+                case FaceType.Left:
+                case FaceType.Right:
+                    uDivisions = _currentDimensions.z;
                     vDivisions = GetVisibleVDivisions(faceType);
                     break;
                 // Top Faces XZ plane
-                case Face.Top:
-                case Face.Bottom:
-                    uDivisions = current_chunkMeshDimensions.x;
-                    vDivisions = current_chunkMeshDimensions.z;
+                case FaceType.Top:
+                case FaceType.Bottom:
+                    uDivisions = _currentDimensions.x;
+                    vDivisions = _currentDimensions.z;
                     break;
 
             }
@@ -293,7 +295,7 @@ namespace Darklight.ThirdDimensional.World
 
         // note** :: starts the faces at -visibleDimensions.y so that top of chunk is at y=0
         // -- the chunks will be treated as a 'Generated Ground' to build upon
-        Vector3 GetFaceStartVertex(Face faceType, int vDivisions)
+        Vector3 GetFaceStartVertex(FaceType faceType, int vDivisions)
         {
             Vector3 MultiplyVectors(Vector3 a, Vector3 b)
             {
@@ -303,26 +305,26 @@ namespace Darklight.ThirdDimensional.World
             int cellSize = WorldGen.Settings.CellSize_inGameUnits;
 
             // Get starting vertex of visible vDivisions
-            Vector3 visibleSideFaceStartVertex = new Vector3(current_chunkMeshDimensions.x, -vDivisions, current_chunkMeshDimensions.z) * cellSize;
+            Vector3 visibleSideFaceStartVertex = new Vector3(_currentDimensions.x, -vDivisions, _currentDimensions.z) * cellSize;
             Vector3 newSideFaceStartOffset = new Vector3(visibleSideFaceStartVertex.x * 0.5f, visibleSideFaceStartVertex.y, visibleSideFaceStartVertex.z * 0.5f);
 
             // Use current chunk mesh height for bottom and top faces
-            Vector3 verticalFaceStartVertex = new Vector3(current_chunkMeshDimensions.x, -current_chunkMeshDimensions.y, current_chunkMeshDimensions.z) * cellSize;
+            Vector3 verticalFaceStartVertex = new Vector3(_currentDimensions.x, -_currentDimensions.y, _currentDimensions.z) * cellSize;
             Vector3 newVerticalFaceStartOffset = new Vector3(verticalFaceStartVertex.x * 0.5f, verticalFaceStartVertex.y, verticalFaceStartVertex.z * 0.5f);
 
             switch (faceType)
             {
-                case Face.Front:
+                case FaceType.Front:
                     return MultiplyVectors(newSideFaceStartOffset, new Vector3(-1, 1, 1));
-                case Face.Back:
+                case FaceType.Back:
                     return MultiplyVectors(newSideFaceStartOffset, new Vector3(1, 1, -1));
-                case Face.Left:
+                case FaceType.Left:
                     return MultiplyVectors(newSideFaceStartOffset, new Vector3(-1, 1, -1));
-                case Face.Right:
+                case FaceType.Right:
                     return MultiplyVectors(newSideFaceStartOffset, new Vector3(1, 1, 1));
-                case Face.Top:
+                case FaceType.Top:
                     return MultiplyVectors(newVerticalFaceStartOffset, new Vector3(1, 0, -1));
-                case Face.Bottom:
+                case FaceType.Bottom:
                     return MultiplyVectors(newVerticalFaceStartOffset, new Vector3(-1, 1, -1));
                 default:
                     return Vector3.zero;
@@ -330,49 +332,49 @@ namespace Darklight.ThirdDimensional.World
 
         }
 
-        Vector3 GetFaceNormal(Face faceType)
+        Vector3 GetFaceNormal(FaceType faceType)
         {
             switch (faceType)
             {
-                case Face.Front: return Vector3.forward;
-                case Face.Back: return Vector3.back;
-                case Face.Left: return Vector3.left;
-                case Face.Right: return Vector3.right;
-                case Face.Top: return Vector3.up;
-                case Face.Bottom: return Vector3.down;
+                case FaceType.Front: return Vector3.forward;
+                case FaceType.Back: return Vector3.back;
+                case FaceType.Left: return Vector3.left;
+                case FaceType.Right: return Vector3.right;
+                case FaceType.Top: return Vector3.up;
+                case FaceType.Bottom: return Vector3.down;
                 default: return Vector3.zero;
             }
         }
 
 
-        (Vector3, Vector3) GetFaceUVDirectionalVectors(Face faceType)
+        (Vector3, Vector3) GetFaceUVDirectionalVectors(FaceType faceType)
         {
             Vector3 u = Vector3.zero;
             Vector3 v = Vector3.zero;
 
             switch (faceType)
             {
-                case Face.Front:
+                case FaceType.Front:
                     u = Vector3.right;
                     v = Vector3.up;
                     break;
-                case Face.Back:
+                case FaceType.Back:
                     u = Vector3.left;
                     v = Vector3.up;
                     break;
-                case Face.Left:
+                case FaceType.Left:
                     u = Vector3.forward;
                     v = Vector3.up;
                     break;
-                case Face.Right:
+                case FaceType.Right:
                     u = Vector3.back;
                     v = Vector3.up;
                     break;
-                case Face.Top:
+                case FaceType.Top:
                     u = Vector3.left;
                     v = Vector3.forward;
                     break;
-                case Face.Bottom:
+                case FaceType.Bottom:
                     u = Vector3.right;
                     v = Vector3.forward;
                     break;
@@ -383,12 +385,12 @@ namespace Darklight.ThirdDimensional.World
 
         void OffsetMesh(Vector3 chunkWorldPosition)
         {
-            Vector3[] vertices = this.mesh.vertices;
+            Vector3[] vertices = this._mesh.vertices;
             for (int i = 0; i < vertices.Length; i++)
             {
                 vertices[i] += chunkWorldPosition;
             }
-            mesh.vertices = vertices;
+            _mesh.vertices = vertices;
         }
 
     }

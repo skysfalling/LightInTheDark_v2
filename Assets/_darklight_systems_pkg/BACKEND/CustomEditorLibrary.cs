@@ -107,13 +107,12 @@ namespace Darklight
             }
         }
 
-        public static void FocusSceneView(Vector3 focusPoint, float size)
+        public static void FocusSceneView(Vector3 focusPoint)
         {
             if (SceneView.lastActiveSceneView != null)
             {
                 // Set the Scene view camera pivot (center point) and size (zoom level)
                 SceneView.lastActiveSceneView.pivot = focusPoint;
-                SceneView.lastActiveSceneView.size = size;
 
                 // Repaint the scene view to immediately reflect changes
                 SceneView.lastActiveSceneView.Repaint();

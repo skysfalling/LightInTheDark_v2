@@ -28,9 +28,15 @@ namespace Darklight.ThirdDimensional.World
         {
             get
             {
-                return ChunkParent.CenterPosition + MeshQuad.GetCenterPosition();
+                return ChunkParent.GroundPosition + MeshQuad.GetCenterPosition();
             }
         }
+
+        public Vector2Int FaceCoord => _meshQuad.faceCoord;
+        public Chunk.FaceType FaceType => _meshQuad.faceType;
+        public Vector3 Normal => _meshQuad.faceNormal;
+        public int Size = WorldGeneration.Settings.CellSize_inGameUnits;
+
 
         public Cell(Chunk chunkParent, MeshQuad meshQuad)
         {

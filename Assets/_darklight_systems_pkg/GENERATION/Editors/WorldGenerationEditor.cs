@@ -130,31 +130,6 @@ namespace Darklight.ThirdDimensional.World.Editor
 
 
 
-        void DrawCoordinateNeighbors(Coordinate coordinate)
-        {
-            if (coordinate.Initialized)
-            {
-                List<Coordinate> natural_neighbors = coordinate.GetValidNaturalNeighbors();
 
-                foreach (Coordinate neighbor in natural_neighbors)
-                {
-                    WorldDirection neighborDirection = (WorldDirection)coordinate.GetWorldDirectionOfNeighbor(neighbor);
-                    Vector2Int directionVector = CoordinateMap.GetDirectionVector(neighborDirection);
-                    Vector3 direction = new Vector3(directionVector.x, 0, directionVector.y) * WorldGeneration.Settings.ChunkWidth_inGameUnits * 0.25f;
-
-                    CustomGizmoLibrary.DrawArrow(coordinate.ScenePosition, direction, Color.red);
-                }
-
-                List<Coordinate> diagonal_neighbors = coordinate.GetValidDiagonalNeighbors();
-                foreach (Coordinate neighbor in diagonal_neighbors)
-                {
-                    WorldDirection neighborDirection = (WorldDirection)coordinate.GetWorldDirectionOfNeighbor(neighbor);
-                    Vector2Int directionVector = CoordinateMap.GetDirectionVector(neighborDirection);
-                    Vector3 direction = new Vector3(directionVector.x, 0, directionVector.y) * WorldGeneration.Settings.ChunkWidth_inGameUnits * 0.25f;
-
-                    CustomGizmoLibrary.DrawArrow(coordinate.ScenePosition, direction, Color.yellow);
-                }
-            }
-        }
     }
 }
