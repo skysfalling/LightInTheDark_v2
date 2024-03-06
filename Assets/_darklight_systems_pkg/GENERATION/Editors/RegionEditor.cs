@@ -21,7 +21,8 @@ namespace Darklight.ThirdDimensional.World.Editor
         GUIStyle pStyle;
 
         // Editor View
-        static UnitSpace editorViewSpace = UnitSpace.REGION;
+        public enum RegionEditorView { REGION, CHUNK, CELL }
+        static RegionEditorView editorViewSpace = RegionEditorView.REGION;
 
         // Coordinate Map
         enum CoordinateMapDebug { NONE, COORDINATE, TYPE, EDITOR }
@@ -33,17 +34,10 @@ namespace Darklight.ThirdDimensional.World.Editor
         static ChunkMapDebug chunkMapDebugType = ChunkMapDebug.COORDINATE_TYPE;
         Chunk selectedChunk = null;
 
-        SerializedProperty defaultMaterialProperty;
-
         private void OnEnable()
         {
             _serializedObject = new SerializedObject(target);
             _region = (Region)target;
-
-            // ================================================= >>
-
-            defaultMaterialProperty = _serializedObject.FindProperty("defaultMaterial");
-
         }
 
         public override void OnInspectorGUI()
@@ -96,7 +90,7 @@ namespace Darklight.ThirdDimensional.World.Editor
             EditorGUILayout.BeginVertical();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Editor View Space  =>");
-            editorViewSpace = (UnitSpace)EditorGUILayout.EnumPopup(editorViewSpace);
+            editorViewSpace = (RegionEditorView)EditorGUILayout.EnumPopup(editorViewSpace);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndVertical();
 
@@ -113,11 +107,14 @@ namespace Darklight.ThirdDimensional.World.Editor
 
             switch (editorViewSpace)
             {
-                case UnitSpace.REGION:
+                case RegionEditorView.REGION:
                     DrawCoordinateMapInspector();
                     break;
-                case UnitSpace.CHUNK:
+                case RegionEditorView.CHUNK:
                     DrawChunkMapInspector();
+                    break;
+                case RegionEditorView.CELL:
+                    DrawCellMapInspector();
                     break;
             }
 
@@ -137,18 +134,6 @@ namespace Darklight.ThirdDimensional.World.Editor
             if (_region.CoordinateMap == null)
             {
                 return;
-            }
-
-            // >> generation
-            if (GUILayout.Button("Seed Generation"))
-            {
-                _region.NewSeedGeneration();
-            }
-
-            // >> reset button
-            if (GUILayout.Button("Reset Coordinate Map"))
-            {
-                _region.ResetCoordinateMap();
             }
 
             // >> select debug view
@@ -173,27 +158,6 @@ namespace Darklight.ThirdDimensional.World.Editor
             // EDITOR >> edit the coordinates in the map
             else if (coordinateMapDebugType == CoordinateMapDebug.EDITOR)
             {
-
-                #region Selected Coordinate
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.BeginVertical();
-                EditorGUILayout.LabelField("Selected Coordinate", h2Style);
-                EditorGUILayout.Space(10);
-                if (selectedCoordinate != null)
-                {
-                    EditorGUILayout.LabelField($"Local Coordinate: {selectedCoordinate.Value}");
-                    EditorGUILayout.LabelField($"Type: {selectedCoordinate.Type}");
-                    EditorGUILayout.LabelField($"World Position: {selectedCoordinate.Position}");
-                    EditorGUILayout.LabelField($"Neighbor Count: {selectedCoordinate.GetAllValidNeighbors().Count}");
-                }
-                else
-                {
-                    EditorGUILayout.LabelField($"Please Select a Coordinate in the Scene View");
-                }
-                EditorGUILayout.EndHorizontal();
-                EditorGUILayout.EndVertical();
-                #endregion
-
                 #region Exits
                 // << EXITS >> // ==================================================== \\\\
                 EditorGUILayout.BeginHorizontal();
@@ -268,12 +232,8 @@ namespace Darklight.ThirdDimensional.World.Editor
                 EditorGUILayout.EndVertical();
             }
 
-
-
-
             EditorGUILayout.EndVertical();
         }
-
 
         void DrawChunkMapInspector()
         {
@@ -281,24 +241,6 @@ namespace Darklight.ThirdDimensional.World.Editor
 
             EditorGUILayout.LabelField("Region Chunk Map", h2Style);
             EditorGUILayout.Space(10);
-
-            // >> initialize button
-            if (_region.ChunkMap != null)
-            {
-                if (GUILayout.Button("Create Combined Chunk Mesh"))
-                {
-                    _region.CreateCombinedChunkMesh();
-                }
-
-                if (GUILayout.Button("Reset Chunk Map"))
-                {
-                    _region.ResetChunkMap();
-                }
-            }
-            else
-            {
-                EditorGUILayout.LabelField("Chunk Map not initialized, try reseting the region");
-            }
 
             // << DEBUG VIEW >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             EditorGUILayout.BeginVertical();
@@ -324,7 +266,26 @@ namespace Darklight.ThirdDimensional.World.Editor
                 EditorGUILayout.LabelField($"Please Select a Chunk in the Scene View");
             }
             EditorGUILayout.EndVertical();
+        }
 
+        void DrawCellMapInspector()
+        {
+            EditorGUILayout.LabelField("Chunk Cells", h2Style);
+            EditorGUILayout.Space(10);
+
+            // << SELECTED CHUNK >>
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.LabelField("Selected Chunk", h2Style);
+            EditorGUILayout.Space(10);
+            if (selectedChunk != null && selectedChunk.Coordinate != null)
+            {
+                EditorGUILayout.LabelField($"Chunk Local Cells:  {selectedChunk.localCells.Count}");
+            }
+            else
+            {
+                EditorGUILayout.LabelField($"Please Select a Chunk in the Scene View");
+            }
+            EditorGUILayout.EndVertical();
         }
 
         // ==================== SCENE GUI =================================================== ////
@@ -346,25 +307,16 @@ namespace Darklight.ThirdDimensional.World.Editor
 
             switch (editorViewSpace)
             {
-                case UnitSpace.WORLD:
-                    DrawWorldView();
-                    break;
-                case UnitSpace.REGION:
+                case RegionEditorView.REGION:
                     DrawRegionView();
                     break;
-                case UnitSpace.CHUNK:
+                case RegionEditorView.CHUNK:
                     DrawChunkView();
                     break;
-                case UnitSpace.CELL:
+                case RegionEditorView.CELL:
                     DrawCellView();
                     break;
             }
-        }
-
-
-        void DrawWorldView()
-        {
-
         }
 
         void DrawRegionView()
@@ -513,6 +465,9 @@ namespace Darklight.ThirdDimensional.World.Editor
         void SelectChunk(Chunk chunk)
         {
             selectedChunk = chunk;
+
+            Debug.Log("Selected Chunk: " + selectedChunk.Coordinate.Value);
+
             Repaint();
         }
 

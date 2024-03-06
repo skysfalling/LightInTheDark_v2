@@ -14,14 +14,14 @@ namespace Darklight.ThirdDimensional.World.Editor
     public class WorldGenerationEditor : UnityEditor.Editor
     {
         private SerializedObject serializedWorldGen;
-        static Coordinate.TYPE showCoordinateType = Coordinate.TYPE.EXIT;
+
+        static List<Coordinate.TYPE> selectedCoordinateTypes = new();
 
         private void OnEnable()
         {
             // Cache the SerializedObject
             serializedWorldGen = new SerializedObject(target);
             WorldGen.InitializeSeedRandom();
-
         }
 
         public override void OnInspectorGUI()
@@ -34,8 +34,6 @@ namespace Darklight.ThirdDimensional.World.Editor
             // WORLD GENERATION SETTINGS
             // ----------------------------------------------------------------
             WorldGeneration worldGen = (WorldGen)target;
-
-
 
             SerializedProperty materialLibraryProperty = serializedWorldGen.FindProperty("materialLibrary");
             EditorGUILayout.PropertyField(materialLibraryProperty);
@@ -105,15 +103,28 @@ namespace Darklight.ThirdDimensional.World.Editor
 
                 // >> select debug view
                 EditorGUILayout.BeginVertical();
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Debug View  =>");
-                showCoordinateType = (Coordinate.TYPE)EditorGUILayout.EnumPopup(showCoordinateType);
-                EditorGUILayout.EndHorizontal();
+
+                // Assuming 'Coordinate.TYPE' is your enum
+                foreach (Coordinate.TYPE type in Enum.GetValues(typeof(Coordinate.TYPE)))
+                {
+                    bool isSelected = selectedCoordinateTypes.Contains(type);
+                    bool newIsSelected = EditorGUILayout.ToggleLeft(type.ToString(), isSelected);
+
+                    if (newIsSelected != isSelected)
+                    {
+                        if (newIsSelected)
+                        {
+                            selectedCoordinateTypes.Add(type);
+                        }
+                        else
+                        {
+                            selectedCoordinateTypes.Remove(type);
+                        }
+                    }
+                }
+
                 EditorGUILayout.EndVertical();
             }
-
-
-
 
             // Check if any changes were made in the Inspector
             if (EditorGUI.EndChangeCheck())
@@ -139,17 +150,6 @@ namespace Darklight.ThirdDimensional.World.Editor
                 fontSize = 12, // Example font size
             };
 
-            DarklightGizmos.DrawWireSquare_withLabel("World Generation Size", worldGen.CenterPosition, WorldGen.Settings.WorldWidth_inGameUnits, Color.black, labelStyle);
-
-            if (worldGen.Initialized)
-            {
-                DarklightGizmos.DrawWireSquare_withLabel("Origin Region", worldGen.OriginPosition, WorldGen.Settings.RegionFullWidth_inGameUnits, Color.red, labelStyle);
-            }
-
-            DarklightGizmos.DrawWireSquare_withLabel("World Chunk Size", worldGen.CenterPosition, WorldGen.Settings.ChunkWidth_inGameUnits, Color.black, labelStyle);
-            DarklightGizmos.DrawWireSquare_withLabel("World Cell Size", worldGen.CenterPosition, WorldGen.Settings.CellSize_inGameUnits, Color.black, labelStyle);
-
-
             if (worldGen.Initialized && worldGen.AllRegions.Count > 0)
             {
                 foreach (Region region in worldGen.AllRegions)
@@ -162,19 +162,36 @@ namespace Darklight.ThirdDimensional.World.Editor
                         DarklightGizmos.DrawWireSquare_withLabel($"World Region {region.Coordinate.Value}" +
                             $"\n neighbors : {regionNeighbors.Count}", region.CenterPosition, WorldGen.Settings.RegionFullWidth_inGameUnits, Color.blue, labelStyle);
 
-                        List<Vector2Int> coordinatesOfType = region.CoordinateMap.GetAllPositionsOfType(showCoordinateType).ToList();
-                        for (int i = 0; i < coordinatesOfType.Count; i++)
+                        List<Coordinate> allCoordinates = region.CoordinateMap.AllCoordinates;
+                        for (int i = 0; i < allCoordinates.Count; i++)
                         {
-                            Coordinate coordinate = region.CoordinateMap.GetCoordinateAt(coordinatesOfType[i]);
+                            Coordinate coordinate = allCoordinates[i];
 
-                            DarklightGizmos.DrawWireSquare_withLabel($"{showCoordinateType}", coordinate.Position,
-                                WorldGen.Settings.ChunkWidth_inGameUnits, coordinate.TypeColor, labelStyle);
+                            // Check if this coordinate's type is in the selected types (showCoordinateType)
+                            if (selectedCoordinateTypes.Contains(coordinate.Type)) // This line checks for matching types
+                            {
+                                DarklightGizmos.DrawWireSquare_withLabel($"{coordinate.Type}", coordinate.Position,
+                                    WorldGen.Settings.ChunkWidth_inGameUnits, coordinate.TypeColor, labelStyle);
+                            }
+
                         }
 
                     }
 
                     DrawCoordinateNeighbors(region.Coordinate);
                 }
+            }
+            else
+            {
+                DarklightGizmos.DrawWireSquare_withLabel("World Generation Size", worldGen.CenterPosition, WorldGen.Settings.WorldWidth_inGameUnits, Color.black, labelStyle);
+
+                if (worldGen.Initialized)
+                {
+                    DarklightGizmos.DrawWireSquare_withLabel("Origin Region", worldGen.OriginPosition, WorldGen.Settings.RegionFullWidth_inGameUnits, Color.red, labelStyle);
+                }
+
+                DarklightGizmos.DrawWireSquare_withLabel("World Chunk Size", worldGen.CenterPosition, WorldGen.Settings.ChunkWidth_inGameUnits, Color.black, labelStyle);
+                DarklightGizmos.DrawWireSquare_withLabel("World Cell Size", worldGen.CenterPosition, WorldGen.Settings.CellSize_inGameUnits, Color.black, labelStyle);
             }
 
             DrawCoordinates();
