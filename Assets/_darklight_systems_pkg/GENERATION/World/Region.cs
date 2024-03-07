@@ -4,7 +4,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
-namespace Darklight.ThirdDimensional.World
+namespace Darklight.ThirdDimensional.Generation
 {
     public class Region : MonoBehaviour
     {

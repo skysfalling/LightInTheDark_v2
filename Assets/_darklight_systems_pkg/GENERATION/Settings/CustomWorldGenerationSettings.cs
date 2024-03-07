@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Darklight.ThirdDimensional.World
+namespace Darklight.ThirdDimensional.Generation
 {
     [CreateAssetMenu(fileName = "NewGenerationSettings", menuName = "WorldGeneration/Settings", order = 1)]
     public class CustomWorldGenerationSettings : ScriptableObject

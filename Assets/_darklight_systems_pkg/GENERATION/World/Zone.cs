@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Darklight.ThirdDimensional.World
+namespace Darklight.ThirdDimensional.Generation
 {
     public class Zone
     {

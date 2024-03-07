@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Darklight.ThirdDimensional.World
+namespace Darklight.ThirdDimensional.Generation
 {
     using FaceType = Chunk.FaceType;
 

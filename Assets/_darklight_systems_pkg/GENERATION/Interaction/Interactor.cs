@@ -4,9 +4,9 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Windows;
 
-namespace Darklight.ThirdDimensional.World.Interaction
+namespace Darklight.ThirdDimensional.Generation.Interaction
 {
-    using WorldEntity = World.Entity.Entity;
+    using WorldEntity = Generation.Entity;
 
     public class Interactor : MonoBehaviour
     {

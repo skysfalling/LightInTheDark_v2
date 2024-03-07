@@ -1,9 +1,9 @@
-using Darklight.ThirdDimensional.World;
+using Darklight.ThirdDimensional.Generation;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Darklight.ThirdDimensional.World
+namespace Darklight.ThirdDimensional.Generation
 {
     public class WorldSpawnSystem : MonoBehaviour
     {

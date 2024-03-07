@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using UnityEngine.UIElements;
 using System.Linq;
 
-namespace Darklight.ThirdDimensional.World.Editor
+namespace Darklight.ThirdDimensional.Generation.Editor
 {
     using Editor = UnityEditor.Editor;
     using DarklightCustomEditor = Darklight.CustomEditorLibrary;

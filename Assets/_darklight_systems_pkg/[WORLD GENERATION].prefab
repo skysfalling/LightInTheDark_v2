@@ -110,7 +110,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3c77c79f9aea1e41aa60385d504ea06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  editMode: 1
+  editMode: 0
   worldView: 0
   regionView: 1
   chunkView: 2

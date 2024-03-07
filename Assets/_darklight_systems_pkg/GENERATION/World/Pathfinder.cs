@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-namespace Darklight.ThirdDimensional.World
+namespace Darklight.ThirdDimensional.Generation
 {
     public class Pathfinder
     {
@@ -34,7 +35,7 @@ namespace Darklight.ThirdDimensional.World
             WorldGeneration.InitializeSeedRandom();
 
             // Store all possible positions from the coordinate map
-            List<Vector2Int> positions = coordinateMap.AllCoordinateValues;
+            List<Vector2Int> positions = coordinateMap.AllCoordinateValues.ToList();
             // Initialize the open set with the start coordinate
             List<Vector2Int> openSet = new List<Vector2Int> { startCoord };
             // Initialize the closed set as an empty collection of Vector2Int

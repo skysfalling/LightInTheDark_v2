@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Darklight.ThirdDimensional.World.Data
+namespace Darklight.ThirdDimensional.Generation.Data
 {
     [System.Serializable]
     public class WorldData
     {
-        public WorldGeneration.GenerationSettings settings;
+        public GenerationSettings settings;
 
         // Default constructor for serialization/deserialization
         public WorldData() { }

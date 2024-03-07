@@ -10,7 +10,7 @@ using UnityEngine;
 /// for the larger world map, enabling detailed and scalable world design.
 /// </summary>
 
-namespace Darklight.ThirdDimensional.World
+namespace Darklight.ThirdDimensional.Generation
 {
     public class Cell
     {

@@ -2,11 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Darklight.ThirdDimensional.World.Entity
+namespace Darklight.ThirdDimensional.Generation
 {
     public class Entity : MonoBehaviour
     {
-        WorldEntityManager _entityManager;
 
         List<Cell> _affectedPath = new List<Cell>();
         List<Cell> _movePath = new();
@@ -20,8 +19,7 @@ namespace Darklight.ThirdDimensional.World.Entity
         // Start is called before the first frame update
         void Start()
         {
-            _entityManager = WorldEntityManager.Instance;
-            InvokeRepeating("TickUpdate", _entityManager.tickSpeed, _entityManager.tickSpeed);
+            //InvokeRepeating("TickUpdate", _entityManager.tickSpeed, _entityManager.tickSpeed);
         }
 
         // Update is called once per frame

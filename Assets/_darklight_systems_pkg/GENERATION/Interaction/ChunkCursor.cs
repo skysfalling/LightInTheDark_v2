@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-namespace Darklight.ThirdDimensional.World.Interaction
+namespace Darklight.ThirdDimensional.Generation.Interaction
 {
 
     using WorldGen = WorldGeneration;

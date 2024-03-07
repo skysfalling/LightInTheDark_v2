@@ -5,7 +5,7 @@ using System;
 
 
 
-namespace Darklight.ThirdDimensional.World
+namespace Darklight.ThirdDimensional.Generation
 {
 #if UNITY_EDITOR
     using UnityEditor;
@@ -18,6 +18,7 @@ namespace Darklight.ThirdDimensional.World
     using ChunkMapView = WorldEdit.ChunkMapView;
     using CellMapView = WorldEdit.CellMapView;
     using Unity.Properties;
+    using System.Linq;
 #endif
 
     public class WorldEdit : MonoBehaviour
@@ -408,7 +409,7 @@ namespace Darklight.ThirdDimensional.World
             Color coordinateColor = Color.black;
 
             // Draw Coordinates
-            if (coordinateMap != null && coordinateMap.Initialized && coordinateMap.AllCoordinateValues.Count > 0)
+            if (coordinateMap != null && coordinateMap.Initialized && coordinateMap.AllCoordinateValues.ToList().Count > 0)
             {
                 foreach (Vector2Int coordinateValue in coordinateMap.AllCoordinateValues)
                 {

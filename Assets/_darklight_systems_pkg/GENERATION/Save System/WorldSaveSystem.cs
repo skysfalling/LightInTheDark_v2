@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Darklight.ThirdDimensional.World.Data
+namespace Darklight.ThirdDimensional.Generation.Data
 {
     public class WorldSaveSystem : MonoBehaviour
     {

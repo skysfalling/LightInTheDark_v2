@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Darklight.ThirdDimensional.World
+namespace Darklight.ThirdDimensional.Generation
 {
     [CreateAssetMenu(fileName = "NewMaterialLibrary", menuName = "WorldGeneration/MaterialLibrary", order = 1)]
     public class MaterialLibrary : ScriptableObject

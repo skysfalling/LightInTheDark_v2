@@ -6,7 +6,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 
-namespace Darklight.ThirdDimensional.World
+namespace Darklight.ThirdDimensional.Generation
 {
     using WorldGen = WorldGeneration;
     public class CoordinateMap
@@ -101,8 +101,6 @@ namespace Darklight.ThirdDimensional.World
         int _coordinateSize;
 
         // >> quick reference lists
-        HashSet<Vector2Int> _values = new();
-        HashSet<Coordinate> _coordinates = new();
         Dictionary<Vector2Int, Coordinate> _valueMap = new();
         Dictionary<Coordinate.TYPE, HashSet<Vector2Int>> _typeMap = new();
 
@@ -111,7 +109,7 @@ namespace Darklight.ThirdDimensional.World
         Dictionary<BorderDirection, HashSet<Vector2Int>> _borderExitMap = new();
         Dictionary<BorderDirection, Vector2Int[]> _borderIndexMap = new();
         Dictionary<BorderDirection, (Vector2Int, Vector2Int)> _borderCornersMap = new();
-        Dictionary<BorderDirection, bool> _activeBorderMap = new();
+        Dictionary<BorderDirection, bool> _activeBorderMap = new(4);
 
         // >>>> Custom Generation References
         List<Zone> _zones = new();
@@ -123,8 +121,8 @@ namespace Darklight.ThirdDimensional.World
         public int MaxCoordinateValue { get; private set; }
         public UnitSpace UnitSpace => _mapUnitSpace;
         public int CoordinateSize => _coordinateSize;
-        public List<Vector2Int> AllCoordinateValues { get { return _values.ToList(); } }
-        public List<Coordinate> AllCoordinates { get { return _coordinates.ToList(); } }
+        public IEnumerable<Vector2Int> AllCoordinateValues => _valueMap.Keys;
+        public IEnumerable<Coordinate> AllCoordinates => _valueMap.Values;
         public Dictionary<BorderDirection, bool> ActiveBorderMap => _activeBorderMap;
 
         public List<Vector2Int> Exits = new();
@@ -164,26 +162,23 @@ namespace Darklight.ThirdDimensional.World
                 throw new ArgumentException("Unsupported parent type for CoordinateMap.");
             }
 
-            // Calculate coordMax based on the size
-            int coordMax = _mapWidthCount; // This is a simplification; adjust based on actual logic to determine coordMax
-
             // Initialize Coordinate grid
-            for (int x = 0; x < coordMax; x++)
+            for (int x = 0; x < _mapWidthCount; x++)
             {
-                for (int y = 0; y < coordMax; y++)
+                for (int y = 0; y < _mapWidthCount; y++)
                 {
                     // Calculate Coordinate Value
                     Vector2Int newCoordinateValue = new Vector2Int(x, y);
-                    _values.Add(newCoordinateValue);
 
                     // Create Coordinate
                     Coordinate newCoordinate = new Coordinate(this, _mapOriginPosition, newCoordinateValue, _coordinateSize);
-                    _coordinates.Add(newCoordinate);
+
+                    // Add new Coordinate to map
                     _valueMap[newCoordinateValue] = newCoordinate;
                 }
             }
 
-            SetAllCoordinatesToDefault(coordMax, WorldGen.Settings.RegionBoundaryOffset_inChunkUnits);
+            SetAllCoordinatesToDefault();
             Initialized = true;
         }
 
@@ -191,18 +186,14 @@ namespace Darklight.ThirdDimensional.World
         // == [[ GET COORDINATE ]] ======================================================================== >>>>
         public Coordinate GetCoordinateAt(Vector2Int position)
         {
-            if (Initialized && _values.Contains(position))
-            {
-                return _valueMap[position];
-            }
-            return null;
+            return Initialized && _valueMap.TryGetValue(position, out var coordinate) ? coordinate : null;
         }
 
         public Coordinate.TYPE? GetCoordinateTypeAt(Vector2Int position)
         {
-            if (Initialized && _values.Contains(position))
+            if (Initialized && _valueMap.TryGetValue(position, out var coordinate))
             {
-                return _valueMap[position].Type;
+                return coordinate.Type;
             }
             return null;
         }
@@ -221,10 +212,15 @@ namespace Darklight.ThirdDimensional.World
             }
             return null;
         }
+        
         // == [[ SET COORDINATE ]] ======================================================================== >>>>
-        void SetAllCoordinatesToDefault(int coordMax, int borderOffset)
+        void SetAllCoordinatesToDefault()
         {
-            this.MaxCoordinateValue = coordMax;
+            int coordMax = _mapWidthCount;
+            int borderOffset = WorldGeneration.Settings.RegionBoundaryOffset_inChunkUnits;
+
+            // >> store coordinate map range
+            Vector2Int mapRange = new Vector2Int(borderOffset, coordMax - (borderOffset + 1));
 
             // << ASSIGN COORDINATE TYPES >> =================================================================
             // ** Set Coordinate To Type updates the TypeMap accordingly
@@ -251,15 +247,14 @@ namespace Darklight.ThirdDimensional.World
                 return default; // Return a default or undefined value
             }
 
-            // >> store coordinate range
-            Vector2Int playableMapRange = new Vector2Int(borderOffset, coordMax - (borderOffset + 1));
+
 
             // >> store border corners
             List<Vector2Int> cornerCoordinates = new List<Vector2Int>() {
-                new Vector2Int(playableMapRange.x, playableMapRange.x), // min min { SOUTH WEST }
-                new Vector2Int(playableMapRange.y, playableMapRange.y), // max max { NORTH EAST }
-                new Vector2Int(playableMapRange.x, playableMapRange.y), // min max { NORTH WEST }
-                new Vector2Int(playableMapRange.y, playableMapRange.x)  // max min { SOUTH EAST }
+                new Vector2Int(mapRange.x, mapRange.x), // min min { SOUTH WEST }
+                new Vector2Int(mapRange.y, mapRange.y), // max max { NORTH EAST }
+                new Vector2Int(mapRange.x, mapRange.y), // min max { NORTH WEST }
+                new Vector2Int(mapRange.y, mapRange.x)  // max min { SOUTH EAST }
             };
 
             _borderCornersMap[BorderDirection.NORTH] = (cornerCoordinates[2], cornerCoordinates[1]); // NW, NE
@@ -273,20 +268,20 @@ namespace Darklight.ThirdDimensional.World
             _activeBorderMap[BorderDirection.WEST] = false;
 
             // >> iterate through positions
-            foreach (Vector2Int pos in _values)
+            foreach (Vector2Int pos in AllCoordinateValues)
             {
                 if (cornerCoordinates.Contains(pos) || // is corner
-                    (pos.x < playableMapRange.x || pos.x > playableMapRange.y || pos.y < playableMapRange.x || pos.y > playableMapRange.y)) // or is outside bounds
+                    pos.x < mapRange.x || pos.x > mapRange.y || pos.y < mapRange.x || pos.y > mapRange.y) // or is outside bounds
                 {
                     // Set Corners to Closed
                     SetCoordinateToType(pos, Coordinate.TYPE.CLOSED);
                 }
-                else if (pos.x == playableMapRange.x || pos.x == playableMapRange.y || pos.y == playableMapRange.x || pos.y == playableMapRange.y)
+                else if (pos.x == mapRange.x || pos.x == mapRange.y || pos.y == mapRange.x || pos.y == mapRange.y)
                 {
                     // Set Type to Border
                     SetCoordinateToType(pos, Coordinate.TYPE.BORDER);
 
-                    BorderDirection borderType = DetermineBorderType(pos, playableMapRange);
+                    BorderDirection borderType = DetermineBorderType(pos, mapRange);
 
                     switch (borderType)
                     {
@@ -319,16 +314,16 @@ namespace Darklight.ThirdDimensional.World
             }
         }
 
-        void SetCoordinateToType(Vector2Int position, Coordinate.TYPE newType)
+        void SetCoordinateToType(Vector2Int valueKey, Coordinate.TYPE newType)
         {
-            if (!_values.Contains(position)) return;
+            if (!_valueMap.ContainsKey(valueKey)) return;
 
             // Remove Old Type
-            Coordinate coordinate = _valueMap[position];
+            Coordinate coordinate = _valueMap[valueKey];
             Coordinate.TYPE currentType = coordinate.Type;
             if (_typeMap.ContainsKey(currentType))
             {
-                _typeMap[currentType].Remove(position);
+                _typeMap[currentType].Remove(valueKey);
             }
 
             // Assign New Type
@@ -338,12 +333,12 @@ namespace Darklight.ThirdDimensional.World
             // If new TYPE key not found, create
             if (!_typeMap.ContainsKey(newType))
             {
-                _typeMap[newType] = new HashSet<Vector2Int> { position };
+                _typeMap[newType] = new HashSet<Vector2Int> { valueKey };
             }
             // else if the map doesnt already include the coordinate
-            else if (!_typeMap[newType].Contains(position))
+            else if (!_typeMap[newType].Contains(valueKey))
             {
-                _typeMap[newType].Add(position);
+                _typeMap[newType].Add(valueKey);
             }
         }
 
@@ -351,7 +346,7 @@ namespace Darklight.ThirdDimensional.World
         {
             foreach (Vector2Int pos in positions)
             {
-                if (_values.Contains(pos))
+                if (_valueMap.ContainsKey(pos))
                 {
                     SetCoordinateToType(pos, type);
                 }
@@ -363,7 +358,7 @@ namespace Darklight.ThirdDimensional.World
             foreach (Vector2Int pos in positions)
             {
                 // Check if the position is within the map boundaries
-                if (_values.Contains(pos))
+                if (_valueMap.ContainsKey(pos))
                 {
                     // Retrieve the coordinate at the given position
                     Coordinate coordinate = _valueMap[pos];
