@@ -24,17 +24,13 @@ namespace Darklight.ThirdDimensional.Generation
     /// </summary>
     public enum WorldDirection { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
 
-    /// <summary>
-    /// Specifies the directions for borders relative to a given region or chunk.
-    /// </summary>
+    /// <summary> Specifies the directions for borders relative to a given region or chunk. </summary>
     public enum BorderDirection { NORTH, SOUTH, EAST, WEST }
 
-    /// <summary>
-    /// Initializes and handles the procedural world generation.
-    /// </summary>
+    /// <summary> Initializes and handles the procedural world generation. </summary>
     public class WorldGeneration : MonoBehaviour
     {
-        // [[ STATIC INSTANCE ]]
+        // [[ STATIC INSTANCE ]] -------------------------------------- >>
         /// <summary> A singleton instance of the WorldGeneration class. </summary>
         public static WorldGeneration Instance;
         private void Awake() {
@@ -46,36 +42,31 @@ namespace Darklight.ThirdDimensional.Generation
             }
         }
 
-        // [[ GENERATION SETTINGS ]]
-        static GenerationSettings _settings = new();
+        #region [[ GENERATION SETTINGS ]] -------------------------------------- >> 
+            static GenerationSettings _settings = new();
 
-        /// <summary> Contains settings used during the world generation process. </summary>
-        public static GenerationSettings Settings => _settings;
+            /// <summary> Contains settings used during the world generation process. </summary>
+            public static GenerationSettings Settings => _settings;
 
-        /// <summary> Override the default generation settings. </summary>
-        public void OverrideSettings(CustomWorldGenerationSettings customSettings)
-        {
-            if (customSettings == null) { _settings = new GenerationSettings(); return; }
-            _settings = new GenerationSettings(customSettings);
-        }
+            /// <summary> Override the default generation settings. </summary>
+            public void OverrideSettings(CustomWorldGenerationSettings customSettings)
+            {
+                if (customSettings == null) { _settings = new GenerationSettings(); return; }
+                _settings = new GenerationSettings(customSettings);
+            }
+        #endregion
 
-        // [[ RANDOM SEED ]]
-        public static string Seed { get { return Settings.Seed; } }
-        public static int EncodedSeed { get { return Settings.Seed.GetHashCode(); } }
-        public static void InitializeSeedRandom()
-        {
-            UnityEngine.Random.InitState(EncodedSeed);
-        }
+        #region [[ RANDOM SEED ]] -------------------------------------- >> 
+            public static string Seed { get { return Settings.Seed; } }
+            public static int EncodedSeed { get { return Settings.Seed.GetHashCode(); } }
+            public static void InitializeSeedRandom()
+            {
+                UnityEngine.Random.InitState(EncodedSeed);
+            }
+        #endregion
 
-        // [[ PRIVATE VARIABLES ]] 
-        string _prefix = "[ WORLD GENERATION ] ";
-        Coroutine _generationCoroutine;
-        CoordinateMap _coordinateMap;
-        Dictionary<Vector2Int, Region> _regionMap = new();
-
-        /// <summary>
-        /// Represents a stage in the initialization process, including its identifier, name, and execution time.
-        /// </summary>
+        #region [[ STAGE PROFILERS ]] -------------------------------------- >>
+        /// <summary> Represents a stage in the initialization process, including its identifier, name, and execution time. </summary>
         public struct InitializationStage{
             public int id;
             public string name;
@@ -87,6 +78,16 @@ namespace Darklight.ThirdDimensional.Generation
                 this.time = time;
             }
         }
+
+        public List<InitializationStage> InitStages { get; private set; } = new();
+
+        #endregion
+
+        // [[ PRIVATE VARIABLES ]] 
+        string _prefix = "[ WORLD GENERATION ] ";
+        Coroutine _generationCoroutine;
+        CoordinateMap _coordinateMap;
+        Dictionary<Vector2Int, Region> _regionMap = new();
 
         // [[ PUBLIC REFERENCE VARIABLES ]]
         public bool Initialized { get; private set; }
@@ -105,117 +106,118 @@ namespace Darklight.ThirdDimensional.Generation
         public List<Region> AllRegions { get { return _regionMap.Values.ToList(); } }
         public Dictionary<Vector2Int, Region> RegionMap { get { return _regionMap; } }
 
-        // >> Profiler Storage
-        public List<InitializationStage> InitStages { get; private set; } = new();
-
         // [[ PUBLIC INSPECTOR VARIABLES ]] 
         public CustomWorldGenerationSettings customWorldGenSettings; // Settings Scriptable Object
 
-        // ================================== INITIALIZATION ============================================== >>>>
+        #region == INITIALIZATION ============================================== >>>> 
 
-        /// <summary>
-        /// Asynchronously initiates the world generation process, including seed initialization and region creation.
-        /// </summary>
-        public async Task InitializeAsync()
-        {
-            OverrideSettings(customWorldGenSettings);
-
-            InitializeSeedRandom();
-
-            this._coordinateMap = new CoordinateMap(this);
-
-            await InitializationSequenceAsync();
-        }
-
-        /// <summary>
-        /// Executes a specified stage task asynchronously, tracking its execution time.
-        /// </summary>
-        /// <param name="stageName">The name of the stage.</param>
-        /// <param name="stageTask">The task to execute, encapsulating the stage's operations.</param>
-        private async Task StageAsyncTask(string stageName, Func<Task> stageTask)
-        {
-            // Get current stage count
-            int stageCount = this.InitStages.Count;
-
-            Stopwatch stopwatch = new Stopwatch();
-            Debug.Log($"{_prefix} Stage {stageCount} => Begin {stageName}");
-
-            stopwatch.Start();
-            await stageTask(); // Execute the passed asynchronous stage task
-            stopwatch.Stop();
-
-            Debug.Log($"{_prefix} Stage {stageCount} => {stageName} completed in {stopwatch.ElapsedMilliseconds} milliseconds.");
-            InitStages.Add(new InitializationStage(stageCount, stageName, stopwatch.ElapsedMilliseconds));
-        }
-
-        /// <summary>
-        /// Orchestrates the entire initialization sequence asynchronously, divided into stages.
-        /// </summary>
-        public async Task InitializationSequenceAsync()
-        {
-            // Stage 0: Create Regions
-            await StageAsyncTask($"Region Creation", async () =>
+            /// <summary>
+            /// Asynchronously initiates the world generation process, including seed initialization and region creation.
+            /// </summary>
+            public async Task InitializeAsync()
             {
-                foreach (Coordinate regionCoordinate in CoordinateMap.AllCoordinates)
-                {
-                    GameObject regionObject = new GameObject($"New Region ({regionCoordinate.ValueKey})");
-                    Region region = regionObject.AddComponent<Region>();
-                    regionObject.transform.parent = this.transform;
-                    region.SetReferences(this, regionCoordinate);
-                    _regionMap[regionCoordinate.ValueKey] = region;
-                    await Task.Yield(); // Efficiently yields back to the main thread
-                }
-            });
+                OverrideSettings(customWorldGenSettings);
 
-            // Stage 1: Initialize Regions
-            await StageAsyncTask($"Region Initialization", async () =>
+                InitializeSeedRandom();
+
+                this._coordinateMap = new CoordinateMap(this);
+
+                await InitializationSequenceAsync();
+            }
+
+            /// <summary>
+            /// Executes a specified stage task asynchronously, tracking its execution time.
+            /// </summary>
+            /// <param name="stageName">The name of the stage.</param>
+            /// <param name="stageTask">The task to execute, encapsulating the stage's operations.</param>
+            async Task StageAsyncTask(string stageName, Func<Task> stageTask)
             {
-                foreach (Region region in AllRegions)
+                // Get current stage count
+                int stageCount = this.InitStages.Count;
+
+                Stopwatch stopwatch = new Stopwatch();
+                Debug.Log($"{_prefix} Stage {stageCount} => Begin {stageName}");
+
+                stopwatch.Start();
+                await stageTask(); // Execute the passed asynchronous stage task
+                stopwatch.Stop();
+
+                Debug.Log($"{_prefix} Stage {stageCount} => {stageName} completed in {stopwatch.ElapsedMilliseconds} milliseconds.");
+                InitStages.Add(new InitializationStage(stageCount, stageName, stopwatch.ElapsedMilliseconds));
+            }
+
+            /// <summary>
+            /// Orchestrates the entire initialization sequence asynchronously, divided into stages.
+            /// </summary>
+            async Task InitializationSequenceAsync()
+            {
+                // Stage 0: Create Regions
+                await StageAsyncTask($"Region Creation", async () =>
                 {
-                    region.Initialize();
-                    while (!region.Initialized)
+                    foreach (Coordinate regionCoordinate in CoordinateMap.AllCoordinates)
                     {
+                        GameObject regionObject = new GameObject($"New Region ({regionCoordinate.ValueKey})");
+                        Region region = regionObject.AddComponent<Region>();
+                        regionObject.transform.parent = this.transform;
+                        region.SetReferences(this, regionCoordinate);
+                        _regionMap[regionCoordinate.ValueKey] = region;
+                        await Task.Yield(); // Efficiently yields back to the main thread
+                    }
+                });
+
+                // Stage 1: Initialize Regions
+                await StageAsyncTask($"Region Initialization", async () =>
+                {
+                    foreach (Region region in AllRegions)
+                    {
+                        region.Initialize();
+                        while (!region.Initialized)
+                        {
+                            await Task.Yield();
+                        }
+                    }
+                });
+
+                // Stage 2: Generate Exits
+                await StageAsyncTask($"Generate Exits", async () =>
+                {
+                    foreach (var region in AllRegions)
+                    {
+                        region.GenerateNecessaryExits(true);
                         await Task.Yield();
                     }
-                }
-            });
+                });
 
-            // Stage 2: Generate Exits
-            await StageAsyncTask($"Generate Exits", async () =>
-            {
-                foreach (var region in AllRegions)
+                // Stage 3: Generate Paths Between Exits
+                await StageAsyncTask($"Generate Paths Between Exits", async () =>
                 {
-                    region.GenerateNecessaryExits(true);
-                    await Task.Yield();
-                }
-            });
+                    foreach (var region in AllRegions)
+                    {
+                        region.CoordinateMap.GeneratePathsBetweenExits();
+                        await Task.Yield();
+                    }
+                });
+                // Stage 4: Zone Generation and Height Assignments
+                await StageAsyncTask($"Zone Generation", async () =>
+                {
+                    foreach (var region in AllRegions)
+                    {
+                        region.CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
+                        //region.ChunkMap.UpdateMap(); // Update chunk map to match coordinate type values
+                        await Task.Yield();
+                    }
+                });            
 
-            // Stage 3: Generate Paths Between Exits
-            await StageAsyncTask($"Generate Paths Between Exits", async () =>
-            {
-                foreach (var region in AllRegions)
-                {
-                    region.CoordinateMap.GeneratePathsBetweenExits();
-                    await Task.Yield();
-                }
-            });
-            // Stage 4: Zone Generation and Height Assignments
-            await StageAsyncTask($"Zone Generation", async () =>
-            {
-                foreach (var region in AllRegions)
-                {
-                    region.CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
-                    //region.ChunkMap.UpdateMap(); // Update chunk map to match coordinate type values
-                    await Task.Yield();
-                }
-            });            
+                // Mark initialization as complete
+                Initialized = true;
+            }
 
-            // Mark initialization as complete
-            Initialized = true;
-        }
+        #endregion
+
+        #region  == MESH GENERATION ============================================== >>>>
 
         /// <summary>
-        /// Initiates the mesh generation process
+        /// Initiates the mesh generation sequence
         /// </summary>
         public void StartGeneration()
         {
@@ -259,8 +261,6 @@ namespace Darklight.ThirdDimensional.Generation
 
             _generationCoroutine = null;
         }
-
-        #region == WORLD GENERATION ============================================== >>>>
 
         /// <summary> Create GameObject from ChunkMesh </summary>
         public static GameObject CreateChunkMeshObject(ChunkMesh chunkMesh)

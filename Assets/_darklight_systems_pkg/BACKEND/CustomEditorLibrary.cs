@@ -7,7 +7,7 @@ using UnityEditor;
 
 namespace Darklight
 {
-    public static class CustomEditorLibrary
+    public static class DarklightEditor
     {
         public static GUIStyle TitleHeaderStyle
         {

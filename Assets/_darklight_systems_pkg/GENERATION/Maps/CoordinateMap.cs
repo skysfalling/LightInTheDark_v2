@@ -107,30 +107,29 @@ namespace Darklight.ThirdDimensional.Generation
         Dictionary<Vector2Int, Coordinate> _coordinateMap = new();
         Dictionary<Coordinate.TYPE, HashSet<Vector2Int>> _typeMap = new();
 
-        // >>>> Border References
+        // >>>> border References
         Dictionary<BorderDirection, HashSet<Vector2Int>> _borderMap = new();
         Dictionary<BorderDirection, HashSet<Vector2Int>> _borderExitMap = new();
         Dictionary<BorderDirection, Vector2Int[]> _borderIndexMap = new();
         Dictionary<BorderDirection, (Vector2Int, Vector2Int)> _borderCornersMap = new();
         Dictionary<BorderDirection, bool> _activeBorderMap = new(4);
 
-        // >>>> Custom Generation References
+        // >>>> zone references
         List<Zone> _zones = new();
         Dictionary<Zone, HashSet<Vector2Int>> _zoneMap = new();
 
 
-        // >> public access variables
+        // [[ PUBLIC ACCESSOR VARIABLES ]]
         public bool Initialized { get; private set; }
-        public int MaxCoordinateValue { get; private set; }
+        public int MaxCoordinateValue => _mapWidthCount;
         public UnitSpace UnitSpace => _mapUnitSpace;
         public int CoordinateSize => _coordinateSize;
         public List<Vector2Int> AllCoordinateValues => _coordinateMap.Keys.ToList();
         public List<Coordinate> AllCoordinates => _coordinateMap.Values.ToList();
         public Dictionary<BorderDirection, bool> ActiveBorderMap => _activeBorderMap;
 
-        public List<Vector2Int> Exits = new();
+        public List<Vector2Int> Exits => _borderExitMap.Values.SelectMany(exit => exit).ToList();         // Collapse all values into list
         public List<Path> Paths = new();
-
         public List<Zone> Zones => _zones;
 
         // == [[ CONSTRUCTOR ]] ======================================================================== >>>>

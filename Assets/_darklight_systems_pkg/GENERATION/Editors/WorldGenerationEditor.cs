@@ -8,7 +8,7 @@ using System.Linq;
 namespace Darklight.ThirdDimensional.Generation.Editor
 {
     using Editor = UnityEditor.Editor;
-    using DarklightCustomEditor = Darklight.CustomEditorLibrary;
+    using DarklightCustomEditor = Darklight.DarklightEditor;
 
     [CustomEditor(typeof(WorldGeneration))]
     public class WorldGenerationEditor : UnityEditor.Editor
@@ -26,8 +26,7 @@ namespace Darklight.ThirdDimensional.Generation.Editor
             serializedWorldGen = new SerializedObject(target);
             WorldGeneration.InitializeSeedRandom();
 
-            _worldGenerationScript = (WorldGeneration)target;
-            //worldGen.Reset(); // Reset the generation on editor refresh
+
         }
 
         public override async void OnInspectorGUI()

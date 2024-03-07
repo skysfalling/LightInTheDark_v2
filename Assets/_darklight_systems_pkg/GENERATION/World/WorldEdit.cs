@@ -9,6 +9,7 @@ namespace Darklight.ThirdDimensional.Generation
 {
 #if UNITY_EDITOR
     using UnityEditor;
+    using DarklightEditor = DarklightEditor;
     using EditMode = WorldEdit.EditMode;
     using WorldView = WorldEdit.WorldView;
     using RegionView = WorldEdit.RegionView;
@@ -65,7 +66,7 @@ namespace Darklight.ThirdDimensional.Generation
 
             //Debug.Log("Selected Region: " + selectedRegion.Coordinate.Value);
 
-            CustomEditorLibrary.FocusSceneView(region.Coordinate.ScenePosition);
+            DarklightEditor.FocusSceneView(region.Coordinate.ScenePosition);
 
             editMode = EditMode.REGION;
         }
@@ -76,7 +77,7 @@ namespace Darklight.ThirdDimensional.Generation
 
             //Debug.Log("Selected Chunk: " + chunk.Coordinate.Value);
 
-            CustomEditorLibrary.FocusSceneView(chunk.Coordinate.ScenePosition);
+            DarklightEditor.FocusSceneView(chunk.Coordinate.ScenePosition);
 
             //editMode = EditMode.CHUNK;
         }
@@ -87,7 +88,7 @@ namespace Darklight.ThirdDimensional.Generation
 
             //Debug.Log("Selected Cell: " + cell.Coordinate.Value);
 
-            CustomEditorLibrary.FocusSceneView(cell.Position);
+            DarklightEditor.FocusSceneView(cell.Position);
 
             //editMode = EditMode.CELL;
         }
@@ -99,16 +100,24 @@ namespace Darklight.ThirdDimensional.Generation
     public class WorldEditGUI : UnityEditor.Editor
     {
         private SerializedObject _serializedObject;
-
         private WorldEdit _worldEditScript;
+        private WorldGeneration _worldGenerationScript;
 
-        private void OnEnable()
+        private bool coordinateMapFoldout;
+
+        private async void OnEnable()
         {
             // Cache the SerializedObject
             _serializedObject = new SerializedObject(target);
             _worldEditScript = (WorldEdit)target;
+            _worldGenerationScript = _worldEditScript.GetComponent<WorldGeneration>();
 
             _worldEditScript.editMode = EditMode.WORLD;
+            await _worldGenerationScript.InitializeAsync();
+        }
+
+        private void OnDisable() {
+            _worldGenerationScript.ResetGeneration();
         }
 
         public override void OnInspectorGUI()
@@ -119,7 +128,7 @@ namespace Darklight.ThirdDimensional.Generation
 
 
             // [[ EDITOR VIEW ]]
-            CustomEditorLibrary.DrawLabeledEnumPopup(ref _worldEditScript.editMode, "Edit Mode");
+            DarklightEditor.DrawLabeledEnumPopup(ref _worldEditScript.editMode, "Edit Mode");
 
             EditorGUILayout.Space();
 
@@ -127,7 +136,14 @@ namespace Darklight.ThirdDimensional.Generation
             {
                 case EditMode.WORLD:
 
-                    CustomEditorLibrary.DrawLabeledEnumPopup(ref _worldEditScript.worldView, "World View");
+                    EditorGUILayout.LabelField("World Edit Mode", DarklightEditor.Header1Style);
+                    EditorGUILayout.Space(20);
+
+                    DarklightEditor.DrawLabeledEnumPopup(ref _worldEditScript.worldView, "World View");
+
+                    // SHOW WORLD STATS
+
+
                     CoordinateMapInspector( _worldEditScript.worldGeneration.CoordinateMap);
                     break;
                 case EditMode.REGION:
@@ -137,7 +153,14 @@ namespace Darklight.ThirdDimensional.Generation
                         break;
                     }
 
-                    CustomEditorLibrary.DrawLabeledEnumPopup(ref _worldEditScript.regionView, "Region View");
+                    EditorGUILayout.LabelField("Region Edit Mode", DarklightEditor.Header1Style);
+                    EditorGUILayout.Space(20);
+
+                    // SHOW REGION STATS
+                    Region selectedRegion = _worldEditScript.selectedRegion;
+                    EditorGUILayout.LabelField($"Coordinate ValueKey => {selectedRegion.Coordinate.ValueKey}", DarklightEditor.LeftAlignedStyle);
+
+                    DarklightEditor.DrawLabeledEnumPopup(ref _worldEditScript.regionView, "Region View");
                     CoordinateMapInspector( _worldEditScript.selectedRegion.CoordinateMap);
                     ChunkMapInspector(_worldEditScript.selectedRegion.ChunkMap);
                     break;
@@ -148,7 +171,15 @@ namespace Darklight.ThirdDimensional.Generation
                         _worldEditScript.SelectChunk(originRegion.ChunkMap.GetChunkAt(Vector2Int.zero));
                         break;
                     }
-                    CustomEditorLibrary.DrawLabeledEnumPopup(ref _worldEditScript.chunkView, "Chunk View");
+
+                    EditorGUILayout.LabelField("Chunk Edit Mode", DarklightEditor.Header1Style);
+                    EditorGUILayout.Space(20);
+
+                    // SHOW CHUNK STATS
+
+
+
+                    DarklightEditor.DrawLabeledEnumPopup(ref _worldEditScript.chunkView, "Chunk View");
                     CoordinateMapInspector( _worldEditScript.selectedChunk.CoordinateMap);
                     CellMapInspector(_worldEditScript.selectedChunk.CellMap);
                     break;
@@ -158,7 +189,12 @@ namespace Darklight.ThirdDimensional.Generation
                         break;
                     }
 
-                    CustomEditorLibrary.DrawLabeledEnumPopup(ref _worldEditScript.cellView, "Cell View");
+                    EditorGUILayout.LabelField("Cell Edit Mode", DarklightEditor.Header1Style);
+                    EditorGUILayout.Space(20);
+
+                    // SHOW CELL STATS
+
+                    DarklightEditor.DrawLabeledEnumPopup(ref _worldEditScript.cellView, "Cell View");
                     break;
             }
 
@@ -166,21 +202,39 @@ namespace Darklight.ThirdDimensional.Generation
 
             void CoordinateMapInspector(CoordinateMap coordinateMap)
             {
-                EditorGUILayout.LabelField("Coordinate Map", Darklight.CustomEditorLibrary.Header2Style);
-                EditorGUILayout.Space(10);
-                if (coordinateMap == null)
-                {
-                    EditorGUILayout.LabelField("No Coordinate Map is Selected. Try Initializing the World Generation");
-                    return;
-                }
 
-                // >> select debug view
-                CustomEditorLibrary.DrawLabeledEnumPopup(ref _worldEditScript.coordinateMapView, "Coordinate Map View");
+                coordinateMapFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(coordinateMapFoldout, "Coordinate Map Inspector");
+                EditorGUILayout.Space(10);
+                if (coordinateMapFoldout)
+                {
+                    if (coordinateMap == null)
+                    {
+                        EditorGUILayout.LabelField("No Coordinate Map is Selected. Try Initializing the World Generation");
+                        return;
+                    }
+
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.Space(10);
+                    EditorGUILayout.BeginVertical();
+
+                    // >> select debug view
+                    DarklightEditor.DrawLabeledEnumPopup(ref _worldEditScript.coordinateMapView, "Coordinate Map View");
+                    EditorGUILayout.LabelField($"Unit Space => {coordinateMap.UnitSpace}", DarklightEditor.LeftAlignedStyle);
+                    EditorGUILayout.LabelField($"Initialized => {coordinateMap.Initialized}", DarklightEditor.LeftAlignedStyle);
+                    EditorGUILayout.LabelField($"Max Coordinate Value => {coordinateMap.MaxCoordinateValue}", DarklightEditor.LeftAlignedStyle);
+                    EditorGUILayout.LabelField($"Coordinate Count => {coordinateMap.AllCoordinates.Count}", DarklightEditor.LeftAlignedStyle);
+                    EditorGUILayout.LabelField($"Exit Count => {coordinateMap.Exits.Count}", DarklightEditor.LeftAlignedStyle);
+                    EditorGUILayout.LabelField($"Path Count => {coordinateMap.Paths.Count}", DarklightEditor.LeftAlignedStyle);
+                    EditorGUILayout.LabelField($"Zone Count => {coordinateMap.Zones.Count}", DarklightEditor.LeftAlignedStyle);
+
+                    EditorGUILayout.EndVertical();
+                    EditorGUILayout.EndHorizontal();
+                }
             }
 
             void ChunkMapInspector(ChunkMap chunkMap)
             {
-                EditorGUILayout.LabelField("Chunk Map", Darklight.CustomEditorLibrary.Header2Style);
+                EditorGUILayout.LabelField("Chunk Map", Darklight.DarklightEditor.Header2Style);
                 EditorGUILayout.Space(10);
                 if (chunkMap == null)
                 {
@@ -189,12 +243,12 @@ namespace Darklight.ThirdDimensional.Generation
                 }
 
                 // >> select debug view
-                CustomEditorLibrary.DrawLabeledEnumPopup(ref _worldEditScript.chunkMapView, "Chunk Map View");
+                DarklightEditor.DrawLabeledEnumPopup(ref _worldEditScript.chunkMapView, "Chunk Map View");
             }
 
             void CellMapInspector(CellMap cellMap)
             {
-                EditorGUILayout.LabelField("Cell Map", Darklight.CustomEditorLibrary.Header2Style);
+                EditorGUILayout.LabelField("Cell Map", Darklight.DarklightEditor.Header2Style);
                 EditorGUILayout.Space(10);
                 if (cellMap == null)
                 {
@@ -203,7 +257,7 @@ namespace Darklight.ThirdDimensional.Generation
                 }
 
                 // >> select debug view
-                CustomEditorLibrary.DrawLabeledEnumPopup(ref _worldEditScript.cellMapView, "Cell Map View");
+                DarklightEditor.DrawLabeledEnumPopup(ref _worldEditScript.cellMapView, "Cell Map View");
             }
         }
 
@@ -217,7 +271,7 @@ namespace Darklight.ThirdDimensional.Generation
 
             // >> draw world generation bounds
             WorldGeneration worldGeneration = _worldEditScript.worldGeneration;
-            CustomGizmoLibrary.DrawWireSquare_withLabel("World Generation", worldGeneration.CenterPosition, WorldGeneration.Settings.WorldWidth_inGameUnits, Color.black, CustomEditorLibrary.CenteredStyle);
+            CustomGizmoLibrary.DrawWireSquare_withLabel("World Generation", worldGeneration.CenterPosition, WorldGeneration.Settings.WorldWidth_inGameUnits, Color.black, DarklightEditor.CenteredStyle);
 
             switch (_worldEditScript.editMode)
             {
@@ -242,7 +296,7 @@ namespace Darklight.ThirdDimensional.Generation
                 // [[ DRAW DEFAULT SIZE GUIDE ]]
                 if (worldGeneration == null || worldGeneration.CoordinateMap == null)
                 {
-                    GUIStyle labelStyle = CustomEditorLibrary.BoldStyle;
+                    GUIStyle labelStyle = DarklightEditor.BoldStyle;
                     CustomGizmoLibrary.DrawWireSquare_withLabel("Origin Region", worldGeneration.OriginPosition, WorldGeneration.Settings.RegionFullWidth_inGameUnits, Color.red, labelStyle);
                     CustomGizmoLibrary.DrawWireSquare_withLabel("World Chunk Size", worldGeneration.OriginPosition, WorldGeneration.Settings.ChunkWidth_inGameUnits, Color.black, labelStyle);
                     CustomGizmoLibrary.DrawWireSquare_withLabel("World Cell Size", worldGeneration.OriginPosition, WorldGeneration.Settings.CellSize_inGameUnits, Color.black, labelStyle);
@@ -307,7 +361,7 @@ namespace Darklight.ThirdDimensional.Generation
 
             CoordinateMap coordinateMap = region.CoordinateMap;
             ChunkMap chunkMap = region.ChunkMap;
-            GUIStyle regionLabelStyle = CustomEditorLibrary.CenteredStyle;
+            GUIStyle regionLabelStyle = DarklightEditor.CenteredStyle;
 
             // [[ DRAW GRID ONLY ]]
             if (type == RegionView.OUTLINE)
@@ -335,7 +389,7 @@ namespace Darklight.ThirdDimensional.Generation
 
         void DrawChunk(Chunk chunk, ChunkView type)
         {
-            GUIStyle chunkLabelStyle = CustomEditorLibrary.CenteredStyle;
+            GUIStyle chunkLabelStyle = DarklightEditor.CenteredStyle;
 
             switch (type)
             {
@@ -380,7 +434,7 @@ namespace Darklight.ThirdDimensional.Generation
 
         void DrawCell(Cell cell, CellView type)
         {
-            GUIStyle cellLabelStyle = CustomEditorLibrary.CenteredStyle;
+            GUIStyle cellLabelStyle = DarklightEditor.CenteredStyle;
 
             switch (type)
             {
@@ -405,7 +459,7 @@ namespace Darklight.ThirdDimensional.Generation
 
         void DrawCoordinateMap(CoordinateMap coordinateMap, CoordinateMapView mapView, System.Action<Coordinate> onCoordinateSelect)
         {
-            GUIStyle coordLabelStyle = CustomEditorLibrary.CenteredStyle;
+            GUIStyle coordLabelStyle = DarklightEditor.CenteredStyle;
             Color coordinateColor = Color.black;
 
             // Draw Coordinates
@@ -455,7 +509,7 @@ namespace Darklight.ThirdDimensional.Generation
 
         void DrawChunkMap(ChunkMap chunkMap, ChunkMapView mapView)
         {
-            GUIStyle chunkLabelStyle = CustomEditorLibrary.CenteredStyle;
+            GUIStyle chunkLabelStyle = DarklightEditor.CenteredStyle;
             Color chunkColor = Color.black;
 
             // Draw Chunks
@@ -481,7 +535,7 @@ namespace Darklight.ThirdDimensional.Generation
         {
             if (cellMap == null) return;
             
-            GUIStyle cellLabelStyle = CustomEditorLibrary.CenteredStyle;
+            GUIStyle cellLabelStyle = DarklightEditor.CenteredStyle;
             foreach (Cell cell in cellMap.AllCells)
             {
                 // Draw Custom View

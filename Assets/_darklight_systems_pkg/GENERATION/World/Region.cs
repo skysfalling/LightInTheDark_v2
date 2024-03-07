@@ -193,8 +193,6 @@ namespace Darklight.ThirdDimensional.Generation
 
             return combinedMesh;
         }
-
-
         public void CreateCombinedChunkMesh()
         {
             this.ChunkMap.UpdateMap();
