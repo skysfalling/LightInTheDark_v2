@@ -115,7 +115,7 @@ MonoBehaviour:
   regionView: 1
   chunkView: 2
   cellView: 0
-  coordinateMapView: 3
+  coordinateMapView: 2
   chunkMapView: 0
   cellMapView: 0
   selectedRegion: {fileID: 0}

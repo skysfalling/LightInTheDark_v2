@@ -14,8 +14,10 @@ namespace Darklight.ThirdDimensional.Generation.Editor
     public class WorldGenerationEditor : UnityEditor.Editor
     {
         private SerializedObject serializedWorldGen;
+        private WorldGeneration _worldGenerationScript;
 
         static bool showGenerationSettingsFoldout = false;
+        static bool showGenerationProfilerFoldout = false;
 
 
         private void OnEnable()
@@ -24,26 +26,23 @@ namespace Darklight.ThirdDimensional.Generation.Editor
             serializedWorldGen = new SerializedObject(target);
             WorldGeneration.InitializeSeedRandom();
 
-            WorldGeneration worldGen = (WorldGeneration)target;
+            _worldGenerationScript = (WorldGeneration)target;
             //worldGen.Reset(); // Reset the generation on editor refresh
         }
 
-        public override void OnInspectorGUI()
+        public override async void OnInspectorGUI()
         {
             serializedWorldGen.Update(); // Always start with this call
 
             EditorGUI.BeginChangeCheck();
 
             // ----------------------------------------------------------------
-            // WORLD GENERATION SETTINGS
+            // CUSTOM GENERATION SETTINGS
             // ----------------------------------------------------------------
             WorldGeneration worldGen = (WorldGeneration)target;
 
-
-
             SerializedProperty customWorldGenSettingsProperty = serializedWorldGen.FindProperty("customWorldGenSettings");
             EditorGUILayout.PropertyField(customWorldGenSettingsProperty);
-
             if (worldGen.customWorldGenSettings != null)
             {
                 // Override World Gen Settings with custom settings
@@ -94,11 +93,39 @@ namespace Darklight.ThirdDimensional.Generation.Editor
 
             EditorGUILayout.Space();
 
+            // ----------------------------------------------------------------
+            // GENERATION PROFILER
+            // ----------------------------------------------------------------
+                // >>>> foldout
+                showGenerationProfilerFoldout = EditorGUILayout.Foldout(showGenerationProfilerFoldout, "World Generation Profiler", true);
+                if (showGenerationProfilerFoldout)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.Space();
+                    EditorGUILayout.BeginVertical();
+
+                    List<WorldGeneration.InitializationStage> initStages = _worldGenerationScript.InitStages;
+                    foreach (WorldGeneration.InitializationStage stage in initStages)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.LabelField($"Stage {stage.id} => {stage.name}");
+                        GUILayout.FlexibleSpace();
+                        EditorGUILayout.LabelField($"{stage.time} milliseconds");
+                        EditorGUILayout.EndHorizontal();
+                    }
+
+                    EditorGUILayout.EndVertical();
+                    EditorGUILayout.EndHorizontal();
+                }
+
+            // ----------------------------------------------------------------
+            // Buttons
+            // ----------------------------------------------------------------
             if (worldGen.AllRegions.Count == 0)
             {
                 if (GUILayout.Button("Initialize"))
                 {
-                    worldGen.Initialize();
+                    await worldGen.InitializeAsync();
                 }
             }
             else
@@ -110,10 +137,8 @@ namespace Darklight.ThirdDimensional.Generation.Editor
 
                 if (GUILayout.Button("Reset"))
                 {
-                    worldGen.Reset();
+                    worldGen.ResetGeneration();
                 }
-
-
             }
 
             // Check if any changes were made in the Inspector

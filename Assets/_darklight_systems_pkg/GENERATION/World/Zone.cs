@@ -72,7 +72,7 @@ namespace Darklight.ThirdDimensional.Generation
                     return;
                 }
 
-                _positions.Add(coord.Value);
+                _positions.Add(coord.ValueKey);
             }
 
             _valid = true;

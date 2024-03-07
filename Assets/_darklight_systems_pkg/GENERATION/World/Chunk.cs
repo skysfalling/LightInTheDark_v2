@@ -182,7 +182,7 @@ namespace Darklight.ThirdDimensional.Generation
             List<WorldDirection> naturalNeighborDirections = new List<WorldDirection> { WorldDirection.NORTH, WorldDirection.SOUTH, WorldDirection.EAST, WorldDirection.WEST };
             foreach (WorldDirection direction in naturalNeighborDirections)
             {
-                Vector2Int neighborCoordinateValue = CoordinateMap.CalculateNeighborCoordinateValue(Coordinate.Value, direction);
+                Vector2Int neighborCoordinateValue = CoordinateMap.CalculateNeighborCoordinateValue(Coordinate.ValueKey, direction);
                 neighborMap[direction] = ChunkMapParent.GetChunkAt(neighborCoordinateValue);
             }
 

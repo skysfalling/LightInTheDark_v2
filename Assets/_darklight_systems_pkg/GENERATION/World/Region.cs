@@ -9,6 +9,7 @@ namespace Darklight.ThirdDimensional.Generation
     public class Region : MonoBehaviour
     {
         // [[ PRIVATE VARIABLES ]]
+        string _prefix = "(( REGION ))";
         WorldGeneration _generationParent;
         Coordinate _coordinate;
         CoordinateMap _coordinateMap;
@@ -17,8 +18,8 @@ namespace Darklight.ThirdDimensional.Generation
 
         // [[ PUBLIC REFERENCE VARIABLES ]]
         public bool Initialized { get; private set; }
-        public WorldGeneration GenerationParent { get; private set; }
-        public Coordinate Coordinate { get; private set; }
+        public WorldGeneration GenerationParent => _generationParent;
+        public Coordinate Coordinate => _coordinate;
         public CoordinateMap CoordinateMap => _coordinateMap;
         public ChunkMap ChunkMap => _chunkMap;
         public Vector3 CenterPosition => Coordinate.ScenePosition;
@@ -34,8 +35,8 @@ namespace Darklight.ThirdDimensional.Generation
         }
         public void SetReferences(WorldGeneration parent, Coordinate coordinate)
         {
-            this.GenerationParent = parent;
-            this.Coordinate = coordinate;
+            this._generationParent = parent;
+            this._coordinate = coordinate;
 
             // Set the transform to the center
             transform.position = CenterPosition;
@@ -52,72 +53,68 @@ namespace Darklight.ThirdDimensional.Generation
             this._coordinateMap = new CoordinateMap(this);
             yield return new WaitUntil(() => this._coordinateMap.Initialized);
 
-            // Create the chunk map for the region
-            this._chunkMap = new ChunkMap(this, this._coordinateMap);
-            yield return new WaitUntil(() => this._chunkMap.Initialized);
-
-            this._chunkMap.UpdateMap();
-
             Initialized = true;
+
+            // Create the chunk map for the region
+            //this._chunkMap = new ChunkMap(this, this._coordinateMap);
+            //yield return new WaitUntil(() => this._chunkMap.Initialized);
+
+            // Update the chunk map to reflect the coordinate map
+            //this._chunkMap.UpdateMap();
+
+
+            //Debug.Log($"{_prefix} Initialized at {Coordinate.ValueKey}");
+
         }
 
         public void GenerateNecessaryExits(bool createExits)
         {
-            Region currentRegion = this;
-            Coordinate currentRegionCoordinate = this.Coordinate;
+            Dictionary<WorldDirection, Vector2Int> neighborDirectionMap = this.Coordinate.NeighborDirectionMap;
 
-            // iterate through all region neighbors
-            Dictionary<WorldDirection, Vector2Int> neighborDirectionMap = currentRegionCoordinate.NeighborDirectionMap;
-            List<WorldDirection> allNeighborDirections = neighborDirectionMap.Keys.ToList();
-            for (int j = 0; j < allNeighborDirections.Count; j++)
+            // Iterate directly over the keys of the map
+            foreach (WorldDirection neighborDirection in neighborDirectionMap.Keys)
             {
-                WorldDirection neighborDirection = allNeighborDirections[j];
-                Vector2Int neighborCoordinateValue = neighborDirectionMap[allNeighborDirections[j]];
-                BorderDirection? getCurrentBorder = CoordinateMap.GetBorderDirection(neighborDirection); // get region border
-                if (getCurrentBorder == null) continue;
+                Vector2Int neighborCoordinateValue = neighborDirectionMap[neighborDirection];
+                BorderDirection? currentBorderWithNeighbor = CoordinateMap.GetBorderDirection(neighborDirection);
 
-                // defined map border variable
-                BorderDirection currentBorderWithNeighbor = (BorderDirection)getCurrentBorder;
+                // Skip iteration if no border direction is found.
+                if (!currentBorderWithNeighbor.HasValue) continue;
 
-                // close borders that dont share a neighbor
+                // Check if the neighbor exists; close the border if it doesn't.
                 if (this.GenerationParent.CoordinateMap.GetCoordinateAt(neighborCoordinateValue) == null)
                 {
-                    // Neighbor not found
-                    currentRegion.CoordinateMap.CloseMapBorder(currentBorderWithNeighbor); // close borders on chunks
-
-                    //Debug.Log($"REGION {currentRegion.coordinate.Value} -> CLOSED {getCurrentBorder} Border");
+                    // Close borders on chunks if neighbor not found.
+                    this.CoordinateMap.CloseMapBorder(currentBorderWithNeighbor.Value);
                 }
-                // else if shares a neighbor...
                 else
                 {
-                    Region neighborRegion = this.GenerationParent.RegionMap[neighborCoordinateValue];
-
-                    // if neighbor has exits on shared border
-                    BorderDirection matchingBorderOnNeighbor = (BorderDirection)CoordinateMap.GetOppositeBorder(currentBorderWithNeighbor);
-                    HashSet<Vector2Int> neighborBorderExits = neighborRegion.CoordinateMap.GetExitsOnBorder(matchingBorderOnNeighbor);
-
-                    // if neighbor has exits, match exits
+                    // Proceed with exit handling if the neighbor exists.
+                    BorderDirection borderInThisRegion = (BorderDirection)currentBorderWithNeighbor; // >> convert border direction to non-nullable type
+                    // >> get reference to neighbor region
+                    Region neighborRegion = this.GenerationParent.RegionMap[neighborCoordinateValue]; 
+                    // >> get matching border direction
+                    BorderDirection matchingBorderOnNeighbor = (BorderDirection)CoordinateMap.GetOppositeBorder(borderInThisRegion); 
+                    // >> get exits on neighbor region
+                    HashSet<Vector2Int> neighborBorderExits = neighborRegion.CoordinateMap.GetExitsOnBorder(matchingBorderOnNeighbor); 
+                    
+                    // If neighbor has exits, create matching exits.
                     if (neighborBorderExits != null && neighborBorderExits.Count > 0)
                     {
-                        //Debug.Log($"REGION {currentRegion.coordinate.Value} & REGION {neighborRegion.coordinate.Value} share exit");
-
                         foreach (Vector2Int exit in neighborBorderExits)
                         {
-                            //Debug.Log($"Region {currentRegionCoordinate.Value} Border {getCurrentBorder} ->");
-                            currentRegion.CoordinateMap.SetMatchingExit(matchingBorderOnNeighbor, exit);
+                            this.CoordinateMap.CreateMatchingExit(matchingBorderOnNeighbor, exit);
                         }
                     }
-                    // if neighbor has no exits, randomly make some
+                    // If neighbor has no exits and exits are to be created, generate them randomly.
                     else if (createExits)
                     {
-                        // randomly decide how many 
-                        currentRegion.CoordinateMap.GenerateRandomExitOnBorder(currentBorderWithNeighbor);
+                        this.CoordinateMap.GenerateRandomExitOnBorder(borderInThisRegion);
                     }
-                }
 
+                }
             }
 
-            // Clean up inactive corners
+            // Clean up inactive corners once after all border processing is done.
             CoordinateMap.SetInactiveCornersToType(Coordinate.TYPE.BORDER);
         }
 
@@ -184,10 +181,12 @@ namespace Darklight.ThirdDimensional.Generation
                 vertexOffset += mesh.vertexCount;
             }
 
-            Mesh combinedMesh = new Mesh();
-            combinedMesh.vertices = newVertices.ToArray();
-            combinedMesh.triangles = newTriangles.ToArray();
-            combinedMesh.uv = newUVs.ToArray(); // Set the combined UVs
+            Mesh combinedMesh = new Mesh
+            {
+                vertices = newVertices.ToArray(),
+                triangles = newTriangles.ToArray(),
+                uv = newUVs.ToArray() // Set the combined UVs
+            };
 
             combinedMesh.RecalculateBounds();
             combinedMesh.RecalculateNormals();

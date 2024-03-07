@@ -16,7 +16,7 @@ namespace Darklight.ThirdDimensional.Generation
         bool _active = false;
         WorldGeneration _worldGeneration => WorldGeneration.Instance;
         Region _parentRegion;
-        Chunk _parentChunk;
+        Coordinate _currentCoordinate;
 
         // [[ INSPECTOR VARIABLES ]]
         public GameObject modelPrefab;
@@ -24,10 +24,10 @@ namespace Darklight.ThirdDimensional.Generation
 
         public GameObject ModelObject => _modelObject;
 
-        public void InitializeAt(Region _region, Chunk _chunk)
+        public void InitializeAt(Region region, Coordinate coordinate)
         {
-            _parentRegion = _region;
-            _parentChunk = _chunk;
+            _parentRegion = region;
+            _currentCoordinate = coordinate;
         }
 
         public void SpawnModel()

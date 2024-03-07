@@ -53,6 +53,7 @@ namespace Darklight.ThirdDimensional.Generation
         // >>>> WORLD GENERATION PARAMETERS
         public float PathRandomness => _pathRandomness;
 
+
         // >>>>> UNIT SPACE
         public UnitSpace ChunkMeshUnitSpace => UnitSpace.REGION;
 

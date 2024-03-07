@@ -12,13 +12,13 @@ namespace Darklight.ThirdDimensional.Generation
         // [[ PRIVATE VARIABLES ]]
         TYPE _type;
         Vector2Int _value;
-        HashSet<Vector2Int> _neighborPositions = new();
         Dictionary<WorldDirection, Vector2Int> _neighborDirectionMap = new();
+        HashSet<Vector2Int> _neighborValues { get { return _neighborDirectionMap.Values.ToHashSet(); }}
 
         // [[ PUBLIC REFERENCE VARIABLES ]]
         public CoordinateMap CoordinateMapParent { get; private set; }
         public TYPE Type => _type;
-        public Vector2Int Value => _value;
+        public Vector2Int ValueKey => _value;
         public Vector3 ScenePosition { get; private set; }
         public bool Initialized { get; private set; }
         public Color TypeColor { get; private set; } = Color.black;
@@ -33,8 +33,14 @@ namespace Darklight.ThirdDimensional.Generation
             // Calculate Coordinate Position in game world
             this.ScenePosition = mapOriginPosition + (new Vector3(value.x, 0, value.y) * size);
 
-            SetNeighbors();
-
+            // Assign Neighbor Values
+            _neighborDirectionMap = new();
+            foreach (WorldDirection direction in Enum.GetValues(typeof(WorldDirection)))
+            {
+                // Get neighbor value in direction
+                Vector2Int neighborPosition = this.ValueKey + CoordinateMap.GetDirectionVector(direction);
+                _neighborDirectionMap[direction] = neighborPosition;
+            }
             this.Initialized = true;
         }
 
@@ -52,34 +58,45 @@ namespace Darklight.ThirdDimensional.Generation
             }
         }
 
-        void SetNeighbors()
-        {
-            _neighborPositions = new();
-            _neighborDirectionMap = new();
-            foreach (WorldDirection direction in Enum.GetValues(typeof(WorldDirection)))
-            {
-                // Get neighbor in direction
-                Vector2Int neighborPosition = Value + CoordinateMap.GetDirectionVector(direction);
-                _neighborPositions.Add(neighborPosition);
-                _neighborDirectionMap[direction] = neighborPosition;
-            }
-        }
-
         #region =================== Get Neighbors ====================== >>>> 
 
         public Coordinate GetNeighborInDirection(WorldDirection direction)
         {
-            if (!Initialized) return null;
-            return CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[direction]);
+            Vector2Int neighborValue = _neighborDirectionMap[direction];
+            return CoordinateMapParent.GetCoordinateAt(neighborValue);
         }
 
         public WorldDirection? GetWorldDirectionOfNeighbor(Coordinate neighbor)
         {
-            if (!Initialized || !_neighborPositions.Contains(neighbor.Value)) return null;
+            if (!Initialized || !_neighborValues.Contains(neighbor.ValueKey)) return null;
 
             // Get Offset
-            Vector2Int offset = neighbor.Value - this.Value;
+            Vector2Int offset = neighbor.ValueKey - this.ValueKey;
             return CoordinateMap.GetEnumFromDirectionVector(offset);
+        }
+
+        public List<Vector2Int> GetNaturalNeighborValues()
+        {
+            List<Vector2Int> neighbors = new List<Vector2Int> {
+                _neighborDirectionMap[WorldDirection.WEST],
+                _neighborDirectionMap[WorldDirection.EAST],
+                _neighborDirectionMap[WorldDirection.NORTH],
+                _neighborDirectionMap[WorldDirection.SOUTH],
+            };
+            neighbors.RemoveAll(item => item == null);
+            return neighbors;
+        }
+
+        public List<Vector2Int> GetDiagonalNeighborValues()
+        {
+            List<Vector2Int> neighbors = new List<Vector2Int> {
+                _neighborDirectionMap[WorldDirection.NORTHWEST],
+                _neighborDirectionMap[WorldDirection.NORTHEAST],
+                _neighborDirectionMap[WorldDirection.SOUTHWEST],
+                _neighborDirectionMap[WorldDirection.SOUTHEAST],
+            };
+            neighbors.RemoveAll(item => item == null);
+            return neighbors;
         }
 
         public List<Coordinate> GetValidNaturalNeighbors()
@@ -146,29 +163,6 @@ namespace Darklight.ThirdDimensional.Generation
             return null;
         }
 
-        public List<Vector2Int> GetNaturalNeighborCoordinateValues()
-        {
-            List<Vector2Int> neighbors = new List<Vector2Int> {
-                _neighborDirectionMap[WorldDirection.WEST],
-                _neighborDirectionMap[WorldDirection.EAST],
-                _neighborDirectionMap[WorldDirection.NORTH],
-                _neighborDirectionMap[WorldDirection.SOUTH],
-            };
-            neighbors.RemoveAll(item => item == null);
-            return neighbors;
-        }
-
-        public List<Vector2Int> GetDiagonalNeighborCoordinateValues()
-        {
-            List<Vector2Int> neighbors = new List<Vector2Int> {
-                _neighborDirectionMap[WorldDirection.NORTHWEST],
-                _neighborDirectionMap[WorldDirection.NORTHEAST],
-                _neighborDirectionMap[WorldDirection.SOUTHWEST],
-                _neighborDirectionMap[WorldDirection.SOUTHEAST],
-            };
-            neighbors.RemoveAll(item => item == null);
-            return neighbors;
-        }
         #endregion
     }
 }

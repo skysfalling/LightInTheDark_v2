@@ -252,7 +252,7 @@ namespace Darklight.ThirdDimensional.Generation
                 {
                     DrawCoordinateMap(worldGeneration.CoordinateMap, _worldEditScript.coordinateMapView,(coordinate) =>
                     {
-                        Region selectedRegion = _worldEditScript.worldGeneration.RegionMap[coordinate.Value];
+                        Region selectedRegion = _worldEditScript.worldGeneration.RegionMap[coordinate.ValueKey];
                         _worldEditScript.SelectRegion(selectedRegion);
                     });
                 }
@@ -312,7 +312,7 @@ namespace Darklight.ThirdDimensional.Generation
             // [[ DRAW GRID ONLY ]]
             if (type == RegionView.OUTLINE)
             {
-                CustomGizmoLibrary.DrawLabel($"{region.Coordinate.Value}", region.CenterPosition, regionLabelStyle);
+                CustomGizmoLibrary.DrawLabel($"{region.Coordinate.ValueKey}", region.CenterPosition, regionLabelStyle);
                 CustomGizmoLibrary.DrawButtonHandle(region.CenterPosition, Vector3.up, WorldGeneration.Settings.RegionWidth_inGameUnits * 0.475f, Color.black, () =>
                 {
                     _worldEditScript.SelectRegion(region);
@@ -421,7 +421,7 @@ namespace Darklight.ThirdDimensional.Generation
                         case CoordinateMapView.GRID_ONLY:
                             break;
                         case CoordinateMapView.COORDINATE_VALUE:
-                            CustomGizmoLibrary.DrawLabel($"{coordinate.Value}", coordinate.ScenePosition, coordLabelStyle);
+                            CustomGizmoLibrary.DrawLabel($"{coordinate.ValueKey}", coordinate.ScenePosition, coordLabelStyle);
                             coordinateColor = Color.white;
                             break;
                         case CoordinateMapView.COORDINATE_TYPE:

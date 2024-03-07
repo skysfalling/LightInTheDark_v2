@@ -27,7 +27,7 @@ namespace Darklight.ThirdDimensional.Generation
                 Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
                 Chunk newChunk = new Chunk(this, coordinate);
                 _chunks.Add(newChunk);
-                _chunkMap[coordinate.Value] = newChunk;
+                _chunkMap[coordinate.ValueKey] = newChunk;
             }
 
             Initialized = true;
@@ -37,7 +37,7 @@ namespace Darklight.ThirdDimensional.Generation
         {
             foreach (Chunk chunk in _chunks)
             {
-                Coordinate.TYPE type = (Coordinate.TYPE)CoordinateMap.GetCoordinateTypeAt(chunk.Coordinate.Value);
+                Coordinate.TYPE type = (Coordinate.TYPE)CoordinateMap.GetCoordinateTypeAt(chunk.Coordinate.ValueKey);
 
                 switch (type)
                 {
@@ -77,7 +77,7 @@ namespace Darklight.ThirdDimensional.Generation
         public Chunk GetChunkAt(Coordinate worldCoord)
         {
             if (!Initialized || worldCoord == null) { return null; }
-            return GetChunkAt(worldCoord.Value);
+            return GetChunkAt(worldCoord.ValueKey);
         }
 
         public List<Chunk> GetChunksAtCoordinateValues(List<Vector2Int> values)

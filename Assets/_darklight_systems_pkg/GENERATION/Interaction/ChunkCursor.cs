@@ -60,7 +60,7 @@ namespace Darklight.ThirdDimensional.Generation.Interaction
             int chunkCursorWidth = (WorldGen.Settings.ChunkWidth_inCellUnits + 1) * WorldGen.Settings.CellSize_inGameUnits;
             cursor.transform.localScale = new Vector3(chunkCursorWidth, 1, chunkCursorWidth);
 
-            cursor.name = $"{cursorPrefab.name} :: Chunk {chunk.Coordinate.Value}";
+            cursor.name = $"{cursorPrefab.name} :: Chunk {chunk.Coordinate.ValueKey}";
             _activeChunkCursors[chunk] = cursor;
 
         }

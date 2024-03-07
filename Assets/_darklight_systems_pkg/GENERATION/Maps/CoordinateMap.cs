@@ -94,6 +94,9 @@ namespace Darklight.ThirdDimensional.Generation
         }
         #endregion
 
+        // [[ PRIVATE VARIABLES ]]
+        string _prefix = ">> Coordinate Map << ";
+
         // >> map creation values
         UnitSpace _mapUnitSpace;
         Vector3 _mapOriginPosition;
@@ -101,11 +104,11 @@ namespace Darklight.ThirdDimensional.Generation
         int _coordinateSize;
 
         // >> quick reference lists
-        Dictionary<Vector2Int, Coordinate> _valueMap = new();
+        Dictionary<Vector2Int, Coordinate> _coordinateMap = new();
         Dictionary<Coordinate.TYPE, HashSet<Vector2Int>> _typeMap = new();
 
         // >>>> Border References
-        Dictionary<BorderDirection, HashSet<Vector2Int>> _borderPositionsMap = new();
+        Dictionary<BorderDirection, HashSet<Vector2Int>> _borderMap = new();
         Dictionary<BorderDirection, HashSet<Vector2Int>> _borderExitMap = new();
         Dictionary<BorderDirection, Vector2Int[]> _borderIndexMap = new();
         Dictionary<BorderDirection, (Vector2Int, Vector2Int)> _borderCornersMap = new();
@@ -121,8 +124,8 @@ namespace Darklight.ThirdDimensional.Generation
         public int MaxCoordinateValue { get; private set; }
         public UnitSpace UnitSpace => _mapUnitSpace;
         public int CoordinateSize => _coordinateSize;
-        public IEnumerable<Vector2Int> AllCoordinateValues => _valueMap.Keys;
-        public IEnumerable<Coordinate> AllCoordinates => _valueMap.Values;
+        public List<Vector2Int> AllCoordinateValues => _coordinateMap.Keys.ToList();
+        public List<Coordinate> AllCoordinates => _coordinateMap.Values.ToList();
         public Dictionary<BorderDirection, bool> ActiveBorderMap => _activeBorderMap;
 
         public List<Vector2Int> Exits = new();
@@ -162,7 +165,7 @@ namespace Darklight.ThirdDimensional.Generation
                 throw new ArgumentException("Unsupported parent type for CoordinateMap.");
             }
 
-            // Initialize Coordinate grid
+            // Create Coordinate grid
             for (int x = 0; x < _mapWidthCount; x++)
             {
                 for (int y = 0; y < _mapWidthCount; y++)
@@ -174,31 +177,128 @@ namespace Darklight.ThirdDimensional.Generation
                     Coordinate newCoordinate = new Coordinate(this, _mapOriginPosition, newCoordinateValue, _coordinateSize);
 
                     // Add new Coordinate to map
-                    _valueMap[newCoordinateValue] = newCoordinate;
+                    _coordinateMap[newCoordinateValue] = newCoordinate;
                 }
             }
 
-            SetAllCoordinatesToDefault();
+            Debug.Log($"{_prefix} Initialized in {_mapUnitSpace} Space");
+
             Initialized = true;
+
+            InitializeDefaultMap();
         }
 
+        void InitializeDefaultMap()
+        {
+            int coordMax = _mapWidthCount;
+            int borderOffset = WorldGeneration.Settings.RegionBoundaryOffset_inChunkUnits;
+
+            // >> initialize _border positions and indexes in a loop
+            foreach (BorderDirection direction in Enum.GetValues(typeof(BorderDirection)))
+            {
+                _borderMap[direction] = new HashSet<Vector2Int>();
+                _borderIndexMap[direction] = new Vector2Int[coordMax];
+            }
+
+            // >> store coordinate map range
+            Vector2Int mapRange = new Vector2Int(borderOffset, coordMax - (borderOffset + 1));
+            // >> store border corners
+            List<Vector2Int> corners = new List<Vector2Int>() {
+                new Vector2Int(mapRange.x, mapRange.x), // min min { SOUTH WEST }
+                new Vector2Int(mapRange.y, mapRange.y), // max max { NORTH EAST }
+                new Vector2Int(mapRange.x, mapRange.y), // min max { NORTH WEST }
+                new Vector2Int(mapRange.y, mapRange.x)  // max min { SOUTH EAST }
+            };
+            // >> store references to the corners of each border
+            _borderCornersMap[BorderDirection.NORTH] = (corners[2], corners[1]); // NW, NE
+            _borderCornersMap[BorderDirection.SOUTH] = (corners[0], corners[3]); // SW, SE
+            _borderCornersMap[BorderDirection.EAST] = (corners[1], corners[3]); // NE, SE
+            _borderCornersMap[BorderDirection.WEST] = (corners[0], corners[2]); // SW, NW
+
+            // >> initialize the active border map
+            foreach (BorderDirection direction in Enum.GetValues(typeof(BorderDirection)))
+            {
+                _activeBorderMap[direction] = false;
+            }
+
+            // << METHODS >> =================================================================
+            void HandleBorderCoordinate(Vector2Int pos, Vector2Int mapRange)
+            {
+                SetCoordinateToType(pos, Coordinate.TYPE.BORDER);
+                BorderDirection borderType = DetermineBorderType(pos, mapRange);
+
+                _borderMap[borderType].Add(pos);
+                if (borderType == BorderDirection.EAST || borderType == BorderDirection.WEST)
+                {
+                    _borderIndexMap[borderType][pos.y] = pos;
+                }
+                else
+                {
+                    _borderIndexMap[borderType][pos.x] = pos;
+                }
+            }            
+            
+            BorderDirection DetermineBorderType(Vector2Int pos, Vector2Int range)
+            {
+                if (pos.x == range.y) return BorderDirection.EAST;
+                if (pos.x == range.x) return BorderDirection.WEST;
+                if (pos.y == range.y) return BorderDirection.NORTH;
+                if (pos.y == range.x) return BorderDirection.SOUTH;
+                return default; // Return a default or undefined value
+            }
+
+            bool IsCornerOrOutsideBounds(Vector2Int pos, Vector2Int mapRange, List<Vector2Int> cornerCoordinates)
+            {
+                return cornerCoordinates.Contains(pos) ||
+                    pos.x < mapRange.x || pos.x > mapRange.y || 
+                    pos.y < mapRange.x || pos.y > mapRange.y;
+            }
+
+            bool IsOnBorder(Vector2Int pos, Vector2Int mapRange)
+            {
+                return pos.x == mapRange.x || pos.x == mapRange.y || 
+                    pos.y == mapRange.x || pos.y == mapRange.y;
+            }
+
+
+            // << ASSIGN COORDINATE TYPES >> =================================================================
+            // ** Set Coordinate To Type updates the TypeMap accordingly
+            foreach (Vector2Int pos in AllCoordinateValues)
+            {
+                // CLOSED
+                if (IsCornerOrOutsideBounds(pos, mapRange, corners))
+                {
+                    SetCoordinateToType(pos, Coordinate.TYPE.CLOSED);
+                }
+                // BORDER
+                else if (IsOnBorder(pos, mapRange))
+                {
+                    HandleBorderCoordinate(pos, mapRange);
+                }
+                // NULL
+                else
+                {
+                    SetCoordinateToType(pos, Coordinate.TYPE.NULL);
+                }
+            }
+        }
 
         // == [[ GET COORDINATE ]] ======================================================================== >>>>
         public Coordinate GetCoordinateAt(Vector2Int position)
         {
-            return Initialized && _valueMap.TryGetValue(position, out var coordinate) ? coordinate : null;
+            return Initialized && _coordinateMap.TryGetValue(position, out var coordinate) ? coordinate : null;
         }
 
         public Coordinate.TYPE? GetCoordinateTypeAt(Vector2Int position)
         {
-            if (Initialized && _valueMap.TryGetValue(position, out var coordinate))
+            if (Initialized && _coordinateMap.TryGetValue(position, out var coordinate))
             {
                 return coordinate.Type;
             }
             return null;
         }
 
-        public HashSet<Vector2Int> GetAllPositionsOfType(Coordinate.TYPE type)
+        public HashSet<Vector2Int> GetAllCoordinatesValuesOfType(Coordinate.TYPE type)
         {
             if (!_typeMap.ContainsKey(type)) { _typeMap[type] = new(); }
             return _typeMap[type];
@@ -214,141 +314,39 @@ namespace Darklight.ThirdDimensional.Generation
         }
         
         // == [[ SET COORDINATE ]] ======================================================================== >>>>
-        void SetAllCoordinatesToDefault()
-        {
-            int coordMax = _mapWidthCount;
-            int borderOffset = WorldGeneration.Settings.RegionBoundaryOffset_inChunkUnits;
-
-            // >> store coordinate map range
-            Vector2Int mapRange = new Vector2Int(borderOffset, coordMax - (borderOffset + 1));
-
-            // << ASSIGN COORDINATE TYPES >> =================================================================
-            // ** Set Coordinate To Type updates the TypeMap accordingly
-
-            // >> initialize _border positions
-            _borderPositionsMap[BorderDirection.NORTH] = new();
-            _borderPositionsMap[BorderDirection.SOUTH] = new();
-            _borderPositionsMap[BorderDirection.EAST] = new();
-            _borderPositionsMap[BorderDirection.WEST] = new();
-
-            // >> initialize _border indexes
-            _borderIndexMap[BorderDirection.NORTH] = new Vector2Int[coordMax];
-            _borderIndexMap[BorderDirection.SOUTH] = new Vector2Int[coordMax];
-            _borderIndexMap[BorderDirection.EAST] = new Vector2Int[coordMax];
-            _borderIndexMap[BorderDirection.WEST] = new Vector2Int[coordMax];
-
-            // Helper method to determine the border type based on position
-            BorderDirection DetermineBorderType(Vector2Int pos, Vector2Int range)
-            {
-                if (pos.x == range.y) return BorderDirection.EAST;
-                if (pos.x == range.x) return BorderDirection.WEST;
-                if (pos.y == range.y) return BorderDirection.NORTH;
-                if (pos.y == range.x) return BorderDirection.SOUTH;
-                return default; // Return a default or undefined value
-            }
-
-
-
-            // >> store border corners
-            List<Vector2Int> cornerCoordinates = new List<Vector2Int>() {
-                new Vector2Int(mapRange.x, mapRange.x), // min min { SOUTH WEST }
-                new Vector2Int(mapRange.y, mapRange.y), // max max { NORTH EAST }
-                new Vector2Int(mapRange.x, mapRange.y), // min max { NORTH WEST }
-                new Vector2Int(mapRange.y, mapRange.x)  // max min { SOUTH EAST }
-            };
-
-            _borderCornersMap[BorderDirection.NORTH] = (cornerCoordinates[2], cornerCoordinates[1]); // NW, NE
-            _borderCornersMap[BorderDirection.SOUTH] = (cornerCoordinates[0], cornerCoordinates[3]); // SW, SE
-            _borderCornersMap[BorderDirection.EAST] = (cornerCoordinates[1], cornerCoordinates[3]); // NE, SE
-            _borderCornersMap[BorderDirection.WEST] = (cornerCoordinates[0], cornerCoordinates[2]); // SW, NW
-
-            _activeBorderMap[BorderDirection.NORTH] = false;
-            _activeBorderMap[BorderDirection.SOUTH] = false;
-            _activeBorderMap[BorderDirection.EAST] = false;
-            _activeBorderMap[BorderDirection.WEST] = false;
-
-            // >> iterate through positions
-            foreach (Vector2Int pos in AllCoordinateValues)
-            {
-                if (cornerCoordinates.Contains(pos) || // is corner
-                    pos.x < mapRange.x || pos.x > mapRange.y || pos.y < mapRange.x || pos.y > mapRange.y) // or is outside bounds
-                {
-                    // Set Corners to Closed
-                    SetCoordinateToType(pos, Coordinate.TYPE.CLOSED);
-                }
-                else if (pos.x == mapRange.x || pos.x == mapRange.y || pos.y == mapRange.x || pos.y == mapRange.y)
-                {
-                    // Set Type to Border
-                    SetCoordinateToType(pos, Coordinate.TYPE.BORDER);
-
-                    BorderDirection borderType = DetermineBorderType(pos, mapRange);
-
-                    switch (borderType)
-                    {
-                        case BorderDirection.EAST:
-                            _borderPositionsMap[BorderDirection.EAST].Add(pos);
-                            _borderIndexMap[BorderDirection.EAST][pos.y] = pos;
-                            break;
-                        case BorderDirection.WEST:
-                            _borderPositionsMap[BorderDirection.WEST].Add(pos);
-                            _borderIndexMap[BorderDirection.WEST][pos.y] = pos;
-                            break;
-                        case BorderDirection.NORTH:
-                            _borderPositionsMap[BorderDirection.NORTH].Add(pos);
-                            _borderIndexMap[BorderDirection.NORTH][pos.x] = pos;
-                            break;
-                        case BorderDirection.SOUTH:
-                            _borderPositionsMap[BorderDirection.SOUTH].Add(pos);
-                            _borderIndexMap[BorderDirection.SOUTH][pos.x] = pos;
-                            break;
-                        default:
-                            // Handle any non-border or undefined cases, if necessary
-                            break;
-                    }
-                }
-                else
-                {
-                    // Set Type to Null
-                    SetCoordinateToType(pos, Coordinate.TYPE.NULL);
-                }
-            }
-        }
-
         void SetCoordinateToType(Vector2Int valueKey, Coordinate.TYPE newType)
         {
-            if (!_valueMap.ContainsKey(valueKey)) return;
+            // Get reference to the target coordinate
+            Coordinate targetCoordinate = _coordinateMap[valueKey];
+            if (targetCoordinate == null) return;
 
             // Remove Old Type
-            Coordinate coordinate = _valueMap[valueKey];
-            Coordinate.TYPE currentType = coordinate.Type;
-            if (_typeMap.ContainsKey(currentType))
+            Coordinate.TYPE oldType = targetCoordinate.Type;
+            if (_typeMap.ContainsKey(oldType))
             {
-                _typeMap[currentType].Remove(valueKey);
+                _typeMap[oldType].Remove(valueKey);
             }
 
             // Assign New Type
-            coordinate.SetType(newType);
+            targetCoordinate.SetType(newType);
 
-
-            // If new TYPE key not found, create
-            if (!_typeMap.ContainsKey(newType))
-            {
-                _typeMap[newType] = new HashSet<Vector2Int> { valueKey };
-            }
-            // else if the map doesnt already include the coordinate
-            else if (!_typeMap[newType].Contains(valueKey))
-            {
-                _typeMap[newType].Add(valueKey);
-            }
+            // If new TYPE key not found, create or add to it
+            _typeMap.TryAdd(newType, new HashSet<Vector2Int>());
+            _typeMap[newType].Add(valueKey);
         }
 
-        void SetCoordinatesToType(List<Vector2Int> positions, Coordinate.TYPE type)
+        void SetCoordinateToType(Coordinate coordinate, Coordinate.TYPE newType)
         {
-            foreach (Vector2Int pos in positions)
+            SetCoordinateToType(coordinate.ValueKey, newType);
+        }
+
+        void SetCoordinatesToType(List<Vector2Int> valueKeys, Coordinate.TYPE type)
+        {
+            foreach (Vector2Int key in valueKeys)
             {
-                if (_valueMap.ContainsKey(pos))
+                if (_coordinateMap.ContainsKey(key))
                 {
-                    SetCoordinateToType(pos, type);
+                    SetCoordinateToType(key, type);
                 }
             }
         }
@@ -358,10 +356,10 @@ namespace Darklight.ThirdDimensional.Generation
             foreach (Vector2Int pos in positions)
             {
                 // Check if the position is within the map boundaries
-                if (_valueMap.ContainsKey(pos))
+                if (_coordinateMap.ContainsKey(pos))
                 {
                     // Retrieve the coordinate at the given position
-                    Coordinate coordinate = _valueMap[pos];
+                    Coordinate coordinate = _coordinateMap[pos];
 
                     // Check if the coordinate's current type matches the targetType
                     if (coordinate.Type == targetType)
@@ -377,11 +375,14 @@ namespace Darklight.ThirdDimensional.Generation
         {
             // Destroy that border >:#!! 
 
+            // >> set the border as active on the map
             _activeBorderMap[mapBorder] = true;
 
-            List<Vector2Int> positions = _borderPositionsMap[mapBorder].ToList();
+            // >> get all related values on border
+            List<Vector2Int> borderValues = _borderMap[mapBorder].ToList();
 
-            SetCoordinatesToType(positions, Coordinate.TYPE.CLOSED);
+            // >> set all related values on border to type
+            SetCoordinatesToType(borderValues, Coordinate.TYPE.CLOSED);
         }
 
         public void SetInactiveCornersToType(Coordinate.TYPE type)
@@ -426,12 +427,11 @@ namespace Darklight.ThirdDimensional.Generation
         // == [[ FIND COORDINATE ]] ================================================================= >>>>
         public Coordinate FindClosestCoordinateOfType(Coordinate targetCoordinate, List<Coordinate.TYPE> typeList)
         {
-
                 // using BFS algorithm
                 Queue<Vector2Int> queue = new Queue<Vector2Int>();
                 HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
-                queue.Enqueue(targetCoordinate.Value);
-                visited.Add(targetCoordinate.Value);
+                queue.Enqueue(targetCoordinate.ValueKey);
+                visited.Add(targetCoordinate.ValueKey);
 
                 while (queue.Count > 0)
                 {
@@ -447,7 +447,7 @@ namespace Darklight.ThirdDimensional.Generation
                         }
 
                         // Get the neighbors of the current coordinate
-                        foreach (Vector2Int neighbor in currentCoordinate.GetNaturalNeighborCoordinateValues())
+                        foreach (Vector2Int neighbor in currentCoordinate.GetNaturalNeighborValues())
                         {
                             if (!visited.Contains(neighbor))
                             {
@@ -462,8 +462,6 @@ namespace Darklight.ThirdDimensional.Generation
                 return targetCoordinate; 
         }
 
-
-
         // == [[ WORLD EXITS ]] ======================================================================== >>>>
         public void ConvertCoordinateToExit(Coordinate coordinate)
         {
@@ -474,23 +472,18 @@ namespace Darklight.ThirdDimensional.Generation
                 return;
             }
 
-            // Get border
-            for (int i = 0; i < _borderPositionsMap.Keys.Count; i++)
+            // Search borders for exit
+            foreach (BorderDirection direction in _borderMap.Keys)
             {
-                BorderDirection borderType = _borderPositionsMap.Keys.ToList()[i];
-                if (_borderPositionsMap.ContainsKey(borderType)
-                    && _borderPositionsMap[borderType].Contains(coordinate.Value))
+                if (_borderMap[direction].Contains(coordinate.ValueKey))
                 {
                     // Once border found, update coordinate maps
-                    if (!_borderExitMap.ContainsKey(borderType)) { _borderExitMap[borderType] = new(); }
-
-                    _borderExitMap[borderType].Add(coordinate.Value);
-                    Exits.Add(coordinate.Value);
-                    break;
+                    _borderExitMap.TryAdd(direction, new HashSet<Vector2Int>());
+                    _borderExitMap[direction].Add(coordinate.ValueKey);
                 }
             }
 
-            SetCoordinateToType(coordinate.Value, Coordinate.TYPE.EXIT);
+            SetCoordinateToType(coordinate, Coordinate.TYPE.EXIT);
         }
 
         public void GenerateRandomExits()
@@ -499,25 +492,16 @@ namespace Darklight.ThirdDimensional.Generation
             int numberOfExits = UnityEngine.Random.Range(2, 5); // Unity's Random.Range is inclusive for min and exclusive for max
 
             // Combine all border positions into a single list for easier access
-            List<Vector2Int> allBorderPositions = _typeMap[Coordinate.TYPE.BORDER].ToList();
-
-            // Shuffle the list of all border positions using the Fisher-Yates shuffle algorithm
-            for (int i = allBorderPositions.Count - 1; i > 0; i--)
-            {
-                int swapIndex = UnityEngine.Random.Range(0, i + 1);
-                Vector2Int temp = allBorderPositions[i];
-                allBorderPositions[i] = allBorderPositions[swapIndex];
-                allBorderPositions[swapIndex] = temp;
-            }
+            List<Vector2Int> allBorderValues = new(_borderMap.Values.SelectMany(values => values));
 
             // Ensure not to exceed the number of available border positions
-            numberOfExits = Mathf.Min(numberOfExits, allBorderPositions.Count);
+            numberOfExits = Mathf.Min(numberOfExits, allBorderValues.Count);
 
-            // Convert the first N positions into exits, where N is the number of exits determined
+            // Convert random border coordinates to exits
             for (int i = 0; i < numberOfExits; i++)
             {
-                Vector2Int exitPosition = allBorderPositions[i];
-                Coordinate coordinate = GetCoordinateAt(exitPosition);
+                Vector2Int randomValue = allBorderValues[Random.Range(0, allBorderValues.Count)];
+                Coordinate coordinate = GetCoordinateAt(randomValue);
                 ConvertCoordinateToExit(coordinate);
             }
 
@@ -526,36 +510,31 @@ namespace Darklight.ThirdDimensional.Generation
 
         public void GenerateRandomExitOnBorder(BorderDirection borderType)
         {
-            List<Vector2Int> allBorderPositions = _borderPositionsMap[borderType].ToList();
+            List<Vector2Int> allBorderPositions = _borderMap[borderType].ToList();
             Vector2Int randomCoordinate = allBorderPositions[Random.Range(0, allBorderPositions.Count)];
             ConvertCoordinateToExit(GetCoordinateAt(randomCoordinate));
         }
 
-        public void SetMatchingExit(BorderDirection neighborBorder, Vector2Int neighborExitCoordinate)
+        public void CreateMatchingExit(BorderDirection neighborBorder, Vector2Int neighborExitCoordinate)
         {
             // Determine the relative position of the exit based on the neighbor border
-            Vector2Int matchingCoordinate = Vector2Int.zero;
-            BorderDirection matchingBorder;
+            Vector2Int matchingCoordinate;
             switch (neighborBorder)
             {
                 case BorderDirection.NORTH:
                     // if this border is NORTH, then the matching neighbor's border is SOUTH
-                    matchingBorder = BorderDirection.SOUTH;
                     matchingCoordinate = new Vector2Int(neighborExitCoordinate.x, 0);
                     break;
                 case BorderDirection.SOUTH:
                     // if this border is SOUTH, then the matching neighbor's border is NORTH
-                    matchingBorder = BorderDirection.NORTH;
                     matchingCoordinate = new Vector2Int(neighborExitCoordinate.x, this.MaxCoordinateValue - 1);
                     break;
                 case BorderDirection.EAST:
                     // if this border is EAST, then the matching neighbor's border is WEST
-                    matchingBorder = BorderDirection.WEST;
                     matchingCoordinate = new Vector2Int(0, neighborExitCoordinate.y);
                     break;
                 case BorderDirection.WEST:
                     // if this border is EAST, then the matching neighbor's border is WEST
-                    matchingBorder = BorderDirection.EAST;
                     matchingCoordinate = new Vector2Int(this.MaxCoordinateValue - 1, neighborExitCoordinate.y);
                     break;
                 default:
@@ -637,14 +616,10 @@ namespace Darklight.ThirdDimensional.Generation
 
 
             // Find the closese ZONE Coordinate
-            Vector2Int closestZoneValue = newZone.GetClosestCoordinateValueTo(closestPathCoordinate.Value);
+            Vector2Int closestZoneValue = newZone.GetClosestCoordinateValueTo(closestPathCoordinate.ValueKey);
 
-            Path zonePath = CreatePathFrom(closestPathCoordinate.Value, closestZoneValue, new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL, Coordinate.TYPE.ZONE, Coordinate.TYPE.PATH });
+            Path zonePath = CreatePathFrom(closestPathCoordinate.ValueKey, closestZoneValue, new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL, Coordinate.TYPE.ZONE, Coordinate.TYPE.PATH });
             Debug.Log($"Created zone path from {zonePath.StartPosition} to {zonePath.EndPosition} -> {zonePath.AllPositions.Count}");
-
-
-
-
 
             //Debug.Log($"Zone successfully created at {position} with type {zoneType}.");
             return true;
@@ -658,7 +633,7 @@ namespace Darklight.ThirdDimensional.Generation
             int numZonesToCreate = Random.Range(minZones, maxZones + 1);
 
             // A list to hold potential positions for zone creation
-            List<Vector2Int> potentialPositions = GetAllPositionsOfType(Coordinate.TYPE.NULL).ToList();
+            List<Vector2Int> potentialPositions = GetAllCoordinatesValuesOfType(Coordinate.TYPE.NULL).ToList();
 
             // Shuffle the list of potential positions to randomize the selection
             ShuffleList(potentialPositions);
@@ -687,7 +662,7 @@ namespace Darklight.ThirdDimensional.Generation
         {
             foreach (Zone zone in _zones)
             {
-                if (zone.AllPositions.Contains(coordinate.Value))
+                if (zone.AllPositions.Contains(coordinate.ValueKey))
                 {
                     return zone;
                 }

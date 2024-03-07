@@ -21,7 +21,7 @@ namespace Darklight.ThirdDimensional.Generation
 
                     GameObject.Instantiate(playerPrefab, spawnCoordinate.ScenePosition, Quaternion.identity);
 
-                    Debug.Log("Spawning player at " + spawnCoordinate.Value.ToString());
+                    Debug.Log("Spawning player at " + spawnCoordinate.ValueKey.ToString());
                     return;
                 }
             }
