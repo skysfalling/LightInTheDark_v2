@@ -13,11 +13,12 @@ MonoBehaviour:
   m_Name: 3x3
   m_EditorClassIdentifier: 
   _seed: 16017439671394876
-  _cellSize: 2
-  _chunkWidth: 7
-  _chunkDepth: 10
-  _chunkMaxHeight: 25
-  _regionWidth: 25
+  _cellSize: 3
+  _chunkWidth: 3
+  _chunkDepth: 3
+  _chunkMaxHeight: 15
+  _regionWidth: 15
   _regionBoundaryOffset: 0
-  _worldWidth: 1
+  _worldWidth: 3
+  _pathRandomness: 0.25
   materialLibrary: {fileID: 11400000, guid: 0b9d3ca5a1c90ee47a56ab2cf34f5823, type: 2}

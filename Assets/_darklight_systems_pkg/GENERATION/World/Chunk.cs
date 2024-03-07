@@ -38,7 +38,7 @@ namespace Darklight.ThirdDimensional.World
         ChunkMesh _chunkMesh;
         CellMap _cellMap;
         TYPE _type;
-        int _groundHeight = 2;
+        int _groundHeight = 0;
 
         // [[ PUBLIC ACCESS VARIABLES ]] 
         public int Width => WorldGeneration.Settings.ChunkWidth_inGameUnits;
@@ -67,7 +67,7 @@ namespace Darklight.ThirdDimensional.World
             get
             {
                 Vector3 groundPosition = CenterPosition;
-                groundPosition += (GroundHeight * WorldGen.Settings.CellSize_inGameUnits) * Vector3Int.up;
+                groundPosition += GroundHeight * WorldGen.Settings.CellSize_inGameUnits * Vector3Int.up;
                 return groundPosition;
             }
         }
@@ -80,7 +80,7 @@ namespace Darklight.ThirdDimensional.World
 
             // >> set perlin noise height
             Vector2Int perlinOffset = new Vector2Int((int)coordinate.ScenePosition.x, (int)coordinate.ScenePosition.z);
-            //this._groundHeight = PerlinNoise.CalculateHeightFromNoise(perlinOffset);
+            this._groundHeight = PerlinNoise.CalculateHeightFromNoise(perlinOffset);
 
             // Create coordinate map
             this._coordinateMap = new CoordinateMap(this);

@@ -77,6 +77,25 @@ namespace Darklight.ThirdDimensional.World
 
             _valid = true;
         }
+
+        // Helper function to find the closest coordinate to a given coordinate
+        public Vector2Int GetClosestCoordinateValueTo(Vector2Int targetCoordinate)
+        {
+            Vector2Int closestCoordinate = Vector2Int.zero;
+            float closestDistance = float.MaxValue;
+
+            foreach (Vector2Int position in _positions)
+            {
+                float currentDistance = Vector2Int.Distance(position, targetCoordinate);
+                if (currentDistance < closestDistance)
+                {
+                    closestDistance = currentDistance;
+                    closestCoordinate = position;
+                }
+            }
+
+            return closestCoordinate;
+        }
     }
 }
 

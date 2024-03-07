@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -220,7 +221,6 @@ namespace Darklight.ThirdDimensional.World
             }
             return null;
         }
-
         // == [[ SET COORDINATE ]] ======================================================================== >>>>
         void SetAllCoordinatesToDefault(int coordMax, int borderOffset)
         {
@@ -428,6 +428,47 @@ namespace Darklight.ThirdDimensional.World
             SetCoordinatesToType(inactiveCorners, type);
         }
 
+        // == [[ FIND COORDINATE ]] ================================================================= >>>>
+        public Coordinate FindClosestCoordinateOfType(Coordinate targetCoordinate, List<Coordinate.TYPE> typeList)
+        {
+
+                // using BFS algorithm
+                Queue<Vector2Int> queue = new Queue<Vector2Int>();
+                HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
+                queue.Enqueue(targetCoordinate.Value);
+                visited.Add(targetCoordinate.Value);
+
+                while (queue.Count > 0)
+                {
+                    Vector2Int currentValue = queue.Dequeue();
+                    Coordinate currentCoordinate = GetCoordinateAt(currentValue);
+
+                    if (currentCoordinate != null)
+                    {
+                        // Check if the current coordinate is the target type
+                        if (typeList.Contains(currentCoordinate.Type))
+                        {
+                            return GetCoordinateAt(currentValue);
+                        }
+
+                        // Get the neighbors of the current coordinate
+                        foreach (Vector2Int neighbor in currentCoordinate.GetNaturalNeighborCoordinateValues())
+                        {
+                            if (!visited.Contains(neighbor))
+                            {
+                                queue.Enqueue(neighbor);
+                                visited.Add(neighbor);
+                            }
+                        }
+                    }
+
+                }
+
+                return targetCoordinate; 
+        }
+
+
+
         // == [[ WORLD EXITS ]] ======================================================================== >>>>
         public void ConvertCoordinateToExit(Coordinate coordinate)
         {
@@ -531,9 +572,9 @@ namespace Darklight.ThirdDimensional.World
         }
 
         // == [[ WORLD PATH ]] ================================================================================ >>>>
-        public void CreatePathFrom(Vector2Int start, Vector2Int end)
+        public Path CreatePathFrom(Vector2Int start, Vector2Int end, List<Coordinate.TYPE> validTypes)
         {
-            Path newPath = new Path(this, start, end, 0.25f);
+            Path newPath = new Path(this, start, end, validTypes, WorldGeneration.Settings.PathRandomness);
             Paths.Add(newPath);
 
             // Remove Exits from path positions
@@ -544,6 +585,8 @@ namespace Darklight.ThirdDimensional.World
             // Assign Path Type
             SetCoordinatesToType(newPath.AllPositions, Coordinate.TYPE.PATH);
             //Debug.Log($"Created Path from {start} to {end} with {newPath.positions.Count}");
+
+            return newPath;
         }
 
         public void GeneratePathsBetweenExits()
@@ -564,27 +607,16 @@ namespace Darklight.ThirdDimensional.World
                 Vector2Int start = sortedExits[i];
                 Vector2Int end = sortedExits[i + 1]; // Connect to the next exit in the list
 
-                CreatePathFrom(start, end);
+                CreatePathFrom(start, end, new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL, Coordinate.TYPE.EXIT});
             }
 
             //Connect the last exit back to the first to ensure all exits are interconnected
-            CreatePathFrom(sortedExits[sortedExits.Count - 1], sortedExits[0]);
+            //CreatePathFrom(sortedExits[sortedExits.Count - 1], sortedExits[0]);
 
             //Debug.Log($"Generated new paths connecting all exits.");
         }
 
-        public bool IsCoordinateValidForPathfinding(Vector2Int candidate)
-        {
-            // Check Types
-            if (_valueMap.ContainsKey(candidate) && _valueMap[candidate] != null
-                && (_valueMap[candidate].Type == Coordinate.TYPE.NULL
-                || _valueMap[candidate].Type == Coordinate.TYPE.PATH
-                || _valueMap[candidate].Type == Coordinate.TYPE.EXIT))
-            {
-                return true;
-            }
-            return false;
-        }
+
 
         // == [[ WORLD ZONES ]] ================================================================================ >>>>
         public bool CreateWorldZone(Vector2Int position, Zone.TYPE zoneType, int zoneHeight)
@@ -604,6 +636,21 @@ namespace Darklight.ThirdDimensional.World
             // If no invalid positions are found, add the zone
             Zones.Add(newZone);
             SetCoordinatesToType(newZone.AllPositions, Coordinate.TYPE.ZONE);
+
+            // Find the closest PATH Coordinate
+            Coordinate closestPathCoordinate = FindClosestCoordinateOfType(newZone.CenterCoordinate, new List<Coordinate.TYPE>() { Coordinate.TYPE.PATH });
+
+
+            // Find the closese ZONE Coordinate
+            Vector2Int closestZoneValue = newZone.GetClosestCoordinateValueTo(closestPathCoordinate.Value);
+
+            Path zonePath = CreatePathFrom(closestPathCoordinate.Value, closestZoneValue, new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL, Coordinate.TYPE.ZONE, Coordinate.TYPE.PATH });
+            Debug.Log($"Created zone path from {zonePath.StartPosition} to {zonePath.EndPosition} -> {zonePath.AllPositions.Count}");
+
+
+
+
+
             //Debug.Log($"Zone successfully created at {position} with type {zoneType}.");
             return true;
         }
@@ -653,7 +700,6 @@ namespace Darklight.ThirdDimensional.World
             return null;
         }
 
-        // Utility method to shuffle a list in place
         private void ShuffleList<T>(List<T> list)
         {
             int n = list.Count;

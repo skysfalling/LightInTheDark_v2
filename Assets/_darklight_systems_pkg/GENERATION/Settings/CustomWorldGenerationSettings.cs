@@ -16,6 +16,8 @@ namespace Darklight.ThirdDimensional.World
         [SerializeField] private int _regionBoundaryOffset = 0; // in Chunks
         [SerializeField] private int _worldWidth = 5; // in Regions
 
+        [SerializeField] private float _pathRandomness = 0.5f;
+
         public MaterialLibrary materialLibrary; // MaterialLibrary
 
 
@@ -28,5 +30,6 @@ namespace Darklight.ThirdDimensional.World
         public int RegionWidth=> _regionWidth;
         public int RegionBoundaryOffset => _regionBoundaryOffset;
         public int WorldWidth => _worldWidth;
+        public float PathRandomness => _pathRandomness;
     }
 }

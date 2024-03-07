@@ -42,6 +42,7 @@ namespace Darklight.ThirdDimensional.World
                 switch (type)
                 {
                     case Coordinate.TYPE.NULL:
+                    case Coordinate.TYPE.BORDER:
                         break; // Allow default Perlin Noise
                     case Coordinate.TYPE.CLOSED:
                         chunk.SetGroundHeight(WorldGeneration.Settings.ChunkMaxHeight_inCellUnits);

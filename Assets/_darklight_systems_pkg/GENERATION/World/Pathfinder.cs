@@ -5,17 +5,30 @@ namespace Darklight.ThirdDimensional.World
 {
     public class Pathfinder
     {
-        public Pathfinder()
-        {
+        public Pathfinder() { }
 
-        }
-
-        public static List<Vector2Int> FindPath(CoordinateMap coordinateMap, Vector2Int startCoord, Vector2Int endCoord, float pathRandomness = 0)
+        public static List<Vector2Int> FindPath(CoordinateMap coordinateMap, Vector2Int startCoord, Vector2Int endCoord, List<Coordinate.TYPE> validTypes,  float pathRandomness = 0)
         {
             // A* Pathfinding implementation
             // gCost is the known cost from the starting node
             // hCost is the estimated distance to the end node
             // fCost is gCost + hCost
+
+
+            // Helper function to calculate validity of values
+            bool IsCoordinateValidForPathfinding(Vector2Int candidate)
+            {
+                // Check Types
+                if (coordinateMap.AllCoordinateValues.Contains(candidate))
+                {
+                    Coordinate.TYPE candidateType = (Coordinate.TYPE)coordinateMap.GetCoordinateTypeAt(candidate);
+                    if (validTypes.Contains(candidateType))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
 
             // Initialize Random Seed :: IMPORTANT To keep the same results per seed
             WorldGeneration.InitializeSeedRandom();
@@ -51,8 +64,7 @@ namespace Darklight.ThirdDimensional.World
                 {
                     Vector2Int candidate = openSet[i];
                     // Convert FCost and HCost checks to work with Vector2Int by accessing WorldCoordinate properties
-                    if (fCost[candidate] <= fCost[current] &&
-                        UnityEngine.Random.Range(0f, 1f) <= pathRandomness)
+                    if (fCost[candidate] <= fCost[current] && UnityEngine.Random.Range(0f, 1f) <= pathRandomness) // Apply randomness
                     {
                         current = openSet[i];
                     }
@@ -71,7 +83,7 @@ namespace Darklight.ThirdDimensional.World
                 // [[ ITERATE THROUGH NATURAL NEIGHBORS ]]
                 foreach (Vector2Int pos in CoordinateMap.CalculateNaturalNeighborCoordinateValues(current))
                 {
-                    if (closedSet.Contains(pos) || !coordinateMap.IsCoordinateValidForPathfinding(pos))
+                    if (closedSet.Contains(pos) || IsCoordinateValidForPathfinding(pos) == false)
                         continue; // Skip non-traversable neighbors and those already evaluated
 
                     float tentativeGCost = gCost[current] + Vector2Int.Distance(current, pos);
@@ -109,6 +121,8 @@ namespace Darklight.ThirdDimensional.World
 
             return path;
         }
+
+
 
 
     }

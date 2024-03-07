@@ -32,7 +32,7 @@ namespace Darklight.ThirdDimensional.World
             [SerializeField] private int _regionWidth = 7; // in Chunks
             [SerializeField] private int _regionBoundaryOffset = 0; // in Chunks
             [SerializeField] private int _worldWidth = 5; // in Regions
-
+            [SerializeField] private float _pathRandomness = 0.5f;
 
             // [[ PUBLIC ACCESSORS ]]
             public string Seed => _seed;
@@ -65,6 +65,9 @@ namespace Darklight.ThirdDimensional.World
             public int WorldWidth_inCellUnits => _worldWidth * RegionFullWidth_inCellUnits;
             public int WorldWidth_inGameUnits => WorldWidth_inCellUnits * _cellSize;
 
+            // >>>> WORLD GENERATION PARAMETERS
+            public float PathRandomness => _pathRandomness;
+
             // >>>>> UNIT SPACE
             public UnitSpace ChunkMeshUnitSpace => UnitSpace.REGION;
 
@@ -82,6 +85,8 @@ namespace Darklight.ThirdDimensional.World
                 _regionWidth = worldGenSettings.RegionWidth;
                 _regionBoundaryOffset = worldGenSettings.RegionBoundaryOffset;
                 _worldWidth = worldGenSettings.WorldWidth;
+
+                _pathRandomness = worldGenSettings.PathRandomness;
 
                 this.materialLibrary = worldGenSettings.materialLibrary;
             }

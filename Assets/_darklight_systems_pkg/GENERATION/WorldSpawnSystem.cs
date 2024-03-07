@@ -11,18 +11,23 @@ namespace Darklight.ThirdDimensional.World
 
         public GameObject playerPrefab;
 
+        [EasyButtons.Button]
+        public void SpawnPlayer(){
 
-        // Start is called before the first frame update
-        void Start()
-        {
+            foreach(Region region in GenerationParent.AllRegions){
+                if (region.CoordinateMap.Zones.Count > 0)
+                {
+                    Coordinate spawnCoordinate = region.CoordinateMap.Zones[0].CenterCoordinate;
 
+                    GameObject.Instantiate(playerPrefab, spawnCoordinate.ScenePosition, Quaternion.identity);
+
+                    Debug.Log("Spawning player at " + spawnCoordinate.Value.ToString());
+                    return;
+                }
+            }
         }
 
-        // Update is called once per frame
-        void Update()
-        {
 
-        }
     }
 }
 
