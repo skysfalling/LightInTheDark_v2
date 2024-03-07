@@ -80,7 +80,7 @@ namespace Darklight.ThirdDimensional.World
 
             // >> set perlin noise height
             Vector2Int perlinOffset = new Vector2Int((int)coordinate.ScenePosition.x, (int)coordinate.ScenePosition.z);
-            this._groundHeight = PerlinNoise.CalculateHeightFromNoise(perlinOffset);
+            //this._groundHeight = PerlinNoise.CalculateHeightFromNoise(perlinOffset);
 
             // Create coordinate map
             this._coordinateMap = new CoordinateMap(this);
@@ -105,8 +105,7 @@ namespace Darklight.ThirdDimensional.World
                 WorldGen.DestroyGameObject(ChunkObject);
             }
 
-            this.ChunkObject = WorldGen.CreateMeshObject($"Chunk {Coordinate.Value} " +
-                $":: height {GroundHeight}", ChunkMesh.Mesh, region.GenerationParent.materialLibrary.DefaultGroundMaterial);
+            this.ChunkObject = WorldGen.CreateChunkMeshObject(ChunkMesh);
             this.ChunkObject.transform.parent = region.transform;
         }
 

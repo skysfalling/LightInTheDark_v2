@@ -25,7 +25,7 @@ namespace Darklight.ThirdDimensional.World.Editor
             WorldGeneration.InitializeSeedRandom();
 
             WorldGeneration worldGen = (WorldGeneration)target;
-            worldGen.Reset(); // Reset the generation on editor refresh
+            //worldGen.Reset(); // Reset the generation on editor refresh
         }
 
         public override void OnInspectorGUI()
@@ -39,8 +39,7 @@ namespace Darklight.ThirdDimensional.World.Editor
             // ----------------------------------------------------------------
             WorldGeneration worldGen = (WorldGeneration)target;
 
-            SerializedProperty materialLibraryProperty = serializedWorldGen.FindProperty("materialLibrary");
-            EditorGUILayout.PropertyField(materialLibraryProperty);
+
 
             SerializedProperty customWorldGenSettingsProperty = serializedWorldGen.FindProperty("customWorldGenSettings");
             EditorGUILayout.PropertyField(customWorldGenSettingsProperty);

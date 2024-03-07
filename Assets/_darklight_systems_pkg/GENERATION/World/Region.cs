@@ -130,9 +130,9 @@ namespace Darklight.ThirdDimensional.World
         {
             WorldGeneration.InitializeSeedRandom();
             _coordinateMap = new CoordinateMap(this);
-            _coordinateMap.GenerateRandomExits();
-            _coordinateMap.GeneratePathsBetweenExits();
-            _coordinateMap.GenerateRandomZones(1, 3);
+            CoordinateMap.GenerateRandomExits();
+            CoordinateMap.GeneratePathsBetweenExits();
+            CoordinateMap.GenerateRandomZones(1, 3, new List<Zone.TYPE>() { Zone.TYPE.FULL }); // Zone generation
         }
 
         public void ResetCoordinateMap()
@@ -202,7 +202,7 @@ namespace Darklight.ThirdDimensional.World
 
             // Create Combined Mesh of world chunks
             Mesh combinedMesh = CombineChunks(this.ChunkMap.AllChunks.ToList());
-            this._combinedMeshObject = WorldGeneration.CreateMeshObject($"CombinedChunkMesh", combinedMesh, GenerationParent.materialLibrary.DefaultGroundMaterial);
+            this._combinedMeshObject = WorldGeneration.CreateMeshObject($"CombinedChunkMesh", combinedMesh, WorldGeneration.Settings.materialLibrary.DefaultGroundMaterial);
             this._combinedMeshObject.transform.parent = this.transform;
             MeshCollider collider = _combinedMeshObject.AddComponent<MeshCollider>();
             collider.sharedMesh = combinedMesh;

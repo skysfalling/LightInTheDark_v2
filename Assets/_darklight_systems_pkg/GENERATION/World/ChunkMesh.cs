@@ -33,7 +33,7 @@ namespace Darklight.ThirdDimensional.World
     {
         Vector3Int _defaultDimensions = WorldGen.Settings.ChunkVec3Dimensions_inCellUnits;
         Vector3Int _currentDimensions;
-        Chunk _chunk;
+        Chunk _chunkParent;
         Mesh _mesh;
         Coordinate _chunkCoordinate;
         ChunkMap _chunkMapParent;
@@ -41,14 +41,15 @@ namespace Darklight.ThirdDimensional.World
         Dictionary<FaceType, List<Vector2>> _meshUVs = new();
         Dictionary<FaceType, HashSet<MeshQuad>> _meshQuads = new();
 
+        public Chunk ParentChunk => _chunkParent;
         public Mesh Mesh => _mesh;
         public Dictionary<FaceType, HashSet<MeshQuad>> MeshQuads => _meshQuads;
 
-        public ChunkMesh(Chunk chunk, int groundHeight, Vector3 position)
+        public ChunkMesh(Chunk chunkParent, int groundHeight, Vector3 position)
         {
-            this._chunk = chunk;
-            this._chunkCoordinate = chunk.Coordinate;
-            this._chunkMapParent = chunk.ChunkMapParent;
+            this._chunkParent = chunkParent;
+            this._chunkCoordinate = chunkParent.Coordinate;
+            this._chunkMapParent = chunkParent.ChunkMapParent;
 
             List<FaceType> facesToGenerate = new List<FaceType>()
             {

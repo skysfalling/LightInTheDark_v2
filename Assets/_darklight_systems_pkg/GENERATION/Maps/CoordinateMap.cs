@@ -52,7 +52,6 @@ namespace Darklight.ThirdDimensional.World
             { WorldDirection.SOUTHWEST, new Vector2Int(-1, -1) },
             { WorldDirection.SOUTHEAST, new Vector2Int(1, -1) }
         };
-
         public static Vector2Int GetDirectionVector(WorldDirection direction)
         {
             return _directionVectorMap[direction];
@@ -68,12 +67,10 @@ namespace Darklight.ThirdDimensional.World
             }
             return null;
         }
-
         public static Vector2Int CalculateNeighborCoordinateValue(Vector2Int center,  WorldDirection direction)
         {
             return center + _directionVectorMap[direction];
         }
-
         public static List<Vector2Int> CalculateNaturalNeighborCoordinateValues(Vector2Int center)
         {
             return new List<Vector2Int>()
@@ -116,9 +113,9 @@ namespace Darklight.ThirdDimensional.World
         Dictionary<BorderDirection, bool> _activeBorderMap = new();
 
         // >>>> Custom Generation References
-        public List<Vector2Int> Exits = new();
-        public List<Path> Paths = new();
-        public List<Zone> Zones = new();
+        List<Zone> _zones = new();
+        Dictionary<Zone, HashSet<Vector2Int>> _zoneMap = new();
+
 
         // >> public access variables
         public bool Initialized { get; private set; }
@@ -128,6 +125,11 @@ namespace Darklight.ThirdDimensional.World
         public List<Vector2Int> AllCoordinateValues { get { return _values.ToList(); } }
         public List<Coordinate> AllCoordinates { get { return _coordinates.ToList(); } }
         public Dictionary<BorderDirection, bool> ActiveBorderMap => _activeBorderMap;
+
+        public List<Vector2Int> Exits = new();
+        public List<Path> Paths = new();
+
+        public List<Zone> Zones => _zones;
 
         // == [[ CONSTRUCTOR ]] ======================================================================== >>>>
         public CoordinateMap(object parent)
@@ -590,27 +592,23 @@ namespace Darklight.ThirdDimensional.World
             //Debug.Log($"Attempting to create zone at {position}");
 
             // Temporarily create the zone to check its positions
-            Zone tempZone = new Zone(GetCoordinateAt(position), zoneType, zoneHeight);
+            Zone newZone = new Zone(GetCoordinateAt(position), zoneType, zoneHeight, Zones.Count);
 
-            // Check if any of the zone's positions are in the BORDER or CLOSED categories
-            HashSet<Vector2Int> validPositions = GetAllPositionsOfType(Coordinate.TYPE.NULL);
-
-            // Check for intersection between the zone's positions and invalid positions
-            bool hasInvalidPosition = tempZone.AllPositions.Any(pos => !validPositions.Contains(pos));
-            if (hasInvalidPosition)
+            // Check if the zone is valid
+            if (!newZone.Valid)
             {
                 //Debug.Log($"Zone at {position} includes invalid coordinate types. Zone creation aborted.");
                 return false; // Abort the creation of the zone
             }
 
             // If no invalid positions are found, add the zone
-            Zones.Add(tempZone);
-            SetCoordinatesToType(tempZone.AllPositions, Coordinate.TYPE.ZONE);
+            Zones.Add(newZone);
+            SetCoordinatesToType(newZone.AllPositions, Coordinate.TYPE.ZONE);
             //Debug.Log($"Zone successfully created at {position} with type {zoneType}.");
             return true;
         }
 
-        public void GenerateRandomZones(int minZones, int maxZones)
+        public void GenerateRandomZones(int minZones, int maxZones, List<Zone.TYPE> types)
         {
             Zones.Clear();
 
@@ -631,26 +629,28 @@ namespace Darklight.ThirdDimensional.World
 
                 // Attempt to create a zone at the current position
 
-                Zone.TYPE zoneType = GetRandomWorldZoneType();
+                Zone.TYPE zoneType = Zone.GetRandomTypeFromList(types);
                 int randomHeight = Random.Range(0, 5);
 
                 CreateWorldZone(potentialPositions[i], zoneType, randomHeight);
                 zonesCreated++;
+
+
             }
 
             //Debug.Log($"Attempted to create {numZonesToCreate} zones. Successfully created {zonesCreated}.", this._worldRegion.gameObject);
         }
 
-        Zone.TYPE GetRandomWorldZoneType()
+        public Zone GetZoneFromCoordinate(Coordinate coordinate)
         {
-            // Get all values defined in the WorldZone.TYPE enum
-            var zoneTypes = System.Enum.GetValues(typeof(Zone.TYPE));
-
-            // Choose a random index
-            int randomIndex = Random.Range(0, zoneTypes.Length);
-
-            // Return the randomly selected WorldZone.TYPE
-            return (Zone.TYPE)zoneTypes.GetValue(randomIndex);
+            foreach (Zone zone in _zones)
+            {
+                if (zone.AllPositions.Contains(coordinate.Value))
+                {
+                    return zone;
+                }
+            }
+            return null;
         }
 
         // Utility method to shuffle a list in place

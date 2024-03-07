@@ -44,7 +44,7 @@ namespace Darklight.ThirdDimensional.World
             switch (newType)
             {
                 case TYPE.CLOSED: TypeColor = Color.black; break;
-                case TYPE.BORDER: TypeColor = Color.magenta; break;
+                case TYPE.BORDER: TypeColor = Color.grey; break;
                 case TYPE.NULL: TypeColor = Color.grey; break;
                 case TYPE.EXIT: TypeColor = Color.red; break;
                 case TYPE.PATH: TypeColor = Color.white; break;

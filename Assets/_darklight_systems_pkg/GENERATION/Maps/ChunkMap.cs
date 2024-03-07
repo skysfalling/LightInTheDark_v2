@@ -12,13 +12,13 @@ namespace Darklight.ThirdDimensional.World
         Dictionary<Vector2Int, Chunk> _chunkMap = new();
 
         public bool Initialized { get; private set; }
-        public Region WorldRegionParent { get; private set; }
+        public Region RegionParent { get; private set; }
         public CoordinateMap CoordinateMap { get; private set; }
         public HashSet<Chunk> AllChunks { get { return _chunks; } private set { } }
 
         public ChunkMap(Region worldRegion, CoordinateMap coordinateMap)
         {
-            this.WorldRegionParent = worldRegion;
+            this.RegionParent = worldRegion;
             this.CoordinateMap = coordinateMap;
 
             // [[ CREATE WORLD CHUNKS ]]
@@ -54,11 +54,16 @@ namespace Darklight.ThirdDimensional.World
         }
 
 
-        public void GenerateChunkMeshes()
+        public void GenerateChunkMeshes(bool createObject)
         {
             foreach (Chunk chunk in _chunks)
             {
                 chunk.CreateChunkMesh();
+
+                if (createObject)
+                {
+                    WorldGeneration.CreateChunkMeshObject(chunk.ChunkMesh);
+                }
             }
         }
 

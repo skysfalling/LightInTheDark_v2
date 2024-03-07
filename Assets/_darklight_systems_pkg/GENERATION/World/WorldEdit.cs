@@ -26,7 +26,7 @@ namespace Darklight.ThirdDimensional.World
         public EditMode editMode = EditMode.WORLD;
 
         // World View
-        public enum WorldView { COORDINATE_MAP, ALL_REGION_COORDINATES };
+        public enum WorldView { COORDINATE_MAP, FULL_COORDINATE_MAP,  };
         public WorldView worldView = WorldView.COORDINATE_MAP;
 
         // Region View
@@ -42,8 +42,8 @@ namespace Darklight.ThirdDimensional.World
         public CellView cellView = CellView.OUTLINE;
 
         // Coordinate Map
-        public enum CoordinateMapView { GRID_ONLY, VALUE, TYPE }
-        public CoordinateMapView coordinateMapView = CoordinateMapView.TYPE;
+        public enum CoordinateMapView { GRID_ONLY, COORDINATE_VALUE, COORDINATE_TYPE, ZONE_ID }
+        public CoordinateMapView coordinateMapView = CoordinateMapView.COORDINATE_TYPE;
 
         // Chunk Map
         public enum ChunkMapView { TYPE, HEIGHT }
@@ -77,7 +77,7 @@ namespace Darklight.ThirdDimensional.World
 
             CustomEditorLibrary.FocusSceneView(chunk.Coordinate.ScenePosition);
 
-            editMode = EditMode.CHUNK;
+            //editMode = EditMode.CHUNK;
         }
 
         public void SelectCell(Cell cell)
@@ -88,7 +88,7 @@ namespace Darklight.ThirdDimensional.World
 
             CustomEditorLibrary.FocusSceneView(cell.Position);
 
-            editMode = EditMode.CELL;
+            //editMode = EditMode.CELL;
         }
     }
 
@@ -114,6 +114,9 @@ namespace Darklight.ThirdDimensional.World
         {
             _serializedObject.Update();
 
+            WorldGeneration worldGeneration = _worldEditScript.worldGeneration;
+
+
             // [[ EDITOR VIEW ]]
             CustomEditorLibrary.DrawLabeledEnumPopup(ref _worldEditScript.editMode, "Edit Mode");
 
@@ -127,21 +130,32 @@ namespace Darklight.ThirdDimensional.World
                     CoordinateMapInspector( _worldEditScript.worldGeneration.CoordinateMap);
                     break;
                 case EditMode.REGION:
-                    if (_worldEditScript.selectedRegion == null) { break; }
+                    if (_worldEditScript.selectedRegion == null && worldGeneration.AllRegions.Count > 0) 
+                    {
+                        _worldEditScript.SelectRegion(worldGeneration.RegionMap[Vector2Int.zero]);
+                        break;
+                    }
 
                     CustomEditorLibrary.DrawLabeledEnumPopup(ref _worldEditScript.regionView, "Region View");
                     CoordinateMapInspector( _worldEditScript.selectedRegion.CoordinateMap);
                     ChunkMapInspector(_worldEditScript.selectedRegion.ChunkMap);
                     break;
                 case EditMode.CHUNK:
-                    if (_worldEditScript.selectedChunk == null) { break; }
-
+                    if (_worldEditScript.selectedChunk == null && worldGeneration.Initialized)
+                    {
+                        Region originRegion = worldGeneration.RegionMap[Vector2Int.zero];
+                        _worldEditScript.SelectChunk(originRegion.ChunkMap.GetChunkAt(Vector2Int.zero));
+                        break;
+                    }
                     CustomEditorLibrary.DrawLabeledEnumPopup(ref _worldEditScript.chunkView, "Chunk View");
                     CoordinateMapInspector( _worldEditScript.selectedChunk.CoordinateMap);
                     CellMapInspector(_worldEditScript.selectedChunk.CellMap);
                     break;
                 case EditMode.CELL:
-                    if (_worldEditScript.selectedCell == null) { break; }
+                    if (_worldEditScript.selectedCell == null)
+                    {
+                        break;
+                    }
 
                     CustomEditorLibrary.DrawLabeledEnumPopup(ref _worldEditScript.cellView, "Cell View");
                     break;
@@ -240,17 +254,6 @@ namespace Darklight.ThirdDimensional.World
                         Region selectedRegion = _worldEditScript.worldGeneration.RegionMap[coordinate.Value];
                         _worldEditScript.SelectRegion(selectedRegion);
                     });
-                }
-                // [[ DRAW ALL CHILD REGION COORDINATES ]]
-                else if (_worldEditScript.worldView == WorldView.ALL_REGION_COORDINATES)
-                {
-                    if (worldGeneration.AllRegions.Count > 0)
-                    {
-                        foreach (Region region in worldGeneration.AllRegions)
-                        {
-                            DrawRegion(region, RegionView.COORDINATE_MAP);
-                        }
-                    }
                 }
             }
 
@@ -416,14 +419,27 @@ namespace Darklight.ThirdDimensional.World
                     {
                         case CoordinateMapView.GRID_ONLY:
                             break;
-                        case CoordinateMapView.VALUE:
+                        case CoordinateMapView.COORDINATE_VALUE:
                             CustomGizmoLibrary.DrawLabel($"{coordinate.Value}", coordinate.ScenePosition, coordLabelStyle);
                             coordinateColor = Color.white;
                             break;
-                        case CoordinateMapView.TYPE:
+                        case CoordinateMapView.COORDINATE_TYPE:
                             coordLabelStyle.normal.textColor = coordinate.TypeColor;
                             CustomGizmoLibrary.DrawLabel($"{coordinate.Type.ToString()[0]}", coordinate.ScenePosition, coordLabelStyle);
                             coordinateColor = coordinate.TypeColor;
+                            break;
+                        case CoordinateMapView.ZONE_ID:
+                            coordLabelStyle.normal.textColor = coordinate.TypeColor;
+
+                            if (coordinate.Type == Coordinate.TYPE.ZONE)
+                            {
+                                Zone zone = coordinateMap.GetZoneFromCoordinate(coordinate);
+                                if (zone != null)
+                                {
+                                    CustomGizmoLibrary.DrawLabel($"{zone.ID}", coordinate.ScenePosition, coordLabelStyle);
+                                }
+                            }
+
                             break;
                     }
 

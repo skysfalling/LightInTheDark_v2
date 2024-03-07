@@ -33,6 +33,7 @@ namespace Darklight.ThirdDimensional.World
             [SerializeField] private int _regionBoundaryOffset = 0; // in Chunks
             [SerializeField] private int _worldWidth = 5; // in Regions
 
+
             // [[ PUBLIC ACCESSORS ]]
             public string Seed => _seed;
 
@@ -64,6 +65,11 @@ namespace Darklight.ThirdDimensional.World
             public int WorldWidth_inCellUnits => _worldWidth * RegionFullWidth_inCellUnits;
             public int WorldWidth_inGameUnits => WorldWidth_inCellUnits * _cellSize;
 
+            // >>>>> UNIT SPACE
+            public UnitSpace ChunkMeshUnitSpace => UnitSpace.REGION;
+
+            // [[ LIBRARIES ]] 
+            public MaterialLibrary materialLibrary;
 
             public GenerationSettings() { }
             public GenerationSettings(CustomWorldGenerationSettings worldGenSettings)
@@ -76,6 +82,8 @@ namespace Darklight.ThirdDimensional.World
                 _regionWidth = worldGenSettings.RegionWidth;
                 _regionBoundaryOffset = worldGenSettings.RegionBoundaryOffset;
                 _worldWidth = worldGenSettings.WorldWidth;
+
+                this.materialLibrary = worldGenSettings.materialLibrary;
             }
         }
         public static GenerationSettings Settings { get { return _settings; } }
@@ -119,8 +127,9 @@ namespace Darklight.ThirdDimensional.World
 
         // [[ PUBLIC INSPECTOR VARIABLES ]] 
         public CustomWorldGenerationSettings customWorldGenSettings; // Settings Scriptable Object
-        public MaterialLibrary materialLibrary; // Settings Scriptable Object
 
+
+        // ================================== INITIALIZATION ============================================== >>>>
 
         public void Initialize()
         {
@@ -163,7 +172,7 @@ namespace Darklight.ThirdDimensional.World
             }
 
             yield return new WaitForSeconds(stage_delay);
-            Debug.Log($"Stage 0: Region Initialization {Time.time - startTime} seconds.");
+            Debug.Log($"{_prefix} Init Stage 0: Region Initialization {Time.time - startTime} seconds.");
 
             // Grouped operations: Initial exits generation
             foreach (var region in _regions)
@@ -171,42 +180,28 @@ namespace Darklight.ThirdDimensional.World
                 region.GenerateNecessaryExits(true);
             }
             yield return new WaitForSeconds(stage_delay);
-            Debug.Log($"Stage 1: Exits Generation (First Pass) completed in {Time.time - startTime} seconds.");
+            Debug.Log($"{_prefix} Init Stage 1: Exits Generation completed in {Time.time - startTime} seconds.");
 
+
+            // [[ STAGE 2]]
             startTime = Time.time; // Reset start time for the next stage
-                                   // Grouped operations: Second pass for exits and path generation
             foreach (var region in _regions)
             {
-                region.GenerateNecessaryExits(false); // Second pass without creating new
-                region.CoordinateMap.GeneratePathsBetweenExits(); // Assuming independent of exits generation
+                region.CoordinateMap.GeneratePathsBetweenExits();
             }
             yield return new WaitForSeconds(stage_delay);
-            Debug.Log($"Stage 2: Exits Generation (Second Pass) and Path Generation completed in {Time.time - startTime} seconds.");
+            Debug.Log($"{_prefix} Init Stage 2: Path Generation completed in {Time.time - startTime} seconds.");
 
             startTime = Time.time; // Reset start time for the next stage
                                    // Combined zones and height assignments in a single step to minimize delays
             foreach (var region in _regions)
             {
-                region.CoordinateMap.GenerateRandomZones(1, 3); // Zone generation
+                region.CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE>() { Zone.TYPE.FULL }); // Zone generation
 
                 region.ChunkMap.UpdateMap(); // update chunk map to match coordinate type values
-
-
-                // Assign heights to paths and zones together
-                /*
-                foreach (WorldPath path in region.coordinateMap.worldPaths)
-                {
-                    region.worldChunkMap.SetChunksToHeightFromPath(path);
-                }
-
-                foreach (WorldZone zone in region.coordinateMap.worldZones)
-                {
-                    region.worldChunkMap.SetChunksToHeightFromPositions(zone.positions, zone.zoneHeight);
-                }
-                */
             }
             yield return new WaitForSeconds(stage_delay);
-            Debug.Log($"Stage 3: Zone Generation and Height Assignments completed in {Time.time - startTime} seconds.");
+            Debug.Log($"{_prefix} Init Stage 3: Zone Generation and Height Assignments completed in {Time.time - startTime} seconds.");
 
             Initialized = true;
             Debug.Log($"Total Initialization Time: {Time.time - startTime} seconds.");
@@ -218,26 +213,59 @@ namespace Darklight.ThirdDimensional.World
             {
                 _generationSequence = StartCoroutine(GenerationSequence());
             }
+            else
+            {
+                StopCoroutine(_generationSequence);
+                _generationSequence = StartCoroutine(GenerationSequence());
+            }
         }
 
         public IEnumerator GenerationSequence()
         {
             yield return new WaitUntil(() => Initialized); // wait until self initialization
 
-            foreach (Region region in AllRegions)
+            Debug.Log($"{_prefix} Starting Generation Sequence");
+
+            if (Settings.ChunkMeshUnitSpace == UnitSpace.CHUNK)
             {
-                region.ChunkMap.GenerateChunkMeshes();
+                foreach (Region region in AllRegions)
+                {
+                    region.ChunkMap.GenerateChunkMeshes(true);
+                }
             }
 
-            foreach (Region region in AllRegions)
+            else if (Settings.ChunkMeshUnitSpace == UnitSpace.REGION)
             {
-                region.CreateCombinedChunkMesh();
+                foreach (Region region in AllRegions)
+                {
+                    region.ChunkMap.GenerateChunkMeshes(false);
+                }
+
+                foreach (Region region in AllRegions)
+                {
+                    region.CreateCombinedChunkMesh();
+                }
             }
 
             _generationSequence = null;
         }
 
         #region == WORLD GENERATION ============================================== >>>>
+        public static GameObject CreateChunkMeshObject(ChunkMesh chunkMesh)
+        {
+            GameObject worldObject = new GameObject($"Chunk at {chunkMesh.ParentChunk.Coordinate.Value}");
+
+            MeshFilter meshFilter = worldObject.AddComponent<MeshFilter>();
+            meshFilter.sharedMesh = chunkMesh.Mesh;
+            meshFilter.sharedMesh.RecalculateBounds();
+            meshFilter.sharedMesh.RecalculateNormals();
+
+            worldObject.AddComponent<MeshRenderer>().material = Settings.materialLibrary.DefaultGroundMaterial;
+            worldObject.AddComponent<MeshCollider>().sharedMesh = chunkMesh.Mesh;
+
+            return worldObject;
+        }
+
         public static GameObject CreateMeshObject(string name, Mesh mesh, Material material)
         {
             GameObject worldObject = new GameObject(name);

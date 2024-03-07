@@ -17,7 +17,7 @@ namespace Darklight.ThirdDimensional.World
 
         public Chunk ChunkParent { get; private set; }
         public List<Cell> AllCells => _cells.ToList();
-        public Dictionary<FaceType, HashSet<Cell>> FaceMap => _faceMap;
+        public Dictionary<FaceType, HashSet<Cell>> ChunkFaceMap => _faceMap;
 
         public CellMap(Chunk chunk, ChunkMesh chunkMesh)
         {

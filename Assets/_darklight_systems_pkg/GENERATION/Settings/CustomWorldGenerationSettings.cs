@@ -16,6 +16,9 @@ namespace Darklight.ThirdDimensional.World
         [SerializeField] private int _regionBoundaryOffset = 0; // in Chunks
         [SerializeField] private int _worldWidth = 5; // in Regions
 
+        public MaterialLibrary materialLibrary; // MaterialLibrary
+
+
         // >> Public Accessors
         public string Seed => _seed;
         public int CellSize => _cellSize;
