@@ -28,7 +28,7 @@ namespace Darklight.ThirdDimensional.Generation
     public enum BorderDirection { NORTH, SOUTH, EAST, WEST }
 
     /// <summary> Initializes and handles the procedural world generation. </summary>
-    [ExecuteAlways]
+    [RequireComponent(typeof(Editor.WorldEdit))]
     public class WorldGeneration : MonoBehaviour
     {
         // [[ STATIC INSTANCE ]] -------------------------------------- >>
@@ -137,13 +137,13 @@ namespace Darklight.ThirdDimensional.Generation
                 int stageCount = this.InitStages.Count;
 
                 Stopwatch stopwatch = new Stopwatch();
-                Debug.Log($"{_prefix} Stage {stageCount} => Begin {stageName}");
+                //Debug.Log($"{_prefix} Stage {stageCount} => Begin {stageName}");
 
                 stopwatch.Start();
                 await stageTask(); // Execute the passed asynchronous stage task
                 stopwatch.Stop();
 
-                Debug.Log($"{_prefix} Stage {stageCount} => {stageName} completed in {stopwatch.ElapsedMilliseconds} milliseconds.");
+                //Debug.Log($"{_prefix} Stage {stageCount} => {stageName} completed in {stopwatch.ElapsedMilliseconds} milliseconds.");
                 InitStages.Add(new InitializationStage(stageCount, stageName, stopwatch.ElapsedMilliseconds));
             }
 
@@ -172,11 +172,9 @@ namespace Darklight.ThirdDimensional.Generation
                     foreach (Region region in AllRegions)
                     {
                         region.Initialize();
-                        while (!region.Initialized)
-                        {
-                            await Task.Yield();
-                        }
+                        await Task.Yield();
                     }
+                    
                 });
 
                 // Stage 2: Generate Exits
@@ -203,9 +201,13 @@ namespace Darklight.ThirdDimensional.Generation
                 {
                     foreach (var region in AllRegions)
                     {
+                        while (region.Initialized == false)
+                        {
+                            await Task.Yield();
+                        }
+
                         region.CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
-                        //region.ChunkMap.UpdateMap(); // Update chunk map to match coordinate type values
-                        await Task.Yield();
+                        region.ChunkMap.UpdateMap(); // Update chunk map to match coordinate type values
                     }
                 });            
 

@@ -6,69 +6,23 @@ namespace Darklight.ThirdDimensional.Generation
 {
     public class Entity : MonoBehaviour
     {
+        bool _active;
+        Region _regionParent;
+        Chunk _currentChunk;
+        Coordinate _currentCoordinate;
+        GameObject _modelObject;
 
-        List<Cell> _affectedPath = new List<Cell>();
-        List<Cell> _movePath = new();
-        int _currPathIndex = 0;
-        Cell _currentCell = null;
-        Cell _targetCell = null;
-
-        [Header("Attributes")]
-        public int moveSpeed = 1;
-
-        // Start is called before the first frame update
-        void Start()
+        public void Initialize(string name, GameObject modelPrefab, Region region, Chunk chunk)
         {
-            //InvokeRepeating("TickUpdate", _entityManager.tickSpeed, _entityManager.tickSpeed);
-        }
+            this.gameObject.name = $"_entity({name})";
+            _regionParent = region;
+            _currentChunk = chunk;
+            _currentCoordinate = chunk.Coordinate;
 
-        // Update is called once per frame
-        void Update()
-        {
-            if (_currentCell != null)
-            {
-                transform.position = Vector3.Lerp(transform.position, _currentCell.Position, moveSpeed * Time.deltaTime);
-            }
-        }
+            // create model as child transform
+            _modelObject = Instantiate(modelPrefab, transform);
 
-        void TickUpdate()
-        {
-            //if (_currentCell == null) { _currentCell = _cellMap.FindClosestCellTo(transform.position); }
-
-            // if still following path .. update
-            if (_currPathIndex < _movePath.Count)
-            {
-                _currentCell = _movePath[_currPathIndex];
-
-                _currPathIndex++;
-            }
-            else
-            {
-                _currPathIndex = 0;
-                _movePath = new List<Cell>();
-            }
-        }
-
-        public void SetTargetCell(Cell cell)
-        {
-            _targetCell = cell;
-            SetMovePathTo(_targetCell);
-        }
-
-        public void SetTargetCell(Vector3 worldPos)
-        {
-            //_targetCell = WorldCellMap.Instance.FindClosestCellTo(worldPos);
-            //SetMovePathTo(_targetCell);
-        }
-
-        public void SetMovePathTo(Cell targetCell)
-        {
-            if (_currentCell == null) return;
-            if (targetCell == null) return;
-            _currPathIndex = 0;
-
-            _targetCell = targetCell;
-            //_movePath = WorldPathfinder.Instance.FindPath(_currentCell, _targetCell);
+            this.transform.position = _currentChunk.GroundPosition;
         }
     }
 }

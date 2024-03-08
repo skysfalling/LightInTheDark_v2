@@ -8,9 +8,9 @@ using System.Linq;
 namespace Darklight.ThirdDimensional.Generation.Editor
 {
     using Editor = UnityEditor.Editor;
-    using DarklightCustomEditor = Darklight.DarklightEditor;
+    using DarklightCustomEditor = CustomEditor;
 
-    [CustomEditor(typeof(WorldGeneration))]
+    [UnityEditor.CustomEditor(typeof(WorldGeneration))]
     public class WorldGenerationEditor : UnityEditor.Editor
     {
         private SerializedObject _serializedWorldGenObject;
@@ -18,7 +18,6 @@ namespace Darklight.ThirdDimensional.Generation.Editor
 
         static bool showGenerationSettingsFoldout = false;
         static bool showGenerationProfilerFoldout = false;
-
 
         private void OnEnable()
         {
@@ -149,8 +148,6 @@ namespace Darklight.ThirdDimensional.Generation.Editor
                 EditorUtility.SetDirty(target);
             }
         }
-
-
 
 
     }

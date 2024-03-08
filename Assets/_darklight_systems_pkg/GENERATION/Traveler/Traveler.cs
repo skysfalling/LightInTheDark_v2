@@ -38,6 +38,7 @@ namespace Darklight.ThirdDimensional.Generation
                 DestroyModel();
             }
              _modelObject = Instantiate(modelPrefab, transform.position, Quaternion.identity, transform);
+            _modelObject.hideFlags = HideFlags.DontSave;
         }
 
         public void DestroyModel()
@@ -65,7 +66,7 @@ namespace Darklight.ThirdDimensional.Generation
     }
 
     #if UNITY_EDITOR
-    [CustomEditor(typeof(Traveler))]
+    [UnityEditor.CustomEditor(typeof(Traveler))]
     public class TravelerEditor : UnityEditor.Editor
     {
         SerializedObject _travelerObject;
@@ -85,6 +86,12 @@ namespace Darklight.ThirdDimensional.Generation
         // New method to handle selection changes
         private void OnSelectionChanged()
         {
+            if (_travelerScript == null)
+            {
+                Selection.selectionChanged -= OnSelectionChanged;
+                return;
+            }
+
             // Call the existing logic to check if the object or its children are selected
             if (!IsObjectOrChildSelected(_travelerScript.gameObject))
             {

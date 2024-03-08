@@ -7,7 +7,7 @@ using UnityEditor;
 
 namespace Darklight
 {
-    public static class DarklightEditor
+    public static class CustomEditor
     {
         public static GUIStyle TitleHeaderStyle
         {
@@ -185,5 +185,26 @@ namespace Darklight
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndVertical();
         }
+    
+        public static bool IsObjectOrChildSelected(GameObject obj)
+        {
+            // Check if the direct object is selected
+            if (Selection.activeGameObject == obj)
+            {
+                return true;
+            }
+
+            // Check if any of the selected objects is a child of the inspected object
+            foreach (GameObject selectedObject in Selection.gameObjects)
+            {
+                if (selectedObject.transform.IsChildOf(obj.transform))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
     }
 }

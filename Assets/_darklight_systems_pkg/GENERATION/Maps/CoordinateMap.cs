@@ -564,23 +564,26 @@ namespace Darklight.ThirdDimensional.Generation
         }
 
         // == [[ WORLD PATH ]] ================================================================================ >>>>
-        public Path CreatePathFrom(Vector2Int start, Vector2Int end, List<Coordinate.TYPE> validTypes, bool removeEnds = false)
+        public Path CreatePathFrom(Vector2Int start, Vector2Int end, List<Coordinate.TYPE> validTypes, bool applyPathTypeToEnd = false)
         {
             Path newPath = new Path(this, start, end, validTypes, WorldGeneration.Settings.PathRandomness);
             Paths.Add(newPath);
 
-            // Remove Exits from path positions
-            List<Vector2Int> positions = newPath.AllPositions;
-
             // Remove Ends
-            if (removeEnds)
+            if (applyPathTypeToEnd)
             {
-                positions.Remove(start);
-                positions.Remove(end);
+                SetCoordinatesToType(newPath.AllPositions, Coordinate.TYPE.PATH);
+            }
+            else
+            {
+                // Remove Exits from path positions
+                List<Vector2Int> positionsWithoutEnds = newPath.AllPositions;
+                positionsWithoutEnds.Remove(start);
+                positionsWithoutEnds.Remove(end);
+                SetCoordinatesToType(positionsWithoutEnds, Coordinate.TYPE.PATH);
             }
 
             // Assign Path Type
-            SetCoordinatesToType(newPath.AllPositions, Coordinate.TYPE.PATH);
             return newPath;
         }
 
@@ -637,7 +640,7 @@ namespace Darklight.ThirdDimensional.Generation
             // Find the closese ZONE Coordinate
             Coordinate zonePathConnection = newZone.GetClosestExternalNeighborTo(closestPathCoordinate.ValueKey);
 
-            Path zonePath = CreatePathFrom(closestPathCoordinate.ValueKey, zonePathConnection.ValueKey, new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL,  Coordinate.TYPE.PATH });
+            Path zonePath = CreatePathFrom(closestPathCoordinate.ValueKey, zonePathConnection.ValueKey, new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL,  Coordinate.TYPE.PATH }, true);
             //Debug.Log($"Created zone path from {zonePath.StartPosition} to {zonePath.EndPosition} -> {zonePath.AllPositions.Count}");
 
             //Debug.Log($"Zone successfully created at {position} with type {zoneType}.");

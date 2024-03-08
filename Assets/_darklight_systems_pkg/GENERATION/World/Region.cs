@@ -53,18 +53,15 @@ namespace Darklight.ThirdDimensional.Generation
             this._coordinateMap = new CoordinateMap(this);
             yield return new WaitUntil(() => this._coordinateMap.Initialized);
 
-            Initialized = true;
-
             // Create the chunk map for the region
-            //this._chunkMap = new ChunkMap(this, this._coordinateMap);
-            //yield return new WaitUntil(() => this._chunkMap.Initialized);
+            this._chunkMap = new ChunkMap(this, this._coordinateMap);
+            yield return new WaitUntil(() => this._chunkMap.Initialized);
 
             // Update the chunk map to reflect the coordinate map
-            //this._chunkMap.UpdateMap();
+            this._chunkMap.UpdateMap();
 
-
+            Initialized = true;
             //Debug.Log($"{_prefix} Initialized at {Coordinate.ValueKey}");
-
         }
 
         public void GenerateNecessaryExits(bool createExits)

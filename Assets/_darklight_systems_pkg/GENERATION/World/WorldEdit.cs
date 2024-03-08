@@ -5,11 +5,11 @@ using System;
 
 
 
-namespace Darklight.ThirdDimensional.Generation
+namespace Darklight.ThirdDimensional.Generation.Editor
 {
 #if UNITY_EDITOR
     using UnityEditor;
-    using DarklightEditor = DarklightEditor;
+    using DarklightEditor = CustomEditor;
     using EditMode = WorldEdit.EditMode;
     using WorldView = WorldEdit.WorldView;
     using RegionView = WorldEdit.RegionView;
@@ -99,7 +99,7 @@ namespace Darklight.ThirdDimensional.Generation
     [CustomEditor(typeof(WorldEdit))]
     public class WorldEditGUI : UnityEditor.Editor
     {
-        private SerializedObject _serializedObject;
+        private SerializedObject _serializedWorldEditObject;
         private WorldEdit _worldEditScript;
         private WorldGeneration _worldGenerationScript;
 
@@ -108,24 +108,72 @@ namespace Darklight.ThirdDimensional.Generation
         private async void OnEnable()
         {
             // Cache the SerializedObject
-            _serializedObject = new SerializedObject(target);
+            _serializedWorldEditObject = new SerializedObject(target);
             _worldEditScript = (WorldEdit)target;
             _worldGenerationScript = _worldEditScript.GetComponent<WorldGeneration>();
-
             _worldEditScript.editMode = EditMode.WORLD;
-            if (_worldGenerationScript.Initialized) { _worldGenerationScript.ResetGeneration(); }
-            await _worldGenerationScript.InitializeAsync();
+
+            // >> check if in play mode
+            if (EditorApplication.isPlaying == false)
+            {
+                EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+                Selection.selectionChanged += OnSelectionChanged;
+
+                if (_worldGenerationScript != null)
+                {
+                    await _worldGenerationScript.InitializeAsync();
+                }
+            }
         }
 
-        private void OnDisable() {
-            _worldGenerationScript.ResetGeneration();
+        private void OnDisable() 
+        {
+            // Call the existing logic to check if the object or its children are selected
+            if (DarklightEditor.IsObjectOrChildSelected(_worldEditScript.gameObject) == false)
+            {
+                // If not, destroy the model
+                _worldGenerationScript.ResetGeneration();
+                
+                // Unsubscribe to avoid memory leaks
+                Selection.selectionChanged -= OnSelectionChanged;
+            }
+            
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        }
+
+        void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            if (state == PlayModeStateChange.ExitingEditMode)
+            {
+                _worldGenerationScript.ResetGeneration();
+            }
+        }
+
+        void OnSelectionChanged()
+        {
+            if (_worldGenerationScript == null)
+            {
+                Selection.selectionChanged -= OnSelectionChanged;
+                return;
+            }
+
+            // Call the existing logic to check if the object or its children are selected
+            if (DarklightEditor.IsObjectOrChildSelected(_worldEditScript.gameObject) == false)
+            {
+                // If not, destroy the model
+                _worldGenerationScript.ResetGeneration();
+                
+                // Unsubscribe to avoid memory leaks
+                Selection.selectionChanged -= OnSelectionChanged;
+            }
+
         }
 
 #region [[ INSPECTOR GUI ]] ================================================================= 
 
         public override void OnInspectorGUI()
         {
-            _serializedObject.Update();
+            _serializedWorldEditObject.Update();
 
             WorldGeneration worldGeneration = _worldEditScript.worldGeneration;
 
@@ -201,7 +249,7 @@ namespace Darklight.ThirdDimensional.Generation
                     break;
             }
 
-            _serializedObject.ApplyModifiedProperties();
+            _serializedWorldEditObject.ApplyModifiedProperties();
 
             void CoordinateMapInspector(CoordinateMap coordinateMap)
             {
@@ -237,7 +285,7 @@ namespace Darklight.ThirdDimensional.Generation
 
             void ChunkMapInspector(ChunkMap chunkMap)
             {
-                EditorGUILayout.LabelField("Chunk Map", Darklight.DarklightEditor.Header2Style);
+                EditorGUILayout.LabelField("Chunk Map", DarklightEditor.Header2Style);
                 EditorGUILayout.Space(10);
                 if (chunkMap == null)
                 {
@@ -251,7 +299,7 @@ namespace Darklight.ThirdDimensional.Generation
 
             void CellMapInspector(CellMap cellMap)
             {
-                EditorGUILayout.LabelField("Cell Map", Darklight.DarklightEditor.Header2Style);
+                EditorGUILayout.LabelField("Cell Map", DarklightEditor.Header2Style);
                 EditorGUILayout.Space(10);
                 if (cellMap == null)
                 {
@@ -265,7 +313,6 @@ namespace Darklight.ThirdDimensional.Generation
         }
 
 #endregion
-
 
 
         // ==================== SCENE GUI =================================================== ////
