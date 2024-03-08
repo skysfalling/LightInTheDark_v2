@@ -113,12 +113,15 @@ namespace Darklight.ThirdDimensional.Generation
             _worldGenerationScript = _worldEditScript.GetComponent<WorldGeneration>();
 
             _worldEditScript.editMode = EditMode.WORLD;
+            if (_worldGenerationScript.Initialized) { _worldGenerationScript.ResetGeneration(); }
             await _worldGenerationScript.InitializeAsync();
         }
 
         private void OnDisable() {
             _worldGenerationScript.ResetGeneration();
         }
+
+#region [[ INSPECTOR GUI ]] ================================================================= 
 
         public override void OnInspectorGUI()
         {
@@ -260,6 +263,8 @@ namespace Darklight.ThirdDimensional.Generation
                 DarklightEditor.DrawLabeledEnumPopup(ref _worldEditScript.cellMapView, "Cell Map View");
             }
         }
+
+#endregion
 
 
 

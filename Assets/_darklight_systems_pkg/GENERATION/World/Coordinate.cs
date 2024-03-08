@@ -16,7 +16,7 @@ namespace Darklight.ThirdDimensional.Generation
         HashSet<Vector2Int> _neighborValues { get { return _neighborDirectionMap.Values.ToHashSet(); }}
 
         // [[ PUBLIC REFERENCE VARIABLES ]]
-        public CoordinateMap CoordinateMapParent { get; private set; }
+        public CoordinateMap ParentMap { get; private set; }
         public TYPE Type => _type;
         public Vector2Int ValueKey => _value;
         public Vector3 ScenePosition { get; private set; }
@@ -27,7 +27,7 @@ namespace Darklight.ThirdDimensional.Generation
         // [[ CONSTRUCTOR ]]
         public Coordinate(CoordinateMap mapParent, Vector3 mapOriginPosition, Vector2Int value, int size)
         {
-            this.CoordinateMapParent = mapParent;
+            this.ParentMap = mapParent;
             this._value = value;
 
             // Calculate Coordinate Position in game world
@@ -63,7 +63,7 @@ namespace Darklight.ThirdDimensional.Generation
         public Coordinate GetNeighborInDirection(WorldDirection direction)
         {
             Vector2Int neighborValue = _neighborDirectionMap[direction];
-            return CoordinateMapParent.GetCoordinateAt(neighborValue);
+            return ParentMap.GetCoordinateAt(neighborValue);
         }
 
         public WorldDirection? GetWorldDirectionOfNeighbor(Coordinate neighbor)
@@ -104,10 +104,10 @@ namespace Darklight.ThirdDimensional.Generation
             if (!Initialized) return new();
 
             List<Coordinate> neighbors = new List<Coordinate> {
-                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.WEST]),
-                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.EAST]),
-                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTH]),
-                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTH])
+                ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.WEST]),
+                ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.EAST]),
+                ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTH]),
+                ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTH])
             };
             neighbors.RemoveAll(item => item == null);
             return neighbors;
@@ -118,10 +118,10 @@ namespace Darklight.ThirdDimensional.Generation
             if (!Initialized) return new();
 
             List<Coordinate> neighbors = new List<Coordinate> {
-                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTHWEST]),
-                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTHEAST]),
-                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTHWEST]),
-                CoordinateMapParent.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTHEAST])
+                ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTHWEST]),
+                ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTHEAST]),
+                ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTHWEST]),
+                ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTHEAST])
             };
             neighbors.RemoveAll(item => item == null);
             return neighbors;

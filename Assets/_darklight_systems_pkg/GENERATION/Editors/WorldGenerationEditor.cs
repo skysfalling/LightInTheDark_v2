@@ -13,7 +13,7 @@ namespace Darklight.ThirdDimensional.Generation.Editor
     [CustomEditor(typeof(WorldGeneration))]
     public class WorldGenerationEditor : UnityEditor.Editor
     {
-        private SerializedObject serializedWorldGen;
+        private SerializedObject _serializedWorldGenObject;
         private WorldGeneration _worldGenerationScript;
 
         static bool showGenerationSettingsFoldout = false;
@@ -23,29 +23,28 @@ namespace Darklight.ThirdDimensional.Generation.Editor
         private void OnEnable()
         {
             // Cache the SerializedObject
-            serializedWorldGen = new SerializedObject(target);
+            _serializedWorldGenObject = new SerializedObject(target);
             WorldGeneration.InitializeSeedRandom();
 
+            _worldGenerationScript = (WorldGeneration)target;
 
         }
 
         public override async void OnInspectorGUI()
         {
-            serializedWorldGen.Update(); // Always start with this call
+            _serializedWorldGenObject.Update(); // Always start with this call
 
             EditorGUI.BeginChangeCheck();
 
             // ----------------------------------------------------------------
             // CUSTOM GENERATION SETTINGS
             // ----------------------------------------------------------------
-            WorldGeneration worldGen = (WorldGeneration)target;
-
-            SerializedProperty customWorldGenSettingsProperty = serializedWorldGen.FindProperty("customWorldGenSettings");
+            SerializedProperty customWorldGenSettingsProperty = _serializedWorldGenObject.FindProperty("customWorldGenSettings");
             EditorGUILayout.PropertyField(customWorldGenSettingsProperty);
-            if (worldGen.customWorldGenSettings != null)
+            if (_worldGenerationScript.customWorldGenSettings != null)
             {
                 // Override World Gen Settings with custom settings
-                worldGen.OverrideSettings((CustomWorldGenerationSettings)customWorldGenSettingsProperty.objectReferenceValue);
+                _worldGenerationScript.OverrideSettings((CustomWorldGenerationSettings)customWorldGenSettingsProperty.objectReferenceValue);
 
                 // >>>> foldout
                 showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Custom World Generation Settings", true);
@@ -55,7 +54,7 @@ namespace Darklight.ThirdDimensional.Generation.Editor
                     EditorGUILayout.Space();
                     EditorGUILayout.BeginVertical();
 
-                    Editor editor = CreateEditor(worldGen.customWorldGenSettings);
+                    Editor editor = CreateEditor(_worldGenerationScript.customWorldGenSettings);
                     editor.OnInspectorGUI(); // Draw the editor for the ScriptableObject
 
                     EditorGUILayout.EndVertical();
@@ -65,7 +64,7 @@ namespace Darklight.ThirdDimensional.Generation.Editor
             }
             else
             {
-                worldGen.OverrideSettings(null); // Set World Generation Settings to null
+                _worldGenerationScript.OverrideSettings(null); // Set World Generation Settings to null
 
                 // >>>> foldout
                 showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Default World Generation Settings", true);
@@ -103,7 +102,7 @@ namespace Darklight.ThirdDimensional.Generation.Editor
                     EditorGUILayout.Space();
                     EditorGUILayout.BeginVertical();
 
-                    List<WorldGeneration.InitializationStage> initStages = _worldGenerationScript.InitStages;
+                List<WorldGeneration.InitializationStage> initStages = this._worldGenerationScript.InitStages;
                     foreach (WorldGeneration.InitializationStage stage in initStages)
                     {
                         EditorGUILayout.BeginHorizontal();
@@ -120,23 +119,23 @@ namespace Darklight.ThirdDimensional.Generation.Editor
             // ----------------------------------------------------------------
             // Buttons
             // ----------------------------------------------------------------
-            if (worldGen.AllRegions.Count == 0)
+            if (_worldGenerationScript.AllRegions.Count == 0)
             {
                 if (GUILayout.Button("Initialize"))
                 {
-                    await worldGen.InitializeAsync();
+                    await _worldGenerationScript.InitializeAsync();
                 }
             }
             else
             {
                 if (GUILayout.Button("Start Generation"))
                 {
-                    worldGen.StartGeneration();
+                    _worldGenerationScript.StartGeneration();
                 }
 
                 if (GUILayout.Button("Reset"))
                 {
-                    worldGen.ResetGeneration();
+                    _worldGenerationScript.ResetGeneration();
                 }
             }
 
@@ -144,7 +143,7 @@ namespace Darklight.ThirdDimensional.Generation.Editor
             if (EditorGUI.EndChangeCheck())
             {
                 // If there were changes, apply them to the serialized object
-                serializedWorldGen.ApplyModifiedProperties();
+                _serializedWorldGenObject.ApplyModifiedProperties();
 
                 // Optionally, mark the target object as dirty to ensure the changes are saved
                 EditorUtility.SetDirty(target);

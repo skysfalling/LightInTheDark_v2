@@ -180,7 +180,7 @@ namespace Darklight.ThirdDimensional.Generation
                 }
             }
 
-            Debug.Log($"{_prefix} Initialized in {_mapUnitSpace} Space");
+            //Debug.Log($"{_prefix} Initialized in {_mapUnitSpace} Space");
 
             Initialized = true;
 
@@ -283,18 +283,28 @@ namespace Darklight.ThirdDimensional.Generation
         }
 
         // == [[ GET COORDINATE ]] ======================================================================== >>>>
-        public Coordinate GetCoordinateAt(Vector2Int position)
+        public Coordinate GetCoordinateAt(Vector2Int valueKey)
         {
-            return Initialized && _coordinateMap.TryGetValue(position, out var coordinate) ? coordinate : null;
+            return Initialized && _coordinateMap.TryGetValue(valueKey, out var coordinate) ? coordinate : null;
         }
 
-        public Coordinate.TYPE? GetCoordinateTypeAt(Vector2Int position)
+        public Coordinate.TYPE? GetCoordinateTypeAt(Vector2Int valueKey)
         {
-            if (Initialized && _coordinateMap.TryGetValue(position, out var coordinate))
+            if (Initialized && _coordinateMap.TryGetValue(valueKey, out var coordinate))
             {
                 return coordinate.Type;
             }
             return null;
+        }
+
+        public List<Coordinate.TYPE?> GetCoordinateTypesAt(List<Vector2Int> valueKeys)
+        {
+            List<Coordinate.TYPE?> result = new();
+            foreach (Vector2Int value in valueKeys)
+            {
+                result.Add(GetCoordinateTypeAt(value));
+            }
+            return result;
         }
 
         public HashSet<Vector2Int> GetAllCoordinatesValuesOfType(Coordinate.TYPE type)
@@ -312,6 +322,15 @@ namespace Darklight.ThirdDimensional.Generation
             return null;
         }
         
+        public Dictionary<Vector2Int, Coordinate> GetCoordinateValueMapFrom(List<Coordinate> coordinates)
+        {
+            Dictionary<Vector2Int, Coordinate> result = new();
+            foreach (Coordinate coordinate in coordinates)
+            {
+                result[coordinate.ValueKey] = GetCoordinateAt(coordinate.ValueKey); // Make sure reference is to the coordinate map
+            }
+            return result;
+        }
         // == [[ SET COORDINATE ]] ======================================================================== >>>>
         void SetCoordinateToType(Vector2Int valueKey, Coordinate.TYPE newType)
         {
@@ -545,20 +564,23 @@ namespace Darklight.ThirdDimensional.Generation
         }
 
         // == [[ WORLD PATH ]] ================================================================================ >>>>
-        public Path CreatePathFrom(Vector2Int start, Vector2Int end, List<Coordinate.TYPE> validTypes)
+        public Path CreatePathFrom(Vector2Int start, Vector2Int end, List<Coordinate.TYPE> validTypes, bool removeEnds = false)
         {
             Path newPath = new Path(this, start, end, validTypes, WorldGeneration.Settings.PathRandomness);
             Paths.Add(newPath);
 
             // Remove Exits from path positions
             List<Vector2Int> positions = newPath.AllPositions;
-            if (GetCoordinateTypeAt(start) == Coordinate.TYPE.EXIT) { positions.Remove(start); }
-            if (GetCoordinateTypeAt(end) == Coordinate.TYPE.EXIT) { positions.Remove(end); }
+
+            // Remove Ends
+            if (removeEnds)
+            {
+                positions.Remove(start);
+                positions.Remove(end);
+            }
 
             // Assign Path Type
             SetCoordinatesToType(newPath.AllPositions, Coordinate.TYPE.PATH);
-            //Debug.Log($"Created Path from {start} to {end} with {newPath.positions.Count}");
-
             return newPath;
         }
 
@@ -589,8 +611,6 @@ namespace Darklight.ThirdDimensional.Generation
             //Debug.Log($"Generated new paths connecting all exits.");
         }
 
-
-
         // == [[ WORLD ZONES ]] ================================================================================ >>>>
         public bool CreateWorldZone(Vector2Int position, Zone.TYPE zoneType, int zoneHeight)
         {
@@ -608,17 +628,17 @@ namespace Darklight.ThirdDimensional.Generation
 
             // If no invalid positions are found, add the zone
             Zones.Add(newZone);
-            SetCoordinatesToType(newZone.AllPositions, Coordinate.TYPE.ZONE);
+            SetCoordinatesToType(newZone.Positions, Coordinate.TYPE.ZONE);
 
             // Find the closest PATH Coordinate
             Coordinate closestPathCoordinate = FindClosestCoordinateOfType(newZone.CenterCoordinate, new List<Coordinate.TYPE>() { Coordinate.TYPE.PATH });
 
 
             // Find the closese ZONE Coordinate
-            Vector2Int closestZoneValue = newZone.GetClosestCoordinateValueTo(closestPathCoordinate.ValueKey);
+            Coordinate zonePathConnection = newZone.GetClosestExternalNeighborTo(closestPathCoordinate.ValueKey);
 
-            Path zonePath = CreatePathFrom(closestPathCoordinate.ValueKey, closestZoneValue, new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL, Coordinate.TYPE.ZONE, Coordinate.TYPE.PATH });
-            Debug.Log($"Created zone path from {zonePath.StartPosition} to {zonePath.EndPosition} -> {zonePath.AllPositions.Count}");
+            Path zonePath = CreatePathFrom(closestPathCoordinate.ValueKey, zonePathConnection.ValueKey, new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL,  Coordinate.TYPE.PATH });
+            //Debug.Log($"Created zone path from {zonePath.StartPosition} to {zonePath.EndPosition} -> {zonePath.AllPositions.Count}");
 
             //Debug.Log($"Zone successfully created at {position} with type {zoneType}.");
             return true;
@@ -661,7 +681,7 @@ namespace Darklight.ThirdDimensional.Generation
         {
             foreach (Zone zone in _zones)
             {
-                if (zone.AllPositions.Contains(coordinate.ValueKey))
+                if (zone.Positions.Contains(coordinate.ValueKey))
                 {
                     return zone;
                 }

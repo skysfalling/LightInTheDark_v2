@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Darklight.ThirdDimensional.Generation
@@ -18,18 +19,21 @@ namespace Darklight.ThirdDimensional.Generation
         // [[ PRIVATE VARIABLES ]]
         bool _valid;
         int _id;
+        CoordinateMap _coordinateMapParent;
         Coordinate _coordinate;
         TYPE _type;
         int _height;
-        List<Vector2Int> _positions = new();
+        Dictionary<Vector2Int, Coordinate> _zoneCoordinateMap = new();
 
         public bool Valid => _valid;
         public int ID => _id;
+        public List<Vector2Int> Positions => _zoneCoordinateMap.Keys.ToList();
+        public List<Coordinate> Coordinates => _zoneCoordinateMap.Values.ToList();
         public Coordinate CenterCoordinate => _coordinate;
         public TYPE Type => _type;
-        public List<Vector2Int> AllPositions => _positions;
         public Zone(Coordinate coordinate, TYPE zoneType, int zoneHeight, int zoneID)
         {
+            this._coordinateMapParent = coordinate.ParentMap;
             this._coordinate = coordinate;
             this._type = zoneType;
             this._height = zoneHeight;
@@ -62,39 +66,59 @@ namespace Darklight.ThirdDimensional.Generation
             List<Coordinate> zoneCoordinates = new List<Coordinate> { _coordinate };
             zoneCoordinates.AddRange(neighborsInZone);
 
-            // Extract positions and check types
-            _positions = new();
-            foreach (Coordinate coord in zoneCoordinates) { 
+            // Extract coordinates into values map
+            _zoneCoordinateMap = _coordinateMapParent.GetCoordinateValueMapFrom(zoneCoordinates);
 
-                if (coord.Type != Coordinate.TYPE.NULL)
-                {
+            // Extract  & check coordinate types
+            List<Coordinate.TYPE?> _zoneCoordinateTypes = _coordinateMapParent.GetCoordinateTypesAt(_zoneCoordinateMap.Keys.ToList());
+            if (_zoneCoordinateTypes.Any(type => type != Coordinate.TYPE.NULL))
+            {
                     _valid = false;
-                    return;
-                }
-
-                _positions.Add(coord.ValueKey);
+                    return;            
             }
 
             _valid = true;
         }
 
         // Helper function to find the closest coordinate to a given coordinate
-        public Vector2Int GetClosestCoordinateValueTo(Vector2Int targetCoordinate)
+        public Coordinate GetClosestExternalNeighborTo(Vector2Int mapValue)
         {
-            Vector2Int closestCoordinate = Vector2Int.zero;
             float closestDistance = float.MaxValue;
+            var coordinateValueMap = _zoneCoordinateMap;
 
-            foreach (Vector2Int position in _positions)
+            // >> get the closest zone coordinate value
+            Vector2Int closestZoneValue = Vector2Int.zero;
+            foreach (Vector2Int value in coordinateValueMap.Keys.ToList())
             {
-                float currentDistance = Vector2Int.Distance(position, targetCoordinate);
+                float currentDistance = Vector2Int.Distance(value, mapValue);
                 if (currentDistance < closestDistance)
                 {
                     closestDistance = currentDistance;
-                    closestCoordinate = position;
+                    closestZoneValue = value;
                 }
             }
 
-            return closestCoordinate;
+            // >> get coordinate reference
+            Coordinate closestZoneCoordinate = _coordinateMapParent.GetCoordinateAt(closestZoneValue);
+            if (closestZoneCoordinate == null) return null;
+
+            // >> get coordinate neighbors
+            Vector2Int closestExternalValue = closestZoneValue;
+            List<Coordinate> neighbors = closestZoneCoordinate.GetValidNaturalNeighbors();
+            foreach (Coordinate neighbor in neighbors)
+            {
+                if (neighbor.Type == Coordinate.TYPE.ZONE) continue;
+
+                float currentDistance = Vector2Int.Distance(neighbor.ValueKey, mapValue);
+                if (currentDistance < closestDistance)
+                {
+                    closestDistance = currentDistance;
+                    closestExternalValue = neighbor.ValueKey;
+                }
+            }
+
+            return _coordinateMapParent.GetCoordinateAt(closestExternalValue);
+
         }
     }
 }

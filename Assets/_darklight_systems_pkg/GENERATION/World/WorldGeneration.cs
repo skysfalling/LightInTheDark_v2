@@ -28,6 +28,7 @@ namespace Darklight.ThirdDimensional.Generation
     public enum BorderDirection { NORTH, SOUTH, EAST, WEST }
 
     /// <summary> Initializes and handles the procedural world generation. </summary>
+    [ExecuteAlways]
     public class WorldGeneration : MonoBehaviour
     {
         // [[ STATIC INSTANCE ]] -------------------------------------- >>
@@ -323,7 +324,9 @@ namespace Darklight.ThirdDimensional.Generation
                     AllRegions[i].Destroy();
             }
             _regionMap.Clear();
-            this._coordinateMap = null;
+            this._coordinateMap = null; // Clear coordinate map
+
+            InitStages = new(); // reset stage tracking
 
             Initialized = false;
         }
