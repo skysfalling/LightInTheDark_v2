@@ -6,9 +6,9 @@ using UnityEngine.Rendering.Universal;
 public class PlayerAnimator : MonoBehaviour
 {
 
-    GameManager gameManager;
+    //GameManager gameManager;
     PlayerMovement movement;
-    PlayerInventory inv_script;
+    //PlayerInventory inv_script;
     public Animator anim;
     public GameObject spriteParent;
 
@@ -204,8 +204,8 @@ public class PlayerAnimator : MonoBehaviour
         if (state == PlayerState.PANIC || state == PlayerState.SLOWED) 
         { 
             slowEffect.SetActive(true);
-            gameManager.effectManager.EnablePanicShader();
-            gameManager.camManager.Panic();
+            //gameManager.effectManager.EnablePanicShader();
+            //gameManager.camManager.Panic();
 
         }
         else { 
@@ -276,18 +276,18 @@ public class PlayerAnimator : MonoBehaviour
 
     public void InventoryCountLightLerp()
     {
-        float playerLightIntensity = (inv_script.inventory.Count * player_inventoryIntensityAddition) + player_defaultLightIntensity;
-        playerLight.intensity = Mathf.Lerp(playerLight.intensity, playerLightIntensity, Time.deltaTime);
+        //float playerLightIntensity = (inv_script.inventory.Count * player_inventoryIntensityAddition) + player_defaultLightIntensity;
+        //playerLight.intensity = Mathf.Lerp(playerLight.intensity, playerLightIntensity, Time.deltaTime);
 
 
         outerLight.color = outer_lightColor;
 
 
-        float outerLightIntensity = (inv_script.inventory.Count * outer_inventoryIntensityAddition) + outer_defaultLightIntensity;
-        outerLight.intensity = Mathf.Lerp(outerLight.intensity, outerLightIntensity, Time.deltaTime);
+        //float outerLightIntensity = (inv_script.inventory.Count * outer_inventoryIntensityAddition) + outer_defaultLightIntensity;
+        //outerLight.intensity = Mathf.Lerp(outerLight.intensity, outerLightIntensity, Time.deltaTime);
 
-        float outerLightRadius = (inv_script.inventory.Count * outer_inventoryRangeAddition) + outer_defaultLightRange;
-        outerLight.pointLightOuterRadius = Mathf.Lerp(outerLight.pointLightOuterRadius, outerLightRadius, Time.deltaTime * 0.2f);
+        //float outerLightRadius = (inv_script.inventory.Count * outer_inventoryRangeAddition) + outer_defaultLightRange;
+        //outerLight.pointLightOuterRadius = Mathf.Lerp(outerLight.pointLightOuterRadius, outerLightRadius, Time.deltaTime * 0.2f);
 
 
     }

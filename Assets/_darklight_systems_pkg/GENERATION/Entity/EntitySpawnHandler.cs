@@ -12,10 +12,8 @@ namespace Darklight.ThirdDimensional.Generation
         Dictionary<Vector2Int, Region> _regionMap => _worldGeneration.RegionMap;
         Dictionary<Vector2Int, List<Zone>> _regionZoneMap = new();
 
-
-
-
         // [[ PUBLIC ACCESS VARIABLES ]] ===== >>
+        
 
         // [[ PUBLIC INSPECTOR VARIABLES ]] ===== >>
         [Range(0, 1)] public float tickSpeed = 0.5f;

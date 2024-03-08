@@ -10,10 +10,10 @@ public enum PlayerState {
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerMovement : MonoBehaviour
 {
-    GameManager gameManager;
+    //GameManager gameManager;
     Rigidbody rb;
     PlayerAnimator animator;
-    PlayerInventory inventory;
+    //PlayerInventory inventory;
     UniversalInputManager inputManager;
 
 
@@ -66,7 +66,7 @@ public class PlayerMovement : MonoBehaviour
 
 
     [Header("Grabbed")]
-    GrabHandAI grabbedHand;
+    //GrabHandAI grabbedHand;
     public int struggleCount;
 
 
@@ -172,8 +172,8 @@ public class PlayerMovement : MonoBehaviour
     {
 
         // << DISABLE COLLIDER >>
-        if (state == PlayerState.GRABBED || state == PlayerState.INACTIVE) { EnableCollider(false); }
-        else { EnableCollider(true); }
+        //if (state == PlayerState.GRABBED || state == PlayerState.INACTIVE) { EnableCollider(false); }
+        //else { EnableCollider(true); }
 
 
         switch (state)
@@ -229,12 +229,14 @@ public class PlayerMovement : MonoBehaviour
                 if (throwObject != null)
                 {
 
+                    /*
                     // if not thrown yet, move object towards throw parent
                     if (throwObject.GetComponent<Item>().state == ItemState.PLAYER_INVENTORY)
                     {
                         Vector3 newDirection = Vector3.MoveTowards(throwObject.transform.position, throwParent.transform.position, inventory.circleSpeed * Time.deltaTime);
                         throwObject.transform.position = newDirection;
                     }
+                    */
                 }
                 break;
 
@@ -244,7 +246,7 @@ public class PlayerMovement : MonoBehaviour
         }
         
     }
-
+/*
     #region << THROW OBJECT >>
     public void NewThrowObject()
     {
@@ -384,5 +386,6 @@ public class PlayerMovement : MonoBehaviour
         //Gizmos.color = Color.white;
         //Gizmos.DrawWireSphere(transform.position, interactionRange);
     }
+    */
 }
 
