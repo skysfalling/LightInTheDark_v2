@@ -25,6 +25,8 @@ namespace Darklight.World.Generation.Entity
 
             // create model as child transform
             modelObject = Instantiate(modelPrefab, transform);
+            modelObject.SetActive(true);
+            active = true;
 
             this.transform.position = currentChunk.GroundPosition;
 
@@ -40,4 +42,3 @@ namespace Darklight.World.Generation.Entity
         }
     }
 }
-

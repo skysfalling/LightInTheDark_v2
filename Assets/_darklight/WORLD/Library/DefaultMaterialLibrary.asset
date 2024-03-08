@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c96953d9ed9ac10498510007d0116463, type: 3}
   m_Name: DefaultMaterialLibrary
   m_EditorClassIdentifier: 
-  _defaultGroundMaterial: {fileID: 2100000, guid: e79c2a12d81e2df45a49e055ce74559f,
+  _defaultGroundMaterial: {fileID: 2100000, guid: 3093a5c2bb6781b41b7b4667ec8387fe,
     type: 2}
