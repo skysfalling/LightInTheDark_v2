@@ -67,7 +67,7 @@ namespace Darklight.World.Generation
             }
             return null;
         }
-        public static Vector2Int CalculateNeighborCoordinateValue(Vector2Int center,  WorldDirection direction)
+        public static Vector2Int CalculateNeighborCoordinateValue(Vector2Int center, WorldDirection direction)
         {
             return center + _directionVectorMap[direction];
         }
@@ -234,8 +234,8 @@ namespace Darklight.World.Generation
                 {
                     _borderIndexMap[borderType][pos.x] = pos;
                 }
-            }            
-            
+            }
+
             BorderDirection DetermineBorderType(Vector2Int pos, Vector2Int range)
             {
                 if (pos.x == range.y) return BorderDirection.EAST;
@@ -248,13 +248,13 @@ namespace Darklight.World.Generation
             bool IsCornerOrOutsideBounds(Vector2Int pos, Vector2Int mapRange, List<Vector2Int> cornerCoordinates)
             {
                 return cornerCoordinates.Contains(pos) ||
-                    pos.x < mapRange.x || pos.x > mapRange.y || 
+                    pos.x < mapRange.x || pos.x > mapRange.y ||
                     pos.y < mapRange.x || pos.y > mapRange.y;
             }
 
             bool IsOnBorder(Vector2Int pos, Vector2Int mapRange)
             {
-                return pos.x == mapRange.x || pos.x == mapRange.y || 
+                return pos.x == mapRange.x || pos.x == mapRange.y ||
                     pos.y == mapRange.x || pos.y == mapRange.y;
             }
 
@@ -320,7 +320,7 @@ namespace Darklight.World.Generation
             }
             return null;
         }
-        
+
         public Dictionary<Vector2Int, Coordinate> GetCoordinateValueMapFrom(List<Coordinate> coordinates)
         {
             Dictionary<Vector2Int, Coordinate> result = new();
@@ -329,6 +329,20 @@ namespace Darklight.World.Generation
                 result[coordinate.ValueKey] = GetCoordinateAt(coordinate.ValueKey); // Make sure reference is to the coordinate map
             }
             return result;
+        }
+
+        public Vector2Int GetRandomCoordinateValueOfType(Coordinate.TYPE type)
+        {
+            List<Vector2Int> coordinatesOfType = _coordinateMap.Keys.Where(coord => _coordinateMap[coord].Type == type).ToList();
+            if (coordinatesOfType.Count > 0)
+            {
+                int randomIndex = Random.Range(0, coordinatesOfType.Count);
+                return coordinatesOfType[randomIndex];
+            }
+            else
+            {
+                return Vector2Int.zero; // or any default value you prefer
+            }
         }
         // == [[ SET COORDINATE ]] ======================================================================== >>>>
         void SetCoordinateToType(Vector2Int valueKey, Coordinate.TYPE newType)
@@ -444,39 +458,39 @@ namespace Darklight.World.Generation
         // == [[ FIND COORDINATE ]] ================================================================= >>>>
         public Coordinate FindClosestCoordinateOfType(Coordinate targetCoordinate, List<Coordinate.TYPE> typeList)
         {
-                // using BFS algorithm
-                Queue<Vector2Int> queue = new Queue<Vector2Int>();
-                HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
-                queue.Enqueue(targetCoordinate.ValueKey);
-                visited.Add(targetCoordinate.ValueKey);
+            // using BFS algorithm
+            Queue<Vector2Int> queue = new Queue<Vector2Int>();
+            HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
+            queue.Enqueue(targetCoordinate.ValueKey);
+            visited.Add(targetCoordinate.ValueKey);
 
-                while (queue.Count > 0)
+            while (queue.Count > 0)
+            {
+                Vector2Int currentValue = queue.Dequeue();
+                Coordinate currentCoordinate = GetCoordinateAt(currentValue);
+
+                if (currentCoordinate != null)
                 {
-                    Vector2Int currentValue = queue.Dequeue();
-                    Coordinate currentCoordinate = GetCoordinateAt(currentValue);
-
-                    if (currentCoordinate != null)
+                    // Check if the current coordinate is the target type
+                    if (typeList.Contains(currentCoordinate.Type))
                     {
-                        // Check if the current coordinate is the target type
-                        if (typeList.Contains(currentCoordinate.Type))
-                        {
-                            return GetCoordinateAt(currentValue);
-                        }
-
-                        // Get the neighbors of the current coordinate
-                        foreach (Vector2Int neighbor in currentCoordinate.GetNaturalNeighborValues())
-                        {
-                            if (!visited.Contains(neighbor))
-                            {
-                                queue.Enqueue(neighbor);
-                                visited.Add(neighbor);
-                            }
-                        }
+                        return GetCoordinateAt(currentValue);
                     }
 
+                    // Get the neighbors of the current coordinate
+                    foreach (Vector2Int neighbor in currentCoordinate.GetNaturalNeighborValues())
+                    {
+                        if (!visited.Contains(neighbor))
+                        {
+                            queue.Enqueue(neighbor);
+                            visited.Add(neighbor);
+                        }
+                    }
                 }
 
-                return targetCoordinate; 
+            }
+
+            return targetCoordinate;
         }
 
         // == [[ WORLD EXITS ]] ======================================================================== >>>>
@@ -604,7 +618,7 @@ namespace Darklight.World.Generation
                 Vector2Int start = sortedExits[i];
                 Vector2Int end = sortedExits[i + 1]; // Connect to the next exit in the list
 
-                CreatePathFrom(start, end, new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL, Coordinate.TYPE.EXIT});
+                CreatePathFrom(start, end, new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL, Coordinate.TYPE.EXIT });
             }
 
             //Connect the last exit back to the first to ensure all exits are interconnected
@@ -639,7 +653,7 @@ namespace Darklight.World.Generation
             // Find the closese ZONE Coordinate
             Coordinate zonePathConnection = newZone.GetClosestExternalNeighborTo(closestPathCoordinate.ValueKey);
 
-            Path zonePath = CreatePathFrom(closestPathCoordinate.ValueKey, zonePathConnection.ValueKey, new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL,  Coordinate.TYPE.PATH }, true);
+            Path zonePath = CreatePathFrom(closestPathCoordinate.ValueKey, zonePathConnection.ValueKey, new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL, Coordinate.TYPE.PATH }, true);
             //Debug.Log($"Created zone path from {zonePath.StartPosition} to {zonePath.EndPosition} -> {zonePath.AllPositions.Count}");
 
             //Debug.Log($"Zone successfully created at {position} with type {zoneType}.");

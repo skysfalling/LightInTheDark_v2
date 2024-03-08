@@ -89,22 +89,14 @@ namespace Darklight.World.Generation.CustomEditor
             EditorGUILayout.Space();
 
             // ----------------------------------------------------------------
-            // GENERATION PROFILER
-            // ----------------------------------------------------------------
-            // >>>> foldout
-            showAsyncTaskBotQueen = EditorGUILayout.Foldout(showAsyncTaskBotQueen, "AsyncTaskQueenProfiler", true);
-            if (showAsyncTaskBotQueen)
-            {
-                if (GUILayout.Button("Open AsyncTaskQueen Profiler"))
-                {
-                    // Open the AsyncTaskQueen Profiler window
-                    AsyncTaskQueenProfiler.ShowWindow();
-                }
-            }
-
-            // ----------------------------------------------------------------
             // Buttons
             // ----------------------------------------------------------------
+            if (GUILayout.Button("Open AsyncTaskQueen Profiler"))
+            {
+                // Open the AsyncTaskQueen Profiler window
+                AsyncTaskQueenProfiler.ShowWindow();
+            }
+
             if (_worldBuilderScript.AllRegions.Count == 0)
             {
                 if (GUILayout.Button("Initialize"))

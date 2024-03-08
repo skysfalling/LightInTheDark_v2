@@ -4,25 +4,39 @@ using UnityEngine;
 
 namespace Darklight.World.Generation.Entity
 {
+    using Generation;
+
     public class BaseEntity : MonoBehaviour
     {
-        bool _active;
-        Generation.Region _regionParent;
-        Generation.Chunk _currentChunk;
-        Generation.Coordinate _currentCoordinate;
-        GameObject _modelObject;
+        public bool active;
+        public Path currentPath;
+        public Region regionParent;
+        public Chunk currentChunk;
+        public Chunk targetChunk;
+        public Coordinate currentCoordinate;
+        public GameObject modelObject;
 
         public void Initialize(string name, GameObject modelPrefab, Region region, Chunk chunk)
         {
             this.gameObject.name = $"_entity({name})";
-            _regionParent = region;
-            _currentChunk = chunk;
-            _currentCoordinate = chunk.Coordinate;
+            regionParent = region;
+            currentChunk = chunk;
+            currentCoordinate = chunk.Coordinate;
 
             // create model as child transform
-            _modelObject = Instantiate(modelPrefab, transform);
+            modelObject = Instantiate(modelPrefab, transform);
 
-            this.transform.position = _currentChunk.GroundPosition;
+            this.transform.position = currentChunk.GroundPosition;
+
+            currentChunk = DetermineNewTargetChunk();
+            currentPath = new Path(regionParent.CoordinateMap, currentChunk.Coordinate.ValueKey, targetChunk.Coordinate.ValueKey, new List<Coordinate.TYPE>() {Coordinate.TYPE.NULL});
+        }
+
+        public Chunk DetermineNewTargetChunk()
+        {
+            Vector2Int randomCoordinateValue = regionParent.CoordinateMap.GetRandomCoordinateValueOfType(Coordinate.TYPE.NULL);
+            Chunk randomChunk = regionParent.ChunkMap.GetChunkAt(randomCoordinateValue);
+            return randomChunk;
         }
     }
 }
