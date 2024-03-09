@@ -91,11 +91,6 @@ namespace Darklight.World.Generation.CustomEditor
             // ----------------------------------------------------------------
             // Buttons
             // ----------------------------------------------------------------
-            if (GUILayout.Button("Open AsyncTaskQueen Profiler"))
-            {
-                // Open the AsyncTaskQueen Profiler window
-                AsyncTaskQueenProfiler.ShowWindow();
-            }
 
             if (_worldBuilderScript.AllRegions.Count == 0)
             {

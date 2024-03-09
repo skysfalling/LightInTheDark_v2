@@ -887,6 +887,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1829917539}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &961720096 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2186029314147007492, guid: dad85dccd7fc00b49a2afeef84d99cca,
+    type: 3}
+  m_PrefabInstance: {fileID: 289922982}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 620745325a50846479f301ec54b3a337, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1327772848
 GameObject:
   m_ObjectHideFlags: 0
@@ -1358,8 +1370,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4fd9b29a0ff422429a3b6bfe929fb25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerObject: {fileID: 6463713794384547220, guid: bc92038e107710849a0d31e4e76dcf11,
-    type: 3}
+  taskQueenName: EventTaskQueen
+  eventTaskBots:
+  - name: Initalize World Gen
+    executionTime: 0
+    _unityEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 961720096}
+          m_TargetAssemblyTypeName: Darklight.World.Generation.WorldBuilder, Assembly-CSharp
+          m_MethodName: StartInitializeAsync
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1 &1887117057
 GameObject:
   m_ObjectHideFlags: 0
@@ -1390,6 +1419,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tickSpeed: 0.5
+  playerPrefab: {fileID: 6463713794384547220, guid: bc92038e107710849a0d31e4e76dcf11,
+    type: 3}
+  testEntityPrefab: {fileID: 0}
 --- !u!4 &1887117059
 Transform:
   m_ObjectHideFlags: 0

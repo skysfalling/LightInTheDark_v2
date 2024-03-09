@@ -22,6 +22,12 @@ namespace Darklight.World.Generation.Entity.Spawner
 
         // [[ PUBLIC INSPECTOR VARIABLES ]] ===== >>
         [Range(0, 1)] public float tickSpeed = 0.5f;
+
+		[Header("Entity Library")]
+        public GameObject playerPrefab;
+		public GameObject testEntityPrefab;
+
+
         public void SpawnEntityInRandomValidZone(GameObject entityPrefab)
         {
             foreach(Region region in _regionMap.Values){

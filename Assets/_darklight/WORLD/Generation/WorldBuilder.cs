@@ -119,6 +119,10 @@ namespace Darklight.World.Generation
         public CustomWorldGenerationSettings customWorldGenSettings; // Settings Scriptable Object
 
         #region == INITIALIZATION ============================================== >>>> 
+        public void StartInitializeAsync()
+        {
+            _ = InitializeAsync();
+        }
 
         /// <summary>
         /// Asynchronously initiates the world generation process, including seed initialization and region creation.
