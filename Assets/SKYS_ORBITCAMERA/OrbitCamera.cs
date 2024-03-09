@@ -29,10 +29,12 @@ public class OrbitCamera : MonoBehaviour
     [Space(10), Header("Focus Target")]
     public Transform focusTarget;
     [Range(0.1f, 10f)] public float focusSpeed = 2;
+    public void SetFocusTarget(Transform focusTarget) { this.focusTarget = focusTarget;}
 
     [Space(10), Header("Follow Target")]
     public Transform followTarget;
     [Range(0.1f, 10f)] public float followSpeed = 2;
+    public void SetFollowTarget(Transform followTarget) { this.followTarget = followTarget;}
 
     [Space(10), Header("Orbit")]
     [Range(0.1f, 1f)]public float orbitSensitivity = 0.1f;

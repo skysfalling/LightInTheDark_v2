@@ -10,6 +10,8 @@ namespace Darklight.Unity.Backend
         [SerializeField]
         private UnityEvent _unityEvent;
 
+		// TODO : ExecutionDelay
+
         public EventTaskBot()
         {
             _unityEvent = new UnityEvent();
@@ -37,3 +39,37 @@ namespace Darklight.Unity.Backend
         }
     }
 }
+
+/*
+public class EventTracker
+{
+    private int totalTasks;
+    private int completedTasks;
+
+    public UnityEvent myEvent;
+
+    public async Task RunEventAndWait()
+    {
+        totalTasks = myEvent.GetPersistentEventCount();
+        completedTasks = 0;
+
+        myEvent.Invoke();
+
+        await Task.Run(() => WaitForTasks());
+    }
+
+    private void WaitForTasks()
+    {
+        while (completedTasks < totalTasks)
+        {
+            // Wait
+        }
+    }
+
+    public void TaskCompleted()
+    {
+        completedTasks++;
+    }
+}
+
+*/

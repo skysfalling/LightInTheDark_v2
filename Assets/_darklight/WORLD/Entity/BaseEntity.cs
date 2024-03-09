@@ -28,6 +28,7 @@ namespace Darklight.World.Generation.Entity
             modelObject.SetActive(true);
             active = true;
 
+            // set position to ground position of current chunk	
             this.transform.position = currentChunk.GroundPosition;
 
             currentChunk = DetermineNewTargetChunk();

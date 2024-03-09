@@ -98,12 +98,16 @@ namespace Darklight.World.Generation.CustomEditor
                 {
                     await _worldBuilderScript.InitializeAsync();
                 }
+                if(GUILayout.Button("Initialize and Generate Mesh"))
+                {
+                    await _worldBuilderScript.InitializeAndGenerate();
+                }
             }
             else
             {
                 if (GUILayout.Button("Start Generation"))
                 {
-                    _worldBuilderScript.StartGeneration();
+                    _worldBuilderScript.StartGenerationAsync();
                 }
 
                 if (GUILayout.Button("Reset"))

@@ -13,37 +13,31 @@ namespace Darklight.World.Generation
     [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
     public class Traveler : MonoBehaviour
     {
-        bool _active = false;
-        WorldBuilder _worldGeneration => WorldBuilder.Instance;
-        Region _parentRegion;
-        Coordinate _currentCoordinate;
+        WorldBuilder _worldBuilder => WorldBuilder.Instance;
+        public bool Active = false;
+        public Region ParentRegion { get; private set; }
+        public Chunk CurrentChunk { get; private set; }
 
         // [[ INSPECTOR VARIABLES ]]
-        public GameObject modelPrefab;
-        GameObject _modelObject;
-
-        public GameObject ModelObject => _modelObject;
-
-        public void InitializeAt(Region region, Coordinate coordinate)
+        public void InitializeAt(Region region, Chunk chunk)
         {
-            _parentRegion = region;
-            _currentCoordinate = coordinate;
+            ParentRegion = region;
+            CurrentChunk = chunk;
+            Active = true;
         }
 
-        public void SpawnModel()
-        {
-            if (modelPrefab == null) return;
-            if (_modelObject != null)
+		private void OnDrawGizmos() {
+            if (Active)
             {
-                DestroyModel();
-            }
-            _modelObject = Instantiate(modelPrefab, transform.position, Quaternion.identity, transform);
-            _modelObject.hideFlags = HideFlags.DontSave;
-        }
+                Gizmos.color = Color.red;
+                Gizmos.DrawWireSphere(CurrentChunk.Coordinate.ScenePosition, 5f);
 
-        public void DestroyModel()
-        {
-            DestroyGameObject(_modelObject);
+                foreach (Coordinate neighbor in CurrentChunk.Coordinate.GetAllValidNeighbors())
+                {
+                    Gizmos.color = Color.green;
+                    Gizmos.DrawWireSphere(neighbor.ScenePosition, 5f);
+                }
+            }
         }
 
         public static void DestroyGameObject(GameObject gameObject)

@@ -73,25 +73,6 @@ namespace Darklight.World.Generation
         }
         #endregion
 
-        #region [[ STAGE PROFILERS ]] -------------------------------------- >>
-        /// <summary> Represents a stage in the initialization process, including its identifier, name, and execution time. </summary>
-        public struct InitializationStage
-        {
-            public int id;
-            public string name;
-            public long time;
-            public InitializationStage(int id, string name, long time)
-            {
-                this.id = id;
-                this.name = name;
-                this.time = time;
-            }
-        }
-
-        public List<InitializationStage> InitStages { get; private set; } = new();
-
-        #endregion
-
         // [[ PRIVATE VARIABLES ]] 
         string _prefix = "[ WORLD GENERATION ] ";
         Coroutine _generationCoroutine;
@@ -119,9 +100,16 @@ namespace Darklight.World.Generation
         public CustomWorldGenerationSettings customWorldGenSettings; // Settings Scriptable Object
 
         #region == INITIALIZATION ============================================== >>>> 
-        public void StartInitializeAsync()
+        public void StartInitAndGenerationAsync()
         {
-            _ = InitializeAsync();
+            _ = InitializeAndGenerate();
+        }
+
+        public async Task InitializeAndGenerate()
+        {
+			await InitializeAsync();
+			await GenerationSequenceAsync();
+            
         }
 
         /// <summary>
@@ -216,22 +204,14 @@ namespace Darklight.World.Generation
         /// <summary>
         /// Initiates the mesh generation sequence
         /// </summary>
-        public void StartGeneration()
+        public void StartGenerationAsync()
         {
-            if (_generationCoroutine == null)
-            {
-                _generationCoroutine = StartCoroutine(GenerationSequence());
-            }
-            else
-            {
-                StopCoroutine(_generationCoroutine);
-                _generationCoroutine = StartCoroutine(GenerationSequence());
-            }
+	            _ = GenerationSequenceAsync();
         }
 
-        IEnumerator GenerationSequence()
+        async Task GenerationSequenceAsync()
         {
-            yield return new WaitUntil(() => Initialized); // wait until self initialization
+            await Task.Run(() => new WaitUntil(() => Initialized)); // wait until self initialization
 
             Debug.Log($"{_prefix} Starting Generation Sequence");
 
@@ -242,7 +222,6 @@ namespace Darklight.World.Generation
                     region.ChunkMap.GenerateChunkMeshes(true);
                 }
             }
-
             else if (Settings.ChunkMeshUnitSpace == UnitSpace.REGION)
             {
                 foreach (Region region in AllRegions)
@@ -255,8 +234,6 @@ namespace Darklight.World.Generation
                     region.CreateCombinedChunkMesh();
                 }
             }
-
-            _generationCoroutine = null;
         }
 
         /// <summary> Create GameObject from ChunkMesh </summary>
@@ -321,8 +298,6 @@ namespace Darklight.World.Generation
             }
             _regionMap.Clear();
             this._coordinateMap = null; // Clear coordinate map
-
-            InitStages = new(); // reset stage tracking
 
             Initialized = false;
         }

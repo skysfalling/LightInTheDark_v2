@@ -26,7 +26,8 @@ namespace Darklight.Unity
         }
         #endregion
 
-        private void Start() {
+        private void Start() 
+        {
             base.ExecuteAllBotsInQueue();
         }
 
