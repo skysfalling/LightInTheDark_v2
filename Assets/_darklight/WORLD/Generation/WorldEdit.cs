@@ -54,7 +54,7 @@ namespace Darklight.World.Generation
         public enum CellMapView { TYPE, FACE }
         public CellMapView cellMapView = CellMapView.TYPE;
 
-        public WorldBuilder worldGeneration => GetComponent<WorldBuilder>();
+        public WorldBuilder worldBuilder => GetComponent<WorldBuilder>();
         public Region selectedRegion;
         public Chunk selectedChunk;
         public Cell selectedCell;

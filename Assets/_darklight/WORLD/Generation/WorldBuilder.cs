@@ -74,7 +74,7 @@ namespace Darklight.World.Generation
         #endregion
 
         // [[ PRIVATE VARIABLES ]] 
-        string _prefix = "[ WORLD GENERATION ] ";
+        string _prefix = "[ WORLD BUILDER ] ";
         Coroutine _generationCoroutine;
         CoordinateMap _coordinateMap;
         Dictionary<Vector2Int, Region> _regionMap = new();
@@ -100,30 +100,28 @@ namespace Darklight.World.Generation
         public CustomWorldGenerationSettings customWorldGenSettings; // Settings Scriptable Object
 
         #region == INITIALIZATION ============================================== >>>> 
-        public void StartInitAndGenerationAsync()
+        public override void Initialize()
         {
-            _ = InitializeAndGenerate();
+            _ = InitializeAndGenerateAsync();
         }
 
-        public async Task InitializeAndGenerate()
-        {
-			await InitializeAsync();
-			await GenerationSequenceAsync();
-            
-        }
-
-        /// <summary>
-        /// Asynchronously initiates the world generation process, including seed initialization and region creation.
-        /// </summary>
-        public async Task InitializeAsync()
+        async Task InitializeAndGenerateAsync()
         {
             OverrideSettings(customWorldGenSettings);
-
             InitializeSeedRandom();
 
             this._coordinateMap = new CoordinateMap(this);
-
+            
             await InitializationSequenceAsync();
+
+            // This will yield control back to the caller, allowing it to continue
+            // executing while the heavy computation is running
+            await Task.Yield();
+
+            // This part will run after the heavy computation is done
+
+            await GenerationSequenceAsync();
+            await Task.Yield();
         }
 
         /// <summary>
@@ -131,6 +129,82 @@ namespace Darklight.World.Generation
         /// </summary>
         async Task InitializationSequenceAsync()
         {
+            // Stage 0: Create Regions
+            base.NewTaskBot("CreateRegions", async () =>
+            {
+                Debug.Log("CreateRegions task started");
+                foreach (Coordinate regionCoordinate in CoordinateMap.AllCoordinates)
+                {
+                    GameObject regionObject = new GameObject($"New Region ({regionCoordinate.ValueKey})");
+                    Region region = regionObject.AddComponent<Region>();
+                    regionObject.transform.parent = this.transform;
+                    region.SetReferences(this, regionCoordinate);
+                    _regionMap[regionCoordinate.ValueKey] = region;
+                    await Task.Yield(); // Efficiently yields back to the main thread
+                }
+                Debug.Log("CreateRegions task completed");
+            });
+
+            // Stage 1: Initialize Regions
+            base.NewTaskBot("InitializeRegions", async () =>
+            {
+                Debug.Log("InitializeRegions task started");
+                foreach (Region region in AllRegions)
+                {
+                    region.Initialize();
+                    await Task.Yield();
+                }
+                Debug.Log("InitializeRegions task completed");
+            });
+
+            // Stage 2: Generate Exits
+            base.NewTaskBot("GenerateExits", async () =>
+            {
+                Debug.Log("GenerateExits task started");
+                foreach (var region in AllRegions)
+                {
+                    region.GenerateNecessaryExits(true);
+                    await Task.Yield();
+                }
+                Debug.Log("GenerateExits task completed");
+            });
+
+            // Stage 3: Generate Paths Between Exits
+            base.NewTaskBot("GeneratePathsBetweenExits", async () =>
+            {
+                Debug.Log("GeneratePathsBetweenExits task started");
+                foreach (var region in AllRegions)
+                {
+                    region.CoordinateMap.GeneratePathsBetweenExits();
+                    await Task.Yield();
+                }
+                Debug.Log("GeneratePathsBetweenExits task completed");
+            });
+
+            // Stage 4: Zone Generation and Height Assignments
+            base.NewTaskBot("ZoneGeneration", async () =>
+            {
+                Debug.Log("ZoneGeneration task started");
+                foreach (var region in AllRegions)
+                {
+                    while (region.Initialized == false)
+                    {
+                        await Task.Yield();
+                    }
+
+                    region.CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
+                    region.ChunkMap.UpdateMap(); // Update chunk map to match coordinate type values
+                }
+                Debug.Log("ZoneGeneration task completed");
+            });
+
+            // Run all bots
+            await base.ExecuteAllBotsInQueue();
+            Debug.Log($"{_prefix} Initialized");
+
+            // Mark initialization as complete
+            Initialized = true;
+
             // Stage 0: Create Regions
             base.NewTaskBot("CreateRegions", async () =>
             {
@@ -192,6 +266,7 @@ namespace Darklight.World.Generation
 
             // Run all bots
             await base.ExecuteAllBotsInQueue();
+            Debug.Log($"{_prefix} Initialized");
 
             // Mark initialization as complete
             Initialized = true;
@@ -206,7 +281,7 @@ namespace Darklight.World.Generation
         /// </summary>
         public void StartGenerationAsync()
         {
-	            _ = GenerationSequenceAsync();
+            _ = GenerationSequenceAsync();
         }
 
         async Task GenerationSequenceAsync()
@@ -233,57 +308,6 @@ namespace Darklight.World.Generation
                 {
                     region.CreateCombinedChunkMesh();
                 }
-            }
-        }
-
-        /// <summary> Create GameObject from ChunkMesh </summary>
-        public static GameObject CreateChunkMeshObject(ChunkMesh chunkMesh)
-        {
-            GameObject worldObject = new GameObject($"Chunk at {chunkMesh.ParentChunk.Coordinate.ValueKey}");
-
-            MeshFilter meshFilter = worldObject.AddComponent<MeshFilter>();
-            meshFilter.sharedMesh = chunkMesh.Mesh;
-            meshFilter.sharedMesh.RecalculateBounds();
-            meshFilter.sharedMesh.RecalculateNormals();
-
-            worldObject.AddComponent<MeshRenderer>().material = Settings.materialLibrary.DefaultGroundMaterial;
-            worldObject.AddComponent<MeshCollider>().sharedMesh = chunkMesh.Mesh;
-
-            return worldObject;
-        }
-
-        /// <summary> Create GameObject with a given name, mesh and material </summary>
-        public static GameObject CreateMeshObject(string name, Mesh mesh, Material material)
-        {
-            GameObject worldObject = new GameObject(name);
-
-            MeshFilter meshFilter = worldObject.AddComponent<MeshFilter>();
-            meshFilter.sharedMesh = mesh;
-            meshFilter.sharedMesh.RecalculateBounds();
-            meshFilter.sharedMesh.RecalculateNormals();
-
-            worldObject.AddComponent<MeshRenderer>().material = material;
-            worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
-
-            return worldObject;
-        }
-
-        /// <summary> Destroy GameObject in Play andEdit mode </summary>
-        public static void DestroyGameObject(GameObject gameObject)
-        {
-            // Check if we are running in the Unity Editor
-#if UNITY_EDITOR
-            if (!EditorApplication.isPlaying)
-            {
-                // Use DestroyImmediate if in edit mode and not playing
-                DestroyImmediate(gameObject);
-                return;
-            }
-            else
-#endif
-            {
-                // Use Destroy in play mode or in a build
-                Destroy(gameObject);
             }
         }
         #endregion

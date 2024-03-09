@@ -54,7 +54,8 @@
         "ProjectSettings/": true,
         "UserSettings/": true,
         "temp/": true,
-        "Temp/": true
+        "Temp/": true,
+        "**/.csproj" : true
     },
     "dotnet.defaultSolution": "LightInTheDark_v2.sln"
 }

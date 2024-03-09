@@ -134,13 +134,17 @@ namespace Darklight.World.Generation
         // == [[ CONSTRUCTOR ]] ======================================================================== >>>>
         public CoordinateMap(object parent)
         {
+			// Debug the parent variable
+            Debug.Log($"Parent: {parent}");
+
             // [[ CREATE REGION COORDINATE MAP ]]
-            if (parent is WorldBuilder worldGeneration)
+            if (parent is WorldBuilder worldBuilder)
             {
                 _mapUnitSpace = UnitSpace.WORLD;
-                _mapOriginPosition = worldGeneration.OriginPosition;
+                _mapOriginPosition = worldBuilder.OriginPosition;
                 _mapWidthCount = WorldBuilder.Settings.WorldWidth_inRegionUnits;
                 _coordinateSize = WorldBuilder.Settings.RegionFullWidth_inGameUnits;
+                Debug.Log($"{_prefix} Coordinate map created for WorldBuilder.");
             }
             // [[ CREATE CHUNK COORDINATE MAP ]]
             else if (parent is Region region)
@@ -149,6 +153,7 @@ namespace Darklight.World.Generation
                 _mapOriginPosition = region.OriginPosition;
                 _mapWidthCount = WorldBuilder.Settings.RegionFullWidth_inChunkUnits;
                 _coordinateSize = WorldBuilder.Settings.ChunkWidth_inGameUnits;
+                Debug.Log($"{_prefix} Coordinate map created for Region.");
             }
             // [[ CREATE CELL COORDINATE MAP ]]
             else if (parent is Chunk chunk)
@@ -157,6 +162,7 @@ namespace Darklight.World.Generation
                 _mapOriginPosition = chunk.OriginPosition;
                 _mapWidthCount = WorldBuilder.Settings.ChunkWidth_inCellUnits;
                 _coordinateSize = WorldBuilder.Settings.CellSize_inGameUnits;
+                Debug.Log($"{_prefix} Coordinate map created for Chunk.");
             }
             else
             {
@@ -650,7 +656,7 @@ namespace Darklight.World.Generation
             Coordinate closestPathCoordinate = FindClosestCoordinateOfType(newZone.CenterCoordinate, new List<Coordinate.TYPE>() { Coordinate.TYPE.PATH });
 
 
-            // Find the closese ZONE Coordinate
+            // Find the closest ZONE Coordinate
             Coordinate zonePathConnection = newZone.GetClosestExternalNeighborTo(closestPathCoordinate.ValueKey);
 
             Path zonePath = CreatePathFrom(closestPathCoordinate.ValueKey, zonePathConnection.ValueKey, new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL, Coordinate.TYPE.PATH }, true);

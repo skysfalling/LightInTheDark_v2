@@ -54,7 +54,6 @@ namespace Darklight.World.Generation
             }
         }
 
-
         public void GenerateChunkMeshes(bool createObject)
         {
             foreach (Chunk chunk in _chunks)
@@ -63,7 +62,7 @@ namespace Darklight.World.Generation
 
                 if (createObject)
                 {
-                    WorldBuilder.CreateChunkMeshObject(chunk.ChunkMesh);
+                    RegionParent.CreateChunkMeshObject(chunk.ChunkMesh);
                 }
             }
         }

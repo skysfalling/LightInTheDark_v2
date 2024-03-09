@@ -28,7 +28,7 @@ namespace Darklight.World.Generation.CustomEditor
             _worldBuilderScript = (WorldBuilder)target;
         }
 
-        public override async void OnInspectorGUI()
+        public override void OnInspectorGUI()
         {
             _serializedWorldGenObject.Update(); // Always start with this call
 
@@ -52,7 +52,7 @@ namespace Darklight.World.Generation.CustomEditor
                     EditorGUILayout.Space();
                     EditorGUILayout.BeginVertical();
 
-                    Editor editor = CreateEditor(_worldBuilderScript.customWorldGenSettings);
+                    UnityEditor.Editor editor = CreateEditor(_worldBuilderScript.customWorldGenSettings);
                     editor.OnInspectorGUI(); // Draw the editor for the ScriptableObject
 
                     EditorGUILayout.EndVertical();
@@ -87,34 +87,6 @@ namespace Darklight.World.Generation.CustomEditor
             }
 
             EditorGUILayout.Space();
-
-            // ----------------------------------------------------------------
-            // Buttons
-            // ----------------------------------------------------------------
-
-            if (_worldBuilderScript.AllRegions.Count == 0)
-            {
-                if (GUILayout.Button("Initialize"))
-                {
-                    await _worldBuilderScript.InitializeAsync();
-                }
-                if(GUILayout.Button("Initialize and Generate Mesh"))
-                {
-                    await _worldBuilderScript.InitializeAndGenerate();
-                }
-            }
-            else
-            {
-                if (GUILayout.Button("Start Generation"))
-                {
-                    _worldBuilderScript.StartGenerationAsync();
-                }
-
-                if (GUILayout.Button("Reset"))
-                {
-                    _worldBuilderScript.ResetGeneration();
-                }
-            }
 
             // Check if any changes were made in the Inspector
             if (EditorGUI.EndChangeCheck())

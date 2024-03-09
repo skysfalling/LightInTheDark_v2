@@ -1,12 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Darklight.Unity.Backend;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 namespace Darklight.World.Generation
 {
-    public class Region : MonoBehaviour
+    [RequireComponent(typeof(AsyncTaskConsole))]
+    public class Region : AsyncTaskQueen
     {
         // [[ PRIVATE VARIABLES ]]
         string _prefix = "(( REGION ))";
@@ -33,35 +37,63 @@ namespace Darklight.World.Generation
                 return origin;
             }
         }
-        public void SetReferences(WorldBuilder parent, Coordinate coordinate)
+		public bool initializeOnStart = true;
+
+        public void SetReferences(WorldBuilder parent, Coordinate coordinate, string taskQueenName = "Region Task Queen")
         {
             this._generationParent = parent;
             this._coordinate = coordinate;
 
             // Set the transform to the center
             transform.position = CenterPosition;
+
+            this.taskQueenName = taskQueenName;
         }
 
-        public void Initialize()
+		public void Start()
         {
-            StartCoroutine(InitializationSequence());
+            Debug.Log("Start");
+			if (initializeOnStart == true)
+            {
+                Initialize();
+            }        
         }
 
-        IEnumerator InitializationSequence()
+        public override void Initialize()
         {
+            _ = InitializationSequence();
+        }
+
+        public async Task InitializationSequence()
+        {
+			Debug.Log($"Region {_coordinate.ValueKey} is initializing...");
+
             // Create the coordinate map for the region
-            this._coordinateMap = new CoordinateMap(this);
-            yield return new WaitUntil(() => this._coordinateMap.Initialized);
+            NewTaskBot("Initialize Coordinate Map", async () =>
+            {
+                this._coordinateMap = new CoordinateMap(this);
+                await Task.Delay(100);
+            });
 
             // Create the chunk map for the region
-            this._chunkMap = new ChunkMap(this, this._coordinateMap);
-            yield return new WaitUntil(() => this._chunkMap.Initialized);
+            NewTaskBot("Initialize Chunk Map", async () =>
+            {
+                this._chunkMap = new ChunkMap(this, this._coordinateMap);
+                await Task.Delay(100);
+            });
 
             // Update the chunk map to reflect the coordinate map
-            this._chunkMap.UpdateMap();
+            NewTaskBot("Update Chunk Map", async () =>
+            {
+                this._chunkMap.UpdateMap();
+                await Task.Delay(100);
+            });
+
+            // Execute through all tasks
+            await base.ExecuteAllBotsInQueue();
 
             Initialized = true;
-            //Debug.Log($"{_prefix} Initialized at {Coordinate.ValueKey}");
+            Debug.Log($"{_prefix} Initialized at {Coordinate.ValueKey}");
         }
 
         public void GenerateNecessaryExits(bool createExits)
@@ -88,12 +120,12 @@ namespace Darklight.World.Generation
                     // Proceed with exit handling if the neighbor exists.
                     BorderDirection borderInThisRegion = (BorderDirection)currentBorderWithNeighbor; // >> convert border direction to non-nullable type
                     // >> get reference to neighbor region
-                    Region neighborRegion = this.GenerationParent.RegionMap[neighborCoordinateValue]; 
+                    Region neighborRegion = this.GenerationParent.RegionMap[neighborCoordinateValue];
                     // >> get matching border direction
-                    BorderDirection matchingBorderOnNeighbor = (BorderDirection)CoordinateMap.GetOppositeBorder(borderInThisRegion); 
+                    BorderDirection matchingBorderOnNeighbor = (BorderDirection)CoordinateMap.GetOppositeBorder(borderInThisRegion);
                     // >> get exits on neighbor region
-                    HashSet<Vector2Int> neighborBorderExits = neighborRegion.CoordinateMap.GetExitsOnBorder(matchingBorderOnNeighbor); 
-                    
+                    HashSet<Vector2Int> neighborBorderExits = neighborRegion.CoordinateMap.GetExitsOnBorder(matchingBorderOnNeighbor);
+
                     // If neighbor has exits, create matching exits.
                     if (neighborBorderExits != null && neighborBorderExits.Count > 0)
                     {
@@ -117,7 +149,7 @@ namespace Darklight.World.Generation
 
         public void Destroy()
         {
-            WorldBuilder.DestroyGameObject(this.gameObject);
+            DestroyGameObject(this.gameObject);
         }
 
         public void NewSeedGeneration()
@@ -139,6 +171,39 @@ namespace Darklight.World.Generation
             _chunkMap = new ChunkMap(this, _coordinateMap);
         }
 
+        // == MESH GENERATION ============================================== >>>>
+
+        /// <summary> Create GameObject from ChunkMesh </summary>
+        public GameObject CreateChunkMeshObject(ChunkMesh chunkMesh)
+        {
+            GameObject worldObject = new GameObject($"Chunk at {chunkMesh.ParentChunk.Coordinate.ValueKey}");
+
+            MeshFilter meshFilter = worldObject.AddComponent<MeshFilter>();
+            meshFilter.sharedMesh = chunkMesh.Mesh;
+            meshFilter.sharedMesh.RecalculateBounds();
+            meshFilter.sharedMesh.RecalculateNormals();
+
+            worldObject.AddComponent<MeshRenderer>().material = WorldBuilder.Settings.materialLibrary.DefaultGroundMaterial;
+            worldObject.AddComponent<MeshCollider>().sharedMesh = chunkMesh.Mesh;
+
+            return worldObject;
+        }
+
+        /// <summary> Create GameObject with a given name, mesh and material </summary>
+        public GameObject CreateMeshObject(string name, Mesh mesh, Material material)
+        {
+            GameObject worldObject = new GameObject(name);
+
+            MeshFilter meshFilter = worldObject.AddComponent<MeshFilter>();
+            meshFilter.sharedMesh = mesh;
+            meshFilter.sharedMesh.RecalculateBounds();
+            meshFilter.sharedMesh.RecalculateNormals();
+
+            worldObject.AddComponent<MeshRenderer>().material = material;
+            worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
+
+            return worldObject;
+        }
 
         // [[ GENERATE COMBINED MESHES ]] ========================================== >>
         /// <summary>
@@ -196,10 +261,29 @@ namespace Darklight.World.Generation
 
             // Create Combined Mesh of world chunks
             Mesh combinedMesh = CombineChunks(this.ChunkMap.AllChunks.ToList());
-            this._combinedMeshObject = WorldBuilder.CreateMeshObject($"CombinedChunkMesh", combinedMesh, WorldBuilder.Settings.materialLibrary.DefaultGroundMaterial);
+            this._combinedMeshObject = CreateMeshObject($"CombinedChunkMesh", combinedMesh, WorldBuilder.Settings.materialLibrary.DefaultGroundMaterial);
             this._combinedMeshObject.transform.parent = this.transform;
             MeshCollider collider = _combinedMeshObject.AddComponent<MeshCollider>();
             collider.sharedMesh = combinedMesh;
+        }
+
+                /// <summary> Destroy GameObject in Play andEdit mode </summary>
+        public static void DestroyGameObject(GameObject gameObject)
+        {
+            // Check if we are running in the Unity Editor
+#if UNITY_EDITOR
+            if (!EditorApplication.isPlaying)
+            {
+                // Use DestroyImmediate if in edit mode and not playing
+                DestroyImmediate(gameObject);
+                return;
+            }
+            else
+#endif
+            {
+                // Use Destroy in play mode or in a build
+                Destroy(gameObject);
+            }
         }
     }
 }

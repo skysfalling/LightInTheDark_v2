@@ -34,7 +34,7 @@ namespace Darklight.Unity.Backend
             {
                 stopwatch.Stop();
                 executionTime = stopwatch.ElapsedMilliseconds;
-                Debug.Log($"EventTaskBot {name} completed in {executionTime} ms");
+                Debug.Log($"EventTaskBot {name} UnityEvent.Invoked");
             }
         }
     }

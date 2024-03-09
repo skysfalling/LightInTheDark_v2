@@ -96,17 +96,6 @@ namespace Darklight.World.Generation
             DetermineChunkType();
         }
 
-        public void CreateChunkMeshObject(Region region)
-        {
-            if (this.ChunkObject != null)
-            {
-                WorldBuilder.DestroyGameObject(ChunkObject);
-            }
-
-            this.ChunkObject = WorldBuilder.CreateChunkMeshObject(ChunkMesh);
-            this.ChunkObject.transform.parent = region.transform;
-        }
-
         public void SetGroundHeight(int height)
         {
             this._groundHeight = height;

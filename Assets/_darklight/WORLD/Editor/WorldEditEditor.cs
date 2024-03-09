@@ -36,7 +36,7 @@ namespace Darklight.World.Generation.CustomEditor
         {
             _serializedWorldEditObject.Update();
 
-            WorldBuilder worldGeneration = _worldEditScript.worldGeneration;
+            WorldBuilder worldBuilder = _worldBuilderScript;
 
 
             // [[ EDITOR VIEW ]]
@@ -56,12 +56,12 @@ namespace Darklight.World.Generation.CustomEditor
                     // SHOW WORLD STATS
 
 
-                    CoordinateMapInspector( _worldEditScript.worldGeneration.CoordinateMap);
+                    CoordinateMapInspector( _worldBuilderScript.CoordinateMap);
                     break;
                 case EditMode.REGION:
-                    if (_worldEditScript.selectedRegion == null && worldGeneration.AllRegions.Count > 0) 
+                    if (_worldEditScript.selectedRegion == null && worldBuilder.AllRegions.Count > 0) 
                     {
-                        _worldEditScript.SelectRegion(worldGeneration.RegionMap[Vector2Int.zero]);
+                        _worldEditScript.SelectRegion(worldBuilder.RegionMap[Vector2Int.zero]);
                         break;
                     }
 
@@ -77,9 +77,9 @@ namespace Darklight.World.Generation.CustomEditor
                     ChunkMapInspector(_worldEditScript.selectedRegion.ChunkMap);
                     break;
                 case EditMode.CHUNK:
-                    if (_worldEditScript.selectedChunk == null && worldGeneration.Initialized)
+                    if (_worldEditScript.selectedChunk == null && worldBuilder.Initialized)
                     {
-                        Region originRegion = worldGeneration.RegionMap[Vector2Int.zero];
+                        Region originRegion = worldBuilder.RegionMap[Vector2Int.zero];
                         _worldEditScript.SelectChunk(originRegion.ChunkMap.GetChunkAt(Vector2Int.zero));
                         break;
                     }
@@ -183,7 +183,7 @@ namespace Darklight.World.Generation.CustomEditor
         {
 
             // >> draw world generation bounds
-            WorldBuilder worldGeneration = _worldEditScript.worldGeneration;
+            WorldBuilder worldGeneration = _worldEditScript.worldBuilder;
             DarklightGizmos.DrawWireSquare_withLabel("World Generation", worldGeneration.CenterPosition, WorldBuilder.Settings.WorldWidth_inGameUnits, Color.black, DarklightEditor.CenteredStyle);
 
             switch (_worldEditScript.editMode)
@@ -204,7 +204,7 @@ namespace Darklight.World.Generation.CustomEditor
 
             void DrawWorldEditorGUI()
             {
-                WorldBuilder worldGeneration = _worldEditScript.worldGeneration;
+                WorldBuilder worldGeneration = _worldEditScript.worldBuilder;
 
                 // [[ DRAW DEFAULT SIZE GUIDE ]]
                 if (worldGeneration == null || worldGeneration.CoordinateMap == null)
@@ -219,8 +219,20 @@ namespace Darklight.World.Generation.CustomEditor
                 {
                     DrawCoordinateMap(worldGeneration.CoordinateMap, _worldEditScript.coordinateMapView,(coordinate) =>
                     {
-                        Region selectedRegion = _worldEditScript.worldGeneration.RegionMap[coordinate.ValueKey];
-                        _worldEditScript.SelectRegion(selectedRegion);
+
+                            if (_worldEditScript.selectedCell == null) return;
+
+                            Cell selectedCell = _worldEditScript.selectedCell;
+
+                            try
+                            {
+                                Region selectedRegion = _worldEditScript.worldBuilder.RegionMap[coordinate.ValueKey];
+                                _worldEditScript.SelectRegion(selectedRegion);
+                            }
+                            catch (System.Exception e)
+                            {
+                                Debug.LogError("An error occurred while selecting the region: " + e.Message);
+                            }
                     });
                 }
             }
