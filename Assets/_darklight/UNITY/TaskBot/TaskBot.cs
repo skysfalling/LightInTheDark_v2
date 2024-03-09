@@ -7,9 +7,20 @@ namespace Darklight.Unity.Backend
     [Serializable]
     public class TaskBot : IDisposable
     {
-        Guid _guidId = Guid.NewGuid();
 
-        public string guidId => _guidId.ToString();
+		public struct Profile {
+            public string name;
+            public Guid guidId;
+            public long executionTime;
+            public Profile(TaskBot bot)
+            {
+				name = bot.name;
+                guidId = bot.guidId;
+                executionTime = bot.executionTime;
+            }
+        }
+
+        public Guid guidId = Guid.NewGuid();
         public string name = "NewTaskBot";
         public long executionTime = 0;
         public Stopwatch stopwatch;
@@ -19,9 +30,9 @@ namespace Darklight.Unity.Backend
             stopwatch = Stopwatch.StartNew();
         }
 
-        public virtual void Execute()
+        public Profile NewProfile()
         {
-            throw new NotImplementedException();
+            return new Profile(this);
         }
 
         public void Dispose()

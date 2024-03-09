@@ -26,15 +26,7 @@ namespace Darklight.Unity.Backend
             base.name = name;
             this.task = task;
         }
-
-        /// <summary>
-        /// Overrides the Execute method of the base class.
-        /// </summary>
-        public override void Execute()
-        {
-            _ = ExecuteAsync();
-        }
-
+        
         /// <summary>
         /// Executes the asynchronous task.
         /// </summary>

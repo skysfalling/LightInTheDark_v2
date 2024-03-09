@@ -131,6 +131,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2186029314147007492, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: initializeOnStart
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3048074976327827359, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: m_Name
@@ -186,118 +191,12 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3999295877587457461, guid: dad85dccd7fc00b49a2afeef84d99cca, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dad85dccd7fc00b49a2afeef84d99cca, type: 3}
---- !u!114 &603260311 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2186029314147007492, guid: dad85dccd7fc00b49a2afeef84d99cca,
-    type: 3}
-  m_PrefabInstance: {fileID: 603260310}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 620745325a50846479f301ec54b3a337, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!1 &892367046
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 892367048}
-  - component: {fileID: 892367047}
-  m_Layer: 0
-  m_Name: '[UNIVERSAL_INPUT]'
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &892367047
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 892367046}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e43ab50308bd34141879c781bea8baea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  inputType: 0
-  UniversalBasicInputActions: {fileID: -944628639613478452, guid: ad2c454727148ee46abd76728b783116,
-    type: 3}
-  pointerScreenPosition:
-    m_Name: 
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 4068d03c-a625-4387-a725-ea409f658705
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings: []
-    m_Flags: 0
-  primaryInteract:
-    m_Name: 
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: fc3afbdc-be3a-40bb-b02c-592967831199
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings: []
-    m_Flags: 0
-  secondaryInteract:
-    m_Name: 
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 7476f4c9-aa47-4e5d-8196-74c35559a92e
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings: []
-    m_Flags: 0
-  moveInput:
-    m_Name: 
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 352a3e18-6f5f-4abe-b628-df94395052fa
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings: []
-    m_Flags: 0
-  activePointerPositionEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  primaryInteractionEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  secondaryInteractionEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  moveInputEvent:
-    m_PersistentCalls:
-      m_Calls: []
---- !u!4 &892367048
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 892367046}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1829917539}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &977492119
 GameObject:
   m_ObjectHideFlags: 0
@@ -477,70 +376,6 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 0
---- !u!1 &1829917538
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1829917539}
-  - component: {fileID: 1829917540}
-  m_Layer: 0
-  m_Name: '[SCENE HANDLER]'
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1829917539
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1829917538}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 892367048}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1829917540
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1829917538}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b4fd9b29a0ff422429a3b6bfe929fb25, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  taskQueenName: EventTaskQueen
-  eventTaskBots:
-  - name: Initalize World Gen
-    executionTime: 0
-    _unityEvent:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 603260311}
-          m_TargetAssemblyTypeName: Darklight.World.Generation.WorldBuilder, Assembly-CSharp
-          m_MethodName: Initialize
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
 --- !u!1 &1887117057
 GameObject:
   m_ObjectHideFlags: 0
@@ -616,6 +451,5 @@ SceneRoots:
   m_Roots:
   - {fileID: 1499041133}
   - {fileID: 1887117059}
-  - {fileID: 1829917539}
   - {fileID: 977492120}
   - {fileID: 603260310}

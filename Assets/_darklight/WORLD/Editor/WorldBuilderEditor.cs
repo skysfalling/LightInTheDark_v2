@@ -5,15 +5,15 @@ using System.Collections.Generic;
 using UnityEngine.UIElements;
 using System.Linq;
 
-namespace Darklight.World.Generation.CustomEditor
+namespace Darklight.World.Generation.Editor
 {
     using DarklightCustomEditor = Darklight.Unity.CustomInspectorGUI;
-    using Darklight.Unity.Backend;
+    using Backend = Darklight.Unity.Backend;
 
     [UnityEditor.CustomEditor(typeof(WorldBuilder))]
-    public class WorldBuilderEditor : UnityEditor.Editor
+    public class WorldBuilderEditor : Backend.AsyncTaskQueen.AsyncTaskQueenEditor
     {
-        private SerializedObject _serializedWorldGenObject;
+        private SerializedObject _serializedWorldBuilderObject;
         private WorldBuilder _worldBuilderScript;
 
         static bool showGenerationSettingsFoldout = false;
@@ -22,22 +22,23 @@ namespace Darklight.World.Generation.CustomEditor
         private void OnEnable()
         {
             // Cache the SerializedObject
-            _serializedWorldGenObject = new SerializedObject(target);
+            _serializedWorldBuilderObject = new SerializedObject(target);
             WorldBuilder.InitializeSeedRandom();
 
             _worldBuilderScript = (WorldBuilder)target;
+
         }
 
         public override void OnInspectorGUI()
         {
-            _serializedWorldGenObject.Update(); // Always start with this call
+            _serializedWorldBuilderObject.Update(); // Always start with this call
 
             EditorGUI.BeginChangeCheck();
 
             // ----------------------------------------------------------------
             // CUSTOM GENERATION SETTINGS
             // ----------------------------------------------------------------
-            SerializedProperty customWorldGenSettingsProperty = _serializedWorldGenObject.FindProperty("customWorldGenSettings");
+            SerializedProperty customWorldGenSettingsProperty = _serializedWorldBuilderObject.FindProperty("customWorldGenSettings");
             EditorGUILayout.PropertyField(customWorldGenSettingsProperty);
             if (_worldBuilderScript.customWorldGenSettings != null)
             {
@@ -88,11 +89,17 @@ namespace Darklight.World.Generation.CustomEditor
 
             EditorGUILayout.Space();
 
+			SerializedProperty initOnStart = _serializedWorldBuilderObject.FindProperty("initializeOnStart");
+            EditorGUILayout.PropertyField(initOnStart);
+		
+        	// Draw the console window
+			base.OnInspectorGUI();
+
             // Check if any changes were made in the Inspector
             if (EditorGUI.EndChangeCheck())
             {
                 // If there were changes, apply them to the serialized object
-                _serializedWorldGenObject.ApplyModifiedProperties();
+                _serializedWorldBuilderObject.ApplyModifiedProperties();
 
                 // Optionally, mark the target object as dirty to ensure the changes are saved
                 EditorUtility.SetDirty(target);

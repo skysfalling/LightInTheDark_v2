@@ -15,7 +15,7 @@ namespace Darklight.Unity.Backend
             while (queue.Count > 0)
             {
                 EventTaskBot eventTaskBot = queue.Dequeue();
-                eventTaskBot.Execute();
+                eventTaskBot.ExecuteEvent();
 
                 eventTaskBot.Dispose();
             }

@@ -8,9 +8,7 @@ using UnityEditor;
 using UnityEngine;
 
 namespace Darklight.World.Generation
-{
-    [RequireComponent(typeof(AsyncTaskConsole))]
-    public class Region : AsyncTaskQueen
+{    public class Region : AsyncTaskQueen, ITaskQueen
     {
         // [[ PRIVATE VARIABLES ]]
         string _prefix = "(( REGION ))";
@@ -47,7 +45,7 @@ namespace Darklight.World.Generation
             // Set the transform to the center
             transform.position = CenterPosition;
 
-            this.taskQueenName = taskQueenName;
+            this.name = taskQueenName;
         }
 
 		public void Start()
@@ -55,19 +53,18 @@ namespace Darklight.World.Generation
             Debug.Log("Start");
 			if (initializeOnStart == true)
             {
-                Initialize();
+                this.Initialize();
             }        
         }
 
-        public override void Initialize()
+        public override void Initialize(string name = "RegionAsyncTaskQueen")
         {
+            base.Initialize(name);
             _ = InitializationSequence();
         }
 
         public async Task InitializationSequence()
         {
-			Debug.Log($"Region {_coordinate.ValueKey} is initializing...");
-
             // Create the coordinate map for the region
             NewTaskBot("Initialize Coordinate Map", async () =>
             {
@@ -93,7 +90,7 @@ namespace Darklight.World.Generation
             await base.ExecuteAllBotsInQueue();
 
             Initialized = true;
-            Debug.Log($"{_prefix} Initialized at {Coordinate.ValueKey}");
+            //Debug.Log($"{_prefix} Initialized at {Coordinate.ValueKey}");
         }
 
         public void GenerateNecessaryExits(bool createExits)

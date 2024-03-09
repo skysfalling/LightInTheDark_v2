@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 2186029314147007492}
   - component: {fileID: 857037355430193632}
   - component: {fileID: 7975659058563263201}
-  - component: {fileID: 3999295877587457461}
   m_Layer: 0
   m_Name: '[ WORLD BUILDER ]'
   m_TagString: Untagged
@@ -47,9 +46,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 620745325a50846479f301ec54b3a337, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  taskQueenName: AsyncTaskQueen
+  name: 
+  asyncTaskConsole: {fileID: 0}
   customWorldGenSettings: {fileID: 11400000, guid: 32809448232478c43a1dc5f49fc640ae,
     type: 2}
+  asyncTaskConsole: {fileID: 0}
 --- !u!114 &857037355430193632
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -81,17 +82,5 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 48b31e767e52d57489b8d9de094efc3a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &3999295877587457461
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3048074976327827359}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c25d74b7fd9da4543a266a533306a99a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

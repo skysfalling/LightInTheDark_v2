@@ -32,7 +32,7 @@ namespace Darklight.World.Generation
 
     /// <summary> Initializes and handles the procedural world generation. </summary>
     [RequireComponent(typeof(WorldEdit))]
-    public class WorldBuilder : AsyncTaskQueen
+    public class WorldBuilder : AsyncTaskQueen, ITaskQueen
     {
         #region [[ STATIC INSTANCE ]] ------------------- // 
         /// <summary> A singleton instance of the WorldGeneration class. </summary>
@@ -98,13 +98,23 @@ namespace Darklight.World.Generation
 
         // [[ PUBLIC INSPECTOR VARIABLES ]] 
         public CustomWorldGenerationSettings customWorldGenSettings; // Settings Scriptable Object
+		public bool initializeOnStart;
 
         #region == INITIALIZATION ============================================== >>>> 
-        public override void Initialize()
+		private void Start() 
         {
+            if (initializeOnStart ==  true) {Initialize();}
+        }
+
+        public override void Initialize(string name = "WorldBuilderAsyncTaskQueen")
+        {
+            base.Initialize(name);
             _ = InitializeAndGenerateAsync();
         }
 
+        /// <summary>
+        /// Represents an asynchronous operation that can return a value.
+        /// </summary>
         async Task InitializeAndGenerateAsync()
         {
             OverrideSettings(customWorldGenSettings);
@@ -196,72 +206,6 @@ namespace Darklight.World.Generation
                     region.ChunkMap.UpdateMap(); // Update chunk map to match coordinate type values
                 }
                 Debug.Log("ZoneGeneration task completed");
-            });
-
-            // Run all bots
-            await base.ExecuteAllBotsInQueue();
-            Debug.Log($"{_prefix} Initialized");
-
-            // Mark initialization as complete
-            Initialized = true;
-
-            // Stage 0: Create Regions
-            base.NewTaskBot("CreateRegions", async () =>
-            {
-                foreach (Coordinate regionCoordinate in CoordinateMap.AllCoordinates)
-                {
-                    GameObject regionObject = new GameObject($"New Region ({regionCoordinate.ValueKey})");
-                    Region region = regionObject.AddComponent<Region>();
-                    regionObject.transform.parent = this.transform;
-                    region.SetReferences(this, regionCoordinate);
-                    _regionMap[regionCoordinate.ValueKey] = region;
-                    await Task.Yield(); // Efficiently yields back to the main thread
-                }
-            });
-
-            // Stage 1: Initialize Regions
-            base.NewTaskBot("InitializeRegions", async () =>
-            {
-                foreach (Region region in AllRegions)
-                {
-                    region.Initialize();
-                    await Task.Yield();
-                }
-            });
-
-            // Stage 2: Generate Exits
-            base.NewTaskBot("GenerateExits", async () =>
-            {
-                foreach (var region in AllRegions)
-                {
-                    region.GenerateNecessaryExits(true);
-                    await Task.Yield();
-                }
-            });
-
-            // Stage 3: Generate Paths Between Exits
-            base.NewTaskBot("GeneratePathsBetweenExits", async () =>
-            {
-                foreach (var region in AllRegions)
-                {
-                    region.CoordinateMap.GeneratePathsBetweenExits();
-                    await Task.Yield();
-                }
-            });
-
-            // Stage 4: Zone Generation and Height Assignments
-            base.NewTaskBot("ZoneGeneration", async () =>
-            {
-                foreach (var region in AllRegions)
-                {
-                    while (region.Initialized == false)
-                    {
-                        await Task.Yield();
-                    }
-
-                    region.CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
-                    region.ChunkMap.UpdateMap(); // Update chunk map to match coordinate type values
-                }
             });
 
             // Run all bots

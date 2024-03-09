@@ -134,9 +134,6 @@ namespace Darklight.World.Generation
         // == [[ CONSTRUCTOR ]] ======================================================================== >>>>
         public CoordinateMap(object parent)
         {
-			// Debug the parent variable
-            Debug.Log($"Parent: {parent}");
-
             // [[ CREATE REGION COORDINATE MAP ]]
             if (parent is WorldBuilder worldBuilder)
             {

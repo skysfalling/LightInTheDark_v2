@@ -23,7 +23,7 @@ namespace Darklight.Unity.Backend
             _unityEvent = unityEvent;
         }
 
-        public override void Execute()
+        public void ExecuteEvent()
         {
             try
             {
