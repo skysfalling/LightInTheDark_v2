@@ -119,14 +119,14 @@ Material:
     - _Dot_Scale: 15
     - _DstBlend: 0
     - _DstBlendAlpha: 0
-    - _Enable_Fade_Loop: 0
+    - _Enable_Fade_Loop: 1
     - _EnvironmentReflections: 1
-    - _Fade_Speed: 3.81
+    - _Fade_Speed: 0.5
     - _FresnelPower: 0
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _Intensity: 1.24
+    - _Intensity: 1
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _Offset: -4.07
@@ -147,7 +147,7 @@ Material:
     - _shadow_brightness: 0.3
     m_Colors:
     - _BaseColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Base_Color: {r: 0.12477186, g: 0.0056053917, b: 0.34191445, a: 0}
+    - _Base_Color: {r: 0.19383498, g: 0, b: 0.5377358, a: 1}
     - _Color: {r: 7.7337737, g: 3.2747207, b: 10.680627, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Glow_Color: {r: 3.7430623, g: 0.14052615, b: 10.638451, a: 1}

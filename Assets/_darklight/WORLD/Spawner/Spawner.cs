@@ -7,9 +7,9 @@ using UnityEngine;
 
 namespace Darklight.World.Generation.Entity.Spawner
 {
-    public class MainSpawner : EventTaskQueen
+    public class EntitySpawner : EventTaskQueen
     {
-        public static MainSpawner Instance { get; private set; }
+        public static EntitySpawner Instance { get; private set; }
         private void Awake()
         {
             if (Instance != null) { Destroy(this); }
