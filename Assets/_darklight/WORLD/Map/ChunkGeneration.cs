@@ -1,37 +1,93 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Darklight.Unity.Backend;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Darklight.World.Generation
 {
-    public class ChunkMap
+    public class ChunkGeneration : AsyncTaskQueen, ITaskQueen
     {
         HashSet<Chunk> _chunks = new();
         Dictionary<Vector2Int, Chunk> _chunkMap = new();
 
         public bool Initialized { get; private set; }
-        public Region RegionParent { get; private set; }
+        public RegionBuilder RegionParent { get; private set; }
         public CoordinateMap CoordinateMap { get; private set; }
         public HashSet<Chunk> AllChunks { get { return _chunks; } private set { } }
 
-        public ChunkMap(Region worldRegion, CoordinateMap coordinateMap)
+        public void Initialize(RegionBuilder worldRegion, CoordinateMap coordinateMap)
         {
-            this.RegionParent = worldRegion;
-            this.CoordinateMap = coordinateMap;
-
-            // [[ CREATE WORLD CHUNKS ]]
-            foreach (Vector2Int position in coordinateMap.AllCoordinateValues)
-            {
-                Coordinate coordinate = coordinateMap.GetCoordinateAt(position);
-                Chunk newChunk = new Chunk(this, coordinate);
-                _chunks.Add(newChunk);
-                _chunkMap[coordinate.ValueKey] = newChunk;
-            }
-
+            base.Initialize("ChunkGenerationAsync");
+            RegionParent = worldRegion;
+            CoordinateMap = coordinateMap;
             Initialized = true;
+
+            _ = InitializationSequence();
         }
+
+        async Task InitializationSequence()
+        {
+
+            base.NewTaskBot("Wait for Coordinate Map", async () =>
+            {
+                await Task.Run(() => CoordinateMap.Initialized);
+                await Task.Yield();
+            });
+
+
+            base.NewTaskBot("Creating Chunks", async () =>
+            {
+                asyncTaskConsole.Log(this, $"Creating {CoordinateMap.AllCoordinateValues.Count} Chunks");
+
+                // [[ CREATE WORLD CHUNKS ]]
+                foreach (Vector2Int position in CoordinateMap.AllCoordinateValues)
+                {
+                    Coordinate coordinate = CoordinateMap.GetCoordinateAt(position);
+                    Chunk newChunk = new Chunk(this, coordinate);
+                    _chunks.Add(newChunk);
+                    _chunkMap[coordinate.ValueKey] = newChunk;
+                }
+
+                await Task.Yield();
+            });
+
+            base.NewTaskBot("Creating Meshes", async () =>
+            {
+                asyncTaskConsole.Log(this, $"Creating {_chunks.Count} Meshes");
+
+                foreach (Chunk chunk in _chunks)
+                {
+                    ChunkMesh newMesh = chunk.CreateChunkMesh();
+                    asyncTaskConsole.Log(this, $"\tNewChunkMeshObject : {newMesh}");
+                }
+
+                await Task.Yield();
+            });
+
+            base.NewTaskBot("Creating Objects", async () =>
+            {
+                asyncTaskConsole.Log(this, $"Creating {_chunks.Count} Objects");
+
+
+                foreach (Chunk chunk in _chunks)
+                {
+                    await Task.Run(() => chunk.ChunkMesh != null);
+
+                    GameObject newObject = RegionParent.CreateChunkMeshObject(chunk.ChunkMesh, $"Chunk {chunk.Coordinate.ValueKey}");
+                    asyncTaskConsole.Log(this, $"\tNewChunkMeshObject : {newObject}");
+                }
+
+                await Task.Yield();
+            });
+
+            await base.ExecuteAllBotsInQueue();
+            Debug.Log("Initialization Sequence Completed");
+
+        }
+
 
         public void UpdateMap()
         {
@@ -50,19 +106,6 @@ namespace Darklight.World.Generation
                     default:
                         chunk.SetGroundHeight(0); // Set to default 0
                         break;
-                }
-            }
-        }
-
-        public void GenerateChunkMeshes(bool createObject)
-        {
-            foreach (Chunk chunk in _chunks)
-            {
-                chunk.CreateChunkMesh();
-
-                if (createObject)
-                {
-                    RegionParent.CreateChunkMeshObject(chunk.ChunkMesh);
                 }
             }
         }

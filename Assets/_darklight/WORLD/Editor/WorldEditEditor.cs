@@ -69,7 +69,7 @@ namespace Darklight.World.Generation.CustomEditor
                     EditorGUILayout.Space(20);
 
                     // SHOW REGION STATS
-                    Region selectedRegion = _worldEditScript.selectedRegion;
+                    RegionBuilder selectedRegion = _worldEditScript.selectedRegion;
                     EditorGUILayout.LabelField($"Coordinate ValueKey => {selectedRegion.Coordinate.ValueKey}", DarklightEditor.LeftAlignedStyle);
 
                     DarklightEditor.DrawLabeledEnumPopup(ref _worldEditScript.regionView, "Region View");
@@ -79,7 +79,7 @@ namespace Darklight.World.Generation.CustomEditor
                 case EditMode.CHUNK:
                     if (_worldEditScript.selectedChunk == null && worldBuilder.Initialized)
                     {
-                        Region originRegion = worldBuilder.RegionMap[Vector2Int.zero];
+                        RegionBuilder originRegion = worldBuilder.RegionMap[Vector2Int.zero];
                         _worldEditScript.SelectChunk(originRegion.ChunkMap.GetChunkAt(Vector2Int.zero));
                         break;
                     }
@@ -92,7 +92,7 @@ namespace Darklight.World.Generation.CustomEditor
 
 
                     DarklightEditor.DrawLabeledEnumPopup(ref _worldEditScript.chunkView, "Chunk View");
-                    CoordinateMapInspector( _worldEditScript.selectedChunk.CoordinateMap);
+                    //CoordinateMapInspector( _worldEditScript.selectedChunk);
                     CellMapInspector(_worldEditScript.selectedChunk.CellMap);
                     break;
                 case EditMode.CELL:
@@ -144,7 +144,7 @@ namespace Darklight.World.Generation.CustomEditor
                 }
             }
 
-            void ChunkMapInspector(ChunkMap chunkMap)
+            void ChunkMapInspector(ChunkGeneration chunkMap)
             {
                 EditorGUILayout.LabelField("Chunk Map", DarklightEditor.Header2Style);
                 EditorGUILayout.Space(10);
@@ -217,7 +217,7 @@ namespace Darklight.World.Generation.CustomEditor
                 // [[ DRAW COORDINATE MAP ]]
                 else if (_worldEditScript.worldView == WorldView.COORDINATE_MAP)
                 {
-                    
+
                     DrawCoordinateMap(worldGeneration.CoordinateMap, _worldEditScript.coordinateMapView,(coordinate) =>
                     {
 
@@ -227,7 +227,7 @@ namespace Darklight.World.Generation.CustomEditor
 
                             try
                             {
-                                Region selectedRegion = _worldEditScript.worldBuilder.RegionMap[coordinate.ValueKey];
+                                RegionBuilder selectedRegion = _worldEditScript.worldBuilder.RegionMap[coordinate.ValueKey];
                                 _worldEditScript.SelectRegion(selectedRegion);
                             }
                             catch (System.Exception e)
@@ -243,11 +243,11 @@ namespace Darklight.World.Generation.CustomEditor
                 if (_worldEditScript.selectedRegion == null) return;
 
 
-                Region selectedRegion = _worldEditScript.selectedRegion;
+                RegionBuilder selectedRegion = _worldEditScript.selectedRegion;
                 DrawRegion(selectedRegion, _worldEditScript.regionView);
 
 
-                foreach (Region region in worldGeneration.AllRegions)
+                foreach (RegionBuilder region in worldGeneration.AllRegions)
                 {
                     if (region != selectedRegion) { DrawRegion(region, RegionView.OUTLINE); }
                 }
@@ -261,7 +261,7 @@ namespace Darklight.World.Generation.CustomEditor
                 Chunk selectedChunk = _worldEditScript.selectedChunk;
                 DrawChunk(selectedChunk, _worldEditScript.chunkView);
 
-                foreach (Chunk chunk in selectedChunk.ChunkMapParent.AllChunks)
+                foreach (Chunk chunk in selectedChunk.GenerationParent.AllChunks)
                 {
                     if (chunk != selectedChunk) { DrawChunk(chunk, ChunkView.OUTLINE); }
                 }
@@ -281,12 +281,12 @@ namespace Darklight.World.Generation.CustomEditor
 
 
         // ==== DRAW WORLD UNITS ====================================================================================================
-        void DrawRegion(Region region, RegionView type)
+        void DrawRegion(RegionBuilder region, RegionView type)
         {
             if (region == null || region.CoordinateMap == null ) { return; }
 
             CoordinateMap coordinateMap = region.CoordinateMap;
-            ChunkMap chunkMap = region.ChunkMap;
+            ChunkGeneration chunkMap = region.ChunkMap;
             GUIStyle regionLabelStyle = DarklightEditor.CenteredStyle;
 
             // [[ DRAW GRID ONLY ]]
@@ -347,7 +347,7 @@ namespace Darklight.World.Generation.CustomEditor
                     break;
                 case ChunkView.COORDINATE_MAP:
 
-                    DrawCoordinateMap(chunk.CoordinateMap, _worldEditScript.coordinateMapView, (coordinate) => {});
+                    //DrawCoordinateMap(chunk.CoordinateMap, _worldEditScript.coordinateMapView, (coordinate) => {});
 
                     break;
                 case ChunkView.CELL_MAP:
@@ -433,7 +433,7 @@ namespace Darklight.World.Generation.CustomEditor
             }
         }
 
-        void DrawChunkMap(ChunkMap chunkMap, ChunkMapView mapView)
+        void DrawChunkMap(ChunkGeneration chunkMap, ChunkMapView mapView)
         {
             GUIStyle chunkLabelStyle = DarklightEditor.CenteredStyle;
             Color chunkColor = Color.black;

@@ -34,21 +34,16 @@ namespace Darklight.World.Generation
         Vector3Int _currentDimensions;
         Chunk _chunkParent;
         Mesh _mesh;
-        Coordinate _chunkCoordinate;
-        ChunkMap _chunkMapParent;
         Dictionary<FaceType, List<Vector3>> _meshVertices = new();
         Dictionary<FaceType, List<Vector2>> _meshUVs = new();
         Dictionary<FaceType, HashSet<MeshQuad>> _meshQuads = new();
 
-        public Chunk ParentChunk => _chunkParent;
         public Mesh Mesh => _mesh;
         public Dictionary<FaceType, HashSet<MeshQuad>> MeshQuads => _meshQuads;
 
         public ChunkMesh(Chunk chunkParent, int groundHeight, Vector3 position)
         {
             this._chunkParent = chunkParent;
-            this._chunkCoordinate = chunkParent.Coordinate;
-            this._chunkMapParent = chunkParent.ChunkMapParent;
 
             List<FaceType> facesToGenerate = new List<FaceType>()
             {
@@ -128,11 +123,11 @@ namespace Darklight.World.Generation
                     // SET U & V DIVISIONS
                     (int uDivisions, int vDivisions) = GetFaceUVDivisions(faceType);
 
-                    /*
-                    Debug.Log($"Chunk Mesh {worldCoordinate.Coordinate} : {faceType}" +
-                        $"\n\t chunkMeshDimensions {current_chunkMeshDimensions}" +
+/*
+                    Debug.Log($"Chunk Mesh {_chunkParent} : {faceType}" +
+                        $"\n\t chunkMeshDimensions {_currentDimensions}" +
                         $"\n\t uDivisions {uDivisions} vDivisions {vDivisions}");
-                    */
+*/
 
                     // ADD FACE TRIANGLES
                     for (int i = 0; i < vDivisions; i++)
@@ -172,7 +167,7 @@ namespace Darklight.World.Generation
 
 
                             MeshQuad quad = new MeshQuad(faceType, faceCoordinate, GetFaceNormal(faceType), quadVertices);
-                            
+
                             if (!_meshQuads.ContainsKey(faceType)) { _meshQuads[faceType] = new(); }
                             _meshQuads[faceType].Add(quad);
 
@@ -229,37 +224,29 @@ namespace Darklight.World.Generation
             int GetVisibleVDivisions(FaceType type)
             {
                 int faceHeight = _currentDimensions.y; // Get current height
-                Coordinate neighborCoord = null;
+                Chunk neighborChunk = null;
 
                 switch (type)
                 {
                     case FaceType.Front:
-                        neighborCoord = _chunkCoordinate.GetNeighborInDirection(WorldDirection.NORTH);
+                        neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.NORTH];
                         break;
                     case FaceType.Back:
-                        neighborCoord = _chunkCoordinate.GetNeighborInDirection(WorldDirection.SOUTH);
+                        neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.SOUTH];
                         break;
                     case FaceType.Left:
-                        neighborCoord = _chunkCoordinate.GetNeighborInDirection(WorldDirection.WEST);
+                        neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.WEST];
                         break;
                     case FaceType.Right:
-                        neighborCoord = _chunkCoordinate.GetNeighborInDirection(WorldDirection.EAST);
-                        break;
-                    case FaceType.Top:
-                    case FaceType.Bottom:
+                        neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.EAST];
                         break;
                 }
 
-                if (neighborCoord != null)
+                if (neighborChunk != null)
                 {
-                    Chunk neighborChunk = _chunkMapParent.GetChunkAt(neighborCoord);
-                    if (neighborChunk != null)
-                    {
-                        faceHeight -= neighborChunk.GroundHeight; // subtract based on neighbor height
-                        faceHeight -= _defaultDimensions.y; // subtract 'underground' amount
-                        faceHeight = Mathf.Max(faceHeight, 0); // set to 0 as minimum
-                    }
-
+                    faceHeight -= neighborChunk.GroundHeight; // subtract based on neighbor height
+                    faceHeight -= _defaultDimensions.y; // subtract 'underground' amount
+                    faceHeight = Mathf.Max(faceHeight, 0); // set to 0 as minimum
                 }
 
                 return faceHeight;

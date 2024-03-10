@@ -20,7 +20,7 @@ namespace Darklight.World.Generation.Entity.Spawner
             else { Instance = this; }
         }
         WorldBuilder _worldBuilder => WorldBuilder.Instance;
-        Dictionary<Vector2Int, Region> _regionMap => _worldBuilder.RegionMap;
+        Dictionary<Vector2Int, RegionBuilder> _regionMap => _worldBuilder.RegionMap;
         Dictionary<Vector2Int, List<Zone>> _regionZoneMap = new();
 
         public GameObject travelerPrefab;
@@ -61,7 +61,7 @@ namespace Darklight.World.Generation.Entity.Spawner
 
 	    public void SpawnTravelerInRandomValidZone(GameObject travelerPrefab)
         {
-            foreach (Region region in _regionMap.Values)
+            foreach (RegionBuilder region in _regionMap.Values)
             {
                 if (region.CoordinateMap.Zones.Count > 0)
                 {

@@ -34,7 +34,7 @@ namespace Darklight.World.Generation
         string prefix = "{ WORLD ENVIRONMENT } ";
         public bool generation_finished = false;
         WorldBuilder _worldGeneration;
-        ChunkMap _worldChunkMap;
+        ChunkGeneration _worldChunkMap;
 
         string parentObjectPrefix = "env_parent :: ";
         Dictionary<Chunk, Transform> _worldChunkEnvParentMap = new Dictionary<Chunk, Transform>();

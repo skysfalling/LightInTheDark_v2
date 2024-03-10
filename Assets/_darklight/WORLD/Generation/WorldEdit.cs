@@ -55,11 +55,11 @@ namespace Darklight.World.Generation
         public CellMapView cellMapView = CellMapView.TYPE;
 
         public WorldBuilder worldBuilder => GetComponent<WorldBuilder>();
-        public Region selectedRegion;
+        public RegionBuilder selectedRegion;
         public Chunk selectedChunk;
         public Cell selectedCell;
 
-        public void SelectRegion(Region region)
+        public void SelectRegion(RegionBuilder region)
         {
             selectedRegion = region;
 

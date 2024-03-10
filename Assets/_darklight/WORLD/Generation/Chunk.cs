@@ -32,7 +32,7 @@ namespace Darklight.World.Generation
 
         // [[ PRIVATE VARIABLES ]]
         Coordinate _coordinate;
-        CoordinateMap _coordinateMap;
+        //CoordinateMap _coordinateMap;
         ChunkMesh _chunkMesh;
         CellMap _cellMap;
         TYPE _type;
@@ -40,9 +40,9 @@ namespace Darklight.World.Generation
 
         // [[ PUBLIC ACCESS VARIABLES ]] 
         public int Width => WorldBuilder.Settings.ChunkWidth_inGameUnits;
-        public ChunkMap ChunkMapParent { get; private set; }
+        public ChunkGeneration GenerationParent { get; private set; }
         public Coordinate Coordinate => _coordinate;
-        public CoordinateMap CoordinateMap => _coordinateMap;
+        //public CoordinateMap CoordinateMap => _coordinateMap;
         public GameObject ChunkObject { get; private set; }
         public ChunkMesh ChunkMesh => _chunkMesh;
         public CellMap CellMap => _cellMap;
@@ -71,9 +71,9 @@ namespace Darklight.World.Generation
         }
         public Vector3 ChunkMeshDimensions => WorldBuilder.Settings.ChunkVec3Dimensions_inCellUnits + new Vector3Int(0, GroundHeight, 0);
 
-        public Chunk(ChunkMap chunkMap, Coordinate coordinate)
+        public Chunk(ChunkGeneration chunkGeneration, Coordinate coordinate)
         {
-            this.ChunkMapParent = chunkMap;
+            this.GenerationParent = chunkGeneration;
             this._coordinate = coordinate;
 
             // >> set perlin noise height
@@ -84,16 +84,17 @@ namespace Darklight.World.Generation
             //this._coordinateMap = new CoordinateMap(this);
         }
 
-        public void CreateChunkMesh()
+        public ChunkMesh CreateChunkMesh()
         {
+
             // Create chunkMesh
             _chunkMesh = new ChunkMesh(this, GroundHeight, GroundPosition);
-
-            // Create cellMap
+            /*
             _cellMap = new CellMap(this, _chunkMesh);
-
-
             DetermineChunkType();
+            */
+
+            return _chunkMesh;
         }
 
         public void SetGroundHeight(int height)
@@ -105,7 +106,7 @@ namespace Darklight.World.Generation
         {
             // [[ ITERATE THROUGH CHUNK NEIGHBORS ]] 
             Dictionary<WorldDirection, Chunk> naturalNeighborMap = GetNaturalNeighborMap();
-            foreach(WorldDirection direction in naturalNeighborMap.Keys.ToList())
+            foreach (WorldDirection direction in naturalNeighborMap.Keys.ToList())
             {
                 Chunk neighborChunk = naturalNeighborMap[direction];
                 if (neighborChunk != null && neighborChunk.GroundHeight != this.GroundHeight)
@@ -113,14 +114,15 @@ namespace Darklight.World.Generation
                     BorderDirection? neighborBorder = CoordinateMap.GetBorderDirection(direction); // get chunk border
                     if (neighborBorder == null) continue;
 
-                    CoordinateMap.CloseMapBorder((BorderDirection)neighborBorder); // close the chunk border
+                    //CoordinateMap.CloseMapBorder((BorderDirection)neighborBorder); // close the chunk border
                 }
             }
 
             // ========================================================
 
             // [[ DETERMINE TYPE FROM BORDERS ]]
-            Dictionary<BorderDirection, bool> activeBorderMap = CoordinateMap.ActiveBorderMap;
+            //Dictionary<BorderDirection, bool> activeBorderMap = CoordinateMap.ActiveBorderMap;
+            Dictionary<BorderDirection, bool> activeBorderMap = new();
 
             // Count active borders directly from the dictionary
             int activeBorderCount = activeBorderMap.Count(kv => kv.Value == true);
@@ -134,10 +136,10 @@ namespace Darklight.World.Generation
                     SetType(TYPE.DEADEND); break;
                 case 2:
                     // Check for parallel edges
-                    if (activeBorderMap[BorderDirection.NORTH] && activeBorderMap[BorderDirection.SOUTH]) 
-                        { SetType(TYPE.HALLWAY); break; }
-                    if (activeBorderMap[BorderDirection.EAST] && activeBorderMap[BorderDirection.WEST]) 
-                        { SetType(TYPE.HALLWAY); break; }
+                    if (activeBorderMap[BorderDirection.NORTH] && activeBorderMap[BorderDirection.SOUTH])
+                    { SetType(TYPE.HALLWAY); break; }
+                    if (activeBorderMap[BorderDirection.EAST] && activeBorderMap[BorderDirection.WEST])
+                    { SetType(TYPE.HALLWAY); break; }
 
                     // Otherwise chunk is in corner
                     SetType(TYPE.CORNER); break;
@@ -170,7 +172,7 @@ namespace Darklight.World.Generation
             foreach (WorldDirection direction in naturalNeighborDirections)
             {
                 Vector2Int neighborCoordinateValue = CoordinateMap.CalculateNeighborCoordinateValue(Coordinate.ValueKey, direction);
-                neighborMap[direction] = ChunkMapParent.GetChunkAt(neighborCoordinateValue);
+                neighborMap[direction] = GenerationParent.GetChunkAt(neighborCoordinateValue);
             }
 
             return neighborMap;

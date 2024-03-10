@@ -40,15 +40,16 @@ namespace Darklight.Unity.Backend
             }
         }
         Queue<AsyncTaskBot> taskBotQueue = new();
-        public new string name = "AsyncTaskQueen";
+        public new string name { get; private set; } = "AsyncTaskQueen";
         public Guid guidId = Guid.NewGuid();
         public List<TaskBot.Profile> taskBotProfiles { get; set; } = new();
         public AsyncTaskConsole asyncTaskConsole { get; private set; } = new AsyncTaskConsole();
 
+
         public virtual void Initialize(string name)
         {
 			this.name = name;
-			asyncTaskConsole.Log(this, "Initialize()");
+			asyncTaskConsole.Log(this, $"Good Morning, {name}");
         }
 
         /// <summary>

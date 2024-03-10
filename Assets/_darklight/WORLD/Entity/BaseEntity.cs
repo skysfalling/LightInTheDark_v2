@@ -10,13 +10,13 @@ namespace Darklight.World.Generation.Entity
     {
         public bool active;
         public Path currentPath;
-        public Region regionParent;
+        public RegionBuilder regionParent;
         public Chunk currentChunk;
         public Chunk targetChunk;
         public Coordinate currentCoordinate;
         public GameObject modelObject;
 
-        public void Initialize(string name, GameObject modelPrefab, Region region, Chunk chunk)
+        public void Initialize(string name, GameObject modelPrefab, RegionBuilder region, Chunk chunk)
         {
             this.gameObject.name = $"_entity({name})";
             regionParent = region;

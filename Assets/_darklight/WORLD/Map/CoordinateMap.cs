@@ -142,7 +142,7 @@ namespace Darklight.World.Generation
             InitializeDefaultMap();
         }
 
-        public void InitializeRegionCoordinateMap(Region parent)
+        public void InitializeRegionCoordinateMap(RegionBuilder parent)
         {
             _mapUnitSpace = UnitSpace.REGION;
             _mapOriginPosition = parent.OriginPosition;

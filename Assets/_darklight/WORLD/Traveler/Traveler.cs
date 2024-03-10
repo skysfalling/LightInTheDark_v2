@@ -15,11 +15,11 @@ namespace Darklight.World.Generation
     {
         WorldBuilder _worldBuilder => WorldBuilder.Instance;
         public bool Active = false;
-        public Region ParentRegion { get; private set; }
+        public RegionBuilder ParentRegion { get; private set; }
         public Chunk CurrentChunk { get; private set; }
 
         // [[ INSPECTOR VARIABLES ]]
-        public void InitializeAt(Region region, Chunk chunk)
+        public void InitializeAt(RegionBuilder region, Chunk chunk)
         {
             ParentRegion = region;
             CurrentChunk = chunk;

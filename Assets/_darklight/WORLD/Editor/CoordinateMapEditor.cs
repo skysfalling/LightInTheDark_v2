@@ -39,9 +39,9 @@ namespace Darklight.World.Generation.CustomEditor
 					{
 						_coordinateMap.InitializeWorldCoordinateMap(_coordinateMap.GetComponent<WorldBuilder>());
 					}
-					else if (_coordinateMap.GetComponent<Region>() != null && GUILayout.Button("Initialize Region Coordinate Map"))
+					else if (_coordinateMap.GetComponent<RegionBuilder>() != null && GUILayout.Button("Initialize Region Coordinate Map"))
 					{
-						_coordinateMap.InitializeRegionCoordinateMap(_coordinateMap.GetComponent<Region>());
+						_coordinateMap.InitializeRegionCoordinateMap(_coordinateMap.GetComponent<RegionBuilder>());
 					}
 					/*
 					else if (_coordinateMap.GetComponent<Chunk>() != null && GUILayout.Button("Initialize Chunk Coordinate Map"))

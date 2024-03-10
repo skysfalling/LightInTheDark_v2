@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,15 +9,17 @@ using UnityEngine;
 
 namespace Darklight.World.Generation
 {
-    [RequireComponent(typeof(CoordinateMap))]
-    public class Region : AsyncTaskQueen, ITaskQueen
+    using DarklightEditor = Darklight.Unity.CustomInspectorGUI;
+
+    [RequireComponent(typeof(CoordinateMap), typeof(ChunkGeneration))]
+    public class RegionBuilder : AsyncTaskQueen, ITaskQueen
     {
         // [[ PRIVATE VARIABLES ]]
         string _prefix = "(( REGION ))";
         WorldBuilder _generationParent;
         Coordinate _coordinate;
         CoordinateMap _coordinateMap;
-        ChunkMap _chunkMap;
+        ChunkGeneration _chunkGeneration;
         GameObject _combinedMeshObject;
 
         // [[ PUBLIC REFERENCE VARIABLES ]]
@@ -24,7 +27,7 @@ namespace Darklight.World.Generation
         public WorldBuilder GenerationParent => _generationParent;
         public Coordinate Coordinate => _coordinate;
         public CoordinateMap CoordinateMap => _coordinateMap;
-        public ChunkMap ChunkMap => _chunkMap;
+        public ChunkGeneration ChunkMap => _chunkGeneration;
         public Vector3 CenterPosition
         {
             get
@@ -43,9 +46,23 @@ namespace Darklight.World.Generation
                 return origin;
             }
         }
+
+
+        // [[ PUBLIC REFERENCE VARIABLES ]]	
+        static GenerationSettings regionSettings;
+        public CustomGenerationSettings customRegionSettings;
+        /// <summary> Contains settings used during the world generation process. </summary>
+        public static GenerationSettings Settings => regionSettings;
+
+        /// <summary> Override the default generation settings. </summary>
+        public void OverrideSettings(CustomGenerationSettings customSettings)
+        {
+            if (customSettings == null) { regionSettings = new GenerationSettings(); return; }
+            regionSettings = new GenerationSettings(customSettings);
+        }
         public bool initializeOnStart = true;
 
-        public void SetReferences(WorldBuilder parent, Coordinate coordinate, string taskQueenName = "Region Task Queen")
+        public void AssignToWorld(WorldBuilder parent, Coordinate coordinate, string taskQueenName = "Region Task Queen")
         {
             this._generationParent = parent;
             this._coordinate = coordinate;
@@ -53,7 +70,7 @@ namespace Darklight.World.Generation
             // Set the transform to the center
             transform.position = CenterPosition;
 
-            this.name = taskQueenName;
+            regionSettings = WorldBuilder.Settings;
         }
 
         public void Start()
@@ -68,26 +85,27 @@ namespace Darklight.World.Generation
         public override void Initialize(string name = "RegionAsyncTaskQueen")
         {
             base.Initialize(name);
-
-            this._coordinateMap = GetComponent<CoordinateMap>();
-            this._coordinateMap.InitializeRegionCoordinateMap(this);
-
             _ = InitializationSequence();
         }
 
         async Task InitializationSequence()
         {
-            // Create the chunk map for the region
-            base.NewTaskBot("Initialize Chunk Map", async () =>
+            // Create the coordinate map
+            base.NewTaskBot("Initialize Coordinate Map", async () =>
             {
-                this._chunkMap = new ChunkMap(this, this._coordinateMap);
+                this._coordinateMap = GetComponent<CoordinateMap>();
+                this._coordinateMap.InitializeRegionCoordinateMap(this);
+                await Task.Delay(500);
                 await Task.Yield();
             });
 
-            // Update the chunk map to reflect the coordinate map
-            base.NewTaskBot("Update Chunk Map", async () =>
+            // Create the chunk map for the region
+            base.NewTaskBot("Initialize Chunk Generation", async () =>
             {
-                this._chunkMap.UpdateMap();
+                this._chunkGeneration = GetComponent<ChunkGeneration>();
+                await Task.Run(() => this._coordinateMap.Initialized);
+
+                this._chunkGeneration.Initialize(this, _coordinateMap);
                 await Task.Yield();
             });
 
@@ -122,7 +140,7 @@ namespace Darklight.World.Generation
                     // Proceed with exit handling if the neighbor exists.
                     BorderDirection borderInThisRegion = (BorderDirection)currentBorderWithNeighbor; // >> convert border direction to non-nullable type
                     // >> get reference to neighbor region
-                    Region neighborRegion = this.GenerationParent.RegionMap[neighborCoordinateValue];
+                    RegionBuilder neighborRegion = this.GenerationParent.RegionMap[neighborCoordinateValue];
                     // >> get matching border direction
                     BorderDirection matchingBorderOnNeighbor = (BorderDirection)CoordinateMap.GetOppositeBorder(borderInThisRegion);
                     // >> get exits on neighbor region
@@ -154,41 +172,33 @@ namespace Darklight.World.Generation
             DestroyGameObject(this.gameObject);
         }
 
-        public void ResetChunkMap()
-        {
-            _chunkMap = new ChunkMap(this, _coordinateMap);
-        }
-
         // == MESH GENERATION ============================================== >>>>
 
-        /// <summary> Create GameObject from ChunkMesh </summary>
-        public GameObject CreateChunkMeshObject(ChunkMesh chunkMesh)
+        public GameObject CreateChunkMeshObject(string name, ChunkMesh chunkMesh)
         {
-            GameObject worldObject = new GameObject($"Chunk at {chunkMesh.ParentChunk.Coordinate.ValueKey}");
-
-            MeshFilter meshFilter = worldObject.AddComponent<MeshFilter>();
-            meshFilter.sharedMesh = chunkMesh.Mesh;
-            meshFilter.sharedMesh.RecalculateBounds();
-            meshFilter.sharedMesh.RecalculateNormals();
-
-            worldObject.AddComponent<MeshRenderer>().material = WorldBuilder.Settings.materialLibrary.DefaultGroundMaterial;
-            worldObject.AddComponent<MeshCollider>().sharedMesh = chunkMesh.Mesh;
-
-            return worldObject;
+            return CreateMeshObject(name, chunkMesh.Mesh, regionSettings.materialLibrary.DefaultGroundMaterial);
         }
+
 
         /// <summary> Create GameObject with a given name, mesh and material </summary>
         public GameObject CreateMeshObject(string name, Mesh mesh, Material material)
         {
             GameObject worldObject = new GameObject(name);
+            worldObject.transform.parent = transform;
 
             MeshFilter meshFilter = worldObject.AddComponent<MeshFilter>();
             meshFilter.sharedMesh = mesh;
             meshFilter.sharedMesh.RecalculateBounds();
             meshFilter.sharedMesh.RecalculateNormals();
 
-            worldObject.AddComponent<MeshRenderer>().material = material;
-            worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
+
+            if (material == null) { Debug.LogWarning("Mesh material is null"); }
+            else
+            {
+                worldObject.AddComponent<MeshRenderer>().material = material;
+                worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
+            }
+
 
             return worldObject;
         }
@@ -271,6 +281,75 @@ namespace Darklight.World.Generation
             {
                 // Use Destroy in play mode or in a build
                 Destroy(gameObject);
+            }
+        }
+    }
+
+    [CustomEditor(typeof(RegionBuilder))]
+    public class RegionEditor : AsyncTaskQueen.AsyncTaskQueenEditor
+    {
+        private SerializedProperty customRegionSettings;
+        private RegionBuilder _regionScript;
+
+        private bool showGenerationSettingsFoldout;
+
+        private void OnEnable()
+        {
+            customRegionSettings = serializedObject.FindProperty("customRegionSettings");
+            _regionScript = (RegionBuilder)target;
+        }
+
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+            DrawCustomGenerationSettings();
+        }
+
+        private void DrawCustomGenerationSettings()
+        {
+            SerializedProperty customRegionSettingsProperty = serializedObject.FindProperty("customRegionSettings");
+            if (_regionScript.customRegionSettings != null)
+            {
+                _regionScript.OverrideSettings((CustomGenerationSettings)customRegionSettingsProperty.objectReferenceValue);
+
+                showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Custom World Generation Settings", true);
+                if (showGenerationSettingsFoldout)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.Space();
+                    EditorGUILayout.BeginVertical();
+
+                    UnityEditor.Editor editor = CreateEditor(_regionScript.customRegionSettings);
+                    editor.OnInspectorGUI();
+
+                    EditorGUILayout.EndVertical();
+                    EditorGUILayout.EndHorizontal();
+                }
+            }
+            else
+            {
+                _regionScript.OverrideSettings(null);
+
+                showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Default World Generation Settings", true);
+                if (showGenerationSettingsFoldout)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.Space();
+                    EditorGUILayout.BeginVertical();
+                    DarklightEditor.CreateSettingsLabel("Seed", WorldBuilder.Settings.Seed);
+                    DarklightEditor.CreateSettingsLabel("Cell Width In World Space", $"{WorldBuilder.Settings.CellSize_inGameUnits}");
+
+                    DarklightEditor.CreateSettingsLabel("Chunk Width In Cells", $"{WorldBuilder.Settings.ChunkDepth_inCellUnits}");
+                    DarklightEditor.CreateSettingsLabel("Chunk Depth In Cells", $"{WorldBuilder.Settings.ChunkDepth_inCellUnits}");
+                    DarklightEditor.CreateSettingsLabel("Max Chunk Height", $"{WorldBuilder.Settings.ChunkMaxHeight_inCellUnits}");
+
+                    DarklightEditor.CreateSettingsLabel("Play Region Width In Chunks", $"{WorldBuilder.Settings.RegionWidth_inChunkUnits}");
+                    DarklightEditor.CreateSettingsLabel("Boundary Wall Count", $"{WorldBuilder.Settings.RegionBoundaryOffset_inChunkUnits}");
+
+                    DarklightEditor.CreateSettingsLabel("World Width In Regions", $"{WorldBuilder.Settings.WorldWidth_inRegionUnits}");
+                    EditorGUILayout.EndVertical();
+                    EditorGUILayout.EndHorizontal();
+                }
             }
         }
     }

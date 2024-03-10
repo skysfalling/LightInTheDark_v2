@@ -77,7 +77,7 @@ namespace Darklight.World.Generation
         string _prefix = "[ WORLD BUILDER ] ";
         Coroutine _generationCoroutine;
         CoordinateMap _coordinateMap;
-        Dictionary<Vector2Int, Region> _regionMap = new();
+        Dictionary<Vector2Int, RegionBuilder> _regionMap = new();
 
         // [[ PUBLIC REFERENCE VARIABLES ]]
         public bool Initialized { get; private set; }
@@ -93,8 +93,8 @@ namespace Darklight.World.Generation
                 return origin;
             }
         }
-        public List<Region> AllRegions { get { return _regionMap.Values.ToList(); } }
-        public Dictionary<Vector2Int, Region> RegionMap { get { return _regionMap; } }
+        public List<RegionBuilder> AllRegions { get { return _regionMap.Values.ToList(); } }
+        public Dictionary<Vector2Int, RegionBuilder> RegionMap { get { return _regionMap; } }
 
         // [[ PUBLIC INSPECTOR VARIABLES ]] 
         public CustomGenerationSettings customWorldGenSettings; // Settings Scriptable Object
@@ -147,9 +147,9 @@ namespace Darklight.World.Generation
                 foreach (Coordinate regionCoordinate in CoordinateMap.AllCoordinates)
                 {
                     GameObject regionObject = new GameObject($"New Region ({regionCoordinate.ValueKey})");
-                    Region region = regionObject.AddComponent<Region>();
+                    RegionBuilder region = regionObject.AddComponent<RegionBuilder>();
                     regionObject.transform.parent = this.transform;
-                    region.SetReferences(this, regionCoordinate);
+                    region.AssignToWorld(this, regionCoordinate);
                     _regionMap[regionCoordinate.ValueKey] = region;
                     await Task.Yield(); // Efficiently yields back to the main thread
                 }
@@ -159,7 +159,7 @@ namespace Darklight.World.Generation
             // Stage 1: Initialize Regions
             base.NewTaskBot("InitializeRegions", async () =>
             {
-                foreach (Region region in AllRegions)
+                foreach (RegionBuilder region in AllRegions)
                 {
                     region.Initialize();
                     await Task.Yield();
@@ -230,19 +230,19 @@ namespace Darklight.World.Generation
 
             if (Settings.ChunkMeshUnitSpace == UnitSpace.CHUNK)
             {
-                foreach (Region region in AllRegions)
+                foreach (RegionBuilder region in AllRegions)
                 {
-                    region.ChunkMap.GenerateChunkMeshes(true);
+                    //region.ChunkMap.GenerateAllChunkMeshObjects(true);
                 }
             }
             else if (Settings.ChunkMeshUnitSpace == UnitSpace.REGION)
             {
-                foreach (Region region in AllRegions)
+                foreach (RegionBuilder region in AllRegions)
                 {
-                    region.ChunkMap.GenerateChunkMeshes(false);
+                    //region.ChunkMap.GenerateAllChunkMeshObjects(false);
                 }
 
-                foreach (Region region in AllRegions)
+                foreach (RegionBuilder region in AllRegions)
                 {
                     region.CreateCombinedChunkMesh();
                 }

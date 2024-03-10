@@ -38,56 +38,8 @@ namespace Darklight.World.Generation.Editor
 
             EditorGUI.BeginChangeCheck();
 
-            // ----------------------------------------------------------------
-            // CUSTOM GENERATION SETTINGS
-            // ----------------------------------------------------------------
-            SerializedProperty customWorldGenSettingsProperty = _serializedWorldBuilderObject.FindProperty("customWorldGenSettings");
-            if (_worldBuilderScript.customWorldGenSettings != null)
-            {
-                // Override World Gen Settings with custom settings
-                _worldBuilderScript.OverrideSettings((CustomGenerationSettings)customWorldGenSettingsProperty.objectReferenceValue);
+            DrawCustomGenerationSettings();
 
-                // >>>> foldout
-                showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Custom World Generation Settings", true);
-                if (showGenerationSettingsFoldout)
-                {
-                    EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.Space();
-                    EditorGUILayout.BeginVertical();
-
-                    UnityEditor.Editor editor = CreateEditor(_worldBuilderScript.customWorldGenSettings);
-                    editor.OnInspectorGUI(); // Draw the editor for the ScriptableObject
-
-                    EditorGUILayout.EndVertical();
-                    EditorGUILayout.EndHorizontal();
-                }
-            }
-            else
-            {
-                _worldBuilderScript.OverrideSettings(null); // Set World Generation Settings to null
-
-                // >>>> foldout
-                showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Default World Generation Settings", true);
-                if (showGenerationSettingsFoldout)
-                {
-                    EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.Space();
-                    EditorGUILayout.BeginVertical();
-                    DarklightCustomEditor.CreateSettingsLabel("Seed", WorldBuilder.Settings.Seed);
-                    DarklightCustomEditor.CreateSettingsLabel("Cell Width In World Space", $"{WorldBuilder.Settings.CellSize_inGameUnits}");
-
-                    DarklightCustomEditor.CreateSettingsLabel("Chunk Width In Cells", $"{WorldBuilder.Settings.ChunkDepth_inCellUnits}");
-                    DarklightCustomEditor.CreateSettingsLabel("Chunk Depth In Cells", $"{WorldBuilder.Settings.ChunkDepth_inCellUnits}");
-                    DarklightCustomEditor.CreateSettingsLabel("Max Chunk Height", $"{WorldBuilder.Settings.ChunkMaxHeight_inCellUnits}");
-
-                    DarklightCustomEditor.CreateSettingsLabel("Play Region Width In Chunks", $"{WorldBuilder.Settings.RegionWidth_inChunkUnits}");
-                    DarklightCustomEditor.CreateSettingsLabel("Boundary Wall Count", $"{WorldBuilder.Settings.RegionBoundaryOffset_inChunkUnits}");
-
-                    DarklightCustomEditor.CreateSettingsLabel("World Width In Regions", $"{WorldBuilder.Settings.WorldWidth_inRegionUnits}");
-                    EditorGUILayout.EndVertical();
-                    EditorGUILayout.EndHorizontal();
-                }
-            }
 
             EditorGUILayout.Space();
 
@@ -102,6 +54,52 @@ namespace Darklight.World.Generation.Editor
             }
         }
 
+            private void DrawCustomGenerationSettings()
+            {
+                SerializedProperty customWorldGenSettingsProperty = _serializedWorldBuilderObject.FindProperty("customWorldGenSettings");
+                if (_worldBuilderScript.customWorldGenSettings != null)
+                {
+                    _worldBuilderScript.OverrideSettings((CustomGenerationSettings)customWorldGenSettingsProperty.objectReferenceValue);
 
+                    showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Custom World Generation Settings", true);
+                    if (showGenerationSettingsFoldout)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.Space();
+                        EditorGUILayout.BeginVertical();
+
+                        UnityEditor.Editor editor = CreateEditor(_worldBuilderScript.customWorldGenSettings);
+                        editor.OnInspectorGUI();
+
+                        EditorGUILayout.EndVertical();
+                        EditorGUILayout.EndHorizontal();
+                    }
+                }
+                else
+                {
+                    _worldBuilderScript.OverrideSettings(null);
+
+                    showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Default World Generation Settings", true);
+                    if (showGenerationSettingsFoldout)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.Space();
+                        EditorGUILayout.BeginVertical();
+                        DarklightCustomEditor.CreateSettingsLabel("Seed", WorldBuilder.Settings.Seed);
+                        DarklightCustomEditor.CreateSettingsLabel("Cell Width In World Space", $"{WorldBuilder.Settings.CellSize_inGameUnits}");
+
+                        DarklightCustomEditor.CreateSettingsLabel("Chunk Width In Cells", $"{WorldBuilder.Settings.ChunkDepth_inCellUnits}");
+                        DarklightCustomEditor.CreateSettingsLabel("Chunk Depth In Cells", $"{WorldBuilder.Settings.ChunkDepth_inCellUnits}");
+                        DarklightCustomEditor.CreateSettingsLabel("Max Chunk Height", $"{WorldBuilder.Settings.ChunkMaxHeight_inCellUnits}");
+
+                        DarklightCustomEditor.CreateSettingsLabel("Play Region Width In Chunks", $"{WorldBuilder.Settings.RegionWidth_inChunkUnits}");
+                        DarklightCustomEditor.CreateSettingsLabel("Boundary Wall Count", $"{WorldBuilder.Settings.RegionBoundaryOffset_inChunkUnits}");
+
+                        DarklightCustomEditor.CreateSettingsLabel("World Width In Regions", $"{WorldBuilder.Settings.WorldWidth_inRegionUnits}");
+                        EditorGUILayout.EndVertical();
+                        EditorGUILayout.EndHorizontal();
+                    }
+                }
+            }
     }
 }
