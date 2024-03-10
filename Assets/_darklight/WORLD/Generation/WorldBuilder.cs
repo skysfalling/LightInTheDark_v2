@@ -97,12 +97,16 @@ namespace Darklight.World.Generation
 
         // [[ PUBLIC INSPECTOR VARIABLES ]] 
         public CustomGenerationSettings customWorldGenSettings; // Settings Scriptable Object
-		public bool initializeOnStart;
+        public bool initializeOnStart;
 
         #region == INITIALIZATION ============================================== >>>> 
-		private void Start() 
+        private void Start()
         {
-            if (initializeOnStart ==  true) {Initialize();}
+            if (initializeOnStart == true)
+            {
+                Debug.Log($"{_prefix} Initialize On Start");
+                Initialize();
+            }
         }
 
         public override void Initialize(string name = "WorldBuilderAsyncTaskQueen")
@@ -126,10 +130,6 @@ namespace Darklight.World.Generation
             // executing while the heavy computation is running
             await Task.Yield();
 
-            // This part will run after the heavy computation is done
-
-            await GenerationSequenceAsync();
-            await Task.Yield();
         }
 
         /// <summary>
@@ -140,7 +140,6 @@ namespace Darklight.World.Generation
             // Stage 0: Create Regions
             base.NewTaskBot("CreateRegions", async () =>
             {
-                Debug.Log("CreateRegions task started");
                 foreach (Coordinate regionCoordinate in CoordinateMap.AllCoordinates)
                 {
                     GameObject regionObject = new GameObject($"New Region ({regionCoordinate.ValueKey})");
@@ -150,7 +149,6 @@ namespace Darklight.World.Generation
                     _regionMap[regionCoordinate.ValueKey] = region;
                     await Task.Yield(); // Efficiently yields back to the main thread
                 }
-                Debug.Log("CreateRegions task completed");
             });
 
             // Stage 1: Initialize Regions
@@ -159,6 +157,7 @@ namespace Darklight.World.Generation
                 foreach (RegionBuilder region in AllRegions)
                 {
                     region.Initialize();
+                    await Task.Run(() => region.Initialized);
                     await Task.Yield();
                 }
             });
@@ -189,62 +188,18 @@ namespace Darklight.World.Generation
             {
                 foreach (var region in AllRegions)
                 {
-                    while (region.Initialized == false)
-                    {
-                        await Task.Yield();
-                    }
-
                     region.CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
-                    region.ChunkMap.UpdateMap(); // Update chunk map to match coordinate type values
+                    await Task.Yield();
                 }
             });
 
             // Run all bots
             await base.ExecuteAllBotsInQueue();
-            Debug.Log($"{_prefix} Initialized");
 
             // Mark initialization as complete
             Initialized = true;
         }
 
-        #endregion
-
-        #region  == MESH GENERATION ============================================== >>>>
-
-        /// <summary>
-        /// Initiates the mesh generation sequence
-        /// </summary>
-        public void StartGenerationAsync()
-        {
-            _ = GenerationSequenceAsync();
-        }
-
-        async Task GenerationSequenceAsync()
-        {
-            await Task.Run(() => new WaitUntil(() => Initialized)); // wait until self initialization
-
-            Debug.Log($"{_prefix} Starting Generation Sequence");
-
-            if (Settings.ChunkMeshUnitSpace == UnitSpace.CHUNK)
-            {
-                foreach (RegionBuilder region in AllRegions)
-                {
-                    //region.ChunkMap.GenerateAllChunkMeshObjects(true);
-                }
-            }
-            else if (Settings.ChunkMeshUnitSpace == UnitSpace.REGION)
-            {
-                foreach (RegionBuilder region in AllRegions)
-                {
-                    //region.ChunkMap.GenerateAllChunkMeshObjects(false);
-                }
-
-                foreach (RegionBuilder region in AllRegions)
-                {
-                    region.CreateCombinedChunkMesh();
-                }
-            }
-        }
         #endregion
 
         /// <summary> Fully Reset the World Generation </summary>

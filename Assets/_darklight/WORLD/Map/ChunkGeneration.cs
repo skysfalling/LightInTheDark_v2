@@ -14,18 +14,27 @@ namespace Darklight.World.Generation
         Dictionary<Vector2Int, Chunk> _chunkMap = new();
 
         public bool Initialized { get; private set; }
+        public bool CreateObjects { get; private set; } = false;
         public RegionBuilder RegionParent { get; private set; }
-        public CoordinateMap CoordinateMap { get; private set; }
+        CoordinateMap _coordinateMap;
         public HashSet<Chunk> AllChunks { get { return _chunks; } private set { } }
 
-        public void Initialize(RegionBuilder worldRegion, CoordinateMap coordinateMap)
+        public void Initialize(RegionBuilder worldRegion, CoordinateMap coordinateMap, bool createObjects)
         {
             base.Initialize("ChunkGenerationAsync");
             RegionParent = worldRegion;
-            CoordinateMap = coordinateMap;
-            Initialized = true;
+            _coordinateMap = coordinateMap;
+            CreateObjects = createObjects;
 
             _ = InitializationSequence();
+        }
+
+        public void Reset()
+        {
+            Initialized = false;
+            _coordinateMap = null;
+            _chunks.Clear();
+            _chunkMap.Clear();
         }
 
         async Task InitializationSequence()
@@ -33,19 +42,19 @@ namespace Darklight.World.Generation
 
             base.NewTaskBot("Wait for Coordinate Map", async () =>
             {
-                await Task.Run(() => CoordinateMap.Initialized);
+                await Task.Run(() => _coordinateMap.Initialized);
                 await Task.Yield();
             });
 
 
             base.NewTaskBot("Creating Chunks", async () =>
             {
-                asyncTaskConsole.Log(this, $"Creating {CoordinateMap.AllCoordinateValues.Count} Chunks");
+                asyncTaskConsole.Log(this, $"Creating {_coordinateMap.AllCoordinateValues.Count} Chunks");
 
                 // [[ CREATE WORLD CHUNKS ]]
-                foreach (Vector2Int position in CoordinateMap.AllCoordinateValues)
+                foreach (Vector2Int position in _coordinateMap.AllCoordinateValues)
                 {
-                    Coordinate coordinate = CoordinateMap.GetCoordinateAt(position);
+                    Coordinate coordinate = _coordinateMap.GetCoordinateAt(position);
                     Chunk newChunk = new Chunk(this, coordinate);
                     _chunks.Add(newChunk);
                     _chunkMap[coordinate.ValueKey] = newChunk;
@@ -67,24 +76,27 @@ namespace Darklight.World.Generation
                 await Task.Yield();
             });
 
-            base.NewTaskBot("Creating Objects", async () =>
+            if (CreateObjects)
             {
-                asyncTaskConsole.Log(this, $"Creating {_chunks.Count} Objects");
-
-
-                foreach (Chunk chunk in _chunks)
+                base.NewTaskBot("Creating Objects", async () =>
                 {
-                    await Task.Run(() => chunk.ChunkMesh != null);
+                    asyncTaskConsole.Log(this, $"Creating {_chunks.Count} Objects");
+                    foreach (Chunk chunk in _chunks)
+                    {
+                        await Task.Run(() => chunk.chunkMesh != null);
 
-                    GameObject newObject = RegionParent.CreateChunkMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.ChunkMesh);
-                    asyncTaskConsole.Log(this, $"\tNewChunkMeshObject : {newObject}");
-                }
+                        GameObject newObject = RegionParent.CreateChunkMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.chunkMesh);
+                        asyncTaskConsole.Log(this, $"\tNewChunkMeshObject : {newObject}");
+                    }
 
-                await Task.Yield();
-            });
+                    await Task.Yield();
+                });
+            }
+
 
             await base.ExecuteAllBotsInQueue();
             Debug.Log("Initialization Sequence Completed");
+            Initialized = true;
 
         }
 
@@ -93,7 +105,7 @@ namespace Darklight.World.Generation
         {
             foreach (Chunk chunk in _chunks)
             {
-                Coordinate.TYPE type = (Coordinate.TYPE)CoordinateMap.GetCoordinateTypeAt(chunk.Coordinate.ValueKey);
+                Coordinate.TYPE type = (Coordinate.TYPE)_coordinateMap.GetCoordinateTypeAt(chunk.Coordinate.ValueKey);
 
                 switch (type)
                 {
@@ -112,7 +124,7 @@ namespace Darklight.World.Generation
 
         public Chunk GetChunkAt(Vector2Int position)
         {
-            if (!Initialized || !CoordinateMap.AllCoordinateValues.Contains(position)) { return null; }
+            if (!Initialized || !_coordinateMap.AllCoordinateValues.Contains(position)) { return null; }
             return _chunkMap[position];
         }
 

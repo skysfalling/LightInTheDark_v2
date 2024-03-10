@@ -74,13 +74,13 @@ namespace Darklight.World.Generation.CustomEditor
 
                     DarklightEditor.DrawLabeledEnumPopup(ref _worldEditScript.regionView, "Region View");
                     CoordinateMapInspector( _worldEditScript.selectedRegion.CoordinateMap);
-                    ChunkMapInspector(_worldEditScript.selectedRegion.ChunkMap);
+                    ChunkMapInspector(_worldEditScript.selectedRegion.ChunkGeneration);
                     break;
                 case EditMode.CHUNK:
                     if (_worldEditScript.selectedChunk == null && worldBuilder.Initialized)
                     {
                         RegionBuilder originRegion = worldBuilder.RegionMap[Vector2Int.zero];
-                        _worldEditScript.SelectChunk(originRegion.ChunkMap.GetChunkAt(Vector2Int.zero));
+                        _worldEditScript.SelectChunk(originRegion.ChunkGeneration.GetChunkAt(Vector2Int.zero));
                         break;
                     }
 
@@ -286,7 +286,7 @@ namespace Darklight.World.Generation.CustomEditor
             if (region == null || region.CoordinateMap == null ) { return; }
 
             CoordinateMap coordinateMap = region.CoordinateMap;
-            ChunkGeneration chunkMap = region.ChunkMap;
+            ChunkGeneration chunkMap = region.ChunkGeneration;
             GUIStyle regionLabelStyle = DarklightEditor.CenteredStyle;
 
             // [[ DRAW GRID ONLY ]]
@@ -302,7 +302,7 @@ namespace Darklight.World.Generation.CustomEditor
             else if (type == RegionView.COORDINATE_MAP)
             {
                 DrawCoordinateMap(coordinateMap, _worldEditScript.coordinateMapView, (coordinate) => {
-                    Chunk selectedChunk = region.ChunkMap.GetChunkAt(coordinate);
+                    Chunk selectedChunk = region.ChunkGeneration.GetChunkAt(coordinate);
                     _worldEditScript.SelectChunk(selectedChunk);
                 });
             }

@@ -38,7 +38,7 @@ namespace Darklight.World.Generation.Entity
         public Chunk DetermineNewTargetChunk()
         {
             Vector2Int randomCoordinateValue = regionParent.CoordinateMap.GetRandomCoordinateValueOfType(Coordinate.TYPE.NULL);
-            Chunk randomChunk = regionParent.ChunkMap.GetChunkAt(randomCoordinateValue);
+            Chunk randomChunk = regionParent.ChunkGeneration.GetChunkAt(randomCoordinateValue);
             return randomChunk;
         }
     }

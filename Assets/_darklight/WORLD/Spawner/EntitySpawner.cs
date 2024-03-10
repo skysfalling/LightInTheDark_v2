@@ -66,7 +66,7 @@ namespace Darklight.World.Generation.Entity.Spawner
                 if (region.CoordinateMap.Zones.Count > 0)
                 {
                     Coordinate spawnCoordinate = region.CoordinateMap.Zones[0].CenterCoordinate;
-                    Chunk spawnChunk = region.ChunkMap.GetChunkAt(spawnCoordinate);
+                    Chunk spawnChunk = region.ChunkGeneration.GetChunkAt(spawnCoordinate);
 
 
                     GameObject travelerObject = Instantiate(travelerPrefab, spawnChunk.GroundPosition, Quaternion.identity);
