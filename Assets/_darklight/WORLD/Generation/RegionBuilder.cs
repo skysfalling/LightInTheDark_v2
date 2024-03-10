@@ -49,6 +49,7 @@ namespace Darklight.World.Generation
 
 
         // [[ PUBLIC REFERENCE VARIABLES ]]	
+        public Material defaultMaterial;
         static GenerationSettings _regionSettings = new();
         public CustomGenerationSettings customRegionSettings;
         public static GenerationSettings Settings => _regionSettings;
@@ -133,8 +134,24 @@ namespace Darklight.World.Generation
                 await Task.Run(() => this._coordinateMap.Initialized);
 
                 // Create the chunk objects if the _generationParent is null
-                this._chunkGeneration.Initialize(this, _coordinateMap, _generationParent == null);
+                if (WorldBuilder.Instance)
+                {
+                    _chunkGeneration.Initialize(this, _coordinateMap, false);
+                }
+                else
+                {
+                    _chunkGeneration.Initialize(this, _coordinateMap, true);
+                }
                 await Task.Run(() => new WaitUntil(() => _chunkGeneration.Initialized));
+
+                asyncTaskConsole.Log(this, "Waiting for chunkMeshes to initialize");
+                // wait for each chunkMesh to be created
+                foreach (Chunk chunk in _chunkGeneration.AllChunks)
+                {
+                    await Task.Run(() => new WaitUntil(() => chunk.ChunkMesh != null));
+                    await Task.Yield();
+                }
+
                 await Task.Yield();
             });
 
@@ -215,14 +232,9 @@ namespace Darklight.World.Generation
 
         // == MESH GENERATION ============================================== >>>>
 
-        public GameObject CreateChunkMeshObject(string name, ChunkMesh chunkMesh)
-        {
-            return CreateMeshObject(name, chunkMesh.Mesh, null);
-        }
-
 
         /// <summary> Create GameObject with a given name, mesh and material </summary>
-        public GameObject CreateMeshObject(string name, Mesh mesh, Material material)
+        public GameObject CreateMeshObject(string name, Mesh mesh, Material material = null)
         {
             GameObject worldObject = new GameObject(name);
             worldObject.transform.parent = transform;
@@ -235,7 +247,12 @@ namespace Darklight.World.Generation
             meshFilter.sharedMesh.RecalculateNormals();
 
 
-            if (material == null) { Debug.LogError("Mesh material is null"); }
+            if (material == null)
+            {
+                Debug.LogError("Mesh material is null");
+                worldObject.AddComponent<MeshRenderer>().material = defaultMaterial;
+                worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
+            }
             else
             {
                 worldObject.AddComponent<MeshRenderer>().material = material;
@@ -259,9 +276,9 @@ namespace Darklight.World.Generation
             List<Mesh> meshes = new List<Mesh>();
             foreach (Chunk chunk in _chunkGeneration.AllChunks)
             {
-                if (chunk != null && chunk.chunkMesh != null && chunk.chunkMesh.Mesh != null)
+                if (chunk != null && chunk.ChunkMesh != null && chunk.ChunkMesh.Mesh != null)
                 {
-                    meshes.Add(chunk.chunkMesh.Mesh);
+                    meshes.Add(chunk.ChunkMesh.Mesh);
                 }
                 else
                 {
@@ -317,16 +334,25 @@ namespace Darklight.World.Generation
         public GameObject CreateCombinedChunkMesh(List<Chunk> chunks)
         {
             this.ChunkGeneration.UpdateMap();
-			Debug.Log("Update Chunk Generation");
+            Debug.Log("Update Chunk Generation");
 
             // Create Combined Mesh of world chunks
             Mesh combinedMesh = CombineChunks();
-			Debug.Log("Create Combined Mesh");
+            Debug.Log("Create Combined Mesh");
 
             try
             {
                 Debug.LogError("Found material");
-                this._combinedMeshObject = CreateMeshObject($"CombinedChunkMesh", combinedMesh, WorldBuilder.Settings.materialLibrary.DefaultGroundMaterial);
+                if (WorldBuilder.Settings != null)
+                {
+                    this._combinedMeshObject = CreateMeshObject($"CombinedChunkMesh", combinedMesh, WorldBuilder.Settings.materialLibrary.DefaultGroundMaterial);
+                }
+                else if (RegionBuilder.Settings != null)
+                {
+                    this._combinedMeshObject = CreateMeshObject($"CombinedChunkMesh", combinedMesh, RegionBuilder.Settings.materialLibrary.DefaultGroundMaterial);
+                }
+                Debug.LogError("Found material");
+
             }
             catch (Exception ex)
             {
@@ -334,6 +360,7 @@ namespace Darklight.World.Generation
                 this._combinedMeshObject = CreateMeshObject($"CombinedChunkMesh", combinedMesh, null);
             }
 
+            Debug.LogError("Created Object");
             this._combinedMeshObject.transform.parent = this.transform;
             MeshCollider collider = _combinedMeshObject.AddComponent<MeshCollider>();
             collider.sharedMesh = combinedMesh;

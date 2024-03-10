@@ -70,7 +70,8 @@ namespace Darklight.World.Generation
                 foreach (Chunk chunk in _chunks)
                 {
                     ChunkMesh newMesh = chunk.CreateChunkMesh();
-                    asyncTaskConsole.Log(this, $"\tNewChunkMeshObject : {newMesh}");
+                    await Task.Yield();
+
                 }
 
                 await Task.Yield();
@@ -83,10 +84,12 @@ namespace Darklight.World.Generation
                     asyncTaskConsole.Log(this, $"Creating {_chunks.Count} Objects");
                     foreach (Chunk chunk in _chunks)
                     {
-                        await Task.Run(() => chunk.chunkMesh != null);
+                        await Task.Run(() => chunk.ChunkMesh != null);
 
-                        GameObject newObject = RegionParent.CreateChunkMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.chunkMesh);
+                        GameObject newObject = RegionParent.CreateMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.ChunkMesh.Mesh);
                         asyncTaskConsole.Log(this, $"\tNewChunkMeshObject : {newObject}");
+                        await Task.Yield();
+
                     }
 
                     await Task.Yield();

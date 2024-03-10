@@ -43,7 +43,7 @@ namespace Darklight.World.Generation
         public Coordinate Coordinate => _coordinate;
         //public CoordinateMap CoordinateMap => _coordinateMap;
         public GameObject ChunkObject { get; private set; }
-        public ChunkMesh chunkMesh;
+        public ChunkMesh ChunkMesh { get; private set; }
         public CellMap CellMap => _cellMap;
         public int GroundHeight => _groundHeight;
         public TYPE Type => _type;
@@ -87,13 +87,13 @@ namespace Darklight.World.Generation
         {
 
             // Create chunkMesh
-            chunkMesh = new ChunkMesh(this, GroundHeight, GroundPosition);
+            ChunkMesh = new ChunkMesh(this, GroundHeight, GroundPosition);
             /*
             _cellMap = new CellMap(this, _chunkMesh);
             DetermineChunkType();
             */
 
-            return chunkMesh;
+            return ChunkMesh;
         }
 
         public void SetGroundHeight(int height)

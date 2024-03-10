@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -30,7 +31,7 @@ namespace Darklight.World.Generation
 
     public class ChunkMesh
     {
-        Vector3Int _defaultDimensions = WorldBuilder.Settings.ChunkVec3Dimensions_inCellUnits;
+        Vector3Int _defaultDimensions;
         Vector3Int _currentDimensions;
         Chunk _chunkParent;
         Mesh _mesh;
@@ -63,6 +64,23 @@ namespace Darklight.World.Generation
             List<Vector3> vertices = new();
             List<Vector2> uvs = new();
             List<int> triangles = new();
+
+            try
+            {
+                if (WorldBuilder.Settings != null)
+                {            
+                    _defaultDimensions = WorldBuilder.Settings.ChunkVec3Dimensions_inCellUnits;
+                }
+                else
+                {
+                    _defaultDimensions = RegionBuilder.Settings.ChunkVec3Dimensions_inCellUnits;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle the exception here
+                Console.WriteLine("An error occurred: " + ex.Message);
+            }
 
 
             // << UPDATE DIMENSIONS >>
