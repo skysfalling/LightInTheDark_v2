@@ -30,7 +30,6 @@ namespace Darklight.World.Generation
     public enum BorderDirection { NORTH, SOUTH, EAST, WEST }
     #endregion
 
-	[RequireComponent(typeof(CoordinateMap))]
     /// <summary> Initializes and handles the procedural world generation. </summary>
     public class WorldBuilder : AsyncTaskQueen, ITaskQueen
     {
@@ -120,9 +119,7 @@ namespace Darklight.World.Generation
             OverrideSettings(customWorldGenSettings);
             InitializeSeedRandom();
 
-            this._coordinateMap = GetComponent<CoordinateMap>();
-            this._coordinateMap.InitializeWorldCoordinateMap(this);
-            
+            this._coordinateMap = new CoordinateMap(this);
             await InitializationSequenceAsync();
 
             // This will yield control back to the caller, allowing it to continue

@@ -10,64 +10,59 @@ namespace Darklight.World.Generation.Editor
     using DarklightCustomEditor = Darklight.Unity.CustomInspectorGUI;
     using Backend = Darklight.Unity.Backend;
 
-    [UnityEditor.CustomEditor(typeof(WorldBuilder))]
-    public class WorldBuilderEditor : Backend.AsyncTaskQueen.AsyncTaskQueenEditor
+    [UnityEditor.CustomEditor(typeof(RegionBuilder))]
+    public class RegionBuilderEditor : Backend.AsyncTaskQueen.AsyncTaskQueenEditor
     {
-        private SerializedObject _serializedWorldBuilderObject;
-        private WorldBuilder _worldBuilderScript;
+        private SerializedObject _serializedRegionBuilderObject;
+        private RegionBuilder _regionBuilderScript;
 
         static bool showGenerationSettingsFoldout = false;
 
         private void OnEnable()
         {
             // Cache the SerializedObject
-            _serializedWorldBuilderObject = new SerializedObject(target);
-            WorldBuilder.InitializeSeedRandom();
+            _serializedRegionBuilderObject = new SerializedObject(target);
+            RegionBuilder.InitializeSeedRandom();
 
-            _worldBuilderScript = (WorldBuilder)target;
-
+            _regionBuilderScript = (RegionBuilder)target;
         }
 
         public override void OnInspectorGUI()
         {
-            _serializedWorldBuilderObject.Update(); // Always start with this call
+            _serializedRegionBuilderObject.Update(); // Always start with this call
 
-        	// Draw the console window
-			base.OnInspectorGUI();
+            // Draw the console window
+            base.OnInspectorGUI();
 
             EditorGUI.BeginChangeCheck();
 
             DrawCustomGenerationSettings();
 
-
-            EditorGUILayout.Space();
-
-            // Check if any changes were made in the Inspector
             if (EditorGUI.EndChangeCheck())
             {
-                // If there were changes, apply them to the serialized object
-                _serializedWorldBuilderObject.ApplyModifiedProperties();
+                // Apply changes to the serialized object
+                _serializedRegionBuilderObject.ApplyModifiedProperties();
 
-                // Optionally, mark the target object as dirty to ensure the changes are saved
+                                // Optionally, mark the target object as dirty to ensure the changes are saved
                 EditorUtility.SetDirty(target);
             }
         }
 
-            private void DrawCustomGenerationSettings()
+private void DrawCustomGenerationSettings()
             {
-                SerializedProperty customWorldGenSettingsProperty = _serializedWorldBuilderObject.FindProperty("customWorldGenSettings");
-                if (_worldBuilderScript.customWorldGenSettings != null)
+                SerializedProperty customWorldGenSettingsProperty = _serializedRegionBuilderObject.FindProperty("customRegionSettings");
+                if (_regionBuilderScript.customRegionSettings != null)
                 {
-                    _worldBuilderScript.OverrideSettings((CustomGenerationSettings)customWorldGenSettingsProperty.objectReferenceValue);
+                    _regionBuilderScript.OverrideSettings((CustomGenerationSettings)customWorldGenSettingsProperty.objectReferenceValue);
 
-                    showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Custom World Generation Settings", true);
+                    showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "CustomGenerationSettings", true);
                     if (showGenerationSettingsFoldout)
                     {
                         EditorGUILayout.BeginHorizontal();
                         EditorGUILayout.Space();
                         EditorGUILayout.BeginVertical();
 
-                        UnityEditor.Editor editor = CreateEditor(_worldBuilderScript.customWorldGenSettings);
+                        UnityEditor.Editor editor = CreateEditor(_regionBuilderScript.customRegionSettings);
                         editor.OnInspectorGUI();
 
                         EditorGUILayout.EndVertical();
@@ -76,9 +71,9 @@ namespace Darklight.World.Generation.Editor
                 }
                 else
                 {
-                    _worldBuilderScript.OverrideSettings(null);
+                    _regionBuilderScript.OverrideSettings(null);
 
-                    showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Default World Generation Settings", true);
+                    showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "DefaultGenerationSettings", true);
                     if (showGenerationSettingsFoldout)
                     {
                         EditorGUILayout.BeginHorizontal();

@@ -76,7 +76,7 @@ namespace Darklight.World.Generation
                 {
                     await Task.Run(() => chunk.ChunkMesh != null);
 
-                    GameObject newObject = RegionParent.CreateChunkMeshObject(chunk.ChunkMesh, $"Chunk {chunk.Coordinate.ValueKey}");
+                    GameObject newObject = RegionParent.CreateChunkMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.ChunkMesh);
                     asyncTaskConsole.Log(this, $"\tNewChunkMeshObject : {newObject}");
                 }
 

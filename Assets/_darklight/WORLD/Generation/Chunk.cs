@@ -184,7 +184,7 @@ namespace Darklight.World.Generation
         public List<Cell> FindSpace(EnvironmentObject envObj)
         {
             Dictionary<int, List<Cell>> availableSpace = new Dictionary<int, List<Cell>>();
-            int spaceIndex = 0;
+            //int spaceIndex = 0;
 
             /*
             foreach (Cell startCell in localCells)

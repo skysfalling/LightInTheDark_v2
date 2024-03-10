@@ -11,7 +11,7 @@ namespace Darklight.World.Generation
 {
     using DarklightEditor = Darklight.Unity.CustomInspectorGUI;
 
-    [RequireComponent(typeof(CoordinateMap), typeof(ChunkGeneration))]
+    [RequireComponent(typeof(ChunkGeneration))]
     public class RegionBuilder : AsyncTaskQueen, ITaskQueen
     {
         // [[ PRIVATE VARIABLES ]]
@@ -49,17 +49,24 @@ namespace Darklight.World.Generation
 
 
         // [[ PUBLIC REFERENCE VARIABLES ]]	
-        static GenerationSettings regionSettings;
+        static GenerationSettings _regionSettings = new();
         public CustomGenerationSettings customRegionSettings;
-        /// <summary> Contains settings used during the world generation process. </summary>
-        public static GenerationSettings Settings => regionSettings;
-
+        public static GenerationSettings Settings => _regionSettings;
         /// <summary> Override the default generation settings. </summary>
         public void OverrideSettings(CustomGenerationSettings customSettings)
         {
-            if (customSettings == null) { regionSettings = new GenerationSettings(); return; }
-            regionSettings = new GenerationSettings(customSettings);
+            if (customSettings == null) { _regionSettings = new GenerationSettings(); return; }
+            _regionSettings = new GenerationSettings(customSettings);
         }
+        
+        #region [[ RANDOM SEED ]] -------------------------------------- >> 
+        public static string Seed { get { return Settings.Seed; } }
+
+        public static void InitializeSeedRandom()
+        {
+            UnityEngine.Random.InitState(Settings.Seed.GetHashCode());
+        }
+        #endregion
         public bool initializeOnStart = true;
 
         public void AssignToWorld(WorldBuilder parent, Coordinate coordinate, string taskQueenName = "Region Task Queen")
@@ -70,7 +77,7 @@ namespace Darklight.World.Generation
             // Set the transform to the center
             transform.position = CenterPosition;
 
-            regionSettings = WorldBuilder.Settings;
+            _regionSettings = WorldBuilder.Settings;
         }
 
         public void Start()
@@ -93,8 +100,7 @@ namespace Darklight.World.Generation
             // Create the coordinate map
             base.NewTaskBot("Initialize Coordinate Map", async () =>
             {
-                this._coordinateMap = GetComponent<CoordinateMap>();
-                this._coordinateMap.InitializeRegionCoordinateMap(this);
+                this._coordinateMap = new CoordinateMap(this);
                 await Task.Delay(500);
                 await Task.Yield();
             });
@@ -176,7 +182,7 @@ namespace Darklight.World.Generation
 
         public GameObject CreateChunkMeshObject(string name, ChunkMesh chunkMesh)
         {
-            return CreateMeshObject(name, chunkMesh.Mesh, regionSettings.materialLibrary.DefaultGroundMaterial);
+            return CreateMeshObject(name, chunkMesh.Mesh, _regionSettings.materialLibrary.DefaultGroundMaterial);
         }
 
 
@@ -281,75 +287,6 @@ namespace Darklight.World.Generation
             {
                 // Use Destroy in play mode or in a build
                 Destroy(gameObject);
-            }
-        }
-    }
-
-    [CustomEditor(typeof(RegionBuilder))]
-    public class RegionEditor : AsyncTaskQueen.AsyncTaskQueenEditor
-    {
-        private SerializedProperty customRegionSettings;
-        private RegionBuilder _regionScript;
-
-        private bool showGenerationSettingsFoldout;
-
-        private void OnEnable()
-        {
-            customRegionSettings = serializedObject.FindProperty("customRegionSettings");
-            _regionScript = (RegionBuilder)target;
-        }
-
-        public override void OnInspectorGUI()
-        {
-            base.OnInspectorGUI();
-            DrawCustomGenerationSettings();
-        }
-
-        private void DrawCustomGenerationSettings()
-        {
-            SerializedProperty customRegionSettingsProperty = serializedObject.FindProperty("customRegionSettings");
-            if (_regionScript.customRegionSettings != null)
-            {
-                _regionScript.OverrideSettings((CustomGenerationSettings)customRegionSettingsProperty.objectReferenceValue);
-
-                showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Custom World Generation Settings", true);
-                if (showGenerationSettingsFoldout)
-                {
-                    EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.Space();
-                    EditorGUILayout.BeginVertical();
-
-                    UnityEditor.Editor editor = CreateEditor(_regionScript.customRegionSettings);
-                    editor.OnInspectorGUI();
-
-                    EditorGUILayout.EndVertical();
-                    EditorGUILayout.EndHorizontal();
-                }
-            }
-            else
-            {
-                _regionScript.OverrideSettings(null);
-
-                showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Default World Generation Settings", true);
-                if (showGenerationSettingsFoldout)
-                {
-                    EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.Space();
-                    EditorGUILayout.BeginVertical();
-                    DarklightEditor.CreateSettingsLabel("Seed", WorldBuilder.Settings.Seed);
-                    DarklightEditor.CreateSettingsLabel("Cell Width In World Space", $"{WorldBuilder.Settings.CellSize_inGameUnits}");
-
-                    DarklightEditor.CreateSettingsLabel("Chunk Width In Cells", $"{WorldBuilder.Settings.ChunkDepth_inCellUnits}");
-                    DarklightEditor.CreateSettingsLabel("Chunk Depth In Cells", $"{WorldBuilder.Settings.ChunkDepth_inCellUnits}");
-                    DarklightEditor.CreateSettingsLabel("Max Chunk Height", $"{WorldBuilder.Settings.ChunkMaxHeight_inCellUnits}");
-
-                    DarklightEditor.CreateSettingsLabel("Play Region Width In Chunks", $"{WorldBuilder.Settings.RegionWidth_inChunkUnits}");
-                    DarklightEditor.CreateSettingsLabel("Boundary Wall Count", $"{WorldBuilder.Settings.RegionBoundaryOffset_inChunkUnits}");
-
-                    DarklightEditor.CreateSettingsLabel("World Width In Regions", $"{WorldBuilder.Settings.WorldWidth_inRegionUnits}");
-                    EditorGUILayout.EndVertical();
-                    EditorGUILayout.EndHorizontal();
-                }
             }
         }
     }
