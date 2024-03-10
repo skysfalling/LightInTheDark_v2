@@ -9,40 +9,44 @@ namespace Darklight.Unity.Backend
     /// <summary>
     /// Represents an asynchronous task bot that extends the TaskBot class.
     /// </summary>
-    public class AsyncTaskBot : TaskBot 
+    public class AsyncTaskBot : TaskBot
     {
         /// <summary>
         /// Delegate that represents an asynchronous task.
         /// </summary>
-        public Func<Task> task;
+        public Func<Task> TaskDelegate { get; private set; }
 
         /// <summary>
         /// Constructor for the AsyncTaskBot class.
         /// </summary>
         /// <param name="name">The name of the AsyncTaskBot.</param>
-        /// <param name="task">The asynchronous task to be executed.</param>
-        public AsyncTaskBot(string name, Func<Task> task)
-        { 
+        /// <param name="taskDelegate">The asynchronous task to be executed.</param>
+        public AsyncTaskBot(string name, Func<Task> taskDelegate)
+        {
             base.name = name;
-            this.task = task;
+            this.TaskDelegate = taskDelegate;
         }
-        
+
         /// <summary>
         /// Executes the asynchronous task.
         /// </summary>
         /// <returns>A Task representing the asynchronous operation.</returns>
         public async Task ExecuteAsync()
         {
+            Stopwatch stopwatch = new Stopwatch();
             try
             {
-                stopwatch.Restart(); // Restarts the stopwatch to measure execution time
-                await task(); // Executes the asynchronous task
-                await Task.Yield(); // Yields the current thread to allow other tasks to execute
+                stopwatch.Start();
+                await TaskDelegate(); // Now directly awaiting the taskFunc, supporting true asynchronous operations
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"AsyncTaskBot '{name}' encountered an error: {ex.Message}");
             }
             finally
             {
-                stopwatch.Stop(); // Stops the stopwatch
-                executionTime = stopwatch.ElapsedMilliseconds; // Sets the execution time in milliseconds
+                stopwatch.Stop();
+                executionTime = stopwatch.ElapsedMilliseconds;
             }
         }
     }

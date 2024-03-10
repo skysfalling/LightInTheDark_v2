@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Darklight.Unity.Backend;
 using UnityEditor;
@@ -10,24 +11,66 @@ using UnityEngine;
 namespace Darklight.World.Generation
 {
     using DarklightEditor = Darklight.Unity.CustomInspectorGUI;
+
+    /// <summary>
+    /// Represents a region builder responsible for generating and managing regions in the world.
+    /// </summary>
     [RequireComponent(typeof(ChunkGeneration))]
     public class RegionBuilder : AsyncTaskQueen, ITaskQueen
     {
         // [[ PRIVATE VARIABLES ]]
+
+        // Prefix used for logging and debugging purposes
         string _prefix = "[[ REGION BUILDER ]]";
+
+        // Reference to the parent WorldBuilder
         WorldBuilder _generationParent;
+
+        // Coordinate of the region
         Coordinate _coordinate;
+
+        // Coordinate map for the region
         CoordinateMap _coordinateMap;
+
+        // Chunk generation component
         ChunkGeneration _chunkGeneration;
+
+        // Combined mesh object for the region
         GameObject _combinedMeshObject;
+
+        // Set of region objects
         HashSet<GameObject> _regionObjects = new();
 
         // [[ PUBLIC REFERENCE VARIABLES ]]
+
+        /// <summary>
+        /// Gets a value indicating whether the region builder has been initialized.
+        /// </summary>
         public bool Initialized { get; private set; }
+
+        /// <summary>
+        /// Gets the parent WorldBuilder.
+        /// </summary>
         public WorldBuilder GenerationParent => _generationParent;
+
+        /// <summary>
+        /// Gets the coordinate of the region.
+        /// </summary>
         public Coordinate Coordinate => _coordinate;
+
+        /// <summary>
+        /// Gets the coordinate map for the region.
+        /// </summary>
         public CoordinateMap CoordinateMap => _coordinateMap;
+
+        /// <summary>
+        /// Gets the chunk generation component.
+        /// </summary>
         public ChunkGeneration ChunkGeneration => GetComponent<ChunkGeneration>();
+
+        /// <summary>
+        /// Gets the center position of the region.
+        /// </summary>
         public Vector3 CenterPosition
         {
             get
@@ -36,6 +79,10 @@ namespace Darklight.World.Generation
                 else { return Coordinate.ScenePosition; }
             }
         }
+
+        /// <summary>
+        /// Gets the origin position of the region.
+        /// </summary>
         public Vector3 OriginPosition
         {
             get
@@ -47,41 +94,86 @@ namespace Darklight.World.Generation
             }
         }
 
-
         // [[ PUBLIC REFERENCE VARIABLES ]]	
+
+        /// <summary>
+        /// The default material for the region.
+        /// </summary>
         public Material defaultMaterial;
+
+        // Static generation settings for the region
         static GenerationSettings _regionSettings = new();
+
+        /// <summary>
+        /// Custom generation settings for the region.
+        /// </summary>
         public CustomGenerationSettings customRegionSettings;
+
+        /// <summary>
+        /// Gets the generation settings for the region.
+        /// </summary>
         public static GenerationSettings Settings => _regionSettings;
-        /// <summary> Override the default generation settings. </summary>
+
+        /// <summary>
+        /// Override the default generation settings.
+        /// </summary>
+        /// <param name="customSettings">The custom generation settings.</param>
         public void OverrideSettings(CustomGenerationSettings customSettings)
         {
             if (customSettings == null) { _regionSettings = new GenerationSettings(); return; }
             _regionSettings = new GenerationSettings(customSettings);
+            customRegionSettings = customSettings;
         }
 
         #region [[ RANDOM SEED ]] -------------------------------------- >> 
+
+        /// <summary>
+        /// Gets the seed used for random generation.
+        /// </summary>
         public static string Seed { get { return Settings.Seed; } }
 
+        /// <summary>
+        /// Initializes the random seed.
+        /// </summary>
         public static void InitializeSeedRandom()
         {
             UnityEngine.Random.InitState(Settings.Seed.GetHashCode());
         }
+
         #endregion
+
+        /// <summary>
+        /// Indicates whether the region should be initialized on start.
+        /// </summary>
         public bool initializeOnStart;
 
+        /// <summary>
+        /// Assigns the region to the world.
+        /// </summary>
+        /// <param name="parent">The parent WorldBuilder.</param>
+        /// <param name="coordinate">The coordinate of the region.</param>
+        /// <param name="taskQueenName">The name of the task queen.</param>
         public void AssignToWorld(WorldBuilder parent, Coordinate coordinate, string taskQueenName = "Region Task Queen")
         {
             this._generationParent = parent;
             this._coordinate = coordinate;
 
-            // Set the transform to the center
-            transform.position = CenterPosition;
 
-            _regionSettings = WorldBuilder.Settings;
-            asyncTaskConsole.Log(this, "Assigned to World Builder with settings " + $"{_regionSettings}");
+
+            Debug.Log($"Region {Coordinate.ValueKey} created at {coordinate.ScenePosition}");
+
+
+            if (parent.customWorldGenSettings != null)
+            {
+                OverrideSettings(parent.customWorldGenSettings);
+            }
+            
+            asyncTaskConsole.Log(this, "Assigned to World Builder with settings " + $"{_regionSettings.Seed}");
         }
 
+        /// <summary>
+        /// Starts the region builder.
+        /// </summary>
         public void Start()
         {
             Debug.Log("Start");
@@ -92,13 +184,12 @@ namespace Darklight.World.Generation
             }
         }
 
+        /// <summary>
+        /// Initializes the region builder.
+        /// </summary>
+        /// <param name="name">The name of the region builder.</param>
         public override void Initialize(string name = "RegionAsyncTaskQueen")
         {
-            if (WorldBuilder.Settings != null)
-            {
-                _regionSettings = WorldBuilder.Settings;
-            }
-
             if (Initialized) return;
             Initialized = true;
             base.Initialize(name);
@@ -106,6 +197,9 @@ namespace Darklight.World.Generation
             _ = InitializationSequence();
         }
 
+        /// <summary>
+        /// Resets the region builder.
+        /// </summary>
         public void Reset()
         {
             Initialized = false;
@@ -117,63 +211,75 @@ namespace Darklight.World.Generation
             }
         }
 
+        /// <summary>
+        /// The initialization sequence for the region builder.
+        /// </summary>
+        /// <returns>The task representing the initialization sequence.</returns>
         async Task InitializationSequence()
         {
             // Create the coordinate map
             base.NewTaskBot("Initialize Coordinate Map", async () =>
             {
+                Debug.Log("Initializing Coordinate Map");
+
+
                 this._coordinateMap = new CoordinateMap(this);
-                await Task.Delay(500);
+                while (this._coordinateMap.Initialized == false)
+                {
+                    await Task.Delay(1000);
+                }
                 await Task.Yield();
+
             });
 
             // Create the chunk map for the region
             base.NewTaskBot("Initialize Chunk Generation", async () =>
             {
                 this._chunkGeneration = GetComponent<ChunkGeneration>();
-                await Task.Run(() => this._coordinateMap.Initialized);
 
-                // Create the chunk objects if the _generationParent is null
-                if (WorldBuilder.Instance)
+                while (_coordinateMap == null || !_coordinateMap.Initialized)
                 {
-                    _chunkGeneration.Initialize(this, _coordinateMap, false);
-                }
-                else
-                {
-                    _chunkGeneration.Initialize(this, _coordinateMap, true);
-                }
-                await Task.Run(() => new WaitUntil(() => _chunkGeneration.Initialized));
+                    await Task.Delay(1000);
 
-                asyncTaskConsole.Log(this, "Waiting for chunkMeshes to initialize");
-                // wait for each chunkMesh to be created
-                foreach (Chunk chunk in _chunkGeneration.AllChunks)
-                {
-                    await Task.Run(() => new WaitUntil(() => chunk.ChunkMesh != null));
-                    await Task.Yield();
                 }
+
+                // Conditionally initialize chunk generation based on the WorldBuilder instance
+                _chunkGeneration.Initialize(this, _coordinateMap);
+                await _chunkGeneration.GenerationSequence();
 
                 await Task.Yield();
             });
 
-            // combine the chunk mesh if WorldBuilder exists 
-            base.NewTaskBot("Mesh Generation", async () =>
+            if (WorldBuilder.Instance != null)
             {
-                asyncTaskConsole.Log(this, $"Mesh Generation Started :: {_chunkGeneration.AllChunks.Count} Chunks");
+                // Combine the chunk mesh if WorldBuilder exists
+                base.NewTaskBot("Mesh Generation", async () =>
+                {
+                    asyncTaskConsole.Log(this, "Starting mesh generation...");
 
-                GameObject combinedObject = CreateCombinedChunkMesh(_chunkGeneration.AllChunks.ToList());
+                    while (_chunkGeneration == null || _chunkGeneration.Initialized == false)
+                    {
+                        await Task.Delay(1000);
+                    }
 
-                asyncTaskConsole.Log(this, $"Mesh Generation Complete");
-                await Task.Yield();
-            });
+                    // Asynchronously create and initialize combined chunk mesh
+                    await CreateAndInitializeCombinedChunkMeshAsync();
+                    asyncTaskConsole.Log(this, "Mesh generation complete.");
+                });
+            }
 
+            await ExecuteAllBotsInQueue();
 
-            // Execute through all tasks
-            await base.ExecuteAllBotsInQueue();
+            Debug.Log("Region Builder Initialized");
 
+            // Execute all tasks queued in AsyncTaskQueen
             Initialized = true;
-            //Debug.Log($"{_prefix} Initialized at {Coordinate.ValueKey}");
         }
 
+        /// <summary>
+        /// Generates necessary exits for the region.
+        /// </summary>
+        /// <param name="createExits">Indicates whether to create exits if they don't exist.</param>
         public void GenerateNecessaryExits(bool createExits)
         {
             Dictionary<WorldDirection, Vector2Int> neighborDirectionMap = this.Coordinate.NeighborDirectionMap;
@@ -217,7 +323,6 @@ namespace Darklight.World.Generation
                     {
                         this.CoordinateMap.GenerateRandomExitOnBorder(borderInThisRegion);
                     }
-
                 }
             }
 
@@ -225,6 +330,9 @@ namespace Darklight.World.Generation
             CoordinateMap.SetInactiveCornersToType(Coordinate.TYPE.BORDER);
         }
 
+        /// <summary>
+        /// Destroys the region builder.
+        /// </summary>
         public void Destroy()
         {
             DestroyGameObject(this.gameObject);
@@ -232,24 +340,29 @@ namespace Darklight.World.Generation
 
         // == MESH GENERATION ============================================== >>>>
 
-
-        /// <summary> Create GameObject with a given name, mesh and material </summary>
+        /// <summary>
+        /// Creates a GameObject with the given name, mesh, and material.
+        /// </summary>
+        /// <param name="name">The name of the GameObject.</param>
+        /// <param name="mesh">The mesh for the GameObject.</param>
+        /// <param name="material">The material for the GameObject.</param>
+        /// <returns>The created GameObject.</returns>
         public GameObject CreateMeshObject(string name, Mesh mesh, Material material = null)
         {
+            if (mesh == null) { Debug.LogError("Mesh is null"); }
+
             GameObject worldObject = new GameObject(name);
             worldObject.transform.parent = transform;
-
-            _regionObjects.Add(worldObject);
+            worldObject.transform.localPosition = Vector3.zero;
 
             MeshFilter meshFilter = worldObject.AddComponent<MeshFilter>();
             meshFilter.sharedMesh = mesh;
             meshFilter.sharedMesh.RecalculateBounds();
             meshFilter.sharedMesh.RecalculateNormals();
 
-
             if (material == null)
             {
-                Debug.LogError("Mesh material is null");
+                Debug.LogError("Mesh material is null -> setMaterial to default");
                 worldObject.AddComponent<MeshRenderer>().material = defaultMaterial;
                 worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
             }
@@ -259,24 +372,67 @@ namespace Darklight.World.Generation
                 worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
             }
 
+            _regionObjects.Add(worldObject);
 
             return worldObject;
         }
 
         /// <summary>
-        /// Combines multiple Mesh objects into a single mesh. This is useful for optimizing rendering by reducing draw calls.
+        /// Asynchronously creates a combined chunk mesh and initializes the mesh object.
         /// </summary>
-        /// <param name="meshes">A List of Mesh objects to be combined.</param>
-        /// <returns>A single combined Mesh object.</returns>
-        Mesh CombineChunks()
+        /// <returns>A task representing the asynchronous operation.</returns>
+        public async Task CreateAndInitializeCombinedChunkMeshAsync()
         {
-            Debug.Log("Combine Chunks");
+            Mesh combinedMesh = CombineChunks();
+            while (combinedMesh == null)
+            {
+                combinedMesh = CombineChunks();
+                await Task.Delay(1000);
+            }
 
-            // Get Meshes from chunks
+            // Check if combinedMesh creation was successful
+            if (combinedMesh != null)
+            {
+                try
+                {
+                    // Proceed with creating the GameObject based on the combined mesh
+                    _combinedMeshObject = CreateMeshObject($"CombinedChunkMesh", combinedMesh, Settings.materialLibrary.DefaultGroundMaterial);
+
+                    if (_combinedMeshObject != null)
+                    {
+                        // Additional setup for the combined mesh object as needed
+                        Debug.Log($"Successfully created combined mesh object: {_combinedMeshObject.name}");
+                        _combinedMeshObject.transform.parent = this.transform;
+                        MeshCollider collider = _combinedMeshObject.AddComponent<MeshCollider>();
+                        collider.sharedMesh = combinedMesh;
+                    }
+                    else
+                    {
+                        Debug.LogError("Failed to create combined mesh object.");
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"Error while setting up the combined mesh object: {ex.Message}");
+                }
+            }
+            else
+            {
+                Debug.LogError("CombinedMesh is null after combining chunks.");
+            }
+        }
+
+        /// <summary>
+        /// Combines multiple Mesh objects into a single mesh in an async-compatible manner.
+        /// This method is intended to be run on a background thread to avoid blocking the main thread.
+        /// </summary>
+        /// <returns>A single combined Mesh object.</returns>
+        private Mesh CombineChunks()
+        {
             List<Mesh> meshes = new List<Mesh>();
             foreach (Chunk chunk in _chunkGeneration.AllChunks)
             {
-                if (chunk != null && chunk.ChunkMesh != null && chunk.ChunkMesh.Mesh != null)
+                if (chunk?.ChunkMesh?.Mesh != null)
                 {
                     meshes.Add(chunk.ChunkMesh.Mesh);
                 }
@@ -286,44 +442,36 @@ namespace Darklight.World.Generation
                 }
             }
 
-            Debug.Log("Extract Meshes");
+            if (meshes.Count == 0) return null;
 
-            List<Vector3> newVertices = new List<Vector3>();
-            List<int> newTriangles = new List<int>();
-            List<Vector2> newUVs = new List<Vector2>(); // Add a list for the new UVs
+            int totalVertexCount = meshes.Sum(m => m.vertexCount);
+            List<Vector3> newVertices = new List<Vector3>(totalVertexCount);
+            List<int> newTriangles = new List<int>(totalVertexCount); // Note: This might need adjusting based on your meshes
+            List<Vector2> newUVs = new List<Vector2>(totalVertexCount);
 
-            int vertexOffset = 0; // Keep track of the vertex offset
+            int vertexOffset = 0;
 
             foreach (Mesh mesh in meshes)
             {
-                if (mesh != null)
+                newVertices.AddRange(mesh.vertices);
+                newUVs.AddRange(mesh.uv);
+
+                foreach (int triangle in mesh.triangles)
                 {
-                    newVertices.AddRange(mesh.vertices); // Add all vertices
-
-                    // Add all UVs from the current mesh
-                    newUVs.AddRange(mesh.uv);
-
-                    // Add the triangles, adjusted by the current vertex offset
-                    foreach (var tri in mesh.triangles)
-                    {
-                        newTriangles.Add(tri + vertexOffset);
-                    }
-
-                    // Update the vertex offset for the next mesh
-                    vertexOffset += mesh.vertexCount;
+                    newTriangles.Add(triangle + vertexOffset);
                 }
-                else
-                {
-                    Debug.LogWarning("Invalid mesh found while combining chunks.");
-                }
+
+                vertexOffset += mesh.vertexCount;
             }
 
-            Mesh combinedMesh = new Mesh
+            Mesh combinedMesh = new Mesh();
+            if (totalVertexCount > 65535)
             {
-                vertices = newVertices.ToArray(),
-                triangles = newTriangles.ToArray(),
-                uv = newUVs.ToArray() // Set the combined UVs
-            };
+                combinedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32; // Support for more than 65535 vertices
+            }
+            combinedMesh.vertices = newVertices.ToArray();
+            combinedMesh.triangles = newTriangles.ToArray();
+            combinedMesh.uv = newUVs.ToArray();
 
             combinedMesh.RecalculateBounds();
             combinedMesh.RecalculateNormals();
@@ -331,42 +479,7 @@ namespace Darklight.World.Generation
             return combinedMesh;
         }
 
-        public GameObject CreateCombinedChunkMesh(List<Chunk> chunks)
-        {
-            this.ChunkGeneration.UpdateMap();
-            Debug.Log("Update Chunk Generation");
 
-            // Create Combined Mesh of world chunks
-            Mesh combinedMesh = CombineChunks();
-            Debug.Log("Create Combined Mesh");
-
-            try
-            {
-                Debug.LogError("Found material");
-                if (WorldBuilder.Settings != null)
-                {
-                    this._combinedMeshObject = CreateMeshObject($"CombinedChunkMesh", combinedMesh, WorldBuilder.Settings.materialLibrary.DefaultGroundMaterial);
-                }
-                else if (RegionBuilder.Settings != null)
-                {
-                    this._combinedMeshObject = CreateMeshObject($"CombinedChunkMesh", combinedMesh, RegionBuilder.Settings.materialLibrary.DefaultGroundMaterial);
-                }
-                Debug.LogError("Found material");
-
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError("Material is null" + $"{ex}");
-                this._combinedMeshObject = CreateMeshObject($"CombinedChunkMesh", combinedMesh, null);
-            }
-
-            Debug.LogError("Created Object");
-            this._combinedMeshObject.transform.parent = this.transform;
-            MeshCollider collider = _combinedMeshObject.AddComponent<MeshCollider>();
-            collider.sharedMesh = combinedMesh;
-
-            return this._combinedMeshObject;
-        }
 
         /// <summary> Destroy GameObject in Play andEdit mode </summary>
         public static void DestroyGameObject(GameObject gameObject)

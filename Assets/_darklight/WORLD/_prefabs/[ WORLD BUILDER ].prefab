@@ -44,5 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 620745325a50846479f301ec54b3a337, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  customWorldGenSettings: {fileID: 0}
+  customWorldGenSettings: {fileID: 11400000, guid: 32809448232478c43a1dc5f49fc640ae,
+    type: 2}
   initializeOnStart: 1

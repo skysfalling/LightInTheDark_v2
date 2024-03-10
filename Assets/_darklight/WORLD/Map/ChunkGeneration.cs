@@ -19,14 +19,11 @@ namespace Darklight.World.Generation
         CoordinateMap _coordinateMap;
         public HashSet<Chunk> AllChunks { get { return _chunks; } private set { } }
 
-        public void Initialize(RegionBuilder worldRegion, CoordinateMap coordinateMap, bool createObjects)
+        public void Initialize(RegionBuilder worldRegion, CoordinateMap coordinateMap)
         {
             base.Initialize("ChunkGenerationAsync");
             RegionParent = worldRegion;
             _coordinateMap = coordinateMap;
-            CreateObjects = createObjects;
-
-            _ = InitializationSequence();
         }
 
         public void Reset()
@@ -37,14 +34,13 @@ namespace Darklight.World.Generation
             _chunkMap.Clear();
         }
 
-        async Task InitializationSequence()
+        public async Task GenerationSequence()
         {
 
-            base.NewTaskBot("Wait for Coordinate Map", async () =>
+            while (_coordinateMap.Initialized == false)
             {
-                await Task.Run(() => _coordinateMap.Initialized);
-                await Task.Yield();
-            });
+                await Task.Delay(1000);
+            }
 
 
             base.NewTaskBot("Creating Chunks", async () =>
@@ -70,14 +66,12 @@ namespace Darklight.World.Generation
                 foreach (Chunk chunk in _chunks)
                 {
                     ChunkMesh newMesh = chunk.CreateChunkMesh();
-                    await Task.Yield();
-
                 }
 
                 await Task.Yield();
             });
 
-            if (CreateObjects)
+            if (WorldBuilder.Instance == null)
             {
                 base.NewTaskBot("Creating Objects", async () =>
                 {
@@ -88,8 +82,6 @@ namespace Darklight.World.Generation
 
                         GameObject newObject = RegionParent.CreateMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.ChunkMesh.Mesh);
                         asyncTaskConsole.Log(this, $"\tNewChunkMeshObject : {newObject}");
-                        await Task.Yield();
-
                     }
 
                     await Task.Yield();
@@ -97,8 +89,8 @@ namespace Darklight.World.Generation
             }
 
 
-            await base.ExecuteAllBotsInQueue();
-            Debug.Log("Initialization Sequence Completed");
+            await ExecuteAllBotsInQueue();
+            asyncTaskConsole.Log(this, "Initialization Sequence Completed");
             Initialized = true;
 
         }

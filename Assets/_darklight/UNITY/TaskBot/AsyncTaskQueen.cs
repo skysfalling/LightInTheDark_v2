@@ -6,6 +6,8 @@ using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Linq;
+using System.Collections;
+
 
 
 #if UNITY_EDITOR
@@ -45,11 +47,15 @@ namespace Darklight.Unity.Backend
         public List<TaskBot.Profile> taskBotProfiles { get; set; } = new();
         public AsyncTaskConsole asyncTaskConsole { get; private set; } = new AsyncTaskConsole();
 
+        private void Awake()
+        {
+            MainThreadDispatcher.Instance();
+        }
 
         public virtual void Initialize(string name)
         {
-			this.name = name;
-			asyncTaskConsole.Log(this, $"Good Morning, {name}");
+            this.name = name;
+            asyncTaskConsole.Log(this, $"Good Morning, {name}");
         }
 
         /// <summary>
@@ -61,34 +67,36 @@ namespace Darklight.Unity.Backend
         {
             Guid guidId = Guid.NewGuid();
             AsyncTaskBot newTaskBot = new AsyncTaskBot(name, task);
-            taskBotQueue.Enqueue(newTaskBot);
-
-			asyncTaskConsole.Log(newTaskBot, "New Task Bot Created");
-
+            taskBotQueue.Enqueue(newTaskBot); // Enqueue the new task
+            asyncTaskConsole.Log(newTaskBot, "New Task Bot Created");
         }
 
-        /// <summary>
-        /// Executes all the AsyncTaskBots in the taskBotQueue.
-        /// </summary>
         public async Task ExecuteAllBotsInQueue()
         {
-			asyncTaskConsole.Log(this, $"Execute all AsyncTaskBots [ {taskBotQueue.Count} ]");
+            asyncTaskConsole.Log(this, $"Executing all AsyncTaskBots [{taskBotQueue.Count}]");
 
             while (taskBotQueue.Count > 0)
             {
                 AsyncTaskBot taskBot = taskBotQueue.Dequeue();
-                asyncTaskConsole.Log(taskBot, $"Task Bot Started");
 
-                await taskBot.ExecuteAsync();
-                await Task.Yield();
+                try
+                {
+                    await taskBot.ExecuteAsync();
+                }
+                catch (Exception ex)
+                {
+                    asyncTaskConsole.Log(taskBot, $"Task Bot Failed: {ex.Message}");
+                    //continue; // Skip to the next bot in case of failure
+                }
 
-				TaskBot.Profile newProfile = taskBot.NewProfile();
+                TaskBot.Profile newProfile = taskBot.NewProfile();
                 taskBotProfiles.Add(newProfile);
-				asyncTaskConsole.Log(taskBot, $"Task Bot Finished: {newProfile.executionTime}ms");
+                asyncTaskConsole.Log(taskBot, $"Task Bot Finished: {newProfile.executionTime}ms");
 
-                taskBot.Dispose();
+                taskBot.Dispose(); // Ensure resources are freed and the bot is properly cleaned up
             }
         }
+
 
         public class AsyncTaskConsole
         {
@@ -123,8 +131,8 @@ namespace Darklight.Unity.Backend
             public void Log(AsyncTaskBot asyncTaskBot, string message)
             {
                 Tag botTag = new Tag(asyncTaskBot);
-                
-				if (!ConsoleDictionary.ContainsKey(botTag))
+
+                if (!ConsoleDictionary.ContainsKey(botTag))
                 {
                     ConsoleDictionary.Add(botTag, new List<string>());
                 }
@@ -157,7 +165,7 @@ namespace Darklight.Unity.Backend
 
             public override void OnInspectorGUI()
             {
-				DrawDefaultInspector();
+                DrawDefaultInspector();
 
                 GUILayout.Space(10);
 

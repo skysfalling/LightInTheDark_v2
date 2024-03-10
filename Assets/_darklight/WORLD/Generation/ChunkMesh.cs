@@ -59,29 +59,30 @@ namespace Darklight.World.Generation
 
         Mesh CreateMesh(int groundHeight, List<FaceType> facesToGenerate)
         {
-            int cellSize = WorldBuilder.Settings.CellSize_inGameUnits;
+            int cellSize = 2;
             Mesh newMesh = new Mesh();
             List<Vector3> vertices = new();
             List<Vector2> uvs = new();
             List<int> triangles = new();
 
-            try
+            if (WorldBuilder.Settings != null)
             {
-                if (WorldBuilder.Settings != null)
-                {            
-                    _defaultDimensions = WorldBuilder.Settings.ChunkVec3Dimensions_inCellUnits;
-                }
-                else
-                {
-                    _defaultDimensions = RegionBuilder.Settings.ChunkVec3Dimensions_inCellUnits;
-                }
-            }
-            catch (Exception ex)
-            {
-                // Handle the exception here
-                Console.WriteLine("An error occurred: " + ex.Message);
-            }
+                cellSize = WorldBuilder.Settings.CellSize_inGameUnits;
+                _defaultDimensions = WorldBuilder.Settings.ChunkVec3Dimensions_inCellUnits;
+                Debug.LogError($"World Settings {_defaultDimensions}");
 
+            }
+            else if (RegionBuilder.Settings != null)
+            {
+                cellSize = RegionBuilder.Settings.CellSize_inGameUnits;
+                _defaultDimensions = RegionBuilder.Settings.ChunkVec3Dimensions_inCellUnits;
+                Debug.LogError("Region Settings");
+
+            }
+            else
+            {
+                Debug.LogError("Settings not found");
+            }
 
             // << UPDATE DIMENSIONS >>
             _currentDimensions = _defaultDimensions + (Vector3Int.up * groundHeight); // Add ground height to default dimensions
@@ -141,11 +142,11 @@ namespace Darklight.World.Generation
                     // SET U & V DIVISIONS
                     (int uDivisions, int vDivisions) = GetFaceUVDivisions(faceType);
 
-/*
-                    Debug.Log($"Chunk Mesh {_chunkParent} : {faceType}" +
-                        $"\n\t chunkMeshDimensions {_currentDimensions}" +
-                        $"\n\t uDivisions {uDivisions} vDivisions {vDivisions}");
-*/
+                    /*
+                                        Debug.Log($"Chunk Mesh {_chunkParent} : {faceType}" +
+                                            $"\n\t chunkMeshDimensions {_currentDimensions}" +
+                                            $"\n\t uDivisions {uDivisions} vDivisions {vDivisions}");
+                    */
 
                     // ADD FACE TRIANGLES
                     for (int i = 0; i < vDivisions; i++)

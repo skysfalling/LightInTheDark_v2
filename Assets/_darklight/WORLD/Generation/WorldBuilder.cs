@@ -74,7 +74,6 @@ namespace Darklight.World.Generation
 
         // [[ PRIVATE VARIABLES ]] 
         string _prefix = "[ WORLD BUILDER ] ";
-        Coroutine _generationCoroutine;
         CoordinateMap _coordinateMap;
         Dictionary<Vector2Int, RegionBuilder> _regionMap = new();
 
@@ -112,43 +111,50 @@ namespace Darklight.World.Generation
         public override void Initialize(string name = "WorldBuilderAsyncTaskQueen")
         {
             base.Initialize(name);
-            _ = InitializeAndGenerateAsync();
-        }
-
-        /// <summary>
-        /// Represents an asynchronous operation that can return a value.
-        /// </summary>
-        async Task InitializeAndGenerateAsync()
-        {
             OverrideSettings(customWorldGenSettings);
             InitializeSeedRandom();
 
-            this._coordinateMap = new CoordinateMap(this);
-            await InitializationSequenceAsync();
 
-            // This will yield control back to the caller, allowing it to continue
-            // executing while the heavy computation is running
-            await Task.Yield();
+            if (WorldBuilder.Settings != null)
+            {
+                Debug.LogError($"World Settings {WorldBuilder.Settings.ChunkVec3Dimensions_inCellUnits}");
 
+            }
+
+
+            _ = InitializationSequenceAsync();
         }
+
 
         /// <summary>
         /// Orchestrates the entire initialization sequence asynchronously, divided into stages.
         /// </summary>
         async Task InitializationSequenceAsync()
         {
+
+            this._coordinateMap = new CoordinateMap(this);
+            while (this._coordinateMap.Initialized == false)
+            {
+                await Task.Delay(1000);
+            }
+
             // Stage 0: Create Regions
             base.NewTaskBot("CreateRegions", async () =>
             {
                 foreach (Coordinate regionCoordinate in CoordinateMap.AllCoordinates)
                 {
+                    while (regionCoordinate.Initialized == false)
+                    {
+                        await Task.Delay(1000);
+                    }
+
                     GameObject regionObject = new GameObject($"New Region ({regionCoordinate.ValueKey})");
                     RegionBuilder region = regionObject.AddComponent<RegionBuilder>();
-                    regionObject.transform.parent = this.transform;
+                    region.transform.parent = this.transform;
                     region.AssignToWorld(this, regionCoordinate);
                     _regionMap[regionCoordinate.ValueKey] = region;
-                    await Task.Yield(); // Efficiently yields back to the main thread
                 }
+                await Task.Yield();
             });
 
             // Stage 1: Initialize Regions
@@ -157,8 +163,10 @@ namespace Darklight.World.Generation
                 foreach (RegionBuilder region in AllRegions)
                 {
                     region.Initialize();
-                    await Task.Run(() => region.Initialized);
-                    await Task.Yield();
+                    while (region.Initialized == false)
+                    {
+                        await Task.Delay(1000);
+                    }
                 }
             });
 
@@ -166,41 +174,49 @@ namespace Darklight.World.Generation
             base.NewTaskBot("GenerateExits", async () =>
             {
                 Debug.Log("GenerateExits task started");
-                foreach (var region in AllRegions)
+                foreach (RegionBuilder region in AllRegions)
                 {
                     region.GenerateNecessaryExits(true);
-                    await Task.Yield();
+                    await Task.Delay(1000);
                 }
             });
 
             // Stage 3: Generate Paths Between Exits
             base.NewTaskBot("GeneratePathsBetweenExits", async () =>
             {
-                foreach (var region in AllRegions)
+                foreach (RegionBuilder region in AllRegions)
                 {
                     region.CoordinateMap.GeneratePathsBetweenExits();
-                    await Task.Yield();
                 }
+                await Task.Yield();
+
             });
 
             // Stage 4: Zone Generation and Height Assignments
             base.NewTaskBot("ZoneGeneration", async () =>
             {
-                foreach (var region in AllRegions)
+                foreach (RegionBuilder region in AllRegions)
                 {
                     region.CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
-                    await Task.Yield();
                 }
+                await Task.Yield();
+
             });
 
-            // Run all bots
-            await base.ExecuteAllBotsInQueue();
+            await ExecuteAllBotsInQueue(); ///
 
             // Mark initialization as complete
             Initialized = true;
+
         }
 
         #endregion
+
+        public async Task CreateRegionAsync(Coordinate regionCoordinate)
+        {
+
+            await Task.Yield();
+        }
 
         /// <summary> Fully Reset the World Generation </summary>
         public void ResetGeneration()
@@ -214,6 +230,14 @@ namespace Darklight.World.Generation
             this._coordinateMap = null; // Clear coordinate map
 
             Initialized = false;
+        }
+
+        private void OnDrawGizmos() {
+            foreach (Coordinate coord in CoordinateMap.AllCoordinates)
+            {
+                Gizmos.color = Color.red;
+                Gizmos.DrawWireCube(coord.ScenePosition, Vector3.one * 0.5f);
+            }
         }
     }
 }
