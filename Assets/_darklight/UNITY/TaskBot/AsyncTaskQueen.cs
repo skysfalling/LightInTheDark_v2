@@ -1,3 +1,4 @@
+using System.Threading;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -70,6 +71,8 @@ namespace Darklight.Unity.Backend
         /// </summary>
         public async Task ExecuteAllBotsInQueue()
         {
+			asyncTaskConsole.Log(this, $"Execute all AsyncTaskBots [ {taskBotQueue.Count} ]");
+
             while (taskBotQueue.Count > 0)
             {
                 AsyncTaskBot taskBot = taskBotQueue.Dequeue();
@@ -79,7 +82,6 @@ namespace Darklight.Unity.Backend
 				TaskBot.Profile newProfile = taskBot.NewProfile();
                 taskBotProfiles.Add(newProfile);
 				asyncTaskConsole.Log(taskBot, $"Task Bot Finished: {newProfile.executionTime}ms");
-
 
                 taskBot.Dispose();
             }
@@ -103,17 +105,28 @@ namespace Darklight.Unity.Backend
                 }
             }
 
-            public Dictionary<Tag, string> ConsoleDictionary { get; private set; } = new();
+            public Dictionary<Tag, List<string>> ConsoleDictionary { get; private set; } = new();
             public void Log(AsyncTaskQueen queen, string message)
             {
                 Tag queenTag = new Tag(queen);
-                ConsoleDictionary[queenTag] = message;
+
+                if (!ConsoleDictionary.ContainsKey(queenTag))
+                {
+                    ConsoleDictionary.Add(queenTag, new List<string>());
+                }
+                ConsoleDictionary[queenTag].Add(message);
             }
 
             public void Log(AsyncTaskBot asyncTaskBot, string message)
             {
-                Tag queenTag = new Tag(asyncTaskBot);
-                ConsoleDictionary[queenTag] = message;
+                Tag botTag = new Tag(asyncTaskBot);
+                
+				if (!ConsoleDictionary.ContainsKey(botTag))
+                {
+                    ConsoleDictionary.Add(botTag, new List<string>());
+                }
+
+                ConsoleDictionary[botTag].Add(message);
             }
 
             public List<string> GetActiveConsole()
@@ -122,7 +135,10 @@ namespace Darklight.Unity.Backend
                 foreach (Tag tag in ConsoleDictionary.Keys)
                 {
                     result.Add($"{tag.name}: {tag.guidId}");
-                    result.Add($"\t{ConsoleDictionary[tag]}");
+                    foreach (string value in ConsoleDictionary[tag])
+                    {
+                        result.Add($"\t {value}");
+                    }
                 }
                 return result;
             }

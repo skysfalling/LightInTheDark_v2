@@ -5,9 +5,13 @@ using Darklight.Unity.Backend;
 using Unity.VisualScripting;
 using UnityEngine;
 
+#if UNITY_EDITOR
+	    using UnityEditor;
+#endif
+
 namespace Darklight.World.Generation.Entity.Spawner
 {
-    public class EntitySpawner : EventTaskQueen
+    public class EntitySpawner : AsyncTaskQueen, ITaskQueen
     {
         public static EntitySpawner Instance { get; private set; }
         private void Awake()
@@ -19,36 +23,43 @@ namespace Darklight.World.Generation.Entity.Spawner
         Dictionary<Vector2Int, Region> _regionMap => _worldBuilder.RegionMap;
         Dictionary<Vector2Int, List<Zone>> _regionZoneMap = new();
 
-        // [[ PUBLIC ACCESS VARIABLES ]] ===== >>
+        public GameObject travelerPrefab;
 
+        public bool initializeOnStart;
 
-        // [[ PUBLIC INSPECTOR VARIABLES ]] ===== >>
-        [Range(0, 1)] public float tickSpeed = 0.5f;
-
-        [Header("Entity Library")]
-        public GameObject playerPrefab;
-        public GameObject testEntityPrefab;
-
-        void Start()
+        private void Start()
         {
+            if (initializeOnStart == true) { Initialize(); }
+        }
+
+        public override void Initialize(string name = "SpawnerAsyncTaskQueen")
+        {
+            base.Initialize(name);
             _ = InitializeAsync();
         }
 
         async Task InitializeAsync()
         {
+            asyncTaskConsole.Log(this, $"Waiting for WorldBuilder to be Initialized => status : {_worldBuilder.Initialized}");
             while (_worldBuilder.Initialized == false)
             {
                 await Task.Yield();
             }
 
-            await Task.Delay(1000);
+            asyncTaskConsole.Log(this, $"WorldBuilder Initialized => status : {_worldBuilder.Initialized}");
 
+            base.NewTaskBot("Spawn Player", async () =>
+            {
+                SpawnTravelerInRandomValidZone(travelerPrefab);
+                await Task.Yield();
 
-            base.ExecuteAllBotsInQueue();
+            });
+            await ExecuteAllBotsInQueue();
             await Task.Yield();
+
         }
 
-        public void SpawnTravelerInRandomValidZone(GameObject travelerPrefab)
+	    public void SpawnTravelerInRandomValidZone(GameObject travelerPrefab)
         {
             foreach (Region region in _regionMap.Values)
             {
@@ -60,7 +71,7 @@ namespace Darklight.World.Generation.Entity.Spawner
 
                     GameObject travelerObject = Instantiate(travelerPrefab, spawnChunk.GroundPosition, Quaternion.identity);
                     travelerObject.transform.parent = transform;
-					Traveler traveler = travelerObject.GetComponent<Traveler>();
+                    Traveler traveler = travelerObject.GetComponent<Traveler>();
                     traveler.InitializeAt(region, spawnChunk);
 
 
@@ -69,7 +80,28 @@ namespace Darklight.World.Generation.Entity.Spawner
                 }
             }
         }
-    }
-}
 
+    }
+
+    #if UNITY_EDITOR
+    [CustomEditor(typeof(EntitySpawner))]
+    public class EntitySpawnerEditor : AsyncTaskQueen.AsyncTaskQueenEditor
+    {
+        private EntitySpawner _entitySpawner;
+        private void OnEnable()
+        {
+            _entitySpawner = (EntitySpawner)target;
+        }
+
+        public override void OnInspectorGUI()
+        {
+
+			DrawDefaultInspector();
+
+            base.OnInspectorGUI();
+
+        }
+    }
+    #endif
+}
 

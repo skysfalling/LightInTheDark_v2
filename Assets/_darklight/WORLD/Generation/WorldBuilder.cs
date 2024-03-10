@@ -158,13 +158,11 @@ namespace Darklight.World.Generation
             // Stage 1: Initialize Regions
             base.NewTaskBot("InitializeRegions", async () =>
             {
-                Debug.Log("InitializeRegions task started");
                 foreach (Region region in AllRegions)
                 {
                     region.Initialize();
                     await Task.Yield();
                 }
-                Debug.Log("InitializeRegions task completed");
             });
 
             // Stage 2: Generate Exits
@@ -176,25 +174,21 @@ namespace Darklight.World.Generation
                     region.GenerateNecessaryExits(true);
                     await Task.Yield();
                 }
-                Debug.Log("GenerateExits task completed");
             });
 
             // Stage 3: Generate Paths Between Exits
             base.NewTaskBot("GeneratePathsBetweenExits", async () =>
             {
-                Debug.Log("GeneratePathsBetweenExits task started");
                 foreach (var region in AllRegions)
                 {
                     region.CoordinateMap.GeneratePathsBetweenExits();
                     await Task.Yield();
                 }
-                Debug.Log("GeneratePathsBetweenExits task completed");
             });
 
             // Stage 4: Zone Generation and Height Assignments
             base.NewTaskBot("ZoneGeneration", async () =>
             {
-                Debug.Log("ZoneGeneration task started");
                 foreach (var region in AllRegions)
                 {
                     while (region.Initialized == false)
@@ -205,7 +199,6 @@ namespace Darklight.World.Generation
                     region.CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
                     region.ChunkMap.UpdateMap(); // Update chunk map to match coordinate type values
                 }
-                Debug.Log("ZoneGeneration task completed");
             });
 
             // Run all bots

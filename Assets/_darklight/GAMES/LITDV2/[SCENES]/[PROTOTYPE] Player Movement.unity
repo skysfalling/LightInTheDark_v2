@@ -392,7 +392,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1887117058
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -405,31 +405,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1178f062a0b879046875498cc008c753, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  taskQueenName: EventTaskQueen
-  eventTaskBots:
-  - name: Spawn Player
-    executionTime: 0
-    _unityEvent:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 1887117058}
-          m_TargetAssemblyTypeName: Darklight.World.Generation.Entity.Spawner.MainSpawner,
-            Assembly-CSharp
-          m_MethodName: SpawnTravelerInRandomValidZone
-          m_Mode: 2
-          m_Arguments:
-            m_ObjectArgument: {fileID: 6463713794384547220, guid: bc92038e107710849a0d31e4e76dcf11,
-              type: 3}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-  tickSpeed: 0.5
-  playerPrefab: {fileID: 5492437512589355152, guid: f952db61deb105148a7e505cfdaf8ce1,
+  name: EntitySpawnQueen
+  travelerPrefab: {fileID: 6463713794384547220, guid: bc92038e107710849a0d31e4e76dcf11,
     type: 3}
-  testEntityPrefab: {fileID: 0}
+  initializeOnStart: 1
 --- !u!4 &1887117059
 Transform:
   m_ObjectHideFlags: 0
