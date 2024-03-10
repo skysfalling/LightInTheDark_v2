@@ -81,7 +81,7 @@ namespace Darklight.World.Generation
             this._groundHeight = PerlinNoise.CalculateHeightFromNoise(perlinOffset);
 
             // Create coordinate map
-            this._coordinateMap = new CoordinateMap(this);
+            //this._coordinateMap = new CoordinateMap(this);
         }
 
         public void CreateChunkMesh()

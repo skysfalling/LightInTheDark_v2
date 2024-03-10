@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Darklight.Unity.Backend;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
 namespace Darklight.World.Generation
-{    public class Region : AsyncTaskQueen, ITaskQueen
+{
+    [RequireComponent(typeof(CoordinateMap))]
+    public class Region : AsyncTaskQueen, ITaskQueen
     {
         // [[ PRIVATE VARIABLES ]]
         string _prefix = "(( REGION ))";
@@ -24,7 +25,14 @@ namespace Darklight.World.Generation
         public Coordinate Coordinate => _coordinate;
         public CoordinateMap CoordinateMap => _coordinateMap;
         public ChunkMap ChunkMap => _chunkMap;
-        public Vector3 CenterPosition => Coordinate.ScenePosition;
+        public Vector3 CenterPosition
+        {
+            get
+            {
+                if (Coordinate == null) { return Vector3.zero; }
+                else { return Coordinate.ScenePosition; }
+            }
+        }
         public Vector3 OriginPosition
         {
             get
@@ -35,7 +43,7 @@ namespace Darklight.World.Generation
                 return origin;
             }
         }
-		public bool initializeOnStart = true;
+        public bool initializeOnStart = true;
 
         public void SetReferences(WorldBuilder parent, Coordinate coordinate, string taskQueenName = "Region Task Queen")
         {
@@ -48,42 +56,39 @@ namespace Darklight.World.Generation
             this.name = taskQueenName;
         }
 
-		public void Start()
+        public void Start()
         {
             Debug.Log("Start");
-			if (initializeOnStart == true)
+            if (initializeOnStart == true)
             {
                 this.Initialize();
-            }        
+            }
         }
 
         public override void Initialize(string name = "RegionAsyncTaskQueen")
         {
             base.Initialize(name);
+
+            this._coordinateMap = GetComponent<CoordinateMap>();
+            this._coordinateMap.InitializeRegionCoordinateMap(this);
+
             _ = InitializationSequence();
         }
 
-        public async Task InitializationSequence()
+        async Task InitializationSequence()
         {
-            // Create the coordinate map for the region
-            NewTaskBot("Initialize Coordinate Map", async () =>
-            {
-                this._coordinateMap = new CoordinateMap(this);
-                await Task.Delay(100);
-            });
-
             // Create the chunk map for the region
-            NewTaskBot("Initialize Chunk Map", async () =>
+            base.NewTaskBot("Initialize Chunk Map", async () =>
             {
                 this._chunkMap = new ChunkMap(this, this._coordinateMap);
-                await Task.Delay(100);
+                await Task.Yield();
             });
 
             // Update the chunk map to reflect the coordinate map
-            NewTaskBot("Update Chunk Map", async () =>
+            base.NewTaskBot("Update Chunk Map", async () =>
             {
                 this._chunkMap.UpdateMap();
-                await Task.Delay(100);
+                await Task.Yield();
             });
 
             // Execute through all tasks
@@ -147,20 +152,6 @@ namespace Darklight.World.Generation
         public void Destroy()
         {
             DestroyGameObject(this.gameObject);
-        }
-
-        public void NewSeedGeneration()
-        {
-            WorldBuilder.InitializeSeedRandom();
-            _coordinateMap = new CoordinateMap(this);
-            CoordinateMap.GenerateRandomExits();
-            CoordinateMap.GeneratePathsBetweenExits();
-            CoordinateMap.GenerateRandomZones(1, 3, new List<Zone.TYPE>() { Zone.TYPE.FULL }); // Zone generation
-        }
-
-        public void ResetCoordinateMap()
-        {
-            _coordinateMap = new CoordinateMap(this);
         }
 
         public void ResetChunkMap()
@@ -264,7 +255,7 @@ namespace Darklight.World.Generation
             collider.sharedMesh = combinedMesh;
         }
 
-                /// <summary> Destroy GameObject in Play andEdit mode </summary>
+        /// <summary> Destroy GameObject in Play andEdit mode </summary>
         public static void DestroyGameObject(GameObject gameObject)
         {
             // Check if we are running in the Unity Editor

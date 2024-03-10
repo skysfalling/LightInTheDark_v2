@@ -33,17 +33,19 @@ namespace Darklight.World.Generation.Editor
         {
             _serializedWorldBuilderObject.Update(); // Always start with this call
 
+        	// Draw the console window
+			base.OnInspectorGUI();
+
             EditorGUI.BeginChangeCheck();
 
             // ----------------------------------------------------------------
             // CUSTOM GENERATION SETTINGS
             // ----------------------------------------------------------------
             SerializedProperty customWorldGenSettingsProperty = _serializedWorldBuilderObject.FindProperty("customWorldGenSettings");
-            EditorGUILayout.PropertyField(customWorldGenSettingsProperty);
             if (_worldBuilderScript.customWorldGenSettings != null)
             {
                 // Override World Gen Settings with custom settings
-                _worldBuilderScript.OverrideSettings((CustomWorldGenerationSettings)customWorldGenSettingsProperty.objectReferenceValue);
+                _worldBuilderScript.OverrideSettings((CustomGenerationSettings)customWorldGenSettingsProperty.objectReferenceValue);
 
                 // >>>> foldout
                 showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Custom World Generation Settings", true);
@@ -88,12 +90,6 @@ namespace Darklight.World.Generation.Editor
             }
 
             EditorGUILayout.Space();
-
-			SerializedProperty initOnStart = _serializedWorldBuilderObject.FindProperty("initializeOnStart");
-            EditorGUILayout.PropertyField(initOnStart);
-		
-        	// Draw the console window
-			base.OnInspectorGUI();
 
             // Check if any changes were made in the Inspector
             if (EditorGUI.EndChangeCheck())

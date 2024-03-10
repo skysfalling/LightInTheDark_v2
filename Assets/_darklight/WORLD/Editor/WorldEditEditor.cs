@@ -130,7 +130,7 @@ namespace Darklight.World.Generation.CustomEditor
                     EditorGUILayout.BeginVertical();
 
                     // >> select debug view
-                    DarklightEditor.DrawLabeledEnumPopup(ref _worldEditScript.coordinateMapView, "Coordinate Map View");
+                    //DarklightEditor.DrawLabeledEnumPopup(ref _worldEditScript.coordinateMapView, "Coordinate Map View");
                     EditorGUILayout.LabelField($"Unit Space => {coordinateMap.UnitSpace}", DarklightEditor.LeftAlignedStyle);
                     EditorGUILayout.LabelField($"Initialized => {coordinateMap.Initialized}", DarklightEditor.LeftAlignedStyle);
                     EditorGUILayout.LabelField($"Max Coordinate Value => {coordinateMap.MaxCoordinateValue}", DarklightEditor.LeftAlignedStyle);
@@ -217,6 +217,7 @@ namespace Darklight.World.Generation.CustomEditor
                 // [[ DRAW COORDINATE MAP ]]
                 else if (_worldEditScript.worldView == WorldView.COORDINATE_MAP)
                 {
+                    
                     DrawCoordinateMap(worldGeneration.CoordinateMap, _worldEditScript.coordinateMapView,(coordinate) =>
                     {
 

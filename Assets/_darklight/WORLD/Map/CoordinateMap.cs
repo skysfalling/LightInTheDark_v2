@@ -8,7 +8,7 @@ using Random = UnityEngine.Random;
 
 namespace Darklight.World.Generation
 {
-    public class CoordinateMap
+    public class CoordinateMap : MonoBehaviour
     {
         #region << STATIC FUNCTIONS <<
         public static BorderDirection? GetBorderDirection(WorldDirection direction)
@@ -132,39 +132,40 @@ namespace Darklight.World.Generation
         public List<Zone> Zones => _zones;
 
         // == [[ CONSTRUCTOR ]] ======================================================================== >>>>
-        public CoordinateMap(object parent)
+        public void InitializeWorldCoordinateMap(WorldBuilder parent)
         {
-            // [[ CREATE REGION COORDINATE MAP ]]
-            if (parent is WorldBuilder worldBuilder)
-            {
-                _mapUnitSpace = UnitSpace.WORLD;
-                _mapOriginPosition = worldBuilder.OriginPosition;
-                _mapWidthCount = WorldBuilder.Settings.WorldWidth_inRegionUnits;
-                _coordinateSize = WorldBuilder.Settings.RegionFullWidth_inGameUnits;
-                Debug.Log($"{_prefix} Coordinate map created for WorldBuilder.");
-            }
-            // [[ CREATE CHUNK COORDINATE MAP ]]
-            else if (parent is Region region)
-            {
-                _mapUnitSpace = UnitSpace.REGION;
-                _mapOriginPosition = region.OriginPosition;
-                _mapWidthCount = WorldBuilder.Settings.RegionFullWidth_inChunkUnits;
-                _coordinateSize = WorldBuilder.Settings.ChunkWidth_inGameUnits;
-                Debug.Log($"{_prefix} Coordinate map created for Region.");
-            }
-            // [[ CREATE CELL COORDINATE MAP ]]
-            else if (parent is Chunk chunk)
-            {
-                _mapUnitSpace = UnitSpace.CHUNK;
-                _mapOriginPosition = chunk.OriginPosition;
-                _mapWidthCount = WorldBuilder.Settings.ChunkWidth_inCellUnits;
-                _coordinateSize = WorldBuilder.Settings.CellSize_inGameUnits;
-                Debug.Log($"{_prefix} Coordinate map created for Chunk.");
-            }
-            else
-            {
-                throw new ArgumentException("Unsupported parent type for CoordinateMap.");
-            }
+            _mapUnitSpace = UnitSpace.WORLD;
+            _mapOriginPosition = parent.OriginPosition;
+            _mapWidthCount = WorldBuilder.Settings.WorldWidth_inRegionUnits;
+            _coordinateSize = WorldBuilder.Settings.RegionFullWidth_inGameUnits;
+
+            InitializeDefaultMap();
+        }
+
+        public void InitializeRegionCoordinateMap(Region parent)
+        {
+            _mapUnitSpace = UnitSpace.REGION;
+            _mapOriginPosition = parent.OriginPosition;
+            _mapWidthCount = WorldBuilder.Settings.RegionFullWidth_inChunkUnits;
+            _coordinateSize = WorldBuilder.Settings.ChunkWidth_inGameUnits;
+
+            InitializeDefaultMap();
+        }
+
+        public void InitializeChunkCoordinateMap(Chunk parent)
+        {
+            _mapUnitSpace = UnitSpace.CHUNK;
+            _mapOriginPosition = parent.OriginPosition;
+            _mapWidthCount = WorldBuilder.Settings.ChunkWidth_inCellUnits;
+            _coordinateSize = WorldBuilder.Settings.CellSize_inGameUnits;
+
+            InitializeDefaultMap();
+        }
+
+        void InitializeDefaultMap()
+        {
+            int coordMax = _mapWidthCount;
+            int borderOffset = WorldBuilder.Settings.RegionBoundaryOffset_inChunkUnits;
 
             // Create Coordinate grid
             for (int x = 0; x < _mapWidthCount; x++)
@@ -181,18 +182,6 @@ namespace Darklight.World.Generation
                     _coordinateMap[newCoordinateValue] = newCoordinate;
                 }
             }
-
-            //Debug.Log($"{_prefix} Initialized in {_mapUnitSpace} Space");
-
-            Initialized = true;
-
-            InitializeDefaultMap();
-        }
-
-        void InitializeDefaultMap()
-        {
-            int coordMax = _mapWidthCount;
-            int borderOffset = WorldBuilder.Settings.RegionBoundaryOffset_inChunkUnits;
 
             // >> initialize _border positions and indexes in a loop
             foreach (BorderDirection direction in Enum.GetValues(typeof(BorderDirection)))
@@ -282,9 +271,11 @@ namespace Darklight.World.Generation
                     SetCoordinateToType(pos, Coordinate.TYPE.NULL);
                 }
             }
+
+            Initialized = true;
         }
 
-        // == [[ GET COORDINATE ]] ======================================================================== >>>>
+        #region [[ GET COORDINATE ]] ======================================================================== >>>>
         public Coordinate GetCoordinateAt(Vector2Int valueKey)
         {
             return Initialized && _coordinateMap.TryGetValue(valueKey, out var coordinate) ? coordinate : null;
@@ -347,7 +338,11 @@ namespace Darklight.World.Generation
                 return Vector2Int.zero; // or any default value you prefer
             }
         }
-        // == [[ SET COORDINATE ]] ======================================================================== >>>>
+
+#endregion
+        
+        
+        #region [[ SET COORDINATE ]] ======================================================================== >>>>
         void SetCoordinateToType(Vector2Int valueKey, Coordinate.TYPE newType)
         {
             // Get reference to the target coordinate
@@ -458,6 +453,9 @@ namespace Darklight.World.Generation
             SetCoordinatesToType(inactiveCorners, type);
         }
 
+
+#endregion
+        
         // == [[ FIND COORDINATE ]] ================================================================= >>>>
         public Coordinate FindClosestCoordinateOfType(Coordinate targetCoordinate, List<Coordinate.TYPE> typeList)
         {

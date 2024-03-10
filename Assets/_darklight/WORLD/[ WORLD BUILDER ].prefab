@@ -9,9 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5845749257906015333}
-  - component: {fileID: 2186029314147007492}
-  - component: {fileID: 857037355430193632}
-  - component: {fileID: 7975659058563263201}
+  - component: {fileID: 6712875993486741718}
+  - component: {fileID: 5563148727171919049}
   m_Layer: 0
   m_Name: '[ WORLD BUILDER ]'
   m_TagString: Untagged
@@ -34,7 +33,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2186029314147007492
+--- !u!114 &6712875993486741718
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -46,12 +45,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 620745325a50846479f301ec54b3a337, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: 
-  asyncTaskConsole: {fileID: 0}
-  customWorldGenSettings: {fileID: 11400000, guid: 32809448232478c43a1dc5f49fc640ae,
-    type: 2}
-  asyncTaskConsole: {fileID: 0}
---- !u!114 &857037355430193632
+  name: AsyncTaskQueen
+  customWorldGenSettings: {fileID: 0}
+  initializeOnStart: 1
+--- !u!114 &5563148727171919049
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -60,27 +57,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 3048074976327827359}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a3c77c79f9aea1e41aa60385d504ea06, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  editMode: 0
-  worldView: 0
-  regionView: 1
-  chunkView: 3
-  cellView: 0
-  coordinateMapView: 2
-  chunkMapView: 0
-  cellMapView: 0
-  selectedRegion: {fileID: 0}
---- !u!114 &7975659058563263201
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3048074976327827359}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 48b31e767e52d57489b8d9de094efc3a, type: 3}
+  m_Script: {fileID: 11500000, guid: 97b232c10588f6a499c0ca26e13742c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

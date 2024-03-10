@@ -30,8 +30,8 @@ namespace Darklight.World.Generation
     public enum BorderDirection { NORTH, SOUTH, EAST, WEST }
     #endregion
 
+	[RequireComponent(typeof(CoordinateMap))]
     /// <summary> Initializes and handles the procedural world generation. </summary>
-    [RequireComponent(typeof(WorldEdit))]
     public class WorldBuilder : AsyncTaskQueen, ITaskQueen
     {
         #region [[ STATIC INSTANCE ]] ------------------- // 
@@ -57,7 +57,7 @@ namespace Darklight.World.Generation
         public static GenerationSettings Settings => _settings;
 
         /// <summary> Override the default generation settings. </summary>
-        public void OverrideSettings(CustomWorldGenerationSettings customSettings)
+        public void OverrideSettings(CustomGenerationSettings customSettings)
         {
             if (customSettings == null) { _settings = new GenerationSettings(); return; }
             _settings = new GenerationSettings(customSettings);
@@ -97,7 +97,7 @@ namespace Darklight.World.Generation
         public Dictionary<Vector2Int, Region> RegionMap { get { return _regionMap; } }
 
         // [[ PUBLIC INSPECTOR VARIABLES ]] 
-        public CustomWorldGenerationSettings customWorldGenSettings; // Settings Scriptable Object
+        public CustomGenerationSettings customWorldGenSettings; // Settings Scriptable Object
 		public bool initializeOnStart;
 
         #region == INITIALIZATION ============================================== >>>> 
@@ -120,7 +120,8 @@ namespace Darklight.World.Generation
             OverrideSettings(customWorldGenSettings);
             InitializeSeedRandom();
 
-            this._coordinateMap = new CoordinateMap(this);
+            this._coordinateMap = GetComponent<CoordinateMap>();
+            this._coordinateMap.InitializeWorldCoordinateMap(this);
             
             await InitializationSequenceAsync();
 

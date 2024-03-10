@@ -62,7 +62,7 @@ namespace Darklight.Unity.Backend
             AsyncTaskBot newTaskBot = new AsyncTaskBot(name, task);
             taskBotQueue.Enqueue(newTaskBot);
 
-			asyncTaskConsole.Log(newTaskBot, "New Task Bot created and added to the queue.");
+			asyncTaskConsole.Log(newTaskBot, "New Task Bot Created");
 
         }
 
@@ -76,6 +76,8 @@ namespace Darklight.Unity.Backend
             while (taskBotQueue.Count > 0)
             {
                 AsyncTaskBot taskBot = taskBotQueue.Dequeue();
+                asyncTaskConsole.Log(taskBot, $"Task Bot Started");
+
                 await taskBot.ExecuteAsync();
                 await Task.Yield();
 
@@ -146,14 +148,16 @@ namespace Darklight.Unity.Backend
 
 #if UNITY_EDITOR
 
-        [CustomEditor(typeof(AsyncTaskQueen))]
+        [CustomEditor(typeof(AsyncTaskQueen), true)]
         public class AsyncTaskQueenEditor : Editor
         {
             private Vector2 scrollPosition;
-            private bool showConsole = true; // Foldout field for the console
+            private bool showConsole; // Foldout field for the console
 
             public override void OnInspectorGUI()
             {
+				DrawDefaultInspector();
+
                 GUILayout.Space(10);
 
                 AsyncTaskQueen queen = (AsyncTaskQueen)target;

@@ -61,7 +61,7 @@ namespace Darklight.World.Generation
         public MaterialLibrary materialLibrary;
 
         public GenerationSettings() { }
-        public GenerationSettings(CustomWorldGenerationSettings worldGenSettings)
+        public GenerationSettings(CustomGenerationSettings worldGenSettings)
         {
             _seed = worldGenSettings.Seed;
             _cellSize = worldGenSettings.CellSize;
