@@ -10,39 +10,19 @@ using UnityEngine;
 
 namespace Darklight.World.Generation
 {
-    using DarklightEditor = Darklight.Unity.CustomInspectorGUI;
-
-    /// <summary>
-    /// Represents a region builder responsible for generating and managing regions in the world.
-    /// </summary>
     [RequireComponent(typeof(ChunkGeneration))]
-    public class RegionBuilder : AsyncTaskQueen, ITaskQueen
+    public class RegionBuilder : AsyncTaskQueen
     {
-        // [[ PRIVATE VARIABLES ]]
-
-        // Prefix used for logging and debugging purposes
+        #region [[ PRIVATE VARIABLES ]] 
         string _prefix = "[[ REGION BUILDER ]]";
-
-        // Reference to the parent WorldBuilder
         WorldBuilder _generationParent;
-
-        // Coordinate of the region
         Coordinate _coordinate;
-
-        // Coordinate map for the region
         CoordinateMap _coordinateMap;
-
-        // Chunk generation component
         ChunkGeneration _chunkGeneration;
-
-        // Combined mesh object for the region
         GameObject _combinedMeshObject;
-
-        // Set of region objects
         HashSet<GameObject> _regionObjects = new();
-
-        // [[ PUBLIC REFERENCE VARIABLES ]]
-
+        #endregion
+        #region [[ GETTERS ]]
         /// <summary>
         /// Gets a value indicating whether the region builder has been initialized.
         /// </summary>
@@ -93,25 +73,11 @@ namespace Darklight.World.Generation
                 return origin;
             }
         }
-
-        // [[ PUBLIC REFERENCE VARIABLES ]]	
-
-        /// <summary>
-        /// The default material for the region.
-        /// </summary>
+        #endregion
+        #region [[ INSPECTOR SETTINGS ]]	
         public Material defaultMaterial;
-
-        // Static generation settings for the region
         static GenerationSettings _regionSettings = new();
-
-        /// <summary>
-        /// Custom generation settings for the region.
-        /// </summary>
-        public CustomGenerationSettings customRegionSettings;
-
-        /// <summary>
-        /// Gets the generation settings for the region.
-        /// </summary>
+        public CustomGenerationSettings customRegionSettings; // ScriptableObject
         public static GenerationSettings Settings => _regionSettings;
 
         /// <summary>
@@ -124,7 +90,7 @@ namespace Darklight.World.Generation
             _regionSettings = new GenerationSettings(customSettings);
             customRegionSettings = customSettings;
         }
-
+        #endregion
         #region [[ RANDOM SEED ]] -------------------------------------- >> 
 
         /// <summary>
@@ -146,7 +112,6 @@ namespace Darklight.World.Generation
         /// Indicates whether the region should be initialized on start.
         /// </summary>
         public bool initializeOnStart;
-
         /// <summary>
         /// Assigns the region to the world.
         /// </summary>
@@ -167,13 +132,10 @@ namespace Darklight.World.Generation
             {
                 OverrideSettings(parent.customWorldGenSettings);
             }
-            
-            asyncTaskConsole.Log(this, "Assigned to World Builder with settings " + $"{_regionSettings.Seed}");
+
+            Console.Log(this, "Assigned to World Builder with settings " + $"{_regionSettings.Seed}");
         }
 
-        /// <summary>
-        /// Starts the region builder.
-        /// </summary>
         public void Start()
         {
             Debug.Log("Start");
@@ -183,11 +145,7 @@ namespace Darklight.World.Generation
                 this.Initialize();
             }
         }
-
-        /// <summary>
-        /// Initializes the region builder.
-        /// </summary>
-        /// <param name="name">The name of the region builder.</param>
+        
         public override void Initialize(string name = "RegionAsyncTaskQueen")
         {
             if (Initialized) return;
@@ -197,9 +155,6 @@ namespace Darklight.World.Generation
             _ = InitializationSequence();
         }
 
-        /// <summary>
-        /// Resets the region builder.
-        /// </summary>
         public void Reset()
         {
             Initialized = false;
@@ -218,7 +173,7 @@ namespace Darklight.World.Generation
         async Task InitializationSequence()
         {
             // Create the coordinate map
-            base.NewTaskBot("Initialize Coordinate Map", async () =>
+            base.NewAsyncTaskBot("Initialize Coordinate Map", async () =>
             {
                 Debug.Log("Initializing Coordinate Map");
 
@@ -229,11 +184,10 @@ namespace Darklight.World.Generation
                     await Task.Delay(1000);
                 }
                 await Task.Yield();
-
             });
 
             // Create the chunk map for the region
-            base.NewTaskBot("Initialize Chunk Generation", async () =>
+            base.NewAsyncTaskBot("Initialize Chunk Generation", async () =>
             {
                 this._chunkGeneration = GetComponent<ChunkGeneration>();
 
@@ -253,9 +207,9 @@ namespace Darklight.World.Generation
             if (WorldBuilder.Instance != null)
             {
                 // Combine the chunk mesh if WorldBuilder exists
-                base.NewTaskBot("Mesh Generation", async () =>
+                base.NewAsyncTaskBot("Mesh Generation", async () =>
                 {
-                    asyncTaskConsole.Log(this, "Starting mesh generation...");
+                    Console.Log(this, "Starting mesh generation...");
 
                     while (_chunkGeneration == null || _chunkGeneration.Initialized == false)
                     {
@@ -264,13 +218,14 @@ namespace Darklight.World.Generation
 
                     // Asynchronously create and initialize combined chunk mesh
                     await CreateAndInitializeCombinedChunkMeshAsync();
-                    asyncTaskConsole.Log(this, "Mesh generation complete.");
+                    Console.Log(this, "Mesh generation complete.");
                 });
             }
 
-            await ExecuteAllBotsInQueue();
+            ExecuteAllTasks();
 
             Debug.Log("Region Builder Initialized");
+            await Task.Yield();
 
             // Execute all tasks queued in AsyncTaskQueen
             Initialized = true;
@@ -478,8 +433,6 @@ namespace Darklight.World.Generation
 
             return combinedMesh;
         }
-
-
 
         /// <summary> Destroy GameObject in Play andEdit mode </summary>
         public static void DestroyGameObject(GameObject gameObject)

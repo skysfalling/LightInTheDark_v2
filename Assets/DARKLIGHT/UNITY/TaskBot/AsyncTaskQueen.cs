@@ -1,213 +1,26 @@
-using System.Threading;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Unity.IO.LowLevel.Unsafe;
-using UnityEngine;
-using UnityEngine.Events;
-using System.Linq;
-using System.Collections;
-
-
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 namespace Darklight.Unity.Backend
 {
-    public interface ITaskQueen
-    {
-        string name { get; set; }
-        List<TaskBot.Profile> taskBotProfiles { get; set; }
-        void Initialize(string name);
-    }
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using UnityEngine;
 
     /// <summary>
     /// Represents a queen that manages a queue of AsyncTaskBots and executes them asynchronously.
     /// </summary>
-    public class AsyncTaskQueen : MonoBehaviour, ITaskQueen
+    public class AsyncTaskQueen : TaskQueen
     {
-        public struct Profile
+        public void NewAsyncTaskBot(string name, Func<Task> task)
         {
-            public string name;
-            public Guid guidId;
-            public List<TaskBot.Profile> taskBotProfiles;
-
-            public Profile(AsyncTaskQueen queen)
-            {
-                name = queen.name;
-                guidId = queen.guidId;
-                taskBotProfiles = queen.taskBotProfiles;
-            }
-        }
-        Queue<AsyncTaskBot> taskBotQueue = new();
-        public new string name { get; private set; } = "AsyncTaskQueen";
-        public Guid guidId = Guid.NewGuid();
-        public List<TaskBot.Profile> taskBotProfiles { get; set; } = new();
-        public AsyncTaskConsole asyncTaskConsole { get; private set; } = new AsyncTaskConsole();
-
-        private void Awake()
-        {
-            MainThreadDispatcher.Instance();
+            AsyncTaskBot newTaskBot = new AsyncTaskBot(name, this, task);
+            Enqueue(newTaskBot);
+            Console.Log(newTaskBot, "New Task Bot Created");
         }
 
-        public virtual void Initialize(string name)
+        public async override void ExecuteAllTasks()
         {
-            this.name = name;
-            asyncTaskConsole.Log(this, $"Good Morning, {name}");
+            await Awaitable.BackgroundThreadAsync();
+            base.ExecuteAllTasks();
         }
-
-        /// <summary>
-        /// Creates a new AsyncTaskBot and adds it to the taskBotQueue.
-        /// </summary>
-        /// <param name="name">The name of the AsyncTaskBot.</param>
-        /// <param name="task">The task to be executed by the AsyncTaskBot.</param>
-        public void NewTaskBot(string name, Func<Task> task)
-        {
-            Guid guidId = Guid.NewGuid();
-            AsyncTaskBot newTaskBot = new AsyncTaskBot(name, task);
-            taskBotQueue.Enqueue(newTaskBot); // Enqueue the new task
-            asyncTaskConsole.Log(newTaskBot, "New Task Bot Created");
-        }
-
-        public async Task ExecuteAllBotsInQueue()
-        {
-            asyncTaskConsole.Log(this, $"Executing all AsyncTaskBots [{taskBotQueue.Count}]");
-
-            while (taskBotQueue.Count > 0)
-            {
-                AsyncTaskBot taskBot = taskBotQueue.Dequeue();
-
-                try
-                {
-                    await taskBot.ExecuteAsync();
-                }
-                catch (Exception ex)
-                {
-                    asyncTaskConsole.Log(taskBot, $"Task Bot Failed: {ex.Message}");
-                    //continue; // Skip to the next bot in case of failure
-                }
-
-                TaskBot.Profile newProfile = taskBot.NewProfile();
-                taskBotProfiles.Add(newProfile);
-                asyncTaskConsole.Log(taskBot, $"Task Bot Finished: {newProfile.executionTime}ms");
-
-                taskBot.Dispose(); // Ensure resources are freed and the bot is properly cleaned up
-            }
-        }
-
-
-        public class AsyncTaskConsole
-        {
-            public struct Tag
-            {
-                public string name;
-                public Guid guidId;
-                public Tag(AsyncTaskQueen queen)
-                {
-                    this.name = queen.name;
-                    this.guidId = queen.guidId;
-                }
-                public Tag(AsyncTaskBot bot)
-                {
-                    this.name = bot.name;
-                    this.guidId = bot.guidId;
-                }
-            }
-
-            public Dictionary<Tag, List<string>> ConsoleDictionary { get; private set; } = new();
-            public void Log(AsyncTaskQueen queen, string message)
-            {
-                Tag queenTag = new Tag(queen);
-
-                if (!ConsoleDictionary.ContainsKey(queenTag))
-                {
-                    ConsoleDictionary.Add(queenTag, new List<string>());
-                }
-                ConsoleDictionary[queenTag].Add(message);
-            }
-
-            public void Log(AsyncTaskBot asyncTaskBot, string message)
-            {
-                Tag botTag = new Tag(asyncTaskBot);
-
-                if (!ConsoleDictionary.ContainsKey(botTag))
-                {
-                    ConsoleDictionary.Add(botTag, new List<string>());
-                }
-
-                ConsoleDictionary[botTag].Add(message);
-            }
-
-            public List<string> GetActiveConsole()
-            {
-                List<string> result = new();
-                foreach (Tag tag in ConsoleDictionary.Keys)
-                {
-                    result.Add($"{tag.name}: {tag.guidId}");
-                    foreach (string value in ConsoleDictionary[tag])
-                    {
-                        result.Add($"\t {value}");
-                    }
-                }
-                return result;
-            }
-        }
-
-#if UNITY_EDITOR
-
-        [CustomEditor(typeof(AsyncTaskQueen), true)]
-        public class AsyncTaskQueenEditor : Editor
-        {
-            private Vector2 scrollPosition;
-            private bool showConsole; // Foldout field for the console
-
-            public override void OnInspectorGUI()
-            {
-                DrawDefaultInspector();
-
-                GUILayout.Space(10);
-
-                AsyncTaskQueen queen = (AsyncTaskQueen)target;
-                AsyncTaskConsole console = queen.asyncTaskConsole;
-
-                // Custom style for the background
-                GUIStyle backgroundStyle = new GUIStyle();
-                backgroundStyle.normal.background = MakeTex(600, 1, new Color(0.1f, 0.1f, 0.1f, 1.0f)); // Dark gray background
-                backgroundStyle.padding = new RectOffset(10, 10, 10, 10); // Padding for inner content
-
-                // Creating a foldout field for the console
-                showConsole = EditorGUILayout.Foldout(showConsole, $"{name} AsyncTaskQueen Console");
-                if (showConsole)
-                {
-                    // Creating a scroll view with a custom background
-                    scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, backgroundStyle, GUILayout.Height(200));
-                    List<string> activeConsole = console.GetActiveConsole();
-                    foreach (string message in activeConsole)
-                    {
-                        EditorGUILayout.LabelField(message, EditorStyles.label);
-                    }
-
-                    EditorGUILayout.EndScrollView();
-                }
-            }
-
-            // Utility function to create a texture
-            private Texture2D MakeTex(int width, int height, Color col)
-            {
-                Color[] pix = new Color[width * height];
-                for (int i = 0; i < pix.Length; ++i)
-                {
-                    pix[i] = col;
-                }
-
-                Texture2D result = new Texture2D(width, height);
-                result.SetPixels(pix);
-                result.Apply();
-                return result;
-            }
-        }
-#endif
     }
 }

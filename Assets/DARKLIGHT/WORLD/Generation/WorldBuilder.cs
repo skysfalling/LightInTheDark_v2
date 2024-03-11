@@ -1,19 +1,17 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Diagnostics; // Include this for Stopwatch
-using Debug = UnityEngine.Debug;
-using Darklight.Unity.Backend;
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 namespace Darklight.World.Generation
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using UnityEngine;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Debug = UnityEngine.Debug;
+    using Darklight.Unity.Backend;
+
+#if UNITY_EDITOR
+    using UnityEditor;
+#endif
     #region [[ PUBLIC ENUMS ]] ------------------- // 
 
     /// <summary>
@@ -31,7 +29,7 @@ namespace Darklight.World.Generation
     #endregion
 
     /// <summary> Initializes and handles the procedural world generation. </summary>
-    public class WorldBuilder : AsyncTaskQueen, ITaskQueen
+    public class WorldBuilder : AsyncTaskQueen
     {
         #region [[ STATIC INSTANCE ]] ------------------- // 
         /// <summary> A singleton instance of the WorldGeneration class. </summary>
@@ -108,70 +106,44 @@ namespace Darklight.World.Generation
             }
         }
 
-        public override void Initialize(string name = "WorldBuilderAsyncTaskQueen")
+        public override async void Initialize(string name = "WorldBuilderAsyncTaskQueen")
         {
             base.Initialize(name);
             OverrideSettings(customWorldGenSettings);
             InitializeSeedRandom();
+            this._coordinateMap = new CoordinateMap(this);
 
-
-            if (WorldBuilder.Settings != null)
+            // Create all Regions
+            foreach (Coordinate regionCoordinate in CoordinateMap.AllCoordinates)
             {
-                Debug.LogError($"World Settings {WorldBuilder.Settings.ChunkVec3Dimensions_inCellUnits}");
-
+                GameObject regionObject = new GameObject($"New Region ({regionCoordinate.ValueKey})");
+                RegionBuilder region = regionObject.AddComponent<RegionBuilder>();
+                region.transform.parent = this.transform;
+                region.AssignToWorld(this, regionCoordinate);
+                _regionMap[regionCoordinate.ValueKey] = region;
             }
 
-
-            _ = InitializationSequenceAsync();
+            await Awaitable.WaitForSecondsAsync(1);
         }
 
 
         /// <summary>
         /// Orchestrates the entire initialization sequence asynchronously, divided into stages.
         /// </summary>
-        async Task InitializationSequenceAsync()
+        private async Awaitable AsyncInitializationSequence()
         {
-
-            this._coordinateMap = new CoordinateMap(this);
-            while (this._coordinateMap.Initialized == false)
+            // Initialize all regions
+            foreach (RegionBuilder region in AllRegions)
             {
-                await Task.Delay(1000);
+                region.Initialize();
+                while (!region.Initialized)
+                {
+                    await Awaitable.WaitForSecondsAsync(1f);
+                }
             }
 
-            // Stage 0: Create Regions
-            base.NewTaskBot("CreateRegions", async () =>
-            {
-                foreach (Coordinate regionCoordinate in CoordinateMap.AllCoordinates)
-                {
-                    while (regionCoordinate.Initialized == false)
-                    {
-                        await Task.Delay(1000);
-                    }
-
-                    GameObject regionObject = new GameObject($"New Region ({regionCoordinate.ValueKey})");
-                    RegionBuilder region = regionObject.AddComponent<RegionBuilder>();
-                    region.transform.parent = this.transform;
-                    region.AssignToWorld(this, regionCoordinate);
-                    _regionMap[regionCoordinate.ValueKey] = region;
-                }
-                await Task.Yield();
-            });
-
-            // Stage 1: Initialize Regions
-            base.NewTaskBot("InitializeRegions", async () =>
-            {
-                foreach (RegionBuilder region in AllRegions)
-                {
-                    region.Initialize();
-                    while (region.Initialized == false)
-                    {
-                        await Task.Delay(1000);
-                    }
-                }
-            });
-
             // Stage 2: Generate Exits
-            base.NewTaskBot("GenerateExits", async () =>
+            base.NewAsyncTaskBot("GenerateExits", async () =>
             {
                 Debug.Log("GenerateExits task started");
                 foreach (RegionBuilder region in AllRegions)
@@ -182,7 +154,7 @@ namespace Darklight.World.Generation
             });
 
             // Stage 3: Generate Paths Between Exits
-            base.NewTaskBot("GeneratePathsBetweenExits", async () =>
+            base.NewAsyncTaskBot("GeneratePathsBetweenExits", async () =>
             {
                 foreach (RegionBuilder region in AllRegions)
                 {
@@ -193,7 +165,7 @@ namespace Darklight.World.Generation
             });
 
             // Stage 4: Zone Generation and Height Assignments
-            base.NewTaskBot("ZoneGeneration", async () =>
+            base.NewAsyncTaskBot("ZoneGeneration", async () =>
             {
                 foreach (RegionBuilder region in AllRegions)
                 {
@@ -202,12 +174,10 @@ namespace Darklight.World.Generation
                 await Task.Yield();
 
             });
-
-            await ExecuteAllBotsInQueue(); ///
+            ExecuteAllTasks();
 
             // Mark initialization as complete
             Initialized = true;
-
         }
 
         #endregion
@@ -232,7 +202,9 @@ namespace Darklight.World.Generation
             Initialized = false;
         }
 
-        private void OnDrawGizmos() {
+        private void OnDrawGizmos()
+        {
+            if (CoordinateMap == null) { return; }
             foreach (Coordinate coord in CoordinateMap.AllCoordinates)
             {
                 Gizmos.color = Color.red;

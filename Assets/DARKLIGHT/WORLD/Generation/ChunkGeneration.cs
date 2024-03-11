@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 
 namespace Darklight.World.Generation
 {
-    public class ChunkGeneration : AsyncTaskQueen, ITaskQueen
+    public class ChunkGeneration : AsyncTaskQueen
     {
         HashSet<Chunk> _chunks = new();
         Dictionary<Vector2Int, Chunk> _chunkMap = new();
@@ -43,9 +43,9 @@ namespace Darklight.World.Generation
             }
 
 
-            base.NewTaskBot("Creating Chunks", async () =>
+            base.NewAsyncTaskBot("Creating Chunks", async () =>
             {
-                asyncTaskConsole.Log(this, $"Creating {_coordinateMap.AllCoordinateValues.Count} Chunks");
+                Console.Log(this, $"Creating {_coordinateMap.AllCoordinateValues.Count} Chunks");
 
                 // [[ CREATE WORLD CHUNKS ]]
                 foreach (Vector2Int position in _coordinateMap.AllCoordinateValues)
@@ -59,9 +59,9 @@ namespace Darklight.World.Generation
                 await Task.Yield();
             });
 
-            base.NewTaskBot("Creating Meshes", async () =>
+            base.NewAsyncTaskBot("Creating Meshes", async () =>
             {
-                asyncTaskConsole.Log(this, $"Creating {_chunks.Count} Meshes");
+                Console.Log(this, $"Creating {_chunks.Count} Meshes");
 
                 foreach (Chunk chunk in _chunks)
                 {
@@ -73,15 +73,15 @@ namespace Darklight.World.Generation
 
             if (WorldBuilder.Instance == null)
             {
-                base.NewTaskBot("Creating Objects", async () =>
+                base.NewAsyncTaskBot("Creating Objects", async () =>
                 {
-                    asyncTaskConsole.Log(this, $"Creating {_chunks.Count} Objects");
+                    Console.Log(this, $"Creating {_chunks.Count} Objects");
                     foreach (Chunk chunk in _chunks)
                     {
                         await Task.Run(() => chunk.ChunkMesh != null);
 
                         GameObject newObject = RegionParent.CreateMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.ChunkMesh.Mesh);
-                        asyncTaskConsole.Log(this, $"\tNewChunkMeshObject : {newObject}");
+                        Console.Log(this, $"\tNewChunkMeshObject : {newObject}");
                     }
 
                     await Task.Yield();
@@ -89,8 +89,8 @@ namespace Darklight.World.Generation
             }
 
 
-            await ExecuteAllBotsInQueue();
-            asyncTaskConsole.Log(this, "Initialization Sequence Completed");
+            ExecuteAllTasks();
+            Console.Log(this, "Initialization Sequence Completed");
             Initialized = true;
 
         }

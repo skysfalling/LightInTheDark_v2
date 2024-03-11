@@ -11,7 +11,7 @@ namespace Darklight.World.Generation.Editor
     using Backend = Darklight.Unity.Backend;
 
     [UnityEditor.CustomEditor(typeof(RegionBuilder))]
-    public class RegionBuilderEditor : Backend.AsyncTaskQueen.AsyncTaskQueenEditor
+    public class RegionBuilderEditor : Backend.TaskQueenEditor
     {
         private SerializedObject _serializedRegionBuilderObject;
         private RegionBuilder _regionBuilderScript;

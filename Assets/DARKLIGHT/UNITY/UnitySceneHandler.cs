@@ -11,26 +11,15 @@ using Debug = UnityEngine.Debug;
 namespace Darklight.Unity
 {
     using Darklight.Unity.Backend;
-    using Darklight.World.Generation.Entity.Spawner;
 
-    public class UnitySceneHandler : EventTaskQueen
+    public class UnitySceneHandler : TaskQueen
     {
-        #region [[ STATIC INSTANCE ]] ============================= >>
         public static UnitySceneHandler Instance { get; private set; }
         private void Awake() 
         {
-			taskQueenName = "UnitySceneHandler";
-
             if (Instance != null) { Destroy(this); }
             else { Instance = this; }
         }
-        #endregion
-
-        private void Start() 
-        {
-            base.ExecuteAllBotsInQueue();
-        }
-
     }
 }
 

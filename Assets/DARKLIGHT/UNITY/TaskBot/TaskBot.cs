@@ -1,45 +1,60 @@
 using System;
 using System.Diagnostics;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Darklight.Unity.Backend
 {
-    [Serializable]
-    public class TaskBot : IDisposable
-    {
+	public interface ITaskEntity
+	{
+		string Name { get; }
+		Guid GuidId { get; }
+	}
 
-		public struct Profile {
-            public string name;
-            public Guid guidId;
-            public long executionTime;
-            public Profile(TaskBot bot)
-            {
-				name = bot.name;
-                guidId = bot.guidId;
-                executionTime = bot.executionTime;
-            }
-        }
+	public class TaskBot : IDisposable
+	{
+		private Stopwatch stopwatch;
+		private TaskQueen queenParent;
+		public Func<Task> task;
 
-        public Guid guidId = Guid.NewGuid();
-        public string name = "NewTaskBot";
-        public long executionTime = 0;
-        public Stopwatch stopwatch;
+		public string Name = "TaskBot";
+		public Guid GuidId = Guid.NewGuid();
+		public long ExecutionTime = 0;
+		public TaskBot(string name, TaskQueen queenParent, Func<Task> task)
+		{
+			stopwatch = Stopwatch.StartNew();
+			this.queenParent = queenParent;
+			this.task = task;
+			Name = name;
+		}
+		public virtual async Task ExecuteTask()
+		{
+			try
+			{
+				stopwatch.Reset();
+				await task();
+			}
+			catch (OperationCanceledException)
+			{
+				queenParent.Console.Log(this, $"Operation was cancelled.");
+			}
+			catch (Exception ex)
+			{
+				queenParent.Console.Log(this, $"Error {ex}");
+				UnityEngine.Debug.LogError($"AsyncTaskBot '{Name}' encountered an error: {ex.Message}");
+			}
+			finally
+			{
+				stopwatch.Stop();
+				ExecutionTime = stopwatch.ElapsedMilliseconds;
+			}
+		}
 
-        public TaskBot()
-        {
-            stopwatch = Stopwatch.StartNew();
-        }
-
-        public Profile NewProfile()
-        {
-            return new Profile(this);
-        }
-
-        public void Dispose()
-        {
-            stopwatch.Stop();
-            stopwatch.Reset();
-            stopwatch = null;
-        }
-    }
+		public virtual void Dispose()
+		{
+			stopwatch.Stop();
+			stopwatch.Reset();
+			stopwatch = null;
+		}
+	}
 }
