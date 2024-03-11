@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: b7c5356df33a48346ba4138b908864de
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 258290
+  packageName: Super Behaviour
+  packageVersion: 0.0.6
+  assetPath: Assets/Plugins/LoM/Super/Documentation/LoM.Super.Editor.Drawer.md
+  uploadId: 646579

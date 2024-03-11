@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 5ab6819ae5e24c14bb38f45976fe5e12
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 258290
+  packageName: Super Behaviour
+  packageVersion: 0.0.6
+  assetPath: Assets/Plugins/LoM/Super/Editor/Drawer/Default/StringDrawer.cs
+  uploadId: 646579

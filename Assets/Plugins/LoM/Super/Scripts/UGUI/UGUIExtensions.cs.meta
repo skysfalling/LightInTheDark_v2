@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 80258b20e40856748bd9ee4fde7d2a21
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 258290
+  packageName: Super Behaviour
+  packageVersion: 0.0.6
+  assetPath: Assets/Plugins/LoM/Super/Scripts/UGUI/UGUIExtensions.cs
+  uploadId: 646579

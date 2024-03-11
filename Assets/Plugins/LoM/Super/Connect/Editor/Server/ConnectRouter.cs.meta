@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 632ec05f5ba664340ad7eb660eb6a250
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 258290
+  packageName: Super Behaviour
+  packageVersion: 0.0.6
+  assetPath: Assets/Plugins/LoM/Super/Connect/Editor/Server/ConnectRouter.cs
+  uploadId: 646579

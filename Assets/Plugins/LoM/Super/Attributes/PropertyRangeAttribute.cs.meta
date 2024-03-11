@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: a3e2196a2bf70ea41b8344f8c940c873
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 258290
+  packageName: Super Behaviour
+  packageVersion: 0.0.6
+  assetPath: Assets/Plugins/LoM/Super/Attributes/PropertyRangeAttribute.cs
+  uploadId: 646579

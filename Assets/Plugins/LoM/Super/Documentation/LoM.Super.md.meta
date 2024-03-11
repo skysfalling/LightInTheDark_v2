@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0da8aee77b514014a8d479c48427b617
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 258290
+  packageName: Super Behaviour
+  packageVersion: 0.0.6
+  assetPath: Assets/Plugins/LoM/Super/Documentation/LoM.Super.md
+  uploadId: 646579

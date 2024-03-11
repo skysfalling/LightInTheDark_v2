@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: ab16c46a66e82194b903426703fd31a3
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 258290
+  packageName: Super Behaviour
+  packageVersion: 0.0.6
+  assetPath: Assets/Plugins/LoM/Super/Editor/GUI/EditorSuperGUILayout.cs
+  uploadId: 646579

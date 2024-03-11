@@ -23,7 +23,6 @@ namespace Darklight.Unity.Backend
 		public override void OnInspectorGUI()
 		{
 			// Start checking for changes
-			EditorGUI.BeginChangeCheck();
 
 			DrawDefaultInspector();
 
@@ -46,13 +45,8 @@ namespace Darklight.Unity.Backend
 			}
 
 			EditorGUILayout.EndScrollView();
+			EditorUtility.SetDirty(target);
 
-			// Check if there were any changes
-			if (EditorGUI.EndChangeCheck())
-			{
-				// If there were changes, mark the object as dirty so that the changes are saved
-				EditorUtility.SetDirty(target);
-			}
 		}
 
 		// Utility function to create a texture

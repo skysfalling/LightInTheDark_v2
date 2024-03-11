@@ -7,18 +7,18 @@ namespace Darklight.Unity.Backend
 {
 	public interface ITaskEntity
 	{
-		string Name { get; }
+		string Name { get; set; }
 		Guid GuidId { get; }
 	}
 
-	public class TaskBot : IDisposable
+	public class TaskBot : IDisposable, ITaskEntity
 	{
 		private Stopwatch stopwatch;
 		private TaskQueen queenParent;
 		public Func<Task> task;
 
-		public string Name = "TaskBot";
-		public Guid GuidId = Guid.NewGuid();
+		public string Name { get; set; } = "TaskBot";
+		public Guid GuidId { get; } = Guid.NewGuid();
 		public long ExecutionTime = 0;
 		public TaskBot(string name, TaskQueen queenParent, Func<Task> task)
 		{

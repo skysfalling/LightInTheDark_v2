@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 169abf20358801e4d9b6c16b0a3c99d6
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 258290
+  packageName: Super Behaviour
+  packageVersion: 0.0.6
+  assetPath: Assets/Plugins/LoM/Super/Scripts/UGUI/SuperRectTransform.cs
+  uploadId: 646579

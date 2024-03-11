@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 4e72b62486efdcf47a40314bd95fc151
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 258290
+  packageName: Super Behaviour
+  packageVersion: 0.0.6
+  assetPath: Assets/Plugins/LoM/Super/Connect/Editor/Server/ConnectServer.cs
+  uploadId: 646579

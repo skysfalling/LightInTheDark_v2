@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: be1f3a0038015024abb522dcef783c74
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 258290
+  packageName: Super Behaviour
+  packageVersion: 0.0.6
+  assetPath: Assets/Plugins/LoM/Super/Editor/Drawer/Default/Vector4Drawer.cs
+  uploadId: 646579

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 22edae5b0542df048b7537a72a419fac
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 258290
+  packageName: Super Behaviour
+  packageVersion: 0.0.6
+  assetPath: Assets/Plugins/LoM/Super/Connect/Editor/LoM.Super.Editor.Connect.asmdef
+  uploadId: 646579

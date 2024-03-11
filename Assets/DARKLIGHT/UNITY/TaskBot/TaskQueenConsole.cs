@@ -1,73 +1,79 @@
 namespace Darklight.Unity.Backend
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
+	using System;
+	using System.Collections.Generic;
+	using System.Text;
+	using UnityEngine;
 
-    public class TaskQueenConsole
-    {
-        public struct Tag
-        {
-            public string name;
-            public Guid guidId;
-            public Tag(TaskQueen queen)
-            {
-                this.name = queen.Name;
-                this.guidId = queen.GuidId;
-            }
-            public Tag(TaskBot bot)
-            {
-                this.name = bot.Name;
-                this.guidId = bot.GuidId;
-            }
-        }
-        Dictionary<Tag, List<string>> ConsoleDictionary;
-	
-    	public TaskQueenConsole()
-        {
-            ConsoleDictionary = new Dictionary<Tag, List<string>>();
-        }
 
-        public void Log(TaskQueen queen, string message)
-        {
-            Tag queenTag = new Tag(queen);
+	public class TaskQueenConsole
+	{
+		private class LogEntry
+		{
+			public DateTime Timestamp { get; }
+			public string Message { get; }
+			public LogSeverity Severity { get; }
 
-            if (!ConsoleDictionary.ContainsKey(queenTag))
-            {
-                ConsoleDictionary.Add(queenTag, new List<string>());
-            }
-            ConsoleDictionary[queenTag].Add(message);
-        }
+			public LogEntry(string message, LogSeverity severity)
+			{
+				Timestamp = DateTime.Now;
+				Message = message;
+				Severity = severity;
+			}
+		}
 
-        public void Log(TaskBot TaskBot, string message)
-        {
-            Tag botTag = new Tag(TaskBot);
+		private Dictionary<Guid, List<LogEntry>> consoleDictionary = new Dictionary<Guid, List<LogEntry>>();
 
-            if (!ConsoleDictionary.ContainsKey(botTag))
-            {
-                ConsoleDictionary.Add(botTag, new List<string>());
-            }
+		public void Log<T>(T entity, string message, LogSeverity severity = LogSeverity.Info) where T : ITaskEntity
+		{
+			if (!consoleDictionary.TryGetValue(entity.GuidId, out List<LogEntry> logEntries))
+			{
+				logEntries = new List<LogEntry>();
+				consoleDictionary[entity.GuidId] = logEntries;
+			}
 
-            ConsoleDictionary[botTag].Add(message);
-        }
+			logEntries.Add(new LogEntry(message, severity));
+		}
 
-        public List<string> GetActiveConsole()
-        {
-            List<string> result = new();
-            foreach (Tag tag in ConsoleDictionary.Keys)
-            {
-                result.Add($"{tag.name}: {tag.guidId}");
-                foreach (string value in ConsoleDictionary[tag])
-                {
-                    result.Add($"\t {value}");
-                }
-            }
-            return result;
-        }
+		public List<string> GetActiveConsole()
+		{
+			List<string> result = new List<string>();
+			StringBuilder sb = new StringBuilder();
 
-        public void Reset()
-        {
-            ConsoleDictionary.Clear();
-        }
-    }
+			foreach (KeyValuePair<Guid, List<LogEntry>> entry in consoleDictionary)
+			{
+				// Assuming we have a method to get the name from Guid
+				string entityName = GetEntityNameFromGuid(entry.Key); // This needs to be implemented
+				sb.AppendLine($"{entityName}: {entry.Key}");
+
+				foreach (LogEntry logEntry in entry.Value)
+				{
+					sb.Clear();
+					sb.Append($"\t[{logEntry.Timestamp:HH:mm:ss}] [{logEntry.Severity}] {logEntry.Message}");
+					result.Add(sb.ToString());
+				}
+			}
+
+			return result;
+		}
+
+		public void Reset()
+		{
+			consoleDictionary.Clear();
+		}
+
+		// Implement this method based on your system to resolve entity names from GUIDs
+		private string GetEntityNameFromGuid(Guid guid)
+		{
+			// Example implementation, needs actual logic to map GUID to entity name
+			return "EntityNamePlaceholder";
+		}
+	}
+
+	public enum LogSeverity
+	{
+		Info,
+		Warning,
+		Error
+	}
 }

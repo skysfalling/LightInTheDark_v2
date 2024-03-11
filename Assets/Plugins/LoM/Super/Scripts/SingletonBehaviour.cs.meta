@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: cc9da129dc303d143bd29a91a463152f
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 258290
+  packageName: Super Behaviour
+  packageVersion: 0.0.6
+  assetPath: Assets/Plugins/LoM/Super/Scripts/SingletonBehaviour.cs
+  uploadId: 646579
