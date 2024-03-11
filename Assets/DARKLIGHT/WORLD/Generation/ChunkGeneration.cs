@@ -8,216 +8,220 @@ using UnityEngine.UIElements;
 
 namespace Darklight.World.Generation
 {
-    public class ChunkGeneration : AsyncTaskQueen
-    {
-        HashSet<Chunk> _chunks = new();
-        Dictionary<Vector2Int, Chunk> _chunkMap = new();
+	public class ChunkGeneration : TaskQueen
+	{
+		HashSet<Chunk> _chunks = new();
+		Dictionary<Vector2Int, Chunk> _chunkMap = new();
 
-        public bool Initialized { get; private set; }
-        public bool CreateObjects { get; private set; } = false;
-        public RegionBuilder RegionParent { get; private set; }
-        CoordinateMap _coordinateMap;
-        public HashSet<Chunk> AllChunks { get { return _chunks; } private set { } }
+		public bool Initialized { get; private set; }
+		public bool CreateObjects { get; private set; } = false;
+		public RegionBuilder RegionParent { get; private set; }
+		CoordinateMap _coordinateMap;
+		public HashSet<Chunk> AllChunks { get { return _chunks; } private set { } }
 
-        public void Initialize(RegionBuilder worldRegion, CoordinateMap coordinateMap)
-        {
-            base.Initialize("ChunkGenerationAsync");
-            RegionParent = worldRegion;
-            _coordinateMap = coordinateMap;
-        }
+		public void Initialize(RegionBuilder worldRegion, CoordinateMap coordinateMap)
+		{
+			base.Initialize("ChunkGenerationAsync");
+			RegionParent = worldRegion;
+			_coordinateMap = coordinateMap;
+		}
 
-        public void Reset()
-        {
-            Initialized = false;
-            _coordinateMap = null;
-            _chunks.Clear();
-            _chunkMap.Clear();
-        }
+		public void Reset()
+		{
+			Initialized = false;
+			_coordinateMap = null;
+			_chunks.Clear();
+			_chunkMap.Clear();
+		}
 
-        public async Task GenerationSequence()
-        {
+		public async Task GenerationSequence()
+		{
 
-            while (_coordinateMap.Initialized == false)
-            {
-                await Task.Delay(1000);
-            }
-
-
-            base.NewAsyncTaskBot("Creating Chunks", async () =>
-            {
-                Console.Log(this, $"Creating {_coordinateMap.AllCoordinateValues.Count} Chunks");
-
-                // [[ CREATE WORLD CHUNKS ]]
-                foreach (Vector2Int position in _coordinateMap.AllCoordinateValues)
-                {
-                    Coordinate coordinate = _coordinateMap.GetCoordinateAt(position);
-                    Chunk newChunk = new Chunk(this, coordinate);
-                    _chunks.Add(newChunk);
-                    _chunkMap[coordinate.ValueKey] = newChunk;
-                }
-
-                await Task.Yield();
-            });
-
-            base.NewAsyncTaskBot("Creating Meshes", async () =>
-            {
-                Console.Log(this, $"Creating {_chunks.Count} Meshes");
-
-                foreach (Chunk chunk in _chunks)
-                {
-                    ChunkMesh newMesh = chunk.CreateChunkMesh();
-                }
-
-                await Task.Yield();
-            });
-
-            if (WorldBuilder.Instance == null)
-            {
-                base.NewAsyncTaskBot("Creating Objects", async () =>
-                {
-                    Console.Log(this, $"Creating {_chunks.Count} Objects");
-                    foreach (Chunk chunk in _chunks)
-                    {
-                        await Task.Run(() => chunk.ChunkMesh != null);
-
-                        GameObject newObject = RegionParent.CreateMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.ChunkMesh.Mesh);
-                        Console.Log(this, $"\tNewChunkMeshObject : {newObject}");
-                    }
-
-                    await Task.Yield();
-                });
-            }
+			while (_coordinateMap.Initialized == false)
+			{
+				await Task.Delay(1000);
+			}
 
 
-            ExecuteAllTasks();
-            Console.Log(this, "Initialization Sequence Completed");
-            Initialized = true;
+			TaskBot task1 = new TaskBot("Creating Chunks", async () =>
+			{
+				Console.Log(this, $"Creating {_coordinateMap.AllCoordinateValues.Count} Chunks");
 
-        }
+				// [[ CREATE WORLD CHUNKS ]]
+				foreach (Vector2Int position in _coordinateMap.AllCoordinateValues)
+				{
+					Coordinate coordinate = _coordinateMap.GetCoordinateAt(position);
+					Chunk newChunk = new Chunk(this, coordinate);
+					_chunks.Add(newChunk);
+					_chunkMap[coordinate.ValueKey] = newChunk;
+				}
+
+				await Task.Yield();
+			});
+			Enqueue(task1);
+
+			TaskBot task2 = new TaskBot("Creating Meshes", async () =>
+			{
+				Console.Log(this, $"Creating {_chunks.Count} Meshes");
+
+				foreach (Chunk chunk in _chunks)
+				{
+					ChunkMesh newMesh = chunk.CreateChunkMesh();
+				}
+
+				await Task.Yield();
+			});
+			Enqueue(task2);
+
+			if (WorldBuilder.Instance == null)
+			{
+				TaskBot task3 = new TaskBot("Creating Objects", async () =>
+				{
+					Console.Log(this, $"Creating {_chunks.Count} Objects");
+					foreach (Chunk chunk in _chunks)
+					{
+						await Task.Run(() => chunk.ChunkMesh != null);
+
+						GameObject newObject = RegionParent.CreateMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.ChunkMesh.Mesh);
+						Console.Log(this, $"\tNewChunkMeshObject : {newObject}");
+					}
+
+					await Task.Yield();
+				});
+				Enqueue(task3);
+
+			}
 
 
-        public void UpdateMap()
-        {
-            foreach (Chunk chunk in _chunks)
-            {
-                Coordinate.TYPE type = (Coordinate.TYPE)_coordinateMap.GetCoordinateTypeAt(chunk.Coordinate.ValueKey);
+			ExecuteAllTasks();
+			Console.Log(this, "Initialization Sequence Completed");
+			Initialized = true;
 
-                switch (type)
-                {
-                    case Coordinate.TYPE.NULL:
-                    case Coordinate.TYPE.BORDER:
-                        break; // Allow default Perlin Noise
-                    case Coordinate.TYPE.CLOSED:
-                        chunk.SetGroundHeight(WorldBuilder.Settings.ChunkMaxHeight_inCellUnits);
-                        break; // Set to max height
-                    default:
-                        chunk.SetGroundHeight(0); // Set to default 0
-                        break;
-                }
-            }
-        }
+		}
 
-        public Chunk GetChunkAt(Vector2Int position)
-        {
-            if (!Initialized || !_coordinateMap.AllCoordinateValues.Contains(position)) { return null; }
-            return _chunkMap[position];
-        }
 
-        public Chunk GetChunkAt(Coordinate worldCoord)
-        {
-            if (!Initialized || worldCoord == null) { return null; }
-            return GetChunkAt(worldCoord.ValueKey);
-        }
+		public void UpdateMap()
+		{
+			foreach (Chunk chunk in _chunks)
+			{
+				Coordinate.TYPE type = (Coordinate.TYPE)_coordinateMap.GetCoordinateTypeAt(chunk.Coordinate.ValueKey);
 
-        public List<Chunk> GetChunksAtCoordinateValues(List<Vector2Int> values)
-        {
-            if (!Initialized) { return new List<Chunk>(); }
+				switch (type)
+				{
+					case Coordinate.TYPE.NULL:
+					case Coordinate.TYPE.BORDER:
+						break; // Allow default Perlin Noise
+					case Coordinate.TYPE.CLOSED:
+						chunk.SetGroundHeight(WorldBuilder.Settings.ChunkMaxHeight_inCellUnits);
+						break; // Set to max height
+					default:
+						chunk.SetGroundHeight(0); // Set to default 0
+						break;
+				}
+			}
+		}
 
-            List<Chunk> chunks = new List<Chunk>();
-            foreach (Vector2Int value in values)
-            {
-                chunks.Add(GetChunkAt(value));
-            }
+		public Chunk GetChunkAt(Vector2Int position)
+		{
+			if (!Initialized || !_coordinateMap.AllCoordinateValues.Contains(position)) { return null; }
+			return _chunkMap[position];
+		}
 
-            return chunks;
-        }
+		public Chunk GetChunkAt(Coordinate worldCoord)
+		{
+			if (!Initialized || worldCoord == null) { return null; }
+			return GetChunkAt(worldCoord.ValueKey);
+		}
 
-        public void ResetAllChunkHeights()
-        {
-            foreach (Chunk chunk in AllChunks)
-            {
-                chunk.SetGroundHeight(0);
-            }
-        }
+		public List<Chunk> GetChunksAtCoordinateValues(List<Vector2Int> values)
+		{
+			if (!Initialized) { return new List<Chunk>(); }
 
-        public void SetChunksToHeight(List<Chunk> worldChunk, int chunkHeight)
-        {
-            foreach (Chunk chunk in worldChunk)
-            {
-                chunk.SetGroundHeight(chunkHeight);
-            }
-        }
+			List<Chunk> chunks = new List<Chunk>();
+			foreach (Vector2Int value in values)
+			{
+				chunks.Add(GetChunkAt(value));
+			}
 
-        public void SetChunksToHeightFromPositions(List<Vector2Int> positions, int chunkHeight)
-        {
-            foreach (Vector2Int pos in positions)
-            {
-                Chunk chunk = GetChunkAt(pos);
-                if (chunk != null)
-                {
-                    chunk.SetGroundHeight(chunkHeight);
-                }
-            }
-        }
+			return chunks;
+		}
 
-        public void SetChunksToHeightFromPath(Path path, float heightAdjustChance = 1f)
-        {
-            int startHeight = GetChunkAt(path.StartPosition).GroundHeight;
-            int endHeight = GetChunkAt(path.EndPosition).GroundHeight;
+		public void ResetAllChunkHeights()
+		{
+			foreach (Chunk chunk in AllChunks)
+			{
+				chunk.SetGroundHeight(0);
+			}
+		}
 
-            // Calculate height difference
-            int endpointHeightDifference = endHeight - startHeight;
-            int currHeightLevel = startHeight; // current height level starting from the startHeight
-            int heightLeft = endpointHeightDifference; // initialize height left
+		public void SetChunksToHeight(List<Chunk> worldChunk, int chunkHeight)
+		{
+			foreach (Chunk chunk in worldChunk)
+			{
+				chunk.SetGroundHeight(chunkHeight);
+			}
+		}
 
-            // Iterate through the chunks
-            for (int i = 0; i < path.AllPositions.Count; i++)
-            {
-                Chunk currentChunk = GetChunkAt(path.AllPositions[i]);
+		public void SetChunksToHeightFromPositions(List<Vector2Int> positions, int chunkHeight)
+		{
+			foreach (Vector2Int pos in positions)
+			{
+				Chunk chunk = GetChunkAt(pos);
+				if (chunk != null)
+				{
+					chunk.SetGroundHeight(chunkHeight);
+				}
+			}
+		}
 
-                // Assign start/end chunk heights & CONTINUE
-                if (i == 0) { currentChunk.SetGroundHeight(startHeight); continue; }
-                else if (i == path.AllPositions.Count - 1) { currentChunk.SetGroundHeight(endHeight); continue; }
-                else
-                {
-                    // Determine heightOffset 
-                    int heightOffset = 0;
+		public void SetChunksToHeightFromPath(Path path, float heightAdjustChance = 1f)
+		{
+			int startHeight = GetChunkAt(path.StartPosition).GroundHeight;
+			int endHeight = GetChunkAt(path.EndPosition).GroundHeight;
 
-                    // Determine the direction of the last & next chunk in path
-                    Chunk previousChunk = GetChunkAt(path.AllPositions[i - 1]);
-                    Chunk nextChunk = GetChunkAt(path.AllPositions[i + 1]);
-                    WorldDirection? lastChunkDirection = currentChunk.Coordinate.GetWorldDirectionOfNeighbor(previousChunk.Coordinate);
-                    WorldDirection? nextChunkDirection = currentChunk.Coordinate.GetWorldDirectionOfNeighbor(nextChunk.Coordinate);
-                    if (lastChunkDirection != null && nextChunkDirection != null)
-                    {
-                        // if previous chunk is direct opposite of next chunk, allow for change in the current chunk
-                        if (currentChunk.Coordinate.GetNeighborInOppositeDirection((WorldDirection)nextChunkDirection) == previousChunk.Coordinate)
-                        {
-                            // Valid transition chunk
-                            if (heightLeft > 0) { heightOffset = 1; } // if height left is greater
-                            else if (heightLeft < 0) { heightOffset = -1; } // if height left is less than 0
-                            else { heightOffset = 0; } // if height left is equal to 0
-                        }
-                    }
+			// Calculate height difference
+			int endpointHeightDifference = endHeight - startHeight;
+			int currHeightLevel = startHeight; // current height level starting from the startHeight
+			int heightLeft = endpointHeightDifference; // initialize height left
 
-                    // Set the new height level
-                    currHeightLevel += heightOffset;
-                    currentChunk.SetGroundHeight(currHeightLevel);
+			// Iterate through the chunks
+			for (int i = 0; i < path.AllPositions.Count; i++)
+			{
+				Chunk currentChunk = GetChunkAt(path.AllPositions[i]);
 
-                    // Recalculate heightLeft with the new current height level
-                    heightLeft = endHeight - currHeightLevel;
-                }
-            }
-        }
-    }
+				// Assign start/end chunk heights & CONTINUE
+				if (i == 0) { currentChunk.SetGroundHeight(startHeight); continue; }
+				else if (i == path.AllPositions.Count - 1) { currentChunk.SetGroundHeight(endHeight); continue; }
+				else
+				{
+					// Determine heightOffset 
+					int heightOffset = 0;
+
+					// Determine the direction of the last & next chunk in path
+					Chunk previousChunk = GetChunkAt(path.AllPositions[i - 1]);
+					Chunk nextChunk = GetChunkAt(path.AllPositions[i + 1]);
+					WorldDirection? lastChunkDirection = currentChunk.Coordinate.GetWorldDirectionOfNeighbor(previousChunk.Coordinate);
+					WorldDirection? nextChunkDirection = currentChunk.Coordinate.GetWorldDirectionOfNeighbor(nextChunk.Coordinate);
+					if (lastChunkDirection != null && nextChunkDirection != null)
+					{
+						// if previous chunk is direct opposite of next chunk, allow for change in the current chunk
+						if (currentChunk.Coordinate.GetNeighborInOppositeDirection((WorldDirection)nextChunkDirection) == previousChunk.Coordinate)
+						{
+							// Valid transition chunk
+							if (heightLeft > 0) { heightOffset = 1; } // if height left is greater
+							else if (heightLeft < 0) { heightOffset = -1; } // if height left is less than 0
+							else { heightOffset = 0; } // if height left is equal to 0
+						}
+					}
+
+					// Set the new height level
+					currHeightLevel += heightOffset;
+					currentChunk.SetGroundHeight(currHeightLevel);
+
+					// Recalculate heightLeft with the new current height level
+					heightLeft = endHeight - currHeightLevel;
+				}
+			}
+		}
+	}
 }

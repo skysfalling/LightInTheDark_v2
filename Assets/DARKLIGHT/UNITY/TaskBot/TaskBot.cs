@@ -20,10 +20,9 @@ namespace Darklight.Unity.Backend
 		public string Name { get; set; } = "TaskBot";
 		public Guid GuidId { get; } = Guid.NewGuid();
 		public long ExecutionTime = 0;
-		public TaskBot(string name, TaskQueen queenParent, Func<Task> task)
+		public TaskBot(string name, Func<Task> task)
 		{
 			stopwatch = Stopwatch.StartNew();
-			this.queenParent = queenParent;
 			this.task = task;
 			Name = name;
 		}

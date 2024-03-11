@@ -14,12 +14,12 @@ namespace Darklight.Unity.Backend.Test
 	public class TaskQueenTest : MonoBehaviour
 	{
 		static TaskQueen taskQueen;
-		static AsyncTaskQueen asyncTaskQueen;
+		static TaskQueen asyncTaskQueen;
 
 		public void Awake()
 		{
 			taskQueen = new GameObject("TaskQueen").AddComponent<TaskQueen>();
-			asyncTaskQueen = new GameObject("AsyncTaskQueen").AddComponent<AsyncTaskQueen>();
+			asyncTaskQueen = new GameObject("AsyncTaskQueen").AddComponent<TaskQueen>();
 		}
 
 		public void Start()
@@ -31,7 +31,7 @@ namespace Darklight.Unity.Backend.Test
 		[EasyButtons.Button]
 		public void EnqueueAndExecuteTests()
 		{
-			TaskBot taskBot = new TaskBot("TestTaskBot", taskQueen, async () =>
+			TaskBot taskBot = new TaskBot("TestTaskBot", async () =>
 			{
 				for (int i = 0; i < 100; i++)
 				{
