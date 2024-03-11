@@ -8,14 +8,12 @@ using UnityEngine;
 using System.Diagnostics; // Include this for Stopwatch
 using Debug = UnityEngine.Debug;
 
-namespace Darklight.Unity
+namespace Darklight.Bot
 {
-    using Darklight.Unity.Backend;
-
     public class UnitySceneHandler : TaskQueen
     {
         public static UnitySceneHandler Instance { get; private set; }
-        private void Awake() 
+        private void Awake()
         {
             if (Instance != null) { Destroy(this); }
             else { Instance = this; }

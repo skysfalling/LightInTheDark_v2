@@ -1,10 +1,9 @@
-using System;
-using System.Diagnostics;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Darklight.Unity.Backend
+namespace Darklight.Bot
 {
+	using System;
+	using System.Diagnostics;
+	using System.Threading.Tasks;
+
 	public interface ITaskEntity
 	{
 		string Name { get; set; }

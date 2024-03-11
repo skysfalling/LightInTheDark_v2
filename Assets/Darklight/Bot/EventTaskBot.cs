@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Darklight.Unity.Backend
+namespace Darklight.Bot
 {
     [Serializable]
     public class EventTaskBot : TaskBot

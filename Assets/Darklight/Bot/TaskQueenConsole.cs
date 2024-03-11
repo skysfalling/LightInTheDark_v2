@@ -1,8 +1,9 @@
-namespace Darklight.Unity.Backend
+namespace Darklight.Console
 {
 	using System;
 	using System.Collections.Generic;
 	using System.Text;
+	using Darklight.Bot;
 	using UnityEngine;
 
 

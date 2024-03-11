@@ -1,9 +1,10 @@
-namespace Darklight.Unity.Backend
+namespace Darklight.Bot
 {
 	using System;
 	using System.Collections;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
+	using Darklight.Console;
 	using UnityEngine;
 
 	public class TaskQueen : MonoBehaviour, ITaskEntity

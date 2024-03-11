@@ -4,14 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
-using EasyButtons;
 
 using NUnit.Framework;
 
-
-namespace Darklight.Unity.Backend.Test
+namespace Darklight.Bot.Tester
 {
-	public class TaskQueenTest : MonoBehaviour
+	public class TestTaskQueen : MonoBehaviour
 	{
 		static TaskQueen taskQueen;
 		static TaskQueen asyncTaskQueen;
@@ -28,7 +26,7 @@ namespace Darklight.Unity.Backend.Test
 			//asyncTaskQueen.Initialize("AsyncTaskQueen");
 		}
 
-		[EasyButtons.Button]
+		//[EasyButtons.Button]
 		public void EnqueueAndExecuteTests()
 		{
 			TaskBot taskBot = new TaskBot("TestTaskBot", async () =>
