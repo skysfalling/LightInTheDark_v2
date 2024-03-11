@@ -145,7 +145,7 @@ namespace Darklight.World.Generation
                 this.Initialize();
             }
         }
-        
+
         public override void Initialize(string name = "RegionAsyncTaskQueen")
         {
             if (Initialized) return;

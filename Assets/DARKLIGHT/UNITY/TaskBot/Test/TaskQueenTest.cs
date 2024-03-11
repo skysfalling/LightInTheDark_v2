@@ -24,20 +24,27 @@ namespace Darklight.Unity.Backend.Test
 
 		public void Start()
 		{
-			taskQueen.Initialize("TaskQueen");
-			asyncTaskQueen.Initialize("AsyncTaskQueen");
+			//taskQueen.Initialize("TaskQueen");
+			//asyncTaskQueen.Initialize("AsyncTaskQueen");
 		}
 
 		[EasyButtons.Button]
-		public void EnqueueTest()
+		public void EnqueueAndExecuteTests()
 		{
 			TaskBot taskBot = new TaskBot("TestTaskBot", taskQueen, async () =>
 			{
-				await Awaitable.WaitForSecondsAsync(1);
+				for (int i = 0; i < 100; i++)
+				{
+					Debug.Log("TestTaskBot: " + i);
+					await Task.Delay(1000);
+				}
 				Debug.Log("TestTaskBot completed.");
 			});
+
 			taskQueen.Enqueue(taskBot);
 			asyncTaskQueen.Enqueue(taskBot);
+			taskQueen.ExecuteAllTasks();
+			asyncTaskQueen.ExecuteAllTasks();
 		}
 	}
 }
