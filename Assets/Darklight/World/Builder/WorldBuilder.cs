@@ -131,7 +131,7 @@ namespace Darklight.World.Builder
 			}
 
 			// Stage 2: Generate Exits
-			TaskBot task1 = new TaskBot("GenerateExits", async () =>
+			TaskBot task1 = new TaskBot(this, "GenerateExits", async () =>
 			{
 				Debug.Log("GenerateExits task started");
 				foreach (RegionBuilder region in AllRegions)
@@ -143,7 +143,7 @@ namespace Darklight.World.Builder
 			Enqueue(task1);
 
 			// Stage 3: Generate Paths Between Exits
-			TaskBot task2 = new TaskBot("GeneratePathsBetweenExits", async () =>
+			TaskBot task2 = new TaskBot(this, "GeneratePathsBetweenExits", async () =>
 			{
 				foreach (RegionBuilder region in AllRegions)
 				{
@@ -156,7 +156,7 @@ namespace Darklight.World.Builder
 
 
 			// Stage 4: Zone Generation and Height Assignments
-			TaskBot task3 = new TaskBot("ZoneGeneration", async () =>
+			TaskBot task3 = new TaskBot(this, "ZoneGeneration", async () =>
 			{
 				foreach (RegionBuilder region in AllRegions)
 				{

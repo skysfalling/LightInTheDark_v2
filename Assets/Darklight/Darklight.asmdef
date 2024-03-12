@@ -3,7 +3,8 @@
     "rootNamespace": "Darklight",
     "references": [
         "GUID:787fe8f29a737964eba8d978d428337b",
-        "GUID:75469ad4d38634e559750d17036d5f7c"
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:0f1b59fa0983f9f4f9334c931ac81372"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

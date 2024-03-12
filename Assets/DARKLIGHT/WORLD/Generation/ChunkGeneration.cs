@@ -47,7 +47,7 @@ namespace Darklight.World.Builder
 			}
 
 
-			TaskBot task1 = new TaskBot("Creating Chunks", async () =>
+			TaskBot task1 = new TaskBot(this, "Creating Chunks", async () =>
 			{
 				Console.Log(this, $"Creating {_coordinateMap.AllCoordinateValues.Count} Chunks");
 
@@ -64,7 +64,7 @@ namespace Darklight.World.Builder
 			});
 			Enqueue(task1);
 
-			TaskBot task2 = new TaskBot("Creating Meshes", async () =>
+			TaskBot task2 = new TaskBot(this, "Creating Meshes", async () =>
 			{
 				Console.Log(this, $"Creating {_chunks.Count} Meshes");
 
@@ -79,7 +79,7 @@ namespace Darklight.World.Builder
 
 			if (WorldBuilder.Instance == null)
 			{
-				TaskBot task3 = new TaskBot("Creating Objects", async () =>
+				TaskBot task3 = new TaskBot(this, "Creating Objects", async () =>
 				{
 					Console.Log(this, $"Creating {_chunks.Count} Objects");
 					foreach (Chunk chunk in _chunks)

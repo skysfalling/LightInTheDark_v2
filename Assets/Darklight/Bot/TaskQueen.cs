@@ -45,8 +45,28 @@ namespace Darklight.Bot
 						taskBot = _executionQueue.Dequeue();
 					}
 				}
-				await taskBot.ExecuteTask();
+
+				try
+				{
+					Console.Log(this, $"Try to Execute {taskBot.Name}");
+					await taskBot.ExecuteTask();
+				}
+				catch (OperationCanceledException e)
+				{
+					Console.Log(this, $"\t ERROR: TaskBot {taskBot.Name} was cancelled: {e.Message}");
+				}
+				catch (Exception e)
+				{
+					Console.Log(this, $"ERROR: Executing {taskBot.Name}: {e.Message}");
+					UnityEngine.Debug.Log($"ERROR: Executing {taskBot.Name}: See Console for details.");
+				}
+				finally
+				{
+					Console.Log(this, $"\t COMPLETE: Finished Executing {taskBot.Name}");
+				}
 			}
+
+			Console.Log(this, $"Finished Executing [{_executionQueue.Count}] TaskBots");
 		}
 	}
 }

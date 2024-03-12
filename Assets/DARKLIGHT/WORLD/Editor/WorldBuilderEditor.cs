@@ -15,8 +15,9 @@ namespace Darklight.World.Editor
 
 		static bool showGenerationSettingsFoldout = false;
 
-		private void OnEnable()
+		public override void OnEnable()
 		{
+			base.OnEnable();
 			// Cache the SerializedObject
 			_serializedWorldBuilderObject = new SerializedObject(target);
 			WorldBuilder.InitializeSeedRandom();

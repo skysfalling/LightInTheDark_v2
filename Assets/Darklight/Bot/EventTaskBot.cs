@@ -10,7 +10,7 @@ namespace Darklight.Bot
     {
         [SerializeField] private UnityEvent _unityEvent;
 
-        public EventTaskBot(string name) : base(name, null)
+        public EventTaskBot(TaskQueen queen, string name) : base(queen, name, null)
         {
             Func<Task> eventTask;
             eventTask = delegate ()

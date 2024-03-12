@@ -11,7 +11,6 @@ namespace Darklight.World.Editor
 	[CustomEditor(typeof(RegionBuilder))]
 	public class RegionBuilderEditor : TaskQueenConsole
 	{
-
 		private SerializedObject _serializedRegionBuilderObject;
 		private RegionBuilder _regionBuilderScript;
 		static bool showGenerationSettingsFoldout = false;

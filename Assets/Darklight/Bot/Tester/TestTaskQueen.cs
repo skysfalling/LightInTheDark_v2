@@ -27,7 +27,7 @@ namespace Darklight.Bot.Tester
 		//[EasyButtons.Button]
 		public void EnqueueAndExecuteTests()
 		{
-			TaskBot taskBot = new TaskBot("TestTaskBot", async () =>
+			TaskBot taskBot = new TaskBot(taskQueen, "TestTaskBot", async () =>
 			{
 				for (int i = 0; i < 100; i++)
 				{

@@ -127,10 +127,7 @@ namespace Darklight.World.Builder
 			this._generationParent = parent;
 			this._coordinate = coordinate;
 
-
-
 			Debug.Log($"Region {Coordinate.ValueKey} created at {coordinate.ScenePosition}");
-
 
 			if (parent.customWorldGenSettings != null)
 			{
@@ -177,23 +174,23 @@ namespace Darklight.World.Builder
 		async Task InitializationSequence()
 		{
 			// Create the coordinate map
-			Enqueue(new TaskBot("Initialize Coordinate Map", async () =>
+			TaskBot task1 = new TaskBot(this, "Initialize Coordinate Map", async () =>
 			{
 				Debug.Log("Initializing Coordinate Map");
-
-				this._coordinateMap = new CoordinateMap(this.GenerationParent);
+				// Create the coordinate map
+				this._coordinateMap = new CoordinateMap(this);
 				while (this._coordinateMap.Initialized == false)
 				{
 					await Awaitable.WaitForSecondsAsync(1);
 				}
-			}));
+			});
+			Enqueue(task1);
 
 			// Create the chunk map for the region
-			TaskBot task2 = new TaskBot("Initialize Chunk Generation", async () =>
+			TaskBot task2 = new TaskBot(this, "Initialize Chunk Generation", async () =>
 			{
 				this._chunkGeneration = GetComponent<ChunkGeneration>();
-
-				while (_coordinateMap == null || !_coordinateMap.Initialized)
+				while (!_coordinateMap.Initialized)
 				{
 					await Awaitable.WaitForSecondsAsync(1);
 				}
@@ -207,7 +204,7 @@ namespace Darklight.World.Builder
 			if (WorldBuilder.Instance != null)
 			{
 				// Combine the chunk mesh if WorldBuilder exists
-				TaskBot task3 = new TaskBot("Mesh Generation", async () =>
+				TaskBot task3 = new TaskBot(this, "Mesh Generation", async () =>
 				{
 					Console.Log(this, "Starting mesh generation...");
 

@@ -3,7 +3,8 @@ namespace Darklight.Bot
 	using System;
 	using System.Diagnostics;
 	using System.Threading.Tasks;
-
+	using UnityEngine;
+	using Debug = UnityEngine.Debug;
 	public interface ITaskEntity
 	{
 		string Name { get; set; }
@@ -19,9 +20,10 @@ namespace Darklight.Bot
 		public string Name { get; set; } = "TaskBot";
 		public Guid GuidId { get; } = Guid.NewGuid();
 		public long ExecutionTime = 0;
-		public TaskBot(string name, Func<Task> task)
+		public TaskBot(TaskQueen queenParent, string name, Func<Task> task)
 		{
 			stopwatch = Stopwatch.StartNew();
+			this.queenParent = queenParent;
 			this.task = task;
 			Name = name;
 		}
@@ -32,14 +34,14 @@ namespace Darklight.Bot
 			{
 				await task();
 			}
-			catch (OperationCanceledException)
+			catch (OperationCanceledException operation)
 			{
-				queenParent.Console.Log(this, $"Operation was cancelled.");
+				queenParent.Console.Log(this, $"\t\t ERROR: Operation was cancelled.");
+				UnityEngine.Debug.LogError(operation);
 			}
 			catch (Exception ex)
 			{
-				queenParent.Console.Log(this, $"Error {ex}");
-				UnityEngine.Debug.LogError($"AsyncTaskBot '{Name}' encountered an error: {ex.Message}");
+				UnityEngine.Debug.LogError(ex);
 			}
 			finally
 			{
