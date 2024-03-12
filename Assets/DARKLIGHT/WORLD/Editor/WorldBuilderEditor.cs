@@ -8,7 +8,7 @@ namespace Darklight.World.Editor
 	using Darklight.Bot.Editor;
 
 	[CustomEditor(typeof(WorldBuilder))]
-	public class WorldBuilderEditor : TaskQueenConsole
+	public class WorldBuilderEditor : TaskQueenEditor
 	{
 		private SerializedObject _serializedWorldBuilderObject;
 		private WorldBuilder _worldBuilderScript;

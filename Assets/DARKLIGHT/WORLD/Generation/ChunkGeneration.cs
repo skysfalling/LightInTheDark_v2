@@ -1,3 +1,4 @@
+using System.Collections;
 namespace Darklight.World.Builder
 {
 	using System.Collections;
@@ -11,6 +12,7 @@ namespace Darklight.World.Builder
 	using Darklight.World.Generation;
 	using Darklight.World.Settings;
 	using Darklight.World.Map;
+	using System;
 
 	public class ChunkGeneration : TaskQueen
 	{
@@ -23,82 +25,79 @@ namespace Darklight.World.Builder
 		CoordinateMap _coordinateMap;
 		public HashSet<Chunk> AllChunks { get { return _chunks; } private set { } }
 
-		public void Initialize(RegionBuilder worldRegion, CoordinateMap coordinateMap)
+		public async void Initialize(RegionBuilder worldRegion, CoordinateMap coordinateMap)
 		{
-			base.Initialize("ChunkGenerationAsync");
+			await base.Initialize(false);
 			RegionParent = worldRegion;
 			_coordinateMap = coordinateMap;
 		}
 
-		public void Reset()
+		public override void Reset()
 		{
+			base.Reset();
 			Initialized = false;
 			_coordinateMap = null;
 			_chunks.Clear();
 			_chunkMap.Clear();
 		}
 
-		public async Task GenerationSequence()
+		// [[ CREATE WORLD CHUNKS ]]
+		async Task CreateChunksInBkg()
 		{
+			ChunkGeneration self = this; // Capture the instance of ChunkGeneration
+			TaskBotConsole.Log(self, $"Creating {_coordinateMap.AllCoordinateValues.Count} Chunks");
 
-			while (_coordinateMap.Initialized == false)
+			foreach (Vector2Int position in _coordinateMap.AllCoordinateValues)
 			{
-				await Task.Delay(1000);
-			}
-
-
-			TaskBot task1 = new TaskBot(this, "Creating Chunks", async () =>
-			{
-				Console.Log(this, $"Creating {_coordinateMap.AllCoordinateValues.Count} Chunks");
-
-				// [[ CREATE WORLD CHUNKS ]]
-				foreach (Vector2Int position in _coordinateMap.AllCoordinateValues)
+				try
 				{
+					TaskBotConsole.Log(self, $"\t>> Creating Chunk {position}");
 					Coordinate coordinate = _coordinateMap.GetCoordinateAt(position);
-					Chunk newChunk = new Chunk(this, coordinate);
+					Chunk newChunk = new Chunk(self, coordinate); // Use the captured instance
 					_chunks.Add(newChunk);
 					_chunkMap[coordinate.ValueKey] = newChunk;
 				}
-
-				await Task.Yield();
-			});
-			Enqueue(task1);
-
-			TaskBot task2 = new TaskBot(this, "Creating Meshes", async () =>
-			{
-				Console.Log(this, $"Creating {_chunks.Count} Meshes");
-
-				foreach (Chunk chunk in _chunks)
+				catch (Exception e)
 				{
-					ChunkMesh newMesh = chunk.CreateChunkMesh();
+					self.TaskBotConsole.Log(this, $"\t\t Error: See Unity Console", LogSeverity.Error);
+					self.TaskBotConsole.Log(this, $"\t\t\t {this.Name} || {this.GuidId}", LogSeverity.Error);
+					Debug.LogError($"{this.Name} FUNC<TASK> || {position} => {e}" + e.StackTrace, self);
 				}
 
-				await Task.Yield();
-			});
-			Enqueue(task2);
-
-			if (WorldBuilder.Instance == null)
-			{
-				TaskBot task3 = new TaskBot(this, "Creating Objects", async () =>
-				{
-					Console.Log(this, $"Creating {_chunks.Count} Objects");
-					foreach (Chunk chunk in _chunks)
-					{
-						await Task.Run(() => chunk.ChunkMesh != null);
-
-						GameObject newObject = RegionParent.CreateMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.ChunkMesh.Mesh);
-						Console.Log(this, $"\tNewChunkMeshObject : {newObject}");
-					}
-
-					await Task.Yield();
-				});
-				Enqueue(task3);
-
 			}
+			TaskBotConsole.Log(self, $">> Here they are! {_chunkMap.ToString()}");
+			await Task.CompletedTask;
+		}
 
+		async Task CreateChunkMeshObjs()
+		{
+			TaskBotConsole.Log(this, $"Creating {_chunks.Count} Meshes");
+			foreach (Chunk chunk in _chunks)
+			{
+				ChunkMesh newMesh = chunk.CreateChunkMesh();
+				GameObject newObject = RegionParent.CreateMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.ChunkMesh.Mesh);
+				TaskBotConsole.Log(this, $"\tNewChunkMeshObject : {newObject}");
+			}
+			await Task.CompletedTask;
+		}
 
-			ExecuteAllTasks();
-			Console.Log(this, "Initialization Sequence Completed");
+		public async Task GenerationSequence()
+		{
+			while (_coordinateMap.Initialized == false)
+			{
+				await Awaitable.WaitForSecondsAsync(0.1f);
+			}
+			/// STAGE 1 : [[ CREATE CHUNKS ]]
+
+			TaskBot task1 = new TaskBot(this, "Creating Chunks [task1]", CreateChunksInBkg(), true); // << Execute on background thread
+			await Enqueue(task1);
+			TaskBot task2 = new TaskBot(this, "CreatingChunkMesh [task2]", CreateChunkMeshObjs(), false); // << Execute on main thread
+			await Enqueue(task1);
+
+			await ExecuteAllTasks();
+			TaskBotConsole.Log(this, "Initialization Sequence Completed");
+			Debug.Log("Initialization Sequence Completed");
+
 			Initialized = true;
 
 		}

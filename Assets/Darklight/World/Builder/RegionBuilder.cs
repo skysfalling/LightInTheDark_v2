@@ -117,47 +117,48 @@ namespace Darklight.World.Builder
 		/// </summary>
 		public bool initializeOnStart;
 		/// <summary>
-		/// Assigns the region to the world.
+		/// Assigns the region to a parent <see cref="WorldBuilder"/>.
+		/// This method should be called by the world builder to assign the region to itself.
 		/// </summary>
 		/// <param name="parent">The parent WorldBuilder.</param>
 		/// <param name="coordinate">The coordinate of the region.</param>
 		/// <param name="taskQueenName">The name of the task queen.</param>
-		public void AssignToWorld(WorldBuilder parent, Coordinate coordinate, string taskQueenName = "Region Task Queen")
+		public void AssignToWorldParent(WorldBuilder parent, Coordinate coordinate, string taskQueenName = "Region Task Queen")
 		{
 			this._generationParent = parent;
 			this._coordinate = coordinate;
-
 			Debug.Log($"Region {Coordinate.ValueKey} created at {coordinate.ScenePosition}");
-
 			if (parent.customWorldGenSettings != null)
 			{
 				OverrideSettings(parent.customWorldGenSettings);
 			}
 
-			Console.Log(this, "Assigned to World Builder with settings " + $"{_regionSettings.Seed}");
+			this.GenerationParent.TaskBotConsole.Log(this, "\t Assigned to World Builder with settings " + $"{_regionSettings.Seed}");
+			TaskBotConsole.Log(this, "Assigned to World Builder with settings " + $"{_regionSettings.Seed}");
 		}
 
-		public void Start()
+		public async void Start()
 		{
 			Debug.Log("Start");
 			if (initializeOnStart == true)
 			{
 				Debug.Log($"{_prefix} Initialize On Start");
-				this.Initialize();
+				await this.Initialize(true);
 			}
 		}
 
-		public override void Initialize(string name = "RegionAsyncTaskQueen")
+		public override async Awaitable Initialize(bool startSequence)
 		{
+			this.Name = "RegionAsyncTaskQueen";
 			if (Initialized) return;
+			await base.Initialize(startSequence);
 			Initialized = true;
-			base.Initialize(name);
-
-			_ = InitializationSequence();
 		}
 
-		public void Reset()
+		public override void Reset()
 		{
+			base.Reset();
+
 			Initialized = false;
 			_coordinateMap = null;
 
@@ -171,7 +172,7 @@ namespace Darklight.World.Builder
 		/// The initialization sequence for the region builder.
 		/// </summary>
 		/// <returns>The task representing the initialization sequence.</returns>
-		async Task InitializationSequence()
+		public override async Awaitable InitializationSequence()
 		{
 			// Create the coordinate map
 			TaskBot task1 = new TaskBot(this, "Initialize Coordinate Map", async () =>
@@ -184,7 +185,7 @@ namespace Darklight.World.Builder
 					await Awaitable.WaitForSecondsAsync(1);
 				}
 			});
-			Enqueue(task1);
+			await Enqueue(task1);
 
 			// Create the chunk map for the region
 			TaskBot task2 = new TaskBot(this, "Initialize Chunk Generation", async () =>
@@ -199,14 +200,14 @@ namespace Darklight.World.Builder
 				_chunkGeneration.Initialize(this, _coordinateMap);
 				await _chunkGeneration.GenerationSequence();
 			});
-			Enqueue(task2);
+			await Enqueue(task2);
 
 			if (WorldBuilder.Instance != null)
 			{
-				// Combine the chunk mesh if WorldBuilder exists
+				// COMBINE the chunk mesh if WorldBuilder exists
 				TaskBot task3 = new TaskBot(this, "Mesh Generation", async () =>
 				{
-					Console.Log(this, "Starting mesh generation...");
+					TaskBotConsole.Log(this, "Starting mesh generation...");
 
 					while (_chunkGeneration == null || _chunkGeneration.Initialized == false)
 					{
@@ -215,15 +216,15 @@ namespace Darklight.World.Builder
 
 					// Asynchronously create and initialize combined chunk mesh
 					await CreateAndInitializeCombinedChunkMeshAsync();
-					Console.Log(this, "Mesh generation complete.");
+					TaskBotConsole.Log(this, "Mesh generation complete.");
 				});
-				Enqueue(task3);
+				await Enqueue(task3);
 
 			}
 
 			await Awaitable.WaitForSecondsAsync(1);
 
-			ExecuteAllTasks();
+			await ExecuteAllTasks();
 			Debug.Log("Region Builder Initialized");
 
 
@@ -304,7 +305,13 @@ namespace Darklight.World.Builder
 		/// <returns>The created GameObject.</returns>
 		public GameObject CreateMeshObject(string name, Mesh mesh, Material material = null)
 		{
-			if (mesh == null) { Debug.LogError("Mesh is null"); }
+			if (GenerationParent && GenerationParent.defaultMaterial != null)
+			{
+				Debug.LogWarning($"{name} Material is null -> setMaterial to GenerationParent default");
+				defaultMaterial = material;
+			}
+			else if (material == null) { Debug.LogWarning($"{name} Material is null"); }
+			else if (mesh == null) { Debug.LogWarning($"{name} Mesh is null"); }
 
 			GameObject worldObject = new GameObject(name);
 			worldObject.transform.parent = transform;
@@ -317,7 +324,6 @@ namespace Darklight.World.Builder
 
 			if (material == null)
 			{
-				Debug.LogError("Mesh material is null -> setMaterial to default");
 				worldObject.AddComponent<MeshRenderer>().material = defaultMaterial;
 				worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
 			}

@@ -9,7 +9,7 @@ namespace Darklight.World.Editor
 	using Darklight.Bot.Editor;
 
 	[CustomEditor(typeof(RegionBuilder))]
-	public class RegionBuilderEditor : TaskQueenConsole
+	public class RegionBuilderEditor : TaskQueenEditor
 	{
 		private SerializedObject _serializedRegionBuilderObject;
 		private RegionBuilder _regionBuilderScript;
@@ -37,7 +37,7 @@ namespace Darklight.World.Editor
 
 			if (!_regionBuilderScript.Initialized && GUILayout.Button("Initialize"))
 			{
-				_regionBuilderScript.Initialize();
+				_ = _regionBuilderScript.Initialize(true);
 			}
 			else if (_regionBuilderScript.Initialized && GUILayout.Button("Reset"))
 			{

@@ -7,7 +7,7 @@ namespace Darklight.Bot.Editor
 	using UnityEngine;
 
 	[CustomEditor(typeof(TaskQueen), true)]
-	public class TaskQueenConsole : Editor
+	public class TaskQueenEditor : Editor
 	{
 		private Vector2 scrollPosition;
 		public TaskQueen queenScript;
@@ -16,7 +16,7 @@ namespace Darklight.Bot.Editor
 		public virtual void OnEnable()
 		{
 			queenScript = (TaskQueen)target;
-			console = queenScript.Console;
+			console = queenScript.TaskBotConsole;
 		}
 
 		public override void OnInspectorGUI()
@@ -28,7 +28,7 @@ namespace Darklight.Bot.Editor
 			GUILayout.Space(10);
 
 			TaskQueen queen = (TaskQueen)target;
-			Console console = queen.Console;
+			Console console = queen.TaskBotConsole;
 
 			// Custom style for the background
 			GUIStyle backgroundStyle = new GUIStyle();

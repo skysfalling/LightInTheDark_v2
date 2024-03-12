@@ -82,103 +82,108 @@ namespace Darklight.World.Builder
 
 		// [[ PUBLIC INSPECTOR VARIABLES ]] 
 		public CustomGenerationSettings customWorldGenSettings; // Settings Scriptable Object
+		public Material defaultMaterial;
 		public bool initializeOnStart;
 
 		#region == INITIALIZATION ============================================== >>>> 
-		private void Start()
+		private async void Start()
 		{
 			if (initializeOnStart == true)
 			{
 				Debug.Log($"{_prefix} Initialize On Start");
-				Initialize();
+				await Initialize();
 			}
 		}
 
-		public override async void Initialize(string name = "WorldBuilderAsyncTaskQueen")
+		public override async Awaitable Initialize(bool startSequence = true)
 		{
-			base.Initialize(name);
+			this.Name = "World Builder Task Queen";
 			OverrideSettings(customWorldGenSettings);
 			InitializeSeedRandom();
 			this._coordinateMap = new CoordinateMap(this);
+			Debug.Log($"{_prefix} Initialized, Mods: {customWorldGenSettings != null}");
 
-			// Create all Regions
+			// [[ INSTANTIATE REGIONS ]]
+			// Create all Regions from coordinate map
 			foreach (Coordinate regionCoordinate in CoordinateMap.AllCoordinates)
 			{
 				GameObject regionObject = new GameObject($"New Region ({regionCoordinate.ValueKey})");
 				RegionBuilder region = regionObject.AddComponent<RegionBuilder>();
 				region.transform.parent = this.transform;
-				region.AssignToWorld(this, regionCoordinate);
+				region.AssignToWorldParent(this, regionCoordinate);
 				_regionMap[regionCoordinate.ValueKey] = region;
 			}
-
 			await Awaitable.WaitForSecondsAsync(1);
+			await base.Initialize(startSequence);
 		}
 
 
 		/// <summary>
 		/// Orchestrates the entire initialization sequence asynchronously, divided into stages.
 		/// </summary>
-		private async Awaitable AsyncInitializationSequence()
+		public override async Awaitable InitializationSequence()
 		{
-			// Initialize all regions
-			foreach (RegionBuilder region in AllRegions)
-			{
-				region.Initialize();
-				while (!region.Initialized)
-				{
-					await Awaitable.WaitForSecondsAsync(1f);
-				}
-			}
 
-			// Stage 2: Generate Exits
-			TaskBot task1 = new TaskBot(this, "GenerateExits", async () =>
+
+			// Stage 1: Generate Regions
+			TaskBot task1 = new TaskBot(this, "GenerateRegions", async () =>
+			{
+				Debug.Log("GenerateRegions task started");
+				// Initialize all regions onto the map
+				foreach (RegionBuilder region in _regionMap.Values)
+				{
+					await region.Initialize(true);
+					while (!region.Initialized)
+					{
+						await Awaitable.WaitForSecondsAsync(0.1f);
+					}
+				}
+			});
+			await Enqueue(task1);
+
+			// Stage 2: Generate Exits based on neighboring regions
+			TaskBot task2 = new TaskBot(this, "GenerateExits", async () =>
 			{
 				Debug.Log("GenerateExits task started");
 				foreach (RegionBuilder region in AllRegions)
 				{
 					region.GenerateNecessaryExits(true);
-					await Task.Delay(1000);
+					await Awaitable.WaitForSecondsAsync(0.1f);
 				}
 			});
-			Enqueue(task1);
+			await Enqueue(task2);
 
 			// Stage 3: Generate Paths Between Exits
-			TaskBot task2 = new TaskBot(this, "GeneratePathsBetweenExits", async () =>
+			TaskBot task3 = new TaskBot(this, "GeneratePathsBetweenExits", async () =>
 			{
 				foreach (RegionBuilder region in AllRegions)
 				{
 					region.CoordinateMap.GeneratePathsBetweenExits();
+					await Awaitable.WaitForSecondsAsync(0.1f);
 				}
-				await Task.Yield();
-
 			});
-			Enqueue(task2);
+			await Enqueue(task3);
 
 
 			// Stage 4: Zone Generation and Height Assignments
-			TaskBot task3 = new TaskBot(this, "ZoneGeneration", async () =>
+			TaskBot task4 = new TaskBot(this, "ZoneGeneration", async () =>
 			{
 				foreach (RegionBuilder region in AllRegions)
 				{
 					region.CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
+					await Awaitable.WaitForSecondsAsync(0.1f);
 				}
-				await Task.Yield();
-
 			});
-			Enqueue(task3);
-			ExecuteAllTasks();
+			await Enqueue(task4);
+			await ExecuteAllTasks();
+
+			Debug.Log($"{_prefix} Initialization Complete");
 
 			// Mark initialization as complete
 			Initialized = true;
 		}
 
 		#endregion
-
-		public async Task CreateRegionAsync(Coordinate regionCoordinate)
-		{
-
-			await Task.Yield();
-		}
 
 		/// <summary> Fully Reset the World Generation </summary>
 		public void ResetGeneration()
