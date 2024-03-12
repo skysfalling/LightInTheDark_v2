@@ -177,7 +177,7 @@ namespace Darklight.World.Builder
 		async Task InitializationSequence()
 		{
 			// Create the coordinate map
-			TaskBot task1 = new TaskBot("Initialize Coordinate Map", async () =>
+			Enqueue(new TaskBot("Initialize Coordinate Map", async () =>
 			{
 				Debug.Log("Initializing Coordinate Map");
 
@@ -186,8 +186,7 @@ namespace Darklight.World.Builder
 				{
 					await Awaitable.WaitForSecondsAsync(1);
 				}
-			});
-			Enqueue(task1);
+			}));
 
 			// Create the chunk map for the region
 			TaskBot task2 = new TaskBot("Initialize Chunk Generation", async () =>
@@ -214,7 +213,7 @@ namespace Darklight.World.Builder
 
 					while (_chunkGeneration == null || _chunkGeneration.Initialized == false)
 					{
-						await Task.Delay(1000);
+						await Awaitable.WaitForSecondsAsync(1);
 					}
 
 					// Asynchronously create and initialize combined chunk mesh
@@ -225,11 +224,11 @@ namespace Darklight.World.Builder
 
 			}
 
+			await Awaitable.WaitForSecondsAsync(1);
 
 			ExecuteAllTasks();
 			Debug.Log("Region Builder Initialized");
 
-			await Awaitable.WaitForSecondsAsync(1);
 
 			// Execute all tasks queued in AsyncTaskQueen
 			Initialized = true;
@@ -355,7 +354,7 @@ namespace Darklight.World.Builder
 				try
 				{
 					// Proceed with creating the GameObject based on the combined mesh
-					_combinedMeshObject = CreateMeshObject($"CombinedChunkMesh", combinedMesh, Settings.materialLibrary.DefaultGroundMaterial);
+					_combinedMeshObject = CreateMeshObject($"CombinedChunkMesh", combinedMesh, null);
 
 					if (_combinedMeshObject != null)
 					{

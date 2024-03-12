@@ -1,12 +1,11 @@
-namespace Darklight.World.Generation.Tool
+namespace Darklight.World
 {
 	using System.Collections;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
-	using Unity.VisualScripting;
 	using UnityEngine;
 	using UnityEditor;
-	using CustomEditor = UnityEditor.CustomEditor;
+	using Builder;
 
 	public class DimensionSpace : MonoBehaviour
 	{
@@ -23,9 +22,9 @@ namespace Darklight.World.Generation.Tool
 
 #if UNITY_EDITOR
 	[CustomEditor(typeof(DimensionSpace))]
-	public class DimensionSpacerEditor : Editor
+	public class DimensionSpacerEditor : UnityEditor.Editor
 	{
-		private Editor _previewEditor;
+		private UnityEditor.Editor _previewEditor;
 		private DimensionSpace _dimensionSpaceScript;
 		void OnEnable()
 		{
@@ -40,7 +39,7 @@ namespace Darklight.World.Generation.Tool
 			if (previewObject != null)
 			{
 				if (_previewEditor == null)
-					_previewEditor = Editor.CreateEditor(previewObject);
+					_previewEditor = UnityEditor.Editor.CreateEditor(previewObject);
 
 				_previewEditor.OnInteractivePreviewGUI(GUILayoutUtility.GetRect(128, 128, GUILayout.ExpandWidth(false)), GUIStyle.none);
 			}

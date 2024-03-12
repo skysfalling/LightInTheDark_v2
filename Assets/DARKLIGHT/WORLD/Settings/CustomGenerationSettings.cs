@@ -18,9 +18,6 @@ namespace Darklight.World.Settings
 
 		[SerializeField] private float _pathRandomness = 0.5f;
 
-		public MaterialLibrary materialLibrary; // MaterialLibrary
-
-
 		// >> Public Accessors
 		public string Seed => _seed;
 		public int CellSize => _cellSize;

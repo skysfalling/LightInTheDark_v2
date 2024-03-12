@@ -6,21 +6,20 @@ using UnityEngine.Windows;
 
 namespace Darklight.World.Generation.Interaction
 {
-    using WorldEntity = Generation.Entity;
+	using Builder;
+	public class Interactor : MonoBehaviour
+	{
+		WorldBuilder _worldGeneration;
+		ChunkGeneration _worldChunkMap;
+		WorldEnvironment _worldEnvironment;
 
-    public class Interactor : MonoBehaviour
-    {
-        WorldBuilder _worldGeneration;
-        ChunkGeneration _worldChunkMap;
-        WorldEnvironment _worldEnvironment;
+		[Header("World Cursor")]
+		public Transform worldCursor; // related transform to the cursor
+		public Cell currCursorCell = null;
 
-        [Header("World Cursor")]
-        public Transform worldCursor; // related transform to the cursor
-        public Cell currCursorCell = null;
+		[Header("Select Entity")]
+		public WorldBuilder selectedEntity;
 
-        [Header("Select Entity")]
-        public WorldBuilder selectedEntity;
-
-    }
+	}
 }
 

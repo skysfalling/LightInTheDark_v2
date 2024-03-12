@@ -1,22 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Darklight.World.Builder;
-
 namespace Darklight.World.Generation
 {
-#if UNITY_EDITOR
+	using System.Collections;
+	using System.Collections.Generic;
+	using UnityEngine;
 	using UnityEditor;
-	using EditMode = WorldEdit.EditMode;
-	using WorldView = WorldEdit.WorldView;
-	using RegionView = WorldEdit.RegionView;
-	using ChunkView = WorldEdit.ChunkView;
-	using CellView = WorldEdit.CellView;
-	using CoordinateMapView = WorldEdit.CoordinateMapView;
-	using ChunkMapView = WorldEdit.ChunkMapView;
-	using CellMapView = WorldEdit.CellMapView;
-	using System.Linq;
-#endif
+	using Darklight.World.Builder;
 
 	public class WorldEdit : MonoBehaviour
 	{

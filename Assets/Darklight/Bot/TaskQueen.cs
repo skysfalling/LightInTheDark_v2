@@ -3,8 +3,6 @@ namespace Darklight.Bot
 	using System;
 	using System.Collections;
 	using System.Collections.Generic;
-	using System.Threading.Tasks;
-	using Darklight.Console;
 	using UnityEngine;
 
 	public class TaskQueen : MonoBehaviour, ITaskEntity
@@ -12,7 +10,7 @@ namespace Darklight.Bot
 		private Queue<TaskBot> _executionQueue = new();
 		public string Name { get; set; } = "TaskQueen";
 		public Guid GuidId { get; } = Guid.NewGuid();
-		public TaskQueenConsole Console = new TaskQueenConsole();
+		public Console Console = new Console();
 		public int ExecutionQueueCount => _executionQueue.Count;
 
 		public void Awake()

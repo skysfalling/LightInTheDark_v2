@@ -10,53 +10,54 @@ using UnityEditor;
 
 namespace Darklight.World.Generation
 {
-    [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
-    public class Traveler : MonoBehaviour
-    {
-        WorldBuilder _worldBuilder => WorldBuilder.Instance;
-        public bool Active = false;
-        public RegionBuilder ParentRegion { get; private set; }
-        public Chunk CurrentChunk { get; private set; }
+	using Builder;
+	[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
+	public class Traveler : MonoBehaviour
+	{
+		WorldBuilder _worldBuilder => WorldBuilder.Instance;
+		public bool Active = false;
+		public RegionBuilder ParentRegion { get; private set; }
+		public Chunk CurrentChunk { get; private set; }
 
-        // [[ INSPECTOR VARIABLES ]]
-        public void InitializeAt(RegionBuilder region, Chunk chunk)
-        {
-            ParentRegion = region;
-            CurrentChunk = chunk;
-            Active = true;
-        }
+		// [[ INSPECTOR VARIABLES ]]
+		public void InitializeAt(RegionBuilder region, Chunk chunk)
+		{
+			ParentRegion = region;
+			CurrentChunk = chunk;
+			Active = true;
+		}
 
-        private void OnDrawGizmos()
-        {
-            if (Active)
-            {
-                UnityEngine.Gizmos.color = Color.red;
-                UnityEngine.Gizmos.DrawWireSphere(CurrentChunk.Coordinate.ScenePosition, 5f);
+		private void OnDrawGizmos()
+		{
+			if (Active)
+			{
+				UnityEngine.Gizmos.color = Color.red;
+				UnityEngine.Gizmos.DrawWireSphere(CurrentChunk.Coordinate.ScenePosition, 5f);
 
-                foreach (Coordinate neighbor in CurrentChunk.Coordinate.GetAllValidNeighbors())
-                {
-                    UnityEngine.Gizmos.color = Color.green;
-                    UnityEngine.Gizmos.DrawWireSphere(neighbor.ScenePosition, 5f);
-                }
-            }
-        }
+				foreach (Coordinate neighbor in CurrentChunk.Coordinate.GetAllValidNeighbors())
+				{
+					UnityEngine.Gizmos.color = Color.green;
+					UnityEngine.Gizmos.DrawWireSphere(neighbor.ScenePosition, 5f);
+				}
+			}
+		}
 
-        public static void DestroyGameObject(GameObject gameObject)
-        {
-            // Check if we are running in the Unity Editor
+		public static void DestroyGameObject(GameObject gameObject)
+		{
+			// Check if we are running in the Unity Editor
 #if UNITY_EDITOR
-            if (!EditorApplication.isPlaying)
-            {
-                // Use DestroyImmediate if in edit mode and not playing
-                DestroyImmediate(gameObject);
-                return;
-            }
-            else
+			if (!EditorApplication.isPlaying)
+			{
+				// Use DestroyImmediate if in edit mode and not playing
+				DestroyImmediate(gameObject);
+				return;
+			}
+			else
 #endif
-            {
-                // Use Destroy in play mode or in a build
-                Destroy(gameObject);
-            }
-        }
-    }
+			{
+				// Use Destroy in play mode or in a build
+				Destroy(gameObject);
+			}
+		}
+	}
 }

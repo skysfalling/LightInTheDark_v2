@@ -56,9 +56,6 @@ namespace Darklight.World.Settings
 		// >>>>> UNIT SPACE
 		public UnitSpace ChunkMeshUnitSpace => UnitSpace.REGION;
 
-		// [[ LIBRARIES ]] 
-		public MaterialLibrary materialLibrary;
-
 		public GenerationSettings() { }
 		public GenerationSettings(CustomGenerationSettings worldGenSettings)
 		{
@@ -72,8 +69,6 @@ namespace Darklight.World.Settings
 			_worldWidth = worldGenSettings.WorldWidth;
 
 			_pathRandomness = worldGenSettings.PathRandomness;
-
-			this.materialLibrary = worldGenSettings.materialLibrary;
 		}
 	}
 }

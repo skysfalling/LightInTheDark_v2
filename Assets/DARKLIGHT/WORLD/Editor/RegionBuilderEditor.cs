@@ -1,21 +1,25 @@
-namespace Darklight.World.Generation.Editor
+namespace Darklight.World.Editor
 {
 	using UnityEngine;
 	using UnityEditor;
+	using Generation;
 	using Builder;
+	using Map;
 	using Settings;
+	using Darklight.Bot.Editor;
 
 	[CustomEditor(typeof(RegionBuilder))]
-	public class RegionBuilderEditor : Editor
+	public class RegionBuilderEditor : TaskQueenConsole
 	{
 
 		private SerializedObject _serializedRegionBuilderObject;
 		private RegionBuilder _regionBuilderScript;
-
 		static bool showGenerationSettingsFoldout = false;
 
-		private void OnEnable()
+		public override void OnEnable()
 		{
+			base.OnEnable();
+
 			// Cache the SerializedObject
 			_serializedRegionBuilderObject = new SerializedObject(target);
 			RegionBuilder.InitializeSeedRandom();

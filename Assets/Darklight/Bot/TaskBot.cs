@@ -27,9 +27,9 @@ namespace Darklight.Bot
 		}
 		public virtual async Task ExecuteTask()
 		{
+			stopwatch.Start();
 			try
 			{
-				stopwatch.Reset();
 				await task();
 			}
 			catch (OperationCanceledException)

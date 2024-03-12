@@ -1,10 +1,10 @@
-namespace Darklight.Console
+namespace Darklight.Bot
 {
 	using System;
 	using System.Collections.Generic;
 	using System.Text;
 	using Darklight.Bot;
-	public class TaskQueenConsole
+	public class Console
 	{
 		private class LogEntry
 		{
@@ -74,4 +74,5 @@ namespace Darklight.Console
 		Warning,
 		Error
 	}
+
 }

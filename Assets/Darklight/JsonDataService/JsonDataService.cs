@@ -5,7 +5,6 @@ namespace Darklight.DataService
 	using System.Collections.Generic;
 	using System.IO;
 	using UnityEngine;
-	using Newtonsoft.Json;
 	using System.Security.Cryptography;
 	using System.Text;
 
@@ -40,7 +39,7 @@ namespace Darklight.DataService
 				else
 				{
 					stream.Close();
-					File.WriteAllText(path, JsonConvert.SerializeObject(Data));
+					File.WriteAllText(path, JsonUtility.ToJson(Data));
 				}
 				return true;
 			}
@@ -71,7 +70,8 @@ namespace Darklight.DataService
 				}
 				else
 				{
-					data = JsonConvert.DeserializeObject<T>(File.ReadAllText(path));
+
+					data = JsonUtility.FromJson<T>(File.ReadAllText(path));
 				}
 
 				return data;
@@ -83,41 +83,37 @@ namespace Darklight.DataService
 			}
 		}
 
-		private void WriteEncryptedData<T>(T Data, FileStream Stream)
+		private void WriteEncryptedData<T>(T data, FileStream stream)
 		{
 			using Aes aesProvider = Aes.Create();
 
 			aesProvider.Key = Convert.FromBase64String(KEY);
 			aesProvider.IV = Convert.FromBase64String(IV);
 
-			using ICryptoTransform cryptoTransform = aesProvider.CreateEncryptor();
-			using CryptoStream cryptoStream = new CryptoStream(Stream, cryptoTransform, CryptoStreamMode.Write);
-
-
-			// uncomment to get an auto generated version
-			//Debug.Log($"Init Vector: {Convert.ToBase64String(aesProvider.IV)}");
-			//Debug.Log($"Key: {Convert.ToBase64String(aesProvider.Key)}");
-
-			cryptoStream.Write(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(Data)));
+			using (ICryptoTransform cryptoTransform = aesProvider.CreateEncryptor())
+			using (CryptoStream cryptoStream = new CryptoStream(stream, cryptoTransform, CryptoStreamMode.Write))
+			{
+				byte[] bytes = Encoding.ASCII.GetBytes(JsonUtility.ToJson(data));
+				cryptoStream.Write(bytes, 0, bytes.Length);
+			}
 		}
 
-		private T ReadEncryptedData<T>(string Path)
+		private T ReadEncryptedData<T>(string path)
 		{
-			byte[] fileBytes = File.ReadAllBytes(Path);
-			using Aes aesProvider = Aes.Create();
+			using (Aes aesProvider = Aes.Create())
+			{
+				aesProvider.Key = Convert.FromBase64String(KEY);
+				aesProvider.IV = Convert.FromBase64String(IV);
 
-			aesProvider.Key = Convert.FromBase64String(KEY);
-			aesProvider.IV = Convert.FromBase64String(IV);
-
-			using ICryptoTransform cryptoTransform = aesProvider.CreateDecryptor(aesProvider.Key, aesProvider.IV);
-			using MemoryStream decryptionStream = new MemoryStream(fileBytes);
-			using CryptoStream cryptoStream = new CryptoStream(decryptionStream, cryptoTransform, CryptoStreamMode.Read);
-			using StreamReader reader = new StreamReader(cryptoStream);
-
-			string result = reader.ReadToEnd();
-
-			Debug.Log($"Decrypt data result::  {result}");
-			return JsonConvert.DeserializeObject<T>(result);
+				using (ICryptoTransform cryptoTransform = aesProvider.CreateDecryptor())
+				using (FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read))
+				using (CryptoStream cryptoStream = new CryptoStream(fileStream, cryptoTransform, CryptoStreamMode.Read))
+				using (StreamReader reader = new StreamReader(cryptoStream))
+				{
+					string result = reader.ReadToEnd();
+					return JsonUtility.FromJson<T>(result);
+				}
+			}
 		}
 	}
 

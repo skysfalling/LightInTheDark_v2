@@ -12,52 +12,53 @@ using UnityEngine;
 
 namespace Darklight.World.Generation
 {
-    public class Cell
-    {
-        public enum TYPE { EMPTY, EDGE, CORNER, OBSTACLE, SPAWN_POINT }
+	using Builder;
+	public class Cell
+	{
+		public enum TYPE { EMPTY, EDGE, CORNER, OBSTACLE, SPAWN_POINT }
 
-        // [[ PRIVATE DATA VARIABLES ]]
-        MeshQuad _meshQuad;
-        TYPE _type;
+		// [[ PRIVATE DATA VARIABLES ]]
+		MeshQuad _meshQuad;
+		TYPE _type;
 
-        // [[ PUBLIC REFERENCE VARIABLES ]]
-        public Chunk ChunkParent { get; private set; }
-        public MeshQuad MeshQuad => _meshQuad;
-        public TYPE Type => _type;
-        public Color TypeColor { get; private set; } = Color.white;
-        public Vector3 Position
-        {
-            get
-            {
-                return ChunkParent.GroundPosition + MeshQuad.GetCenterPosition();
-            }
-        }
+		// [[ PUBLIC REFERENCE VARIABLES ]]
+		public Chunk ChunkParent { get; private set; }
+		public MeshQuad MeshQuad => _meshQuad;
+		public TYPE Type => _type;
+		public Color TypeColor { get; private set; } = Color.white;
+		public Vector3 Position
+		{
+			get
+			{
+				return ChunkParent.GroundPosition + MeshQuad.GetCenterPosition();
+			}
+		}
 
-        public Vector2Int FaceCoord => _meshQuad.faceCoord;
-        public Chunk.FaceType FaceType => _meshQuad.faceType;
-        public Vector3 Normal => _meshQuad.faceNormal;
-        public int Size = WorldBuilder.Settings.CellSize_inGameUnits;
+		public Vector2Int FaceCoord => _meshQuad.faceCoord;
+		public Chunk.FaceType FaceType => _meshQuad.faceType;
+		public Vector3 Normal => _meshQuad.faceNormal;
+		public int Size = WorldBuilder.Settings.CellSize_inGameUnits;
 
 
-        public Cell(Chunk chunkParent, MeshQuad meshQuad)
-        {
-            this.ChunkParent = chunkParent;
-            this._meshQuad = meshQuad;
-        }
+		public Cell(Chunk chunkParent, MeshQuad meshQuad)
+		{
+			this.ChunkParent = chunkParent;
+			this._meshQuad = meshQuad;
+		}
 
-        public void SetCellType(TYPE newType)
-        {
-            this._type = newType; 
-            switch (newType)
-            {
-                case TYPE.EMPTY: TypeColor = Color.clear; break;
-                case TYPE.EDGE: TypeColor = Color.red; break;
-                case TYPE.CORNER: TypeColor = Color.yellow; break;
-                case TYPE.OBSTACLE: TypeColor = Color.black; break;
-                case TYPE.SPAWN_POINT: TypeColor = Color.yellow; break;
-            }
-        }
-    }
+		public void SetCellType(TYPE newType)
+		{
+			this._type = newType;
+			switch (newType)
+			{
+				case TYPE.EMPTY: TypeColor = Color.clear; break;
+				case TYPE.EDGE: TypeColor = Color.red; break;
+				case TYPE.CORNER: TypeColor = Color.yellow; break;
+				case TYPE.OBSTACLE: TypeColor = Color.black; break;
+				case TYPE.SPAWN_POINT: TypeColor = Color.yellow; break;
+			}
+		}
+	}
 }
 
 

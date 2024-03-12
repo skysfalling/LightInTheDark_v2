@@ -1,14 +1,12 @@
-using UnityEngine;
-using System.Collections.Generic;
-using UnityEditor;
-
-namespace Darklight.World.Tool
+namespace Darklight.World.Editor
 {
+	using UnityEditor;
 	using Generation;
 	using Builder;
 	using Map;
-	using static Darklight.World.Generation.WorldEdit;
-
+	/*
+	using WorldE
+	
 	[CustomEditor(typeof(WorldEdit))]
 	public class WorldEditEditor : Editor
 	{
@@ -43,7 +41,7 @@ namespace Darklight.World.Tool
 
 			switch (_worldEditScript.editMode)
 			{
-				case EditMode.WORLD:
+				case WorldEdit.EditMode.WORLD:
 
 					EditorGUILayout.LabelField("World Edit Mode", Darklight.CustomInspectorGUI.Header1Style);
 					EditorGUILayout.Space(20);
@@ -55,7 +53,7 @@ namespace Darklight.World.Tool
 
 					CoordinateMapInspector(_worldBuilderScript.CoordinateMap);
 					break;
-				case EditMode.REGION:
+				case WorldEdit.EditMode.REGION:
 					if (_worldEditScript.selectedRegion == null && worldBuilder.AllRegions.Count > 0)
 					{
 						_worldEditScript.SelectRegion(worldBuilder.RegionMap[Vector2Int.zero]);
@@ -73,7 +71,7 @@ namespace Darklight.World.Tool
 					CoordinateMapInspector(_worldEditScript.selectedRegion.CoordinateMap);
 					ChunkMapInspector(_worldEditScript.selectedRegion.ChunkGeneration);
 					break;
-				case EditMode.CHUNK:
+				case WorldEdit.EditMode.CHUNK:
 					if (_worldEditScript.selectedChunk == null && worldBuilder.Initialized)
 					{
 						RegionBuilder originRegion = worldBuilder.RegionMap[Vector2Int.zero];
@@ -92,7 +90,7 @@ namespace Darklight.World.Tool
 					//CoordinateMapInspector( _worldEditScript.selectedChunk);
 					CellMapInspector(_worldEditScript.selectedChunk.CellMap);
 					break;
-				case EditMode.CELL:
+				case WorldEdit.EditMode.CELL:
 					if (_worldEditScript.selectedCell == null)
 					{
 						break;
@@ -185,16 +183,16 @@ namespace Darklight.World.Tool
 
 			switch (_worldEditScript.editMode)
 			{
-				case EditMode.WORLD:
+				case WorldEdit.EditMode.WORLD:
 					DrawWorldEditorGUI();
 					break;
-				case EditMode.REGION:
+				case WorldEdit.EditMode.REGION:
 					DrawRegionEditorGUI();
 					break;
-				case EditMode.CHUNK:
+				case WorldEdit.EditMode.CHUNK:
 					DrawChunkEditorGUI();
 					break;
-				case EditMode.CELL:
+				case WorldEdit.EditMode.CELL:
 					DrawCellEditorGUI();
 					break;
 			}
@@ -212,7 +210,7 @@ namespace Darklight.World.Tool
 					Darklight.Gizmos.DrawWireSquare_withLabel("World Cell Size", worldGeneration.OriginPosition, WorldBuilder.Settings.CellSize_inGameUnits, Color.black, labelStyle);
 				}
 				// [[ DRAW COORDINATE MAP ]]
-				else if (_worldEditScript.worldView == WorldView.COORDINATE_MAP)
+				else if (_worldEditScript.worldView == WorldEdit.WorldView.COORDINATE_MAP)
 				{
 
 					DrawCoordinateMap(worldGeneration.CoordinateMap, _worldEditScript.coordinateMapView, (coordinate) =>
@@ -476,4 +474,5 @@ namespace Darklight.World.Tool
 		}
 
 	}
+	*/
 }

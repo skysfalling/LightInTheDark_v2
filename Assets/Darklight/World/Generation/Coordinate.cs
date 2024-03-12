@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Darklight.World.Map;
-
 namespace Darklight.World
 {
 	/// <summary>
@@ -16,8 +14,12 @@ namespace Darklight.World
 	public enum WorldDirection { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
 	/// <summary> Specifies the directions for borders relative to a given region or chunk. </summary>
 	public enum BorderDirection { NORTH, SOUTH, EAST, WEST }
+}
 
-
+namespace Darklight.World.Generation
+{
+	using Map;
+	using Builder;
 	public class Coordinate
 	{
 		public enum TYPE { NULL, BORDER, EXIT, PATH, ZONE, CLOSED }
