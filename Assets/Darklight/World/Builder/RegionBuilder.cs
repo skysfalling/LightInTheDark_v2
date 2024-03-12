@@ -1,14 +1,18 @@
-namespace Darklight.World.Generation
+namespace Darklight.World.Builder
 {
-	using System;
-	using System.Collections;
 	using System.Collections.Generic;
 	using System.Linq;
-	using System.Threading;
 	using System.Threading.Tasks;
 	using UnityEditor;
 	using UnityEngine;
-	using Darklight.Bot;
+
+	using Bot;
+	using Builder;
+	using Generation;
+	using Map;
+	using Settings;
+
+
 
 	[RequireComponent(typeof(ChunkGeneration))]
 	public class RegionBuilder : TaskQueen
@@ -177,7 +181,7 @@ namespace Darklight.World.Generation
 			{
 				Debug.Log("Initializing Coordinate Map");
 
-				this._coordinateMap = new CoordinateMap(this);
+				this._coordinateMap = new CoordinateMap(this.GenerationParent);
 				while (this._coordinateMap.Initialized == false)
 				{
 					await Awaitable.WaitForSecondsAsync(1);

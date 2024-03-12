@@ -17,9 +17,6 @@ namespace Darklight.Camera
 		Vector2 _prevTouch0Position;
 		Vector2 _prevTouch1Position;
 
-		Darklight.UniversalInput _universalInputManager;
-
-
 		UniversalInputManager _universalInputManager;
 
 		public InputActionAsset orbitCameraInteraction;

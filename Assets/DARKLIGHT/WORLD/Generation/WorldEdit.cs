@@ -1,97 +1,94 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
-
-
+using Darklight.World.Builder;
 
 namespace Darklight.World.Generation
 {
 #if UNITY_EDITOR
-    using UnityEditor;
-    using DarklightEditor = Darklight.Unity.CustomInspectorGUI;
-    using EditMode = WorldEdit.EditMode;
-    using WorldView = WorldEdit.WorldView;
-    using RegionView = WorldEdit.RegionView;
-    using ChunkView = WorldEdit.ChunkView;
-    using CellView = WorldEdit.CellView;
-    using CoordinateMapView = WorldEdit.CoordinateMapView;
-    using ChunkMapView = WorldEdit.ChunkMapView;
-    using CellMapView = WorldEdit.CellMapView;
-    using System.Linq;
+	using UnityEditor;
+	using EditMode = WorldEdit.EditMode;
+	using WorldView = WorldEdit.WorldView;
+	using RegionView = WorldEdit.RegionView;
+	using ChunkView = WorldEdit.ChunkView;
+	using CellView = WorldEdit.CellView;
+	using CoordinateMapView = WorldEdit.CoordinateMapView;
+	using ChunkMapView = WorldEdit.ChunkMapView;
+	using CellMapView = WorldEdit.CellMapView;
+	using System.Linq;
 #endif
 
-    public class WorldEdit : MonoBehaviour
-    {
-        public enum EditMode { WORLD, REGION, CHUNK, CELL }
-        public EditMode editMode = EditMode.WORLD;
+	public class WorldEdit : MonoBehaviour
+	{
+		public enum EditMode { WORLD, REGION, CHUNK, CELL }
+		public EditMode editMode = EditMode.WORLD;
 
-        // World View
-        public enum WorldView { COORDINATE_MAP, FULL_COORDINATE_MAP,  };
-        public WorldView worldView = WorldView.COORDINATE_MAP;
+		// World View
+		public enum WorldView { COORDINATE_MAP, FULL_COORDINATE_MAP, };
+		public WorldView worldView = WorldView.COORDINATE_MAP;
 
-        // Region View
-        public enum RegionView { OUTLINE, COORDINATE_MAP, CHUNK_MAP}
-        public RegionView regionView = RegionView.COORDINATE_MAP;
+		// Region View
+		public enum RegionView { OUTLINE, COORDINATE_MAP, CHUNK_MAP }
+		public RegionView regionView = RegionView.COORDINATE_MAP;
 
-        // Chunk View
-        public enum ChunkView { OUTLINE, TYPE, HEIGHT, COORDINATE_MAP, CELL_MAP }
-        public ChunkView chunkView = ChunkView.COORDINATE_MAP;
+		// Chunk View
+		public enum ChunkView { OUTLINE, TYPE, HEIGHT, COORDINATE_MAP, CELL_MAP }
+		public ChunkView chunkView = ChunkView.COORDINATE_MAP;
 
-        // Cell View
-        public enum CellView { OUTLINE, TYPE, FACE }
-        public CellView cellView = CellView.OUTLINE;
+		// Cell View
+		public enum CellView { OUTLINE, TYPE, FACE }
+		public CellView cellView = CellView.OUTLINE;
 
-        // Coordinate Map
-        public enum CoordinateMapView { GRID_ONLY, COORDINATE_VALUE, COORDINATE_TYPE, ZONE_ID }
-        public CoordinateMapView coordinateMapView = CoordinateMapView.COORDINATE_TYPE;
+		// Coordinate Map
+		public enum CoordinateMapView { GRID_ONLY, COORDINATE_VALUE, COORDINATE_TYPE, ZONE_ID }
+		public CoordinateMapView coordinateMapView = CoordinateMapView.COORDINATE_TYPE;
 
-        // Chunk Map
-        public enum ChunkMapView { TYPE, HEIGHT }
-        public ChunkMapView chunkMapView = ChunkMapView.TYPE;
+		// Chunk Map
+		public enum ChunkMapView { TYPE, HEIGHT }
+		public ChunkMapView chunkMapView = ChunkMapView.TYPE;
 
-        // Cell Map
-        public enum CellMapView { TYPE, FACE }
-        public CellMapView cellMapView = CellMapView.TYPE;
+		// Cell Map
+		public enum CellMapView { TYPE, FACE }
+		public CellMapView cellMapView = CellMapView.TYPE;
 
-        public WorldBuilder worldBuilder => GetComponent<WorldBuilder>();
-        public RegionBuilder selectedRegion;
-        public Chunk selectedChunk;
-        public Cell selectedCell;
+		public WorldBuilder worldBuilder => GetComponent<WorldBuilder>();
+		public RegionBuilder selectedRegion;
+		public Chunk selectedChunk;
+		public Cell selectedCell;
 
-        public void SelectRegion(RegionBuilder region)
-        {
-            selectedRegion = region;
+		public void SelectRegion(RegionBuilder region)
+		{
+			selectedRegion = region;
 
-            //Debug.Log("Selected Region: " + selectedRegion.Coordinate.Value);
+			//Debug.Log("Selected Region: " + selectedRegion.Coordinate.Value);
 
-            DarklightEditor.FocusSceneView(region.Coordinate.ScenePosition);
+			Darklight.CustomInspectorGUI.FocusSceneView(region.Coordinate.ScenePosition);
 
-            editMode = EditMode.REGION;
-        }
+			editMode = EditMode.REGION;
+		}
 
-        public void SelectChunk(Chunk chunk)
-        {
-            selectedChunk = chunk;
+		public void SelectChunk(Chunk chunk)
+		{
+			selectedChunk = chunk;
 
-            //Debug.Log("Selected Chunk: " + chunk.Coordinate.Value);
+			//Debug.Log("Selected Chunk: " + chunk.Coordinate.Value);
 
-            DarklightEditor.FocusSceneView(chunk.Coordinate.ScenePosition);
+			Darklight.CustomInspectorGUI.FocusSceneView(chunk.Coordinate.ScenePosition);
 
-            //editMode = EditMode.CHUNK;
-        }
+			//editMode = EditMode.CHUNK;
+		}
 
-        public void SelectCell(Cell cell)
-        {
-            selectedCell = cell;
+		public void SelectCell(Cell cell)
+		{
+			selectedCell = cell;
 
-            //Debug.Log("Selected Cell: " + cell.Coordinate.Value);
+			//Debug.Log("Selected Cell: " + cell.Coordinate.Value);
 
-            DarklightEditor.FocusSceneView(cell.Position);
+			Darklight.CustomInspectorGUI.FocusSceneView(cell.Position);
 
-            //editMode = EditMode.CELL;
-        }
-    }
+			//editMode = EditMode.CELL;
+		}
+	}
 
 
 }

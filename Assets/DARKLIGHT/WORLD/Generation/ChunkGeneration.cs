@@ -1,4 +1,4 @@
-namespace Darklight.World.Generation
+namespace Darklight.World.Builder
 {
 	using System.Collections;
 	using System.Collections.Generic;
@@ -8,6 +8,9 @@ namespace Darklight.World.Generation
 	using UnityEngine;
 	using UnityEngine.UIElements;
 	using Darklight.Bot;
+	using Darklight.World.Generation;
+	using Darklight.World.Settings;
+	using Darklight.World.Map;
 
 	public class ChunkGeneration : TaskQueen
 	{

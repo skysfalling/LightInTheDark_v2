@@ -1,8 +1,9 @@
-namespace Darklight
+namespace Darklight.Player.Movement
 {
 	using System.Collections;
 	using System.Collections.Generic;
 	using UnityEngine;
+	using Darklight.UniversalInput;
 
 	public enum PlayerState
 	{
@@ -18,7 +19,6 @@ namespace Darklight
 		Rigidbody rb;
 		Animator animator;
 		//PlayerInventory inventory;
-		Darklight.UniversalInputManager inputManager;
 		UniversalInputManager inputManager;
 
 

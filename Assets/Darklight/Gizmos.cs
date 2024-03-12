@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-namespace Darklight.Unity
+namespace Darklight
 {
-    public static class CustomGizmos
+    public static class Gizmos
     {
         public static void DrawWireSquare(Vector3 position, float size, Color color)
         {

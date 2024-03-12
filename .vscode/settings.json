@@ -55,7 +55,10 @@
         "UserSettings/": true,
         "temp/": true,
         "Temp/": true,
-        "**/.csproj" : true
+        "**/.csproj": true
     },
-    "dotnet.defaultSolution": "LightInTheDark_v2.sln"
+    "dotnet.defaultSolution": "LightInTheDark_v2.sln",
+    "cSpell.words": [
+        "Newtonsoft"
+    ]
 }

@@ -26,16 +26,17 @@ namespace Darklight.World.Generation
             Active = true;
         }
 
-		private void OnDrawGizmos() {
+        private void OnDrawGizmos()
+        {
             if (Active)
             {
-                Gizmos.color = Color.red;
-                Gizmos.DrawWireSphere(CurrentChunk.Coordinate.ScenePosition, 5f);
+                UnityEngine.Gizmos.color = Color.red;
+                UnityEngine.Gizmos.DrawWireSphere(CurrentChunk.Coordinate.ScenePosition, 5f);
 
                 foreach (Coordinate neighbor in CurrentChunk.Coordinate.GetAllValidNeighbors())
                 {
-                    Gizmos.color = Color.green;
-                    Gizmos.DrawWireSphere(neighbor.ScenePosition, 5f);
+                    UnityEngine.Gizmos.color = Color.green;
+                    UnityEngine.Gizmos.DrawWireSphere(neighbor.ScenePosition, 5f);
                 }
             }
         }

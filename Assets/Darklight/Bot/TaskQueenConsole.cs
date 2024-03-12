@@ -4,9 +4,6 @@ namespace Darklight.Console
 	using System.Collections.Generic;
 	using System.Text;
 	using Darklight.Bot;
-	using UnityEngine;
-
-
 	public class TaskQueenConsole
 	{
 		private class LogEntry

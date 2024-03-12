@@ -28,16 +28,16 @@ namespace Darklight.World.Generation
 
 #if UNITY_EDITOR
 
-    [CustomEditor(typeof(WorldObject))]
+    [Tool(typeof(WorldObject))]
     public class WorldObjectEditor : Editor
     {
-        private SerializedObject _serializedWorldObject =>  new SerializedObject(target);
-        private WorldObject _worldObjectScript => (WorldObject) target;
+        private SerializedObject _serializedWorldObject => new SerializedObject(target);
+        private WorldObject _worldObjectScript => (WorldObject)target;
         private DimensionSpace _dimensionSpaceScript => _worldObjectScript.GetComponent<DimensionSpace>();
         void OnEnable()
         {
             Debug.Log($"WorldObjectEditor model {_worldObjectScript.modelPrefab.name} loaded");
-            
+
         }
 
         public override void OnInspectorGUI()

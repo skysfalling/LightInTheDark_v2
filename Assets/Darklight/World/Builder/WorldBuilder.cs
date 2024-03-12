@@ -1,4 +1,4 @@
-namespace Darklight.World.Generation
+namespace Darklight.World.Builder
 {
 	using System;
 	using System.Collections;
@@ -7,26 +7,14 @@ namespace Darklight.World.Generation
 	using System.Linq;
 	using System.Threading.Tasks;
 	using Debug = UnityEngine.Debug;
-	using Darklight.Unity.Backend;
+	using Darklight.Bot;
+	using Darklight.World.Settings;
+	using Darklight.World.Map;
 
 #if UNITY_EDITOR
 	using UnityEditor;
+	using Darklight.World.Generation;
 #endif
-	#region [[ PUBLIC ENUMS ]] ------------------- // 
-
-	/// <summary>
-	/// Represents the spatial scope for operations or elements within the world generation context.
-	/// </summary>
-	public enum UnitSpace { WORLD, REGION, CHUNK, CELL, GAME }
-
-	/// <summary>
-	/// Defines cardinal and intercardinal directions for world layout and neighbor identification.
-	/// </summary>
-	public enum WorldDirection { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
-
-	/// <summary> Specifies the directions for borders relative to a given region or chunk. </summary>
-	public enum BorderDirection { NORTH, SOUTH, EAST, WEST }
-	#endregion
 
 	/// <summary> Initializes and handles the procedural world generation. </summary>
 	public class WorldBuilder : TaskQueen

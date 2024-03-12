@@ -1,15 +1,15 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Darklight.Unity.Backend;
-using Unity.VisualScripting;
 using UnityEngine;
+using Darklight.World.Builder;
+using Darklight.World.Generation;
+
+
 
 #if UNITY_EDITOR
-	    using UnityEditor;
+using UnityEditor;
 #endif
 
-namespace Darklight.World.Generation.Entity.Spawner
+namespace Darklight.World.Spawner
 {
     public class EntitySpawner
     {
@@ -22,30 +22,30 @@ namespace Darklight.World.Generation.Entity.Spawner
 
         public bool initializeOnStart;
 
-/*
+        /*
 
-	    public void SpawnTravelerInRandomValidZone(GameObject travelerPrefab)
-        {
-            foreach (RegionBuilder region in _regionMap.Values)
-            {
-                if (region.CoordinateMap.Zones.Count > 0)
+                public void SpawnTravelerInRandomValidZone(GameObject travelerPrefab)
                 {
-                    Coordinate spawnCoordinate = region.CoordinateMap.Zones[0].CenterCoordinate;
-                    Chunk spawnChunk = region.ChunkGeneration.GetChunkAt(spawnCoordinate);
+                    foreach (RegionBuilder region in _regionMap.Values)
+                    {
+                        if (region.CoordinateMap.Zones.Count > 0)
+                        {
+                            Coordinate spawnCoordinate = region.CoordinateMap.Zones[0].CenterCoordinate;
+                            Chunk spawnChunk = region.ChunkGeneration.GetChunkAt(spawnCoordinate);
 
 
-                    GameObject travelerObject = Instantiate(travelerPrefab, spawnChunk.GroundPosition, Quaternion.identity);
-                    travelerObject.transform.parent = transform;
-                    Traveler traveler = travelerObject.GetComponent<Traveler>();
-                    traveler.InitializeAt(region, spawnChunk);
+                            GameObject travelerObject = Instantiate(travelerPrefab, spawnChunk.GroundPosition, Quaternion.identity);
+                            travelerObject.transform.parent = transform;
+                            Traveler traveler = travelerObject.GetComponent<Traveler>();
+                            traveler.InitializeAt(region, spawnChunk);
 
 
-                    Debug.Log("Spawning entity at " + spawnCoordinate.ValueKey.ToString());
-                    return;
+                            Debug.Log("Spawning entity at " + spawnCoordinate.ValueKey.ToString());
+                            return;
+                        }
+                    }
                 }
-            }
-        }
-        */
+                */
 
     }
 }
