@@ -87,17 +87,17 @@ namespace Darklight.World.Editor
 					EditorGUILayout.BeginHorizontal();
 					EditorGUILayout.Space();
 					EditorGUILayout.BeginVertical();
-					Darklight.CustomInspectorGUI.CreateSettingsLabel("Seed", WorldBuilder.Settings.Seed);
-					Darklight.CustomInspectorGUI.CreateSettingsLabel("Cell Width In World Space", $"{WorldBuilder.Settings.CellSize_inGameUnits}");
+					Darklight.CustomInspectorGUI.CreateSettingsLabel("Seed", RegionBuilder.Settings.Seed);
+					Darklight.CustomInspectorGUI.CreateSettingsLabel("Cell Width In World Space", $"{RegionBuilder.Settings.CellSize_inGameUnits}");
 
-					Darklight.CustomInspectorGUI.CreateSettingsLabel("Chunk Width In Cells", $"{WorldBuilder.Settings.ChunkDepth_inCellUnits}");
-					Darklight.CustomInspectorGUI.CreateSettingsLabel("Chunk Depth In Cells", $"{WorldBuilder.Settings.ChunkDepth_inCellUnits}");
-					Darklight.CustomInspectorGUI.CreateSettingsLabel("Max Chunk Height", $"{WorldBuilder.Settings.ChunkMaxHeight_inCellUnits}");
+					Darklight.CustomInspectorGUI.CreateSettingsLabel("Chunk Width In Cells", $"{RegionBuilder.Settings.ChunkDepth_inCellUnits}");
+					Darklight.CustomInspectorGUI.CreateSettingsLabel("Chunk Depth In Cells", $"{RegionBuilder.Settings.ChunkDepth_inCellUnits}");
+					Darklight.CustomInspectorGUI.CreateSettingsLabel("Max Chunk Height", $"{RegionBuilder.Settings.ChunkMaxHeight_inCellUnits}");
 
 					Darklight.CustomInspectorGUI.CreateSettingsLabel("Play Region Width In Chunks", $"{WorldBuilder.Settings.RegionWidth_inChunkUnits}");
-					Darklight.CustomInspectorGUI.CreateSettingsLabel("Boundary Wall Count", $"{WorldBuilder.Settings.RegionBoundaryOffset_inChunkUnits}");
+					Darklight.CustomInspectorGUI.CreateSettingsLabel("Boundary Wall Count", $"{RegionBuilder.Settings.RegionBoundaryOffset_inChunkUnits}");
 
-					Darklight.CustomInspectorGUI.CreateSettingsLabel("World Width In Regions", $"{WorldBuilder.Settings.WorldWidth_inRegionUnits}");
+					Darklight.CustomInspectorGUI.CreateSettingsLabel("World Width In Regions", $"{RegionBuilder.Settings.WorldWidth_inRegionUnits}");
 					EditorGUILayout.EndVertical();
 					EditorGUILayout.EndHorizontal();
 				}

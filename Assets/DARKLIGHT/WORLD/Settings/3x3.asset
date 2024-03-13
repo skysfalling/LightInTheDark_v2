@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: 3x3
   m_EditorClassIdentifier: 
   _seed: 4838158
-  _cellSize: 5
-  _chunkWidth: 5
-  _chunkDepth: 5
-  _chunkMaxHeight: 2
-  _regionWidth: 5
+  _cellSize: 4
+  _chunkWidth: 4
+  _chunkDepth: 4
+  _chunkMaxHeight: 8
+  _regionWidth: 8
   _regionBoundaryOffset: 0
-  _worldWidth: 3
-  _pathRandomness: 0.25
+  _worldWidth: 5
+  _pathRandomness: 0.9

@@ -77,8 +77,8 @@ namespace Darklight.World.Builder
 			get
 			{
 				Vector3 origin = CenterPosition;
-				origin -= WorldBuilder.Settings.RegionFullWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
-				origin += WorldBuilder.Settings.ChunkWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
+				origin -= RegionBuilder.Settings.RegionFullWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
+				origin += RegionBuilder.Settings.ChunkWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
 				return origin;
 			}
 		}

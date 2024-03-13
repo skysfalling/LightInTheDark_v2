@@ -567,7 +567,7 @@ PrefabInstance:
         type: 3}
       propertyPath: defaultMaterial
       value: 
-      objectReference: {fileID: 2100000, guid: d5671c058206abb42960e6e058541175, type: 2}
+      objectReference: {fileID: 2100000, guid: 121b058165a338b49b92683631eb144a, type: 2}
     - target: {fileID: 6712875993486741718, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: initializeOnStart
