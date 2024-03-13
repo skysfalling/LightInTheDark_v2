@@ -10,7 +10,7 @@ namespace Darklight.World.Editor
 	[CustomEditor(typeof(WorldBuilder))]
 	public class WorldBuilderEditor : TaskQueenEditor
 	{
-		private SerializedObject _serializedWorldBuilderObject;
+		private SerializedObject _serializedObject;
 		private WorldBuilder _worldBuilderScript;
 
 		static bool showGenerationSettingsFoldout = false;
@@ -18,25 +18,27 @@ namespace Darklight.World.Editor
 		public override void OnEnable()
 		{
 			base.OnEnable();
+
 			// Cache the SerializedObject
-			_serializedWorldBuilderObject = new SerializedObject(target);
+			_serializedObject = new SerializedObject(target);
+
+			// Initialize the seed random
 			WorldBuilder.InitializeSeedRandom();
 
+			// Store the script
 			_worldBuilderScript = (WorldBuilder)target;
-
 		}
 
 		public override void OnInspectorGUI()
 		{
-			_serializedWorldBuilderObject.Update(); // Always start with this call
+			_serializedObject.Update(); // Always start with this call
 
-			// Draw the console window
+			// Draw the TaskConsole window
 			base.OnInspectorGUI();
 
 			EditorGUI.BeginChangeCheck();
 
 			DrawCustomGenerationSettings();
-
 
 			EditorGUILayout.Space();
 
@@ -44,7 +46,7 @@ namespace Darklight.World.Editor
 			if (EditorGUI.EndChangeCheck())
 			{
 				// If there were changes, apply them to the serialized object
-				_serializedWorldBuilderObject.ApplyModifiedProperties();
+				_serializedObject.ApplyModifiedProperties();
 
 				// Optionally, mark the target object as dirty to ensure the changes are saved
 				EditorUtility.SetDirty(target);
@@ -53,7 +55,7 @@ namespace Darklight.World.Editor
 
 		private void DrawCustomGenerationSettings()
 		{
-			SerializedProperty customWorldGenSettingsProperty = _serializedWorldBuilderObject.FindProperty("customWorldGenSettings");
+			SerializedProperty customWorldGenSettingsProperty = _serializedObject.FindProperty("customWorldGenSettings");
 			if (_worldBuilderScript.customWorldGenSettings != null)
 			{
 				_worldBuilderScript.OverrideSettings((CustomGenerationSettings)customWorldGenSettingsProperty.objectReferenceValue);

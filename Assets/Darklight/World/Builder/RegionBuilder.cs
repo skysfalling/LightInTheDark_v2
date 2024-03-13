@@ -15,7 +15,7 @@ namespace Darklight.World.Builder
 
 
 	[RequireComponent(typeof(ChunkBuilder))]
-	public class RegionBuilder : TaskQueen
+	public class RegionBuilder : TaskQueen, ITaskEntity
 	{
 		#region [[ PRIVATE VARIABLES ]] 
 		string _prefix = "[[ REGION BUILDER ]]";
@@ -55,7 +55,7 @@ namespace Darklight.World.Builder
 		/// <summary>
 		/// Gets the chunk generation component.
 		/// </summary>
-		public ChunkBuilder ChunkGeneration => GetComponent<ChunkBuilder>();
+		public ChunkBuilder ChunkBuilder => GetComponent<ChunkBuilder>();
 
 		/// <summary>
 		/// Gets the center position of the region.
@@ -160,13 +160,15 @@ namespace Darklight.World.Builder
 				DestroyGameObject(gameObject);
 			}
 		}
+		
+		
+		// INITIALIZE ============================== /////
 		public override async Task Initialize()
 		{
 			this.Name = "RegionAsyncTaskQueen";
 			if (Initialized) return;
 			this._coordinateMap = new CoordinateMap(this);
-			this._chunkGeneration = GetComponent<ChunkBuilder>();
-
+			await _coordinateMap.InitializeDefaultMap();
 			await base.Initialize();
 			Initialized = true;
 		}
@@ -177,12 +179,20 @@ namespace Darklight.World.Builder
 		/// <returns>The task representing the initialization sequence.</returns>
 		public async Task GenerationSequence()
 		{
+			this._chunkGeneration = GetComponent<ChunkBuilder>();
+
 			// Generate Exits, Paths and Zones based on neighboring regions
 			TaskBot RegionGenerationTask = new TaskBot(this, "RegionGenerationTask", async () =>
 			{
-				GenerateNecessaryExits(true);
+				await GenerateExits(true);
 				CoordinateMap.GeneratePathsBetweenExits();
 				CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
+				
+				// Initialize chunks
+				_chunkGeneration.Initialize(this, CoordinateMap);
+
+				TaskBotConsole.Log(this, $"Region Generation Complete with {CoordinateMap.Exits.Count} Exits and {CoordinateMap.Zones.Count} Zones");
+				Debug.Log($"Region {Coordinate.ValueKey} Generation Complete [[ {CoordinateMap.Exits.Count} Exits ,, {CoordinateMap.Zones.Count} Zones ]");
 
 				await Task.CompletedTask;
 			});
@@ -191,15 +201,16 @@ namespace Darklight.World.Builder
 			// Create the chunk map for the region
 			TaskBot ChunkGenerationTask = new TaskBot(this, "Initialize Chunk Generation", async () =>
 			{
-				_chunkGeneration.Initialize(this, _coordinateMap);
 				await _chunkGeneration.GenerationSequence();
 			});
 			await Enqueue(ChunkGenerationTask);
 
-			if (WorldBuilder.Instance != null)
+
+			// [[ STAGE 3 ]] COMBINE CHUNK MESH OBJECTS ---- >> 
+			// it WorldBuilder is present, then combine the chunk mesh
+ 			if (WorldBuilder.Instance != null)
 			{
-				// COMBINE the chunk mesh if WorldBuilder exists
-				TaskBot MeshGenerationTask = new TaskBot(this, "Mesh Generation", async () =>
+				TaskBot CombineMesh = new TaskBot(this, "Mesh Generation", async () =>
 				{
 					TaskBotConsole.Log(this, "Starting mesh generation...");
 
@@ -212,19 +223,19 @@ namespace Darklight.World.Builder
 					await CombineChunkMesh();
 					TaskBotConsole.Log(this, "Mesh generation complete.");
 				});
-				await Enqueue(MeshGenerationTask);
+				await Enqueue(CombineMesh);
 			}
 
 			// Execute all tasks queued in AsyncTaskQueen
 			await ExecuteAllTasks();
-			Debug.Log("Region Builder Initialized");
+			GenerationFinished = true;
 		}
 
 		/// <summary>
 		/// Generates necessary exits for the region.
 		/// </summary>
 		/// <param name="createExits">Indicates whether to create exits if they don't exist.</param>
-		public void GenerateNecessaryExits(bool createExits)
+		async Task GenerateExits(bool createExits)
 		{
 			Dictionary<WorldDirection, Vector2Int> neighborDirectionMap = this.Coordinate.NeighborDirectionMap;
 
@@ -272,6 +283,7 @@ namespace Darklight.World.Builder
 
 			// Clean up inactive corners once after all border processing is done.
 			CoordinateMap.SetInactiveCornersToType(Coordinate.TYPE.BORDER);
+			await Task.CompletedTask;
 		}
 
 		/// <summary>
@@ -283,7 +295,6 @@ namespace Darklight.World.Builder
 		}
 
 		// == MESH GENERATION ============================================== >>>>
-
 		/// <summary>
 		/// Creates a GameObject with the given name, mesh, and material.
 		/// </summary>
@@ -349,7 +360,7 @@ namespace Darklight.World.Builder
 					if (_combinedMeshObject != null)
 					{
 						// Additional setup for the combined mesh object as needed
-						Debug.Log($"Successfully created combined mesh object: {_combinedMeshObject.name}");
+						// Debug.Log($"Successfully created combined mesh object: {_combinedMeshObject.name}");
 						_combinedMeshObject.transform.parent = this.transform;
 						MeshCollider collider = _combinedMeshObject.AddComponent<MeshCollider>();
 						collider.sharedMesh = combinedMesh;

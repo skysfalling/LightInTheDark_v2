@@ -40,7 +40,7 @@ namespace Darklight.World.Entity
 		public Chunk DetermineNewTargetChunk()
 		{
 			Vector2Int randomCoordinateValue = regionParent.CoordinateMap.GetRandomCoordinateValueOfType(Coordinate.TYPE.NULL);
-			Chunk randomChunk = regionParent.ChunkGeneration.GetChunkAt(randomCoordinateValue);
+			Chunk randomChunk = regionParent.ChunkBuilder.GetChunkAt(randomCoordinateValue);
 			return randomChunk;
 		}
 	}

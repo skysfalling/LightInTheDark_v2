@@ -17,7 +17,7 @@ namespace Darklight.World.Builder
 #endif
 
 	/// <summary> Initializes and handles the procedural world generation. </summary>
-	public class WorldBuilder : TaskQueen
+	public class WorldBuilder : TaskQueen, ITaskEntity
 	{
 		#region [[ STATIC INSTANCE ]] ------------------- // 
 		/// <summary> A singleton instance of the WorldGeneration class. </summary>
@@ -101,6 +101,7 @@ namespace Darklight.World.Builder
 			OverrideSettings(customWorldGenSettings);
 			InitializeSeedRandom();
 			this._coordinateMap = new CoordinateMap(this);
+			await _coordinateMap.InitializeDefaultMap();
 			Debug.Log($"{_prefix} Initialized, Mods: {customWorldGenSettings != null}");
 
 			// [[ INSTANTIATE REGIONS ]]
@@ -113,7 +114,6 @@ namespace Darklight.World.Builder
 				region.AssignToWorldParent(this, regionCoordinate);
 				_regionMap[regionCoordinate.ValueKey] = region;
 			}
-			await Awaitable.WaitForSecondsAsync(1);
 			await base.Initialize();
 			await InitializationSequence();
 		}
@@ -148,7 +148,7 @@ namespace Darklight.World.Builder
 			});
 			await Enqueue(RegionGenerationTask);
 
-			// ================================
+			// Execute all 
 			await ExecuteAllTasks();
 
 			Debug.Log($"{_prefix} Initialization Complete");

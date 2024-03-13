@@ -7,7 +7,7 @@ namespace Darklight.World.Map
 	using Random = UnityEngine.Random;
 	using Generation;
 	using Builder;
-
+	using System.Threading.Tasks;
 
 	public class CoordinateMap
 	{
@@ -123,7 +123,6 @@ namespace Darklight.World.Map
 
 		// [[ PUBLIC ACCESSOR VARIABLES ]]
 		public bool Initialized { get; private set; }
-		public bool GenerationFinished { get; private set; }
 		public int MaxCoordinateValue => _mapWidthCount;
 		public UnitSpace UnitSpace => _mapUnitSpace;
 		public int CoordinateSize => _coordinateSize;
@@ -143,8 +142,6 @@ namespace Darklight.World.Map
 			_mapOriginPosition = parent.OriginPosition;
 			_mapWidthCount = WorldBuilder.Settings.WorldWidth_inRegionUnits;
 			_coordinateSize = WorldBuilder.Settings.RegionFullWidth_inGameUnits;
-
-			InitializeDefaultMap();
 		}
 
 		public CoordinateMap(RegionBuilder parent)
@@ -153,8 +150,6 @@ namespace Darklight.World.Map
 			_mapOriginPosition = parent.OriginPosition;
 			_mapWidthCount = WorldBuilder.Settings.RegionFullWidth_inChunkUnits;
 			_coordinateSize = WorldBuilder.Settings.ChunkWidth_inGameUnits;
-
-			InitializeDefaultMap();
 		}
 
 		public CoordinateMap(Chunk parent)
@@ -163,12 +158,10 @@ namespace Darklight.World.Map
 			_mapOriginPosition = parent.OriginPosition;
 			_mapWidthCount = WorldBuilder.Settings.ChunkWidth_inCellUnits;
 			_coordinateSize = WorldBuilder.Settings.CellSize_inGameUnits;
-
-			InitializeDefaultMap();
 		}
 
 		// Other methods and properties..
-		void InitializeDefaultMap()
+		public async Task InitializeDefaultMap()
 		{
 			int coordMax = _mapWidthCount;
 			int borderOffset = WorldBuilder.Settings.RegionBoundaryOffset_inChunkUnits;
@@ -279,6 +272,7 @@ namespace Darklight.World.Map
 			}
 
 			Initialized = true;
+			await Task.CompletedTask;
 		}
 
 		#region [[ GET COORDINATE ]] ======================================================================== >>>>

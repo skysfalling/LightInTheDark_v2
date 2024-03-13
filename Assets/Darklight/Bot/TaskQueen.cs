@@ -34,9 +34,6 @@ namespace Darklight.Bot
 			await Awaitable.WaitForSecondsAsync(0.1f);
 		}
 
-		/// <summary>
-		/// Execute all TaskBots in the queue on the main thread.
-		/// </summary>
 		public virtual async Awaitable ExecuteAllTasks()
 		{
 			TaskBotConsole.Log(this, $"Preparing to execute all TaskBots [{_executionQueue.Count}] on the main thread.");
@@ -72,7 +69,7 @@ namespace Darklight.Bot
 				catch (OperationCanceledException e)
 				{
 					TaskBotConsole.Log(this, $"\t ERROR: TaskBot {taskBot.Name} was cancelled: {e.Message}");
-					TaskBotConsole.Log(this, $"\t ERROR: TaskBot {taskBot.Name} was cancelled: {e.StackTrace}");
+					Debug.Log($"\t ERROR: TaskBot {taskBot.Name} was cancelled: {e.StackTrace}");
 				}
 				catch (Exception e)
 				{
@@ -100,7 +97,5 @@ namespace Darklight.Bot
 			TaskBotConsole.Log(this, $"Enqueue {taskBot.Name}");
 			await Awaitable.WaitForSecondsAsync(0.1f);
 		}
-
-
 	}
 }

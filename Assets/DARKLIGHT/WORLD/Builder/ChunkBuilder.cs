@@ -14,12 +14,13 @@ namespace Darklight.World.Builder
 	using Darklight.World.Map;
 	using System;
 
-	public class ChunkBuilder : TaskQueen
+	public class ChunkBuilder : TaskQueen, ITaskEntity
 	{
 		HashSet<Chunk> _chunks = new();
 		Dictionary<Vector2Int, Chunk> _chunkMap = new();
 
 		public bool Initialized { get; private set; }
+		public bool GenerationFinished { get; private set; }
 		public bool CreateObjects { get; private set; } = false;
 		public RegionBuilder RegionParent { get; private set; }
 		CoordinateMap _coordinateMap;
@@ -30,19 +31,12 @@ namespace Darklight.World.Builder
 			await base.Initialize();
 			RegionParent = worldRegion;
 			_coordinateMap = coordinateMap;
-		}
-
-		public override void Reset()
-		{
-			base.Reset();
-			Initialized = false;
-			_coordinateMap = null;
-			_chunks.Clear();
-			_chunkMap.Clear();
+			await UpdateMap();
+			Initialized = true;
 		}
 
 		// [[ CREATE WORLD CHUNKS ]]
-		async Task CreateChunksInBkg()
+		async Task CreateChunkMesh()
 		{
 			ChunkBuilder self = this; // Capture the instance of ChunkGeneration
 			TaskBotConsole.Log(self, $"Creating {_coordinateMap.AllCoordinateValues.Count} Chunks");
@@ -75,22 +69,20 @@ namespace Darklight.World.Builder
 
 		public async Task GenerationSequence()
 		{
-			UpdateMap();
-
 			/// STAGE 1 : [[ CREATE CHUNKS ]]
-			TaskBot task1 = new TaskBot(this, "CreatingChunks [task1]", CreateChunksInBkg(), true); // << Execute on background thread
+			TaskBot task1 = new TaskBot(this, "CreatingChunks [task1]", CreateChunkMesh());
 			await Enqueue(task1);
 			/// STAGE 1 : [[ CREATE CHUNKS ]]
-			TaskBot task2 = new TaskBot(this, "CreatingChunkMeshObjs [task2]", CreateChunkMeshObjs(), false); // << Execute on main thread
+			TaskBot task2 = new TaskBot(this, "CreatingChunkMeshObjs [task2]", CreateChunkMeshObjs());
 			await Enqueue(task2);
 
 			await ExecuteAllTasks();
 			TaskBotConsole.Log(this, "Initialization Sequence Completed");
-			Initialized = true;
+			GenerationFinished = true;
 		}
 
 
-		public void UpdateMap()
+		public async Task UpdateMap()
 		{
 			foreach (Chunk chunk in _chunks)
 			{
@@ -109,6 +101,7 @@ namespace Darklight.World.Builder
 						break;
 				}
 			}
+			await Task.CompletedTask;
 		}
 
 		public Chunk GetChunkAt(Vector2Int position)
@@ -212,6 +205,15 @@ namespace Darklight.World.Builder
 					heightLeft = endHeight - currHeightLevel;
 				}
 			}
+		}
+
+		public override void Reset()
+		{
+			base.Reset();
+			Initialized = false;
+			_coordinateMap = null;
+			_chunks.Clear();
+			_chunkMap.Clear();
 		}
 	}
 }

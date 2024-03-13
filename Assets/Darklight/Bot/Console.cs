@@ -20,7 +20,9 @@ namespace Darklight.Bot
 			}
 		}
 
+		private List<LogEntry> allLogEntries = new List<LogEntry>();
 		private Dictionary<Guid, List<LogEntry>> consoleDictionary = new Dictionary<Guid, List<LogEntry>>();
+
 
 		public void Log<T>(T entity, string message, LogSeverity severity = LogSeverity.Info) where T : ITaskEntity
 		{
@@ -31,12 +33,15 @@ namespace Darklight.Bot
 			}
 
 			logEntries.Add(new LogEntry(message, severity));
+			allLogEntries.Add(new LogEntry(message, severity));
 		}
 
 		public List<string> GetActiveConsole()
 		{
 			List<string> result = new List<string>();
 			StringBuilder sb = new StringBuilder();
+
+			/*
 
 			foreach (KeyValuePair<Guid, List<LogEntry>> entry in consoleDictionary)
 			{
@@ -50,6 +55,14 @@ namespace Darklight.Bot
 					sb.Append($"\t[{logEntry.Timestamp:HH:mm:ss}] [{logEntry.Severity}] {logEntry.Message}");
 					result.Add(sb.ToString());
 				}
+			}
+			*/
+
+			foreach (LogEntry log in allLogEntries)
+			{
+				sb.Clear();
+				sb.Append($"\t[{log.Timestamp:HH:mm:ss}] [{log.Severity}] {log.Message}");
+				result.Add(sb.ToString());
 			}
 
 			return result;
