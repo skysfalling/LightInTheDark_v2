@@ -21,16 +21,11 @@ namespace Darklight.Bot
 			TaskBotConsole.Log(this, "Awake");
 		}
 
-		public virtual async Awaitable Initialize(bool startSequence)
+		public virtual async Task Initialize()
 		{
 			TaskBotConsole.Log(this, $"Initialize");
 			TaskBotConsole.Log(this, $"Good Morning, {name}");
-
-			if (startSequence)
-			{
-				await InitializationSequence();
-			}
-			TaskBotConsole.Log(this, $"Start Sequence => {startSequence}");
+			await Task.CompletedTask;
 		}
 		public virtual async Awaitable InitializationSequence()
 		{

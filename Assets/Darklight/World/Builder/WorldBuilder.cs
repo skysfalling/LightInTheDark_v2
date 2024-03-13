@@ -95,7 +95,7 @@ namespace Darklight.World.Builder
 			}
 		}
 
-		public override async Awaitable Initialize(bool startSequence = true)
+		public override async Task Initialize()
 		{
 			this.Name = "World Builder Task Queen";
 			OverrideSettings(customWorldGenSettings);
@@ -114,7 +114,8 @@ namespace Darklight.World.Builder
 				_regionMap[regionCoordinate.ValueKey] = region;
 			}
 			await Awaitable.WaitForSecondsAsync(1);
-			await base.Initialize(startSequence);
+			await base.Initialize();
+			await InitializationSequence();
 		}
 
 
@@ -123,58 +124,31 @@ namespace Darklight.World.Builder
 		/// </summary>
 		public override async Awaitable InitializationSequence()
 		{
-
+			Debug.Log($"{_prefix} Begin Initialization");
 
 			// Stage 1: Generate Regions
-			TaskBot task1 = new TaskBot(this, "GenerateRegions", async () =>
+			TaskBot InitializeRegionsTask = new TaskBot(this, "GenerateRegions", async () =>
 			{
-				Debug.Log("GenerateRegions task started");
-				// Initialize all regions onto the map
-				foreach (RegionBuilder region in _regionMap.Values)
-				{
-					await region.Initialize(true);
-					while (!region.Initialized)
-					{
-						await Awaitable.WaitForSecondsAsync(0.1f);
-					}
-				}
+				Debug.Log($"{_prefix} [Stage 1]: Initialize Regions => START");
+				List<Task> allRegionInitializationTasks = new();
+				allRegionInitializationTasks.AddRange(_regionMap.Values.Select(region => region.Initialize()));
+				await Task.WhenAll(allRegionInitializationTasks);
+				Debug.Log($"{_prefix} [Stage 1]: Initialize Regions => COMPLETE");
 			});
-			await Enqueue(task1);
+			await Enqueue(InitializeRegionsTask);
 
-			// Stage 2: Generate Exits based on neighboring regions
-			TaskBot task2 = new TaskBot(this, "GenerateExits", async () =>
+			// Stage 2: Start Region Generation Sequence
+			TaskBot RegionGenerationTask = new TaskBot(this, "GenerateRegions", async () =>
 			{
-				Debug.Log("GenerateExits task started");
-				foreach (RegionBuilder region in AllRegions)
-				{
-					region.GenerateNecessaryExits(true);
-					await Awaitable.WaitForSecondsAsync(0.1f);
-				}
+				Debug.Log($"{_prefix} [Stage 2]: Region Generation => START");
+				List<Task> allRegionGenerationTasks = new();
+				allRegionGenerationTasks.AddRange(_regionMap.Values.Select(region => region.GenerationSequence()));
+				await Task.WhenAll(allRegionGenerationTasks);
+				Debug.Log($"{_prefix} [Stage 2]: Region Generation => COMPLETE");
 			});
-			await Enqueue(task2);
+			await Enqueue(RegionGenerationTask);
 
-			// Stage 3: Generate Paths Between Exits
-			TaskBot task3 = new TaskBot(this, "GeneratePathsBetweenExits", async () =>
-			{
-				foreach (RegionBuilder region in AllRegions)
-				{
-					region.CoordinateMap.GeneratePathsBetweenExits();
-					await Awaitable.WaitForSecondsAsync(0.1f);
-				}
-			});
-			await Enqueue(task3);
-
-
-			// Stage 4: Zone Generation and Height Assignments
-			TaskBot task4 = new TaskBot(this, "ZoneGeneration", async () =>
-			{
-				foreach (RegionBuilder region in AllRegions)
-				{
-					region.CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
-					await Awaitable.WaitForSecondsAsync(0.1f);
-				}
-			});
-			await Enqueue(task4);
+			// ================================
 			await ExecuteAllTasks();
 
 			Debug.Log($"{_prefix} Initialization Complete");

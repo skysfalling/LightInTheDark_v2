@@ -123,6 +123,7 @@ namespace Darklight.World.Map
 
 		// [[ PUBLIC ACCESSOR VARIABLES ]]
 		public bool Initialized { get; private set; }
+		public bool GenerationFinished { get; private set; }
 		public int MaxCoordinateValue => _mapWidthCount;
 		public UnitSpace UnitSpace => _mapUnitSpace;
 		public int CoordinateSize => _coordinateSize;

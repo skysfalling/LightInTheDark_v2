@@ -70,15 +70,11 @@ namespace Darklight.World.Generation
 			{
 				cellSize = WorldBuilder.Settings.CellSize_inGameUnits;
 				_defaultDimensions = WorldBuilder.Settings.ChunkVec3Dimensions_inCellUnits;
-				Debug.LogError($"World Settings {_defaultDimensions}");
-
 			}
 			else if (RegionBuilder.Settings != null)
 			{
 				cellSize = RegionBuilder.Settings.CellSize_inGameUnits;
 				_defaultDimensions = RegionBuilder.Settings.ChunkVec3Dimensions_inCellUnits;
-				Debug.LogError("Region Settings");
-
 			}
 			else
 			{

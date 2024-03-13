@@ -44,7 +44,7 @@ namespace Darklight.Bot
 		public virtual async Task ExecuteTask()
 		{
 			queenParent.TaskBotConsole.Log(this, $"\t\t >> Execute bot! {Name}");
-			stopwatch.Start();
+			stopwatch.Reset();
 			try
 			{
 				await task();
@@ -64,7 +64,7 @@ namespace Darklight.Bot
 			{
 				stopwatch.Stop();
 				ExecutionTime = stopwatch.ElapsedMilliseconds;
-				queenParent.TaskBotConsole.Log(this, $"\t\t >> SUCCESS {ExecutionTime}");
+				queenParent.TaskBotConsole.Log(this, $"\t\t >> SUCCESS! Execution Time : {ExecutionTime}");
 			}
 		}
 

@@ -14,7 +14,7 @@ namespace Darklight.World.Builder
 	using Darklight.World.Map;
 	using System;
 
-	public class ChunkGeneration : TaskQueen
+	public class ChunkBuilder : TaskQueen
 	{
 		HashSet<Chunk> _chunks = new();
 		Dictionary<Vector2Int, Chunk> _chunkMap = new();
@@ -27,7 +27,7 @@ namespace Darklight.World.Builder
 
 		public async void Initialize(RegionBuilder worldRegion, CoordinateMap coordinateMap)
 		{
-			await base.Initialize(false);
+			await base.Initialize();
 			RegionParent = worldRegion;
 			_coordinateMap = coordinateMap;
 		}
@@ -44,26 +44,16 @@ namespace Darklight.World.Builder
 		// [[ CREATE WORLD CHUNKS ]]
 		async Task CreateChunksInBkg()
 		{
-			ChunkGeneration self = this; // Capture the instance of ChunkGeneration
+			ChunkBuilder self = this; // Capture the instance of ChunkGeneration
 			TaskBotConsole.Log(self, $"Creating {_coordinateMap.AllCoordinateValues.Count} Chunks");
 
 			foreach (Vector2Int position in _coordinateMap.AllCoordinateValues)
 			{
-				try
-				{
-					TaskBotConsole.Log(self, $"\t>> Creating Chunk {position}");
-					Coordinate coordinate = _coordinateMap.GetCoordinateAt(position);
-					Chunk newChunk = new Chunk(self, coordinate); // Use the captured instance
-					_chunks.Add(newChunk);
-					_chunkMap[coordinate.ValueKey] = newChunk;
-				}
-				catch (Exception e)
-				{
-					self.TaskBotConsole.Log(this, $"\t\t Error: See Unity Console", LogSeverity.Error);
-					self.TaskBotConsole.Log(this, $"\t\t\t {this.Name} || {this.GuidId}", LogSeverity.Error);
-					Debug.LogError($"{this.Name} FUNC<TASK> || {position} => {e}" + e.StackTrace, self);
-				}
-
+				TaskBotConsole.Log(self, $"\t>> Creating Chunk {position}");
+				Coordinate coordinate = _coordinateMap.GetCoordinateAt(position);
+				Chunk newChunk = new Chunk(self, coordinate); // Use the captured instance
+				_chunks.Add(newChunk);
+				_chunkMap[coordinate.ValueKey] = newChunk;
 			}
 			TaskBotConsole.Log(self, $">> Here they are! {_chunkMap.ToString()}");
 			await Task.CompletedTask;
@@ -75,6 +65,8 @@ namespace Darklight.World.Builder
 			foreach (Chunk chunk in _chunks)
 			{
 				ChunkMesh newMesh = chunk.CreateChunkMesh();
+
+				if (WorldBuilder.Instance != null) { continue; }
 				GameObject newObject = RegionParent.CreateMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.ChunkMesh.Mesh);
 				TaskBotConsole.Log(this, $"\tNewChunkMeshObject : {newObject}");
 			}
@@ -83,23 +75,18 @@ namespace Darklight.World.Builder
 
 		public async Task GenerationSequence()
 		{
-			while (_coordinateMap.Initialized == false)
-			{
-				await Awaitable.WaitForSecondsAsync(0.1f);
-			}
-			/// STAGE 1 : [[ CREATE CHUNKS ]]
+			UpdateMap();
 
-			TaskBot task1 = new TaskBot(this, "Creating Chunks [task1]", CreateChunksInBkg(), true); // << Execute on background thread
+			/// STAGE 1 : [[ CREATE CHUNKS ]]
+			TaskBot task1 = new TaskBot(this, "CreatingChunks [task1]", CreateChunksInBkg(), true); // << Execute on background thread
 			await Enqueue(task1);
-			TaskBot task2 = new TaskBot(this, "CreatingChunkMesh [task2]", CreateChunkMeshObjs(), false); // << Execute on main thread
-			await Enqueue(task1);
+			/// STAGE 1 : [[ CREATE CHUNKS ]]
+			TaskBot task2 = new TaskBot(this, "CreatingChunkMeshObjs [task2]", CreateChunkMeshObjs(), false); // << Execute on main thread
+			await Enqueue(task2);
 
 			await ExecuteAllTasks();
 			TaskBotConsole.Log(this, "Initialization Sequence Completed");
-			Debug.Log("Initialization Sequence Completed");
-
 			Initialized = true;
-
 		}
 
 

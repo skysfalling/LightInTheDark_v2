@@ -37,7 +37,7 @@ namespace Darklight.World.Editor
 
 			if (!_regionBuilderScript.Initialized && GUILayout.Button("Initialize"))
 			{
-				_ = _regionBuilderScript.Initialize(true);
+				_ = _regionBuilderScript.Initialize();
 			}
 			else if (_regionBuilderScript.Initialized && GUILayout.Button("Reset"))
 			{

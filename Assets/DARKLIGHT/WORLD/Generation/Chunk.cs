@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -40,7 +41,7 @@ namespace Darklight.World.Generation
 
 		// [[ PUBLIC ACCESS VARIABLES ]] 
 		public int Width => WorldBuilder.Settings.ChunkWidth_inGameUnits;
-		public ChunkGeneration GenerationParent { get; private set; }
+		public ChunkBuilder GenerationParent { get; private set; }
 		public Coordinate Coordinate => _coordinate;
 		//public CoordinateMap CoordinateMap => _coordinateMap;
 		public GameObject ChunkObject { get; private set; }
@@ -71,7 +72,7 @@ namespace Darklight.World.Generation
 		}
 		public Vector3 ChunkMeshDimensions => WorldBuilder.Settings.ChunkVec3Dimensions_inCellUnits + new Vector3Int(0, GroundHeight, 0);
 
-		public Chunk(ChunkGeneration chunkGeneration, Coordinate coordinate)
+		public Chunk(ChunkBuilder chunkGeneration, Coordinate coordinate)
 		{
 			this.GenerationParent = chunkGeneration;
 			this._coordinate = coordinate;

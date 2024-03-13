@@ -14,7 +14,7 @@ namespace Darklight.World.Builder
 
 
 
-	[RequireComponent(typeof(ChunkGeneration))]
+	[RequireComponent(typeof(ChunkBuilder))]
 	public class RegionBuilder : TaskQueen
 	{
 		#region [[ PRIVATE VARIABLES ]] 
@@ -22,7 +22,7 @@ namespace Darklight.World.Builder
 		WorldBuilder _generationParent;
 		Coordinate _coordinate;
 		CoordinateMap _coordinateMap;
-		ChunkGeneration _chunkGeneration;
+		ChunkBuilder _chunkGeneration;
 		GameObject _combinedMeshObject;
 		HashSet<GameObject> _regionObjects = new();
 		#endregion
@@ -31,6 +31,11 @@ namespace Darklight.World.Builder
 		/// Gets a value indicating whether the region builder has been initialized.
 		/// </summary>
 		public bool Initialized { get; private set; }
+
+		/// <summary>
+		/// Indicated if the generation of the region has finished.
+		/// </summary>
+		public bool GenerationFinished { get; private set; }
 
 		/// <summary>
 		/// Gets the parent WorldBuilder.
@@ -50,7 +55,7 @@ namespace Darklight.World.Builder
 		/// <summary>
 		/// Gets the chunk generation component.
 		/// </summary>
-		public ChunkGeneration ChunkGeneration => GetComponent<ChunkGeneration>();
+		public ChunkBuilder ChunkGeneration => GetComponent<ChunkBuilder>();
 
 		/// <summary>
 		/// Gets the center position of the region.
@@ -127,34 +132,22 @@ namespace Darklight.World.Builder
 		{
 			this._generationParent = parent;
 			this._coordinate = coordinate;
-			Debug.Log($"Region {Coordinate.ValueKey} created at {coordinate.ScenePosition}");
+
 			if (parent.customWorldGenSettings != null)
 			{
 				OverrideSettings(parent.customWorldGenSettings);
 			}
-
-			this.GenerationParent.TaskBotConsole.Log(this, "\t Assigned to World Builder with settings " + $"{_regionSettings.Seed}");
-			TaskBotConsole.Log(this, "Assigned to World Builder with settings " + $"{_regionSettings.Seed}");
+			this.GenerationParent.TaskBotConsole.Log(this, $"\t Child Region Assigned to World Coordinate {coordinate}");
 		}
 
 		public async void Start()
 		{
-			Debug.Log("Start");
 			if (initializeOnStart == true)
 			{
 				Debug.Log($"{_prefix} Initialize On Start");
-				await this.Initialize(true);
+				await this.Initialize();
 			}
 		}
-
-		public override async Awaitable Initialize(bool startSequence)
-		{
-			this.Name = "RegionAsyncTaskQueen";
-			if (Initialized) return;
-			await base.Initialize(startSequence);
-			Initialized = true;
-		}
-
 		public override void Reset()
 		{
 			base.Reset();
@@ -167,69 +160,64 @@ namespace Darklight.World.Builder
 				DestroyGameObject(gameObject);
 			}
 		}
+		public override async Task Initialize()
+		{
+			this.Name = "RegionAsyncTaskQueen";
+			if (Initialized) return;
+			this._coordinateMap = new CoordinateMap(this);
+			this._chunkGeneration = GetComponent<ChunkBuilder>();
+
+			await base.Initialize();
+			Initialized = true;
+		}
 
 		/// <summary>
 		/// The initialization sequence for the region builder.
 		/// </summary>
 		/// <returns>The task representing the initialization sequence.</returns>
-		public override async Awaitable InitializationSequence()
+		public async Task GenerationSequence()
 		{
-			// Create the coordinate map
-			TaskBot task1 = new TaskBot(this, "Initialize Coordinate Map", async () =>
+			// Generate Exits, Paths and Zones based on neighboring regions
+			TaskBot RegionGenerationTask = new TaskBot(this, "RegionGenerationTask", async () =>
 			{
-				Debug.Log("Initializing Coordinate Map");
-				// Create the coordinate map
-				this._coordinateMap = new CoordinateMap(this);
-				while (this._coordinateMap.Initialized == false)
-				{
-					await Awaitable.WaitForSecondsAsync(1);
-				}
+				GenerateNecessaryExits(true);
+				CoordinateMap.GeneratePathsBetweenExits();
+				CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
+
+				await Task.CompletedTask;
 			});
-			await Enqueue(task1);
+			await Enqueue(RegionGenerationTask);
 
 			// Create the chunk map for the region
-			TaskBot task2 = new TaskBot(this, "Initialize Chunk Generation", async () =>
+			TaskBot ChunkGenerationTask = new TaskBot(this, "Initialize Chunk Generation", async () =>
 			{
-				this._chunkGeneration = GetComponent<ChunkGeneration>();
-				while (!_coordinateMap.Initialized)
-				{
-					await Awaitable.WaitForSecondsAsync(1);
-				}
-
-				// Conditionally initialize chunk generation based on the WorldBuilder instance
 				_chunkGeneration.Initialize(this, _coordinateMap);
 				await _chunkGeneration.GenerationSequence();
 			});
-			await Enqueue(task2);
+			await Enqueue(ChunkGenerationTask);
 
 			if (WorldBuilder.Instance != null)
 			{
 				// COMBINE the chunk mesh if WorldBuilder exists
-				TaskBot task3 = new TaskBot(this, "Mesh Generation", async () =>
+				TaskBot MeshGenerationTask = new TaskBot(this, "Mesh Generation", async () =>
 				{
 					TaskBotConsole.Log(this, "Starting mesh generation...");
 
 					while (_chunkGeneration == null || _chunkGeneration.Initialized == false)
 					{
-						await Awaitable.WaitForSecondsAsync(1);
+						await Awaitable.WaitForSecondsAsync(0.1f);
 					}
 
 					// Asynchronously create and initialize combined chunk mesh
-					await CreateAndInitializeCombinedChunkMeshAsync();
+					await CombineChunkMesh();
 					TaskBotConsole.Log(this, "Mesh generation complete.");
 				});
-				await Enqueue(task3);
-
+				await Enqueue(MeshGenerationTask);
 			}
 
-			await Awaitable.WaitForSecondsAsync(1);
-
+			// Execute all tasks queued in AsyncTaskQueen
 			await ExecuteAllTasks();
 			Debug.Log("Region Builder Initialized");
-
-
-			// Execute all tasks queued in AsyncTaskQueen
-			Initialized = true;
 		}
 
 		/// <summary>
@@ -342,13 +330,12 @@ namespace Darklight.World.Builder
 		/// Asynchronously creates a combined chunk mesh and initializes the mesh object.
 		/// </summary>
 		/// <returns>A task representing the asynchronous operation.</returns>
-		public async Task CreateAndInitializeCombinedChunkMeshAsync()
+		public async Task CombineChunkMesh()
 		{
 			Mesh combinedMesh = CombineChunks();
 			while (combinedMesh == null)
 			{
 				combinedMesh = CombineChunks();
-				await Task.Delay(1000);
 			}
 
 			// Check if combinedMesh creation was successful
@@ -357,7 +344,7 @@ namespace Darklight.World.Builder
 				try
 				{
 					// Proceed with creating the GameObject based on the combined mesh
-					_combinedMeshObject = CreateMeshObject($"CombinedChunkMesh", combinedMesh, null);
+					_combinedMeshObject = CreateMeshObject($"CombinedChunkMesh", combinedMesh, WorldBuilder.Instance.defaultMaterial);
 
 					if (_combinedMeshObject != null)
 					{
@@ -381,6 +368,8 @@ namespace Darklight.World.Builder
 			{
 				Debug.LogError("CombinedMesh is null after combining chunks.");
 			}
+
+			await Task.CompletedTask;
 		}
 
 		/// <summary>

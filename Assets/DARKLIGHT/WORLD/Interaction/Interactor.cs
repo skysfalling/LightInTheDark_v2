@@ -10,7 +10,7 @@ namespace Darklight.World.Generation.Interaction
 	public class Interactor : MonoBehaviour
 	{
 		WorldBuilder _worldGeneration;
-		ChunkGeneration _worldChunkMap;
+		ChunkBuilder _worldChunkMap;
 		WorldEnvironment _worldEnvironment;
 
 		[Header("World Cursor")]
