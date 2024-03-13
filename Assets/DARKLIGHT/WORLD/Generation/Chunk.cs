@@ -76,7 +76,8 @@ namespace Darklight.World.Generation
 		{
 			this.GenerationParent = chunkGeneration;
 			this._coordinate = coordinate;
-
+			UpdateChunkHeight();
+			
 			// >> set perlin noise height
 			//Vector2Int perlinOffset = new Vector2Int((int)coordinate.ScenePosition.x, (int)coordinate.ScenePosition.z);
 			//this._groundHeight = PerlinNoise.CalculateHeightFromNoise(perlinOffset);
@@ -101,6 +102,23 @@ namespace Darklight.World.Generation
 		public void SetGroundHeight(int height)
 		{
 			this._groundHeight = height;
+		}
+		
+		public void UpdateChunkHeight()
+		{
+			Coordinate.TYPE type = this._coordinate.Type;
+			switch (type)
+			{
+				case Coordinate.TYPE.NULL:
+					break; // Allow default Perlin Noise
+				case Coordinate.TYPE.BORDER:
+				case Coordinate.TYPE.CLOSED:
+					SetGroundHeight(WorldBuilder.Settings.ChunkMaxHeight_inGameUnits);
+					break; // Set to max height
+				default:
+					SetGroundHeight(0); // Set to default 0
+					break;
+			}
 		}
 
 		void DetermineChunkType()

@@ -18,7 +18,6 @@ MonoBehaviour:
   _chunkDepth: 5
   _chunkMaxHeight: 2
   _regionWidth: 5
-  _regionBoundaryOffset: 1
+  _regionBoundaryOffset: 0
   _worldWidth: 3
   _pathRandomness: 0.25
-  materialLibrary: {fileID: 11400000, guid: 0b9d3ca5a1c90ee47a56ab2cf34f5823, type: 2}

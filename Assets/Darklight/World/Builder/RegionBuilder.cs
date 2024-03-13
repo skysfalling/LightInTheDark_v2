@@ -185,14 +185,15 @@ namespace Darklight.World.Builder
 			TaskBot RegionGenerationTask = new TaskBot(this, "RegionGenerationTask", async () =>
 			{
 				await GenerateExits(true);
-				CoordinateMap.GeneratePathsBetweenExits();
-				CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
+				await CoordinateMap.GeneratePathsBetweenExits();
+				await CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
 				
-				// Initialize chunks
-				_chunkGeneration.Initialize(this, CoordinateMap);
+
 
 				TaskBotConsole.Log(this, $"Region Generation Complete with {CoordinateMap.Exits.Count} Exits and {CoordinateMap.Zones.Count} Zones");
 				Debug.Log($"Region {Coordinate.ValueKey} Generation Complete [[ {CoordinateMap.Exits.Count} Exits ,, {CoordinateMap.Zones.Count} Zones ]");
+
+				await Awaitable.WaitForSecondsAsync(0.25f);
 
 				await Task.CompletedTask;
 			});
@@ -201,6 +202,8 @@ namespace Darklight.World.Builder
 			// Create the chunk map for the region
 			TaskBot ChunkGenerationTask = new TaskBot(this, "Initialize Chunk Generation", async () =>
 			{
+				// Initialize chunks
+				_chunkGeneration.Initialize(this, this._coordinateMap);
 				await _chunkGeneration.GenerationSequence();
 			});
 			await Enqueue(ChunkGenerationTask);

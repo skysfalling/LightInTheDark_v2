@@ -601,7 +601,7 @@ namespace Darklight.World.Map
 			return newPath;
 		}
 
-		public void GeneratePathsBetweenExits()
+		public async Task GeneratePathsBetweenExits()
 		{
 			// Clear existing paths
 			Paths.Clear();
@@ -626,6 +626,7 @@ namespace Darklight.World.Map
 			//CreatePathFrom(sortedExits[sortedExits.Count - 1], sortedExits[0]);
 
 			//Debug.Log($"Generated new paths connecting all exits.");
+			await Task.CompletedTask;
 		}
 
 		// == [[ WORLD ZONES ]] ================================================================================ >>>>
@@ -661,7 +662,7 @@ namespace Darklight.World.Map
 			return true;
 		}
 
-		public void GenerateRandomZones(int minZones, int maxZones, List<Zone.TYPE> types)
+		public async Task GenerateRandomZones(int minZones, int maxZones, List<Zone.TYPE> types)
 		{
 			Zones.Clear();
 
@@ -687,11 +688,10 @@ namespace Darklight.World.Map
 
 				CreateWorldZone(potentialPositions[i], zoneType, randomHeight);
 				zonesCreated++;
-
-
 			}
 
 			//Debug.Log($"Attempted to create {numZonesToCreate} zones. Successfully created {zonesCreated}.", this._worldRegion.gameObject);
+			await Task.CompletedTask;
 		}
 
 		public Zone GetZoneFromCoordinate(Coordinate coordinate)

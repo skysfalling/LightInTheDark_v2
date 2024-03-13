@@ -31,7 +31,6 @@ namespace Darklight.World.Builder
 			await base.Initialize();
 			RegionParent = worldRegion;
 			_coordinateMap = coordinateMap;
-			await UpdateMap();
 			Initialized = true;
 		}
 
@@ -79,29 +78,6 @@ namespace Darklight.World.Builder
 			await ExecuteAllTasks();
 			TaskBotConsole.Log(this, "Initialization Sequence Completed");
 			GenerationFinished = true;
-		}
-
-
-		public async Task UpdateMap()
-		{
-			foreach (Chunk chunk in _chunks)
-			{
-				Coordinate.TYPE type = (Coordinate.TYPE)_coordinateMap.GetCoordinateTypeAt(chunk.Coordinate.ValueKey);
-
-				switch (type)
-				{
-					case Coordinate.TYPE.NULL:
-					case Coordinate.TYPE.BORDER:
-						break; // Allow default Perlin Noise
-					case Coordinate.TYPE.CLOSED:
-						chunk.SetGroundHeight(WorldBuilder.Settings.ChunkMaxHeight_inCellUnits);
-						break; // Set to max height
-					default:
-						chunk.SetGroundHeight(0); // Set to default 0
-						break;
-				}
-			}
-			await Task.CompletedTask;
 		}
 
 		public Chunk GetChunkAt(Vector2Int position)
