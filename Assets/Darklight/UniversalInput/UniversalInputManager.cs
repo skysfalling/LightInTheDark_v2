@@ -99,7 +99,8 @@ namespace Darklight.UniversalInput
                 secondaryInteract.performed += context =>
                     InvokeSecondaryInteractionEvent(pointerScreenPosition.ReadValue<Vector2>());
                 moveInput.performed += context =>
-                    InvokeMoveInteractionEvent(moveInput.ReadValue<Vector2>());
+                    InvokeMoveInteractionEvent(moveInput.ReadValue<Vector2>()); // Sent out move input value
+                moveInput.canceled += context => InvokeMoveInteractionEvent(Vector2.zero); // Reset input value
             }
         }
 
