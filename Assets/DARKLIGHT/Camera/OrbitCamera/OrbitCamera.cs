@@ -33,10 +33,10 @@ namespace Darklight.Camera
 		[Range(0.1f, 10f)] public float focusSpeed = 2;
 		public void SetFocusTarget(Transform focusTarget) { this.focusTarget = focusTarget; }
 
-		[Space(10), Header("Follow Target")]
-		public Transform followTarget;
+		[Space(10), Header("Follow Position Target")]
+		public Transform positionTarget;
 		[Range(0.1f, 10f)] public float followSpeed = 2;
-		public void SetFollowTarget(Transform followTarget) { this.followTarget = followTarget; }
+		public void SetPositionTarget(Transform followTarget) { this.positionTarget = followTarget; }
 
 		[Space(10), Header("Orbit")]
 		[Range(0.1f, 1f)] public float orbitSensitivity = 0.1f;
@@ -50,7 +50,7 @@ namespace Darklight.Camera
 
 		private void Start()
 		{
-			_universalInputManager = FindObjectOfType<UniversalInputManager>();
+			_universalInputManager = GameObject.FindFirstObjectByType<UniversalInputManager>();
 			orbitCameraInteraction.Enable();
 
 			// << DETERMINE ACTION MAP >>
@@ -106,7 +106,7 @@ namespace Darklight.Camera
 			}
 
 			// << UPDATE CAM POSITION >>
-			transform.position = Vector3.Slerp(transform.position, followTarget.position, followSpeed * Time.deltaTime);
+			transform.position = Vector3.Slerp(transform.position, positionTarget.position, followSpeed * Time.deltaTime);
 
 			// << UPDATE CAM ROTATION TO FOCUSTARGET >>
 			Quaternion targetQuaternion = Quaternion.Euler(_targetOrbitRotation);
