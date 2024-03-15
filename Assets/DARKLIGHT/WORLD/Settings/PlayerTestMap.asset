@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d0777da32624bf64b8c4703d9bd7725b, type: 3}
-  m_Name: 3x3
+  m_Name: PlayerTestMap
   m_EditorClassIdentifier: 
-  _seed: 4838158
-  _cellSize: 3
-  _chunkWidth: 3
-  _chunkDepth: 3
-  _chunkMaxHeight: 3
-  _regionWidth: 3
+  _seed: PlayerTest
+  _cellSize: 2
+  _chunkWidth: 10
+  _chunkDepth: 10
+  _chunkMaxHeight: 25
+  _regionWidth: 10
   _regionBoundaryOffset: 0
-  _worldWidth: 3
-  _pathRandomness: 0.9
+  _worldWidth: 10
+  _pathRandomness: 0.5

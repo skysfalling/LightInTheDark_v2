@@ -269,7 +269,7 @@ namespace Darklight.World
 
 			// >> draw world generation bounds
 			WorldBuilder worldGeneration = _worldEditScript.worldBuilder;
-			Darklight.Gizmos.DrawWireSquare_withLabel("World Generation", worldGeneration.CenterPosition, WorldBuilder.Settings.WorldWidth_inGameUnits, Color.black, Darklight.CustomInspectorGUI.CenteredStyle);
+			Darklight.CustomGizmos.DrawWireSquare_withLabel("World Generation", worldGeneration.CenterPosition, WorldBuilder.Settings.WorldWidth_inGameUnits, Color.black, Darklight.CustomInspectorGUI.CenteredStyle);
 
 			switch (_worldEditScript.editMode)
 			{
@@ -295,9 +295,9 @@ namespace Darklight.World
 				if (worldGeneration == null || worldGeneration.CoordinateMap == null)
 				{
 					GUIStyle labelStyle = Darklight.CustomInspectorGUI.BoldStyle;
-					Darklight.Gizmos.DrawWireSquare_withLabel("Origin Region", worldGeneration.OriginPosition, WorldBuilder.Settings.RegionFullWidth_inGameUnits, Color.red, labelStyle);
-					Darklight.Gizmos.DrawWireSquare_withLabel("World Chunk Size", worldGeneration.OriginPosition, WorldBuilder.Settings.ChunkWidth_inGameUnits, Color.black, labelStyle);
-					Darklight.Gizmos.DrawWireSquare_withLabel("World Cell Size", worldGeneration.OriginPosition, WorldBuilder.Settings.CellSize_inGameUnits, Color.black, labelStyle);
+					Darklight.CustomGizmos.DrawWireSquare_withLabel("Origin Region", worldGeneration.OriginPosition, WorldBuilder.Settings.RegionFullWidth_inGameUnits, Color.red, labelStyle);
+					Darklight.CustomGizmos.DrawWireSquare_withLabel("World Chunk Size", worldGeneration.OriginPosition, WorldBuilder.Settings.ChunkWidth_inGameUnits, Color.black, labelStyle);
+					Darklight.CustomGizmos.DrawWireSquare_withLabel("World Cell Size", worldGeneration.OriginPosition, WorldBuilder.Settings.CellSize_inGameUnits, Color.black, labelStyle);
 				}
 				// [[ DRAW COORDINATE MAP ]]
 				else if (_worldEditScript.worldView == WorldEditor.WorldView.COORDINATE_MAP)
@@ -371,8 +371,8 @@ namespace Darklight.World
 			// [[ DRAW GRID ONLY ]]
 			if (type == WorldEditor.RegionView.OUTLINE)
 			{
-				Darklight.Gizmos.DrawLabel($"{region.Coordinate.ValueKey}", region.CenterPosition, regionLabelStyle);
-				Darklight.Gizmos.DrawButtonHandle(region.CenterPosition, Vector3.up, WorldBuilder.Settings.RegionWidth_inGameUnits * 0.475f, Color.black, () =>
+				Darklight.CustomGizmos.DrawLabel($"{region.Coordinate.ValueKey}", region.CenterPosition, regionLabelStyle);
+				Darklight.CustomGizmos.DrawButtonHandle(region.CenterPosition, Vector3.up, WorldBuilder.Settings.RegionWidth_inGameUnits * 0.475f, Color.black, () =>
 				{
 					_worldEditScript.SelectRegion(region);
 				}, Handles.RectangleHandleCap);
@@ -402,7 +402,7 @@ namespace Darklight.World
 				case WorldEditor.ChunkView.OUTLINE:
 
 					// Draw Selection Rectangle
-					Darklight.Gizmos.DrawButtonHandle(chunk.GroundPosition, Vector3.up, chunk.Width * 0.475f, Color.black, () =>
+					Darklight.CustomGizmos.DrawButtonHandle(chunk.GroundPosition, Vector3.up, chunk.Width * 0.475f, Color.black, () =>
 					{
 						_worldEditScript.SelectChunk(chunk);
 					}, Handles.RectangleHandleCap);
@@ -410,17 +410,17 @@ namespace Darklight.World
 					break;
 				case WorldEditor.ChunkView.TYPE:
 					chunkLabelStyle.normal.textColor = chunk.TypeColor;
-					Darklight.Gizmos.DrawLabel($"{chunk.Type.ToString()[0]}", chunk.CenterPosition, chunkLabelStyle);
+					Darklight.CustomGizmos.DrawLabel($"{chunk.Type.ToString()[0]}", chunk.CenterPosition, chunkLabelStyle);
 
-					Darklight.Gizmos.DrawButtonHandle(chunk.CenterPosition, Vector3.up, chunk.Width * 0.475f, chunk.TypeColor, () =>
+					Darklight.CustomGizmos.DrawButtonHandle(chunk.CenterPosition, Vector3.up, chunk.Width * 0.475f, chunk.TypeColor, () =>
 					{
 						_worldEditScript.SelectChunk(chunk);
 					}, Handles.RectangleHandleCap);
 					break;
 				case WorldEditor.ChunkView.HEIGHT:
-					Darklight.Gizmos.DrawLabel($"{chunk.GroundHeight}", chunk.GroundPosition, chunkLabelStyle);
+					Darklight.CustomGizmos.DrawLabel($"{chunk.GroundHeight}", chunk.GroundPosition, chunkLabelStyle);
 
-					Darklight.Gizmos.DrawButtonHandle(chunk.GroundPosition, Vector3.up, chunk.Width * 0.475f, Color.grey, () =>
+					Darklight.CustomGizmos.DrawButtonHandle(chunk.GroundPosition, Vector3.up, chunk.Width * 0.475f, Color.grey, () =>
 					{
 						_worldEditScript.SelectChunk(chunk);
 					}, Handles.RectangleHandleCap);
@@ -446,19 +446,19 @@ namespace Darklight.World
 			{
 				case WorldEditor.CellView.OUTLINE:
 					// Draw Selection Rectangle
-					Darklight.Gizmos.DrawButtonHandle(cell.Position, cell.Normal, cell.Size * 0.475f, Color.black, () =>
+					Darklight.CustomGizmos.DrawButtonHandle(cell.Position, cell.Normal, cell.Size * 0.475f, Color.black, () =>
 					{
 						_worldEditScript.SelectCell(cell);
 					}, Handles.RectangleHandleCap);
 					break;
 				case WorldEditor.CellView.TYPE:
 					// Draw Face Type Label
-					Darklight.Gizmos.DrawLabel($"{cell.Type.ToString()[0]}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
-					Darklight.Gizmos.DrawFilledSquareAt(cell.Position, cell.Size * 0.75f, cell.Normal, cell.TypeColor);
+					Darklight.CustomGizmos.DrawLabel($"{cell.Type.ToString()[0]}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
+					Darklight.CustomGizmos.DrawFilledSquareAt(cell.Position, cell.Size * 0.75f, cell.Normal, cell.TypeColor);
 					break;
 				case WorldEditor.CellView.FACE:
 					// Draw Face Type Label
-					Darklight.Gizmos.DrawLabel($"{cell.FaceType}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
+					Darklight.CustomGizmos.DrawLabel($"{cell.FaceType}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
 					break;
 			}
 		}
@@ -481,12 +481,12 @@ namespace Darklight.World
 						case WorldEditor.CoordinateMapView.GRID_ONLY:
 							break;
 						case WorldEditor.CoordinateMapView.COORDINATE_VALUE:
-							Darklight.Gizmos.DrawLabel($"{coordinate.ValueKey}", coordinate.ScenePosition, coordLabelStyle);
+							Darklight.CustomGizmos.DrawLabel($"{coordinate.ValueKey}", coordinate.ScenePosition, coordLabelStyle);
 							coordinateColor = Color.white;
 							break;
 						case WorldEditor.CoordinateMapView.COORDINATE_TYPE:
 							coordLabelStyle.normal.textColor = coordinate.TypeColor;
-							Darklight.Gizmos.DrawLabel($"{coordinate.Type.ToString()[0]}", coordinate.ScenePosition, coordLabelStyle);
+							Darklight.CustomGizmos.DrawLabel($"{coordinate.Type.ToString()[0]}", coordinate.ScenePosition, coordLabelStyle);
 							coordinateColor = coordinate.TypeColor;
 							break;
 						case WorldEditor.CoordinateMapView.ZONE_ID:
@@ -497,7 +497,7 @@ namespace Darklight.World
 								Zone zone = coordinateMap.GetZoneFromCoordinate(coordinate);
 								if (zone != null)
 								{
-									Darklight.Gizmos.DrawLabel($"{zone.ID}", coordinate.ScenePosition, coordLabelStyle);
+									Darklight.CustomGizmos.DrawLabel($"{zone.ID}", coordinate.ScenePosition, coordLabelStyle);
 								}
 							}
 
@@ -505,7 +505,7 @@ namespace Darklight.World
 					}
 
 					// Draw Selection Rectangle
-					Darklight.Gizmos.DrawButtonHandle(coordinate.ScenePosition, Vector3.up, coordinateMap.CoordinateSize * 0.475f, coordinateColor, () =>
+					Darklight.CustomGizmos.DrawButtonHandle(coordinate.ScenePosition, Vector3.up, coordinateMap.CoordinateSize * 0.475f, coordinateColor, () =>
 					{
 						onCoordinateSelect?.Invoke(coordinate); // Invoke the action if the button is clicked
 					}, Handles.RectangleHandleCap);

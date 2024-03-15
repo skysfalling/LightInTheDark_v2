@@ -45,6 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9218f1fdf36b8cd488753d7b1e6ddd66, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  defaultMaterial: {fileID: 0}
   customRegionSettings: {fileID: 11400000, guid: 32809448232478c43a1dc5f49fc640ae,
     type: 2}
   initializeOnStart: 1

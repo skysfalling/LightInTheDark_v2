@@ -1,10 +1,7 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 namespace Darklight.Game.CameraController
 {
+    using UnityEngine;
+
     public class ThirdPersonCamera : MonoBehaviour
     {
         #region [[ PRIVATE VARIABLES ]]
@@ -127,7 +124,7 @@ namespace Darklight.Game.CameraController
 
         public void FixedUpdate()
         {
-            if (!playerTarget || !_camera)
+            if (!playerTarget || !_camera || !_pivotHandle)
                 return;
             // Calculate and Lerp position
             Vector3 targetPosition = GetCameraFollowPosition(

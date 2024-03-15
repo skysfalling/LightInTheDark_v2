@@ -5,7 +5,7 @@ using UnityEditor;
 
 namespace Darklight
 {
-    public static class Gizmos
+    public static class CustomGizmos
     {
         public static void DrawWireSquare(Vector3 position, float size, Color color)
         {

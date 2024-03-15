@@ -11,20 +11,34 @@ using UnityEditor;
 namespace Darklight.World.Generation
 {
 	using Builder;
+	using Darklight.World.Map;
+
 	[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
-	public class Traveler : MonoBehaviour
+	public class Traveler : Darklight.Game.Movement.Player8DirMovement
 	{
-		WorldBuilder _worldBuilder => WorldBuilder.Instance;
+		public CoordinateMap coordinateMap;
 		public bool Active = false;
 		public RegionBuilder ParentRegion { get; private set; }
 		public Chunk CurrentChunk { get; private set; }
+		public CoordinateMap CurrentCoordinateMap { get; private set; }
+		public Coordinate CurrentCoordinate { get; private set; }
 
 		// [[ INSPECTOR VARIABLES ]]
-		public void InitializeAt(RegionBuilder region, Chunk chunk)
+		public void InitializeAtChunk(RegionBuilder region, Chunk chunk)
 		{
 			ParentRegion = region;
 			CurrentChunk = chunk;
+			CurrentCoordinateMap = region.CoordinateMap;
+			CurrentCoordinate = chunk.Coordinate;
 			Active = true;
+		}
+
+		public void InitializeAtCoordinate(CoordinateMap map, Vector2Int value)
+		{
+			Debug.Log("Traveler Initialized at Coordinate: " + value);
+			CurrentCoordinateMap = map;
+			CurrentCoordinate = map.GetCoordinateAt(value);
+			transform.position = CurrentCoordinate.ScenePosition;
 		}
 
 		private void OnDrawGizmos()

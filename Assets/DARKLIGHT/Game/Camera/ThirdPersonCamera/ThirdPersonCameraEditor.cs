@@ -1,23 +1,16 @@
-using System;
-using System.Collections;
-using System.Linq;
-using UnityEditor;
-using UnityEngine;
-
 namespace Darklight.Game.CameraController
 {
+    using UnityEditor;
+    using UnityEngine;
+
     [CustomEditor(typeof(ThirdPersonCamera))]
     public class ThirdPersonCameraEditor : Editor
     {
         ThirdPersonCamera cameraScript;
 
-        public void OnEnable()
-        {
-            cameraScript = (ThirdPersonCamera)target;
-        }
-        
         public override void OnInspectorGUI()
         {
+            cameraScript = (ThirdPersonCamera)target;
             if (!cameraScript.Initialized && GUILayout.Button("Initialize"))
             {
                 cameraScript.Initialize();
@@ -27,17 +20,18 @@ namespace Darklight.Game.CameraController
                 cameraScript.ResetCamera();
             }
 
-            DrawDefaultInspector();
-
             // Detect changes to the serialized properties
             EditorGUI.BeginChangeCheck();
+
+            DrawDefaultInspector();
+
             serializedObject.Update();
 
             if (EditorGUI.EndChangeCheck())
             {
                 // If something changed, apply the changes and update the camera position
                 serializedObject.ApplyModifiedProperties();
-                cameraScript.Initialize();
+                cameraScript.SetToEditorValues();
             }
         }
     }
