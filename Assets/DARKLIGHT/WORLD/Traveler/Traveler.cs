@@ -14,7 +14,7 @@ namespace Darklight.World.Generation
 	using Darklight.World.Map;
 
 	[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
-	public class Traveler : Darklight.Game.Movement.Player8DirMovement
+	public class Traveler : Game.Movement.Player8DirMovement
 	{
 		public CoordinateMap coordinateMap;
 		public bool Active = false;
@@ -22,6 +22,7 @@ namespace Darklight.World.Generation
 		public Chunk CurrentChunk { get; private set; }
 		public CoordinateMap CurrentCoordinateMap { get; private set; }
 		public Coordinate CurrentCoordinate { get; private set; }
+		[SerializeField] public WorldSpawnUnit worldSpawnUnit;
 
 		// [[ INSPECTOR VARIABLES ]]
 		public void InitializeAtChunk(RegionBuilder region, Chunk chunk)
@@ -55,23 +56,43 @@ namespace Darklight.World.Generation
 				}
 			}
 		}
+	}
 
-		public static void DestroyGameObject(GameObject gameObject)
-		{
-			// Check if we are running in the Unity Editor
 #if UNITY_EDITOR
-			if (!EditorApplication.isPlaying)
+	[CustomEditor(typeof(Traveler))]
+	public class TravelerEditor : UnityEditor.Editor
+	{
+		Traveler _travelerScript;
+		WorldSpawnUnit _worldSpawnUnit;
+
+
+		void OnEnable()
+		{
+			_travelerScript = (Traveler)target;
+			_worldSpawnUnit = _travelerScript.worldSpawnUnit;
+		}
+
+		public override void OnInspectorGUI()
+		{
+			EditorGUI.BeginChangeCheck();
+
+			DrawDefaultInspector();
+			EditorGUILayout.Space();
+
+			EditorGUILayout.BeginVertical();
+			UnityEditor.Editor editor = CreateEditor(_worldSpawnUnit.modelPrefab);
+			editor.OnInspectorGUI();
+
+			EditorGUILayout.EndVertical();
+
+			if (EditorGUI.EndChangeCheck())
 			{
-				// Use DestroyImmediate if in edit mode and not playing
-				DestroyImmediate(gameObject);
-				return;
+				serializedObject.ApplyModifiedProperties();
+				EditorUtility.SetDirty(target);
+				Repaint();
 			}
-			else
-#endif
-			{
-				// Use Destroy in play mode or in a build
-				Destroy(gameObject);
-			}
+
 		}
 	}
+#endif
 }

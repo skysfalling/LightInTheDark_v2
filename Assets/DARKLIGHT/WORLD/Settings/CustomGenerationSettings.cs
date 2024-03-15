@@ -4,7 +4,7 @@ namespace Darklight.World.Settings
 	using System.Collections.Generic;
 	using UnityEngine;
 
-	[CreateAssetMenu(fileName = "NewGenerationSettings", menuName = "WorldGeneration/Settings", order = 1)]
+	[CreateAssetMenu(fileName = "New Generation Settings", menuName = "World/New Generation Settings", order = 1)]
 	public class CustomGenerationSettings : ScriptableObject
 	{
 		[SerializeField] private string _seed = "Default Game Seed";
