@@ -31,6 +31,7 @@ namespace Darklight.World.Generation
 		HashSet<Vector2Int> _neighborValues { get { return _neighborDirectionMap.Values.ToHashSet(); } }
 
 		// [[ PUBLIC REFERENCE VARIABLES ]]
+		public UnitSpace Space { get; private set; }
 		public CoordinateMap ParentMap { get; private set; }
 		public TYPE Type => _type;
 		public Vector2Int ValueKey => _value;
@@ -40,6 +41,14 @@ namespace Darklight.World.Generation
 		public Dictionary<WorldDirection, Vector2Int> NeighborDirectionMap => _neighborDirectionMap;
 
 		// [[ CONSTRUCTOR ]]
+
+		// This is for single unit types, like single region generation
+		public Coordinate(Vector2Int value, UnitSpace space)
+		{
+			this._value = value;
+			this.Space = space;
+		}
+
 		public Coordinate(CoordinateMap mapParent, Vector3 mapOriginPosition, Vector2Int value, int size)
 		{
 			this.ParentMap = mapParent;

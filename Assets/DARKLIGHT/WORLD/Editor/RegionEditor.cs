@@ -12,12 +12,7 @@ namespace Darklight.World.Editor
 
     public class RegionEditor : WorldEditor
     {
-        public RegionBuilder regionBuilder;
-
-        public void Awake()
-        {
-            regionBuilder = GetComponentInParent<RegionBuilder>();
-        }
+        public RegionBuilder regionBuilder => GetComponent<RegionBuilder>();
     }
 
 #if UNITY_EDITOR
@@ -46,6 +41,11 @@ namespace Darklight.World.Editor
             else
             {
                 EditorGUILayout.PropertyField(_serializedObject.FindProperty("regionView"));
+                EditorGUILayout.PropertyField(_serializedObject.FindProperty("coordinateMapView"));
+                EditorGUILayout.PropertyField(_serializedObject.FindProperty("chunkMapView"));
+                EditorGUILayout.PropertyField(_serializedObject.FindProperty("chunkView"));
+
+
             }
             _serializedObject.ApplyModifiedProperties(); // Apply changes to the serializedProperty - always do this in the end of OnInspectorGUI.
         }
@@ -57,7 +57,7 @@ namespace Darklight.World.Editor
         {
             if (_regionBuilder)
             {
-                DrawRegion(_regionBuilder, _regionEditorScript.regionView);
+                DrawRegion(_regionBuilder, _regionEditorScript);
             }
         }
     }

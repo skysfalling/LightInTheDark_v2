@@ -41,7 +41,7 @@ namespace Darklight.World.Generation
 
 		// [[ PUBLIC ACCESS VARIABLES ]] 
 		public int Width => WorldBuilder.Settings.ChunkWidth_inGameUnits;
-		public ChunkBuilder GenerationParent { get; private set; }
+		public ChunkBuilder ChunkBuilderParent { get; private set; }
 		public Coordinate Coordinate => _coordinate;
 		public CoordinateMap CoordinateMap => _coordinateMap;
 		public GameObject ChunkObject { get; private set; }
@@ -74,19 +74,24 @@ namespace Darklight.World.Generation
 
 		public Chunk(ChunkBuilder chunkGeneration, Coordinate coordinate)
 		{
-			this.GenerationParent = chunkGeneration;
+			this.ChunkBuilderParent = chunkGeneration;
 			this._coordinate = coordinate;
-			UpdateChunkHeight();
 
 			// Create coordinate map
 			this._coordinateMap = new CoordinateMap(this);
+			_ = this._coordinateMap.InitializeDefaultMap();
+
+			UpdateChunkHeight();
 		}
 
 		public ChunkMesh CreateChunkMesh()
 		{
+			UpdateChunkHeight();
+
 			// Create chunkMesh
 			ChunkMesh = new ChunkMesh(this, GroundHeight, GroundPosition);
 			_cellMap = new CellMap(this, ChunkMesh);
+
 			DetermineChunkType();
 
 			return ChunkMesh;
@@ -100,21 +105,25 @@ namespace Darklight.World.Generation
 		public void UpdateChunkHeight()
 		{
 			Coordinate.TYPE type = this._coordinate.Type;
-			switch (type)
+			Vector2Int perlinOffset = new Vector2Int((int)_coordinate.ScenePosition.x, (int)_coordinate.ScenePosition.z);
+			this._groundHeight = Mathf.RoundToInt(PerlinNoise.CalculateHeightFromNoise(perlinOffset) * WorldBuilder.Settings.PerlinMultiplier);
+			this._groundHeight = Mathf.Clamp(this._groundHeight, 0, WorldBuilder.Settings.ChunkMaxHeight_inCellUnits);
+
+			// Set Zone Chunks to same height as center
+			if (type == Coordinate.TYPE.ZONE)
 			{
-				case Coordinate.TYPE.NULL:
-				case Coordinate.TYPE.BORDER:
-					// >> set perlin noise height
-					Vector2Int perlinOffset = new Vector2Int((int)_coordinate.ScenePosition.x, (int)_coordinate.ScenePosition.z);
-					this._groundHeight = PerlinNoise.CalculateHeightFromNoise(perlinOffset);
-					return;
-				case Coordinate.TYPE.CLOSED:
-					SetGroundHeight(WorldBuilder.Settings.ChunkMaxHeight_inCellUnits);
-					return; // Set to max height
+				this._groundHeight = 0;
+				Zone coordinateZone = _coordinateMap.GetZoneFromCoordinate(_coordinate.ValueKey);
+				if (coordinateZone != null && coordinateZone.CenterCoordinate.ValueKey != _coordinate.ValueKey)
+				{
+					// Try to find center chunk of zone and set height to match
+					Chunk centerChunk = ChunkBuilderParent.GetChunkAt(coordinateZone.CenterCoordinate);
+					if (centerChunk != null)
+					{
+						this._groundHeight = centerChunk.GroundHeight;
+					}
+				}
 			}
-
-			SetGroundHeight(0); // Set to default 0
-
 		}
 
 		void DetermineChunkType()
@@ -187,7 +196,7 @@ namespace Darklight.World.Generation
 			foreach (WorldDirection direction in naturalNeighborDirections)
 			{
 				Vector2Int neighborCoordinateValue = CoordinateMap.CalculateNeighborCoordinateValue(Coordinate.ValueKey, direction);
-				neighborMap[direction] = GenerationParent.GetChunkAt(neighborCoordinateValue);
+				neighborMap[direction] = ChunkBuilderParent.GetChunkAt(neighborCoordinateValue);
 			}
 
 			return neighborMap;

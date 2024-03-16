@@ -56,6 +56,11 @@ namespace Darklight.World.Editor
 			}
 		}
 
+		private void OnDisable()
+		{
+			_regionBuilderScript.Reset();
+		}
+
 		private void DrawCustomGenerationSettings()
 		{
 			SerializedProperty customWorldGenSettingsProperty = _serializedRegionBuilderObject.FindProperty("customRegionSettings");

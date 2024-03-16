@@ -7,8 +7,8 @@ namespace Darklight.World.Generation
 	using Map;
 	public class Zone
 	{
-		public enum TYPE { FULL, NATURAL_CROSS, DIAGONAL_CROSS, HORIZONTAL, VERTICAL }
-		public static TYPE GetRandomTypeFromList(List<TYPE> typeList)
+		public enum Shape { SINGLE, FULL, NATURAL_CROSS, DIAGONAL_CROSS, HORIZONTAL, VERTICAL }
+		public static Shape GetRandomTypeFromList(List<Shape> typeList)
 		{
 			// Choose a random index
 			int randomIndex = Random.Range(0, typeList.Count);
@@ -22,42 +22,42 @@ namespace Darklight.World.Generation
 		int _id;
 		CoordinateMap _coordinateMapParent;
 		Coordinate _coordinate;
-		TYPE _type;
+		Shape _type;
 		int _height;
-		Dictionary<Vector2Int, Coordinate> _zoneCoordinateMap = new();
+		Dictionary<Vector2Int, Coordinate> _zoneCoordinateValueMap = new();
 
 		public bool Valid => _valid;
 		public int ID => _id;
-		public List<Vector2Int> Positions => _zoneCoordinateMap.Keys.ToList();
-		public List<Coordinate> Coordinates => _zoneCoordinateMap.Values.ToList();
+		public List<Vector2Int> Positions => _zoneCoordinateValueMap.Keys.ToList();
+		public List<Coordinate> Coordinates => _zoneCoordinateValueMap.Values.ToList();
 		public Coordinate CenterCoordinate => _coordinate;
-		public TYPE Type => _type;
-		public Zone(Coordinate coordinate, TYPE zoneType, int zoneHeight, int zoneID)
+		public Zone(Coordinate coordinate, Shape zoneShape, int zoneID)
 		{
 			this._coordinateMapParent = coordinate.ParentMap;
 			this._coordinate = coordinate;
-			this._type = zoneType;
-			this._height = zoneHeight;
+			this._type = zoneShape;
 			this._id = zoneID;
 
 			// Get affected neighbors
 			List<Coordinate> neighborsInZone = new();
 			switch (_type)
 			{
-				case TYPE.FULL:
+				case Shape.SINGLE:
+					break;
+				case Shape.FULL:
 					neighborsInZone = _coordinate.GetAllValidNeighbors();
 					break;
-				case TYPE.NATURAL_CROSS:
+				case Shape.NATURAL_CROSS:
 					neighborsInZone = _coordinate.GetValidNaturalNeighbors();
 					break;
-				case TYPE.DIAGONAL_CROSS:
+				case Shape.DIAGONAL_CROSS:
 					neighborsInZone = _coordinate.GetValidDiagonalNeighbors();
 					break;
-				case TYPE.HORIZONTAL:
+				case Shape.HORIZONTAL:
 					neighborsInZone.Add(_coordinate.GetNeighborInDirection(WorldDirection.WEST));
 					neighborsInZone.Add(_coordinate.GetNeighborInDirection(WorldDirection.EAST));
 					break;
-				case TYPE.VERTICAL:
+				case Shape.VERTICAL:
 					neighborsInZone.Add(_coordinate.GetNeighborInDirection(WorldDirection.NORTH));
 					neighborsInZone.Add(_coordinate.GetNeighborInDirection(WorldDirection.SOUTH));
 					break;
@@ -68,10 +68,10 @@ namespace Darklight.World.Generation
 			zoneCoordinates.AddRange(neighborsInZone);
 
 			// Extract coordinates into values map
-			_zoneCoordinateMap = _coordinateMapParent.GetCoordinateValueMapFrom(zoneCoordinates);
+			_zoneCoordinateValueMap = _coordinateMapParent.GetCoordinateValueMapFrom(zoneCoordinates);
 
 			// Extract  & check coordinate types
-			List<Coordinate.TYPE?> _zoneCoordinateTypes = _coordinateMapParent.GetCoordinateTypesAt(_zoneCoordinateMap.Keys.ToList());
+			List<Coordinate.TYPE?> _zoneCoordinateTypes = _coordinateMapParent.GetCoordinateTypesAt(_zoneCoordinateValueMap.Keys.ToList());
 			if (_zoneCoordinateTypes.Any(type => type != Coordinate.TYPE.NULL))
 			{
 				_valid = false;
@@ -85,7 +85,7 @@ namespace Darklight.World.Generation
 		public Coordinate GetClosestExternalNeighborTo(Vector2Int mapValue)
 		{
 			float closestDistance = float.MaxValue;
-			var coordinateValueMap = _zoneCoordinateMap;
+			var coordinateValueMap = _zoneCoordinateValueMap;
 
 			// >> get the closest zone coordinate value
 			Vector2Int closestZoneValue = Vector2Int.zero;

@@ -22,7 +22,7 @@ namespace Darklight.World
 		public enum ChunkView { OUTLINE, TYPE, HEIGHT, COORDINATE_MAP, CELL_MAP }
 		public enum CellView { OUTLINE, TYPE, FACE }
 		public enum CoordinateMapView { GRID_ONLY, COORDINATE_VALUE, COORDINATE_TYPE, ZONE_ID }
-		public enum ChunkMapView { TYPE, HEIGHT }
+		public enum ChunkMapView { TYPE, HEIGHT, COORDINATE_MAP, CELL_MAP }
 		public enum CellMapView { TYPE, FACE }
 		public EditMode editMode = EditMode.WORLD;
 		public WorldView worldView = WorldView.COORDINATE_MAP;
@@ -180,7 +180,7 @@ namespace Darklight.World
 		#endregion
 
 		// ==== DRAW WORLD UNITS ====================================================================================================
-		public static void DrawRegion(RegionBuilder region, WorldEditor.RegionView type)
+		public static void DrawRegion(RegionBuilder region, WorldEditor editor)
 		{
 			if (region == null || region.CoordinateMap == null) { return; }
 
@@ -189,7 +189,7 @@ namespace Darklight.World
 			GUIStyle regionLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
 
 			// [[ DRAW GRID ONLY ]]
-			if (type == WorldEditor.RegionView.OUTLINE)
+			if (editor.regionView == WorldEditor.RegionView.OUTLINE)
 			{
 				CustomGizmos.DrawLabel($"{region.Coordinate.ValueKey}", region.CenterPosition, regionLabelStyle);
 				CustomGizmos.DrawButtonHandle(region.CenterPosition, Vector3.up, WorldBuilder.Settings.RegionWidth_inGameUnits * 0.475f, Color.black, () =>
@@ -198,33 +198,33 @@ namespace Darklight.World
 				}, Handles.RectangleHandleCap);
 			}
 			// [[ DRAW COORDINATE MAP ]]
-			else if (type == WorldEditor.RegionView.COORDINATE_MAP)
+			else if (editor.regionView == WorldEditor.RegionView.COORDINATE_MAP)
 			{
-				DrawCoordinateMap(coordinateMap, WorldEditor.CoordinateMapView.COORDINATE_VALUE, (coordinate) =>
+				DrawCoordinateMap(coordinateMap, editor.coordinateMapView, (coordinate) =>
 				{
 
 				});
 			}
 			// [[ DRAW CHUNK MAP ]]
-			else if (type == WorldEditor.RegionView.CHUNK_MAP)
+			else if (editor.regionView == WorldEditor.RegionView.CHUNK_MAP)
 			{
-				DrawChunkMap(chunkBuilder, WorldEditor.ChunkMapView.HEIGHT);
+				DrawChunkMap(chunkBuilder, editor);
 			}
 			// [[ DRAW CHUNK MAP ]]
-			else if (type == WorldEditor.RegionView.CELL_MAP)
+			else if (editor.regionView == WorldEditor.RegionView.CELL_MAP)
 			{
 				foreach (Chunk chunk in chunkBuilder.AllChunks)
 				{
-					DrawCellMap(chunk.CellMap, WorldEditor.CellMapView.TYPE);
+					DrawCellMap(chunk.CellMap, editor.cellMapView);
 				}
 			}
 		}
 
-		public static void DrawChunk(Chunk chunk, WorldEditor.ChunkView type)
+		public static void DrawChunk(Chunk chunk, WorldEditor editor)
 		{
 			GUIStyle chunkLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
 
-			switch (type)
+			switch (editor.chunkView)
 			{
 				case WorldEditor.ChunkView.OUTLINE:
 
@@ -254,7 +254,7 @@ namespace Darklight.World
 					break;
 				case WorldEditor.ChunkView.COORDINATE_MAP:
 
-					//DrawCoordinateMap(chunk.CoordinateMap, _worldEditScript.coordinateMapView, (coordinate) => {});
+					DrawCoordinateMap(chunk.CoordinateMap, editor.coordinateMapView, (coordinate) => { });
 
 					break;
 				case WorldEditor.ChunkView.CELL_MAP:
@@ -338,7 +338,7 @@ namespace Darklight.World
 			}
 		}
 
-		public static void DrawChunkMap(ChunkBuilder chunkMap, WorldEditor.ChunkMapView mapView)
+		public static void DrawChunkMap(ChunkBuilder chunkMap, WorldEditor editor)
 		{
 			GUIStyle chunkLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
 			Color chunkColor = Color.black;
@@ -349,13 +349,16 @@ namespace Darklight.World
 				foreach (Chunk chunk in chunkMap.AllChunks)
 				{
 					// Draw Custom View
-					switch (mapView)
+					switch (editor.chunkMapView)
 					{
 						case WorldEditor.ChunkMapView.TYPE:
-							DrawChunk(chunk, WorldEditor.ChunkView.TYPE);
+							DrawChunk(chunk, editor);
 							break;
 						case WorldEditor.ChunkMapView.HEIGHT:
-							DrawChunk(chunk, WorldEditor.ChunkView.HEIGHT);
+							DrawChunk(chunk, editor);
+							break;
+						case WorldEditor.ChunkMapView.COORDINATE_MAP:
+							DrawChunk(chunk, editor);
 							break;
 					}
 				}

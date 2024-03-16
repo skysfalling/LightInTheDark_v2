@@ -17,10 +17,11 @@ namespace Darklight.World.Settings
 		[SerializeField] private int _regionBoundaryOffset = 0; // in Chunks
 		[SerializeField] private int _worldWidth = 5; // in Regions
 		[SerializeField] private float _pathRandomness = 0.5f;
+		[SerializeField] private float _perlinMultiplier = 1.0f;
 
-		// [[ PUBLIC ACCESSORS ]]
 		public string Seed => _seed;
 
+		#region [[ WORLD UNIT SIZES ]] ========
 		// >>>> WORLD CELL
 		public int CellSize_inGameUnits => _cellSize;
 
@@ -48,13 +49,11 @@ namespace Darklight.World.Settings
 		public int WorldWidth_inChunkUnits => _worldWidth * RegionFullWidth_inChunkUnits;
 		public int WorldWidth_inCellUnits => _worldWidth * RegionFullWidth_inCellUnits;
 		public int WorldWidth_inGameUnits => WorldWidth_inCellUnits * _cellSize;
+		#endregion
 
 		// >>>> WORLD GENERATION PARAMETERS
 		public float PathRandomness => _pathRandomness;
-
-
-		// >>>>> UNIT SPACE
-		public UnitSpace ChunkMeshUnitSpace => UnitSpace.REGION;
+		public float PerlinMultiplier => _perlinMultiplier;
 
 		public GenerationSettings() { }
 		public GenerationSettings(CustomGenerationSettings worldGenSettings)
@@ -69,6 +68,7 @@ namespace Darklight.World.Settings
 			_worldWidth = worldGenSettings.WorldWidth;
 
 			_pathRandomness = worldGenSettings.PathRandomness;
+			_perlinMultiplier = worldGenSettings.PerlinMultiplier;
 		}
 	}
 }

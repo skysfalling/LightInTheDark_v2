@@ -147,11 +147,11 @@ namespace Darklight.World.Map
         public List<Vector2Int> Exits => _borderExitMap.Values.SelectMany(exit => exit).ToList(); // Collapse all values into list
         public List<Path> Paths = new();
         public List<Zone> Zones => _zones;
-
+        public Dictionary<Zone, HashSet<Vector2Int>> ZoneMap => _zoneMap;
         #endregion
 
         #region == [[ CONSTRUCTOR ]] ======================================================================== >>>>
-		public CoordinateMap(Transform transform, Vector3 originPosition, int mapWidthCount, int coordinateSize)
+        public CoordinateMap(Transform transform, Vector3 originPosition, int mapWidthCount, int coordinateSize)
         {
             _mapUnitSpace = UnitSpace.WORLD;
             _mapOriginPosition = originPosition;
@@ -165,7 +165,6 @@ namespace Darklight.World.Map
             _mapWidthCount = WorldBuilder.Settings.WorldWidth_inRegionUnits;
             _coordinateSize = WorldBuilder.Settings.RegionFullWidth_inGameUnits;
         }
-
         public CoordinateMap(RegionBuilder parent)
         {
             _mapUnitSpace = UnitSpace.REGION;
@@ -173,7 +172,6 @@ namespace Darklight.World.Map
             _mapWidthCount = WorldBuilder.Settings.RegionFullWidth_inChunkUnits;
             _coordinateSize = WorldBuilder.Settings.ChunkWidth_inGameUnits;
         }
-
         public CoordinateMap(Chunk parent)
         {
             _mapUnitSpace = UnitSpace.CHUNK;
@@ -313,7 +311,7 @@ namespace Darklight.World.Map
             Initialized = true;
             await Task.CompletedTask;
         }
-		#endregion
+        #endregion
 
         #region [[ GET COORDINATE ]] ======================================================================== >>>>
         public Coordinate GetCoordinateAt(Vector2Int valueKey)
@@ -525,10 +523,7 @@ namespace Darklight.World.Map
         #endregion
 
         // == [[ FIND COORDINATE ]] ================================================================= >>>>
-        public Coordinate FindClosestCoordinateOfType(
-            Coordinate targetCoordinate,
-            List<Coordinate.TYPE> typeList
-        )
+        public Coordinate FindClosestCoordinateOfType(Coordinate targetCoordinate, List<Coordinate.TYPE> typeList)
         {
             // using BFS algorithm
             Queue<Vector2Int> queue = new Queue<Vector2Int>();
@@ -561,7 +556,7 @@ namespace Darklight.World.Map
                 }
             }
 
-            return targetCoordinate;
+            return null;
         }
 
         // == [[ WORLD EXITS ]] ======================================================================== >>>>
@@ -730,12 +725,12 @@ namespace Darklight.World.Map
         }
 
         // == [[ WORLD ZONES ]] ================================================================================ >>>>
-        public bool CreateWorldZone(Vector2Int position, Zone.TYPE zoneType, int zoneHeight)
+        public bool CreateWorldZone(Vector2Int position, Zone.Shape zoneType)
         {
             //Debug.Log($"Attempting to create zone at {position}");
 
             // Temporarily create the zone to check its positions
-            Zone newZone = new Zone(GetCoordinateAt(position), zoneType, zoneHeight, Zones.Count);
+            Zone newZone = new Zone(GetCoordinateAt(position), zoneType, Zones.Count);
 
             // Check if the zone is valid
             if (!newZone.Valid)
@@ -745,33 +740,50 @@ namespace Darklight.World.Map
             }
 
             // If no invalid positions are found, add the zone
-            Zones.Add(newZone);
+            _zones.Add(newZone);
+            _zoneMap[newZone] = new HashSet<Vector2Int>(newZone.Positions);
             SetCoordinatesToType(newZone.Positions, Coordinate.TYPE.ZONE);
+
 
             // Find the closest PATH Coordinate
             Coordinate closestPathCoordinate = FindClosestCoordinateOfType(
                 newZone.CenterCoordinate,
                 new List<Coordinate.TYPE>() { Coordinate.TYPE.PATH }
             );
+            if (closestPathCoordinate != null)
+            {
+                // Find the closest ZONE Coordinate
+                Coordinate zonePathConnection = newZone.GetClosestExternalNeighborTo(
+                    closestPathCoordinate.ValueKey
+                );
 
-            // Find the closest ZONE Coordinate
-            Coordinate zonePathConnection = newZone.GetClosestExternalNeighborTo(
-                closestPathCoordinate.ValueKey
-            );
+                Path zonePath = CreatePathFrom(
+                    closestPathCoordinate.ValueKey,
+                    zonePathConnection.ValueKey,
+                    new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL, Coordinate.TYPE.PATH },
+                    true
+                );
+                Debug.Log($"Created zone path from {zonePath.StartPosition} to {zonePath.EndPosition} -> {zonePath.AllPositions.Count}");
+                //Debug.Log($"Zone successfully created at {position} with type {zoneType}.");
+            }
 
-            Path zonePath = CreatePathFrom(
-                closestPathCoordinate.ValueKey,
-                zonePathConnection.ValueKey,
-                new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL, Coordinate.TYPE.PATH },
-                true
-            );
-            //Debug.Log($"Created zone path from {zonePath.StartPosition} to {zonePath.EndPosition} -> {zonePath.AllPositions.Count}");
 
-            //Debug.Log($"Zone successfully created at {position} with type {zoneType}.");
             return true;
         }
 
-        public async Task GenerateRandomZones(int minZones, int maxZones, List<Zone.TYPE> types)
+        public Zone GetZoneFromCoordinate(Vector2Int coordinateValue)
+        {
+            foreach (Zone zone in _zoneMap.Keys)
+            {
+                if (_zoneMap[zone].Contains(coordinateValue))
+                {
+                    return zone;
+                }
+            }
+            return null;
+        }
+
+        public async Task GenerateRandomZones(int minZones, int maxZones, List<Zone.Shape> types)
         {
             Zones.Clear();
 
@@ -796,11 +808,14 @@ namespace Darklight.World.Map
 
                 // Attempt to create a zone at the current position
 
-                Zone.TYPE zoneType = Zone.GetRandomTypeFromList(types);
-                int randomHeight = Random.Range(0, 5);
+                Zone.Shape zoneType = Zone.GetRandomTypeFromList(types);
 
-                CreateWorldZone(potentialPositions[i], zoneType, randomHeight);
-                zonesCreated++;
+                bool valid = CreateWorldZone(potentialPositions[i], zoneType);
+
+                if (valid)
+                {
+                    zonesCreated++;
+                }
             }
 
             //Debug.Log($"Attempted to create {numZonesToCreate} zones. Successfully created {zonesCreated}.", this._worldRegion.gameObject);

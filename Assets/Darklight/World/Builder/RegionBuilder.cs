@@ -147,6 +147,7 @@ namespace Darklight.World.Builder
 				if (WorldBuilder.Instance == null)
 				{
 					WorldBuilder.OverrideSettings(customRegionSettings);
+					this._coordinate = new Coordinate(Vector2Int.zero, UnitSpace.REGION);
 				}
 
 				Debug.Log($"{_prefix} Initialize On Start");
@@ -204,7 +205,7 @@ namespace Darklight.World.Builder
 
 				await GenerateExits(true);
 				await CoordinateMap.GeneratePathsBetweenExits();
-				await CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
+				await CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.Shape> { Zone.Shape.SINGLE });
 
 				TaskBotConsole.Log(this, $"Region Generation Complete with {CoordinateMap.Exits.Count} Exits and {CoordinateMap.Zones.Count} Zones");
 				Debug.Log($"Region Generation Complete [[ {CoordinateMap.Exits.Count} Exits ,, {CoordinateMap.Zones.Count} Zones ]");
@@ -225,7 +226,7 @@ namespace Darklight.World.Builder
 
 			// [[ STAGE 3 ]] COMBINE CHUNK MESH OBJECTS ---- >> 
 			// it WorldBuilder is present, then combine the chunk mesh
- 			if (WorldBuilder.Instance != null)
+			if (WorldBuilder.Instance != null)
 			{
 				TaskBot CombineMesh = new TaskBot(this, "Mesh Generation", async () =>
 				{

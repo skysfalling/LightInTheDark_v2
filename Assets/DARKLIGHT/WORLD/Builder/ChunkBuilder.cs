@@ -50,7 +50,7 @@ namespace Darklight.World.Builder
 			await Task.CompletedTask;
 		}
 
-		async Task CreateChunkMeshObjs()
+		async Task CreateChunkObjs()
 		{
 			TaskBotConsole.Log(this, $"Creating {_chunks.Count} Meshes");
 			foreach (Chunk chunk in _chunks)
@@ -70,7 +70,7 @@ namespace Darklight.World.Builder
 			TaskBot task1 = new TaskBot(this, "CreatingChunks [task1]", CreateChunkMesh());
 			await Enqueue(task1);
 			/// STAGE 1 : [[ CREATE CHUNKS ]]
-			TaskBot task2 = new TaskBot(this, "CreatingChunkMeshObjs [task2]", CreateChunkMeshObjs());
+			TaskBot task2 = new TaskBot(this, "CreatingChunkMeshObjs [task2]", CreateChunkObjs());
 			await Enqueue(task2);
 
 			await ExecuteAllTasks();

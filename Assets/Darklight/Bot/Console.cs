@@ -70,6 +70,7 @@ namespace Darklight.Bot
 
 		public void Reset()
 		{
+			allLogEntries.Clear();
 			consoleDictionary.Clear();
 		}
 

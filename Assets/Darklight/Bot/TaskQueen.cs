@@ -50,36 +50,8 @@ namespace Darklight.Bot
 					}
 				}
 
-				// Assign the TaskBot to Execute on the main or background thread
-				if (taskBot.executeOnBackgroundThread)
-				{
-					await Awaitable.BackgroundThreadAsync();
-				}
-				else
-				{
-					await Awaitable.MainThreadAsync(); // Default to Main Thread
-				}
-
 				// Try to Execute the TaskBot
-				try
-				{
-					TaskBotConsole.Log(this, $"Try to Execute {taskBot.Name}");
-					await taskBot.ExecuteTask();
-				}
-				catch (OperationCanceledException e)
-				{
-					TaskBotConsole.Log(this, $"\t ERROR: TaskBot {taskBot.Name} was cancelled: {e.Message}");
-					Debug.Log($"\t ERROR: TaskBot {taskBot.Name} was cancelled: {e.StackTrace}");
-				}
-				catch (Exception e)
-				{
-					TaskBotConsole.Log(this, $"ERROR: Executing {taskBot.Name}: {e.Message}");
-					UnityEngine.Debug.Log($"ERROR: Executing {taskBot.Name}");
-				}
-				finally
-				{
-					TaskBotConsole.Log(this, $"\t COMPLETE: Finished Executing {taskBot.Name}");
-				}
+				await ExecuteBot(taskBot);
 			}
 
 			TaskBotConsole.Log(this, $"Finished Executing [{_executionQueue.Count}] TaskBots");
@@ -96,6 +68,40 @@ namespace Darklight.Bot
 			_executionQueue.Enqueue(taskBot);
 			TaskBotConsole.Log(this, $"Enqueue {taskBot.Name}");
 			await Awaitable.WaitForSecondsAsync(0.1f);
+		}
+
+		public async Awaitable ExecuteBot(TaskBot taskBot)
+		{
+			// Assign the TaskBot to Execute on the background thread
+			if (taskBot.executeOnBackgroundThread)
+			{
+				await Awaitable.BackgroundThreadAsync();
+			}
+			// Default to Main Thread
+			else
+			{
+				await Awaitable.MainThreadAsync();
+			}
+
+			try
+			{
+				TaskBotConsole.Log(this, $"Try to Execute {taskBot.Name}");
+				await taskBot.ExecuteTask();
+			}
+			catch (OperationCanceledException e)
+			{
+				TaskBotConsole.Log(this, $"\t ERROR: TaskBot {taskBot.Name} was cancelled: {e.Message}");
+				Debug.Log($"\t ERROR: TaskBot {taskBot.Name} was cancelled: {e.StackTrace}");
+			}
+			catch (Exception e)
+			{
+				TaskBotConsole.Log(this, $"ERROR: Executing {taskBot.Name}: {e.Message}");
+				UnityEngine.Debug.Log($"ERROR: Executing {taskBot.Name}");
+			}
+			finally
+			{
+				TaskBotConsole.Log(this, $"\t COMPLETE: Finished Executing {taskBot.Name}");
+			}
 		}
 	}
 }

@@ -4,14 +4,23 @@ namespace Darklight.World.Generation
     using Darklight.Bot;
     using Builder;
     using Darklight.World.Map;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
 
 
     public class SpawnMap : TaskQueen, ITaskEntity
     {
-        public RegionBuilder regionBuilder;
+        RegionBuilder _regionBuilder;
+        RegionBuilder RegionBuilder => GetComponent<RegionBuilder>();
+        CoordinateMap CoordinateMap => RegionBuilder.CoordinateMap;
+        Dictionary<Chunk, CellMap> cellMaps = new();
+        Dictionary<Chunk, HashSet<Cell>> spawnCells = new();
+
+        public Traveler playerTraveler;
 
         public async void Start()
         {
+            _regionBuilder = RegionBuilder;
             await base.Initialize();
             await InitializationSequence();
         }
@@ -19,20 +28,27 @@ namespace Darklight.World.Generation
         public override async Awaitable InitializationSequence()
         {
             await base.InitializationSequence();
-            while (regionBuilder.Initialized == false)
+            while (RegionBuilder.GenerationFinished == false)
             {
                 await Awaitable.WaitForSecondsAsync(0.1f);
             }
 
-            TaskBotConsole.Log(this, "Detected Initialized Region");
+            HashSet<Chunk> allChunks = _regionBuilder.ChunkBuilder.AllChunks;
+            TaskBotConsole.Log(this, "Detected Region Generation");
+            TaskBotConsole.Log(this, $"Found {RegionBuilder.ChunkBuilder.AllChunks.Count} Chunks");
+
+            TaskBot MapSpawnFacesBot = new TaskBot(this, "MapSpawnFacesBot", async () =>
+            {
+                foreach (Chunk chunk in allChunks)
+                {
+                    cellMaps[chunk] = chunk.CellMap;
+                    spawnCells[chunk] = chunk.CellMap.ChunkFaceMap[Chunk.FaceType.Top];
+                    TaskBotConsole.Log(this, $"Found {spawnCells[chunk].Count} Spawn Cells in Chunk {chunk.Coordinate.ValueKey}");
+                }
+                await Task.CompletedTask;
+            }, true);
+            await ExecuteBot(MapSpawnFacesBot);
         }
-
-        public void OnDrawGizmos()
-        {
-            if (regionBuilder == null) return;
-
-        }
-
 
         void DrawCell(Cell cell, WorldEditor.CellView type)
         {
@@ -55,12 +71,12 @@ namespace Darklight.World.Generation
             }
         }
 
-        void DrawCellMap(CellMap cellMap, WorldEditor.CellMapView mapView)
+        void DrawCells(HashSet<Cell> cells, WorldEditor.CellMapView mapView)
         {
-            if (cellMap == null) return;
+            if (cells == null) return;
 
             GUIStyle cellLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
-            foreach (Cell cell in cellMap.AllCells)
+            foreach (Cell cell in cells)
             {
                 // Draw Custom View
                 switch (mapView)
@@ -74,5 +90,6 @@ namespace Darklight.World.Generation
                 }
             }
         }
+
     }
 }

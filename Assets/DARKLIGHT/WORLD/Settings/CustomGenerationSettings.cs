@@ -15,8 +15,9 @@ namespace Darklight.World.Settings
 		[SerializeField] private int _regionWidth = 7; // in Chunks
 		[SerializeField] private int _regionBoundaryOffset = 0; // in Chunks
 		[SerializeField] private int _worldWidth = 5; // in Regions
-
 		[SerializeField] private float _pathRandomness = 0.5f;
+		[SerializeField] private float _perlinMultiplier = 1.0f;
+
 
 		// >> Public Accessors
 		public string Seed => _seed;
@@ -28,5 +29,6 @@ namespace Darklight.World.Settings
 		public int RegionBoundaryOffset => _regionBoundaryOffset;
 		public int WorldWidth => _worldWidth;
 		public float PathRandomness => _pathRandomness;
+		public float PerlinMultiplier => _perlinMultiplier;
 	}
 }
