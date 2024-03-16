@@ -16,66 +16,42 @@ namespace Darklight.World
 	[CustomEditor(typeof(WorldSpawnUnit), true)]
 	public class WorldSpawnUnitEditor : UnityEditor.Editor
 	{
-		private UnityEditor.Editor _previewEditor;
-		private WorldSpawnUnit _spawnUnitScript;
-		public GameObject previewObject;
-
-		void OnEnable()
+		private UnityEditor.Editor previewEditor;
+		private WorldSpawnUnit spawnUnitScript;
+		private void OnEnable()
 		{
-			_spawnUnitScript = (WorldSpawnUnit)target;
-			Repaint();
+			// This method is called when the editor is created and whenever the selection changes.
+			spawnUnitScript = (WorldSpawnUnit)target;
+			previewEditor = null; // Reset the preview editor to ensure it updates when the selection changes.
 		}
-
 		public override void OnInspectorGUI()
 		{
 			serializedObject.Update();
-			_spawnUnitScript = (WorldSpawnUnit)target;
-			EditorGUI.BeginChangeCheck();
-
-			if (_spawnUnitScript.modelPrefab == null)
+			spawnUnitScript = (WorldSpawnUnit)target;
+			// Check and create a preview editor for the modelPrefab if one does not exist or if the prefab has changed.
+			if (previewEditor == null || spawnUnitScript.modelPrefab != previewEditor.target)
 			{
-				previewObject = null;
-				_previewEditor = null;
+				// Clean up the old preview editor if it exists
+				if (previewEditor != null)
+				{
+					previewEditor = null;
+				}
+				if (spawnUnitScript.modelPrefab != null) // Ensure there is a prefab to create an editor for.
+				{
+					previewEditor = CreateEditor(spawnUnitScript.modelPrefab);
+				}
 			}
-			else if (_spawnUnitScript.modelPrefab != previewObject)
+
+			// If a preview editor exists, draw it.
+			if (previewEditor != null)
 			{
-				_previewEditor = null;
-				previewObject = _spawnUnitScript.modelPrefab;
+				previewEditor.OnInteractivePreviewGUI(GUILayoutUtility.GetRect(128, 128, GUILayout.ExpandWidth(true)), GUIStyle.none);
 			}
 
-
-			EditorGUILayout.BeginHorizontal();
-			if (_previewEditor == null)
-			{
-				_previewEditor = CreateEditor(previewObject);
-			}
-			_previewEditor.OnInteractivePreviewGUI(GUILayoutUtility.GetRect(128, 128, GUILayout.ExpandWidth(false)), GUIStyle.none);
-
-
-			EditorGUILayout.BeginVertical();
-			base.OnInspectorGUI();
-			EditorGUILayout.EndVertical();
-			EditorGUILayout.EndHorizontal();
-
-			if (EditorGUI.EndChangeCheck())
-			{
-				serializedObject.ApplyModifiedProperties();
-
-
-				Repaint();
-			}
-		}
-
-		private void OnDestroy()
-		{
-			// Clean up the editor when the window is closed
-			if (_previewEditor != null)
-			{
-				DestroyImmediate(_previewEditor);
-			}
+			DrawDefaultInspector();
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
-
 #endif
 
 }

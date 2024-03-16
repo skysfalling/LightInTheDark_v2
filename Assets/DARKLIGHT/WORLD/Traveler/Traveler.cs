@@ -41,57 +41,57 @@ namespace Darklight.World.Generation
 			CurrentCoordinate = map.GetCoordinateAt(value);
 			transform.position = CurrentCoordinate.ScenePosition;
 		}
-
-		private void OnDrawGizmos()
-		{
-			if (Active)
-			{
-				UnityEngine.Gizmos.color = Color.red;
-				UnityEngine.Gizmos.DrawWireSphere(CurrentChunk.Coordinate.ScenePosition, 5f);
-
-				foreach (Coordinate neighbor in CurrentChunk.Coordinate.GetAllValidNeighbors())
-				{
-					UnityEngine.Gizmos.color = Color.green;
-					UnityEngine.Gizmos.DrawWireSphere(neighbor.ScenePosition, 5f);
-				}
-			}
-		}
 	}
 
 #if UNITY_EDITOR
 	[CustomEditor(typeof(Traveler))]
 	public class TravelerEditor : UnityEditor.Editor
 	{
-		Traveler _travelerScript;
-		WorldSpawnUnit _worldSpawnUnit;
-
+		SerializedProperty worldSpawnUnitProp;
+		UnityEditor.Editor worldSpawnUnitEditor;
 
 		void OnEnable()
 		{
-			_travelerScript = (Traveler)target;
-			_worldSpawnUnit = _travelerScript.worldSpawnUnit;
+			// Use serialized properties for better handling of undo, prefab overrides, etc.
+			worldSpawnUnitProp = serializedObject.FindProperty("worldSpawnUnit");
 		}
 
 		public override void OnInspectorGUI()
 		{
-			EditorGUI.BeginChangeCheck();
+			serializedObject.Update();
 
+			// Display the default inspector view, which now includes the WorldSpawnUnit field automatically.
 			DrawDefaultInspector();
-			EditorGUILayout.Space();
 
-			EditorGUILayout.BeginVertical();
-			UnityEditor.Editor editor = CreateEditor(_worldSpawnUnit.modelPrefab);
-			editor.OnInspectorGUI();
+			DrawWorldSpawnUnit();
 
-			EditorGUILayout.EndVertical();
+			serializedObject.ApplyModifiedProperties();
+		}
 
-			if (EditorGUI.EndChangeCheck())
+		private void OnDisable()
+		{
+			// Clean up to avoid memory leaks.
+			if (worldSpawnUnitEditor != null) DestroyImmediate(worldSpawnUnitEditor);
+		}
+
+		private void DrawWorldSpawnUnit()
+		{
+			// Only create a new editor if the property has a reference and it has changed.
+			if (worldSpawnUnitProp.objectReferenceValue != null &&
+				(worldSpawnUnitEditor == null || worldSpawnUnitEditor.target != worldSpawnUnitProp.objectReferenceValue))
 			{
-				serializedObject.ApplyModifiedProperties();
-				EditorUtility.SetDirty(target);
-				Repaint();
+				// Clean up the previous editor if it exists.
+				if (worldSpawnUnitEditor != null) DestroyImmediate(worldSpawnUnitEditor);
+				worldSpawnUnitEditor = CreateEditor(worldSpawnUnitProp.objectReferenceValue);
 			}
 
+			// If the editor was successfully created, draw it.
+			if (worldSpawnUnitEditor != null)
+			{
+				EditorGUILayout.Space();
+				EditorGUILayout.LabelField("World Spawn Unit Editor", EditorStyles.boldLabel);
+				worldSpawnUnitEditor.OnInspectorGUI();
+			}
 		}
 	}
 #endif

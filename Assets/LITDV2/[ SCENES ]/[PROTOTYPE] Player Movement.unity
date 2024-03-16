@@ -277,7 +277,7 @@ Transform:
   m_GameObject: {fileID: 490836596}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 15, y: 2, z: -15}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -325,7 +325,7 @@ MonoBehaviour:
   _universalMoveDirection: {x: 0, y: 0}
   _multiplier: 10
   Active: 0
-  worldSpawnUnit: {fileID: 0}
+  worldSpawnUnit: {fileID: 11400000, guid: fe8b3e2c553b1c94d911a863d60898d7, type: 2}
 --- !u!1001 &603260310
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -650,7 +650,7 @@ GameObject:
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1612320680
 Transform:
   m_ObjectHideFlags: 0
