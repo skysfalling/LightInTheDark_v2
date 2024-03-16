@@ -10,6 +10,7 @@ namespace Darklight.World
 		public GameObject modelPrefab;
 		[Range(1, 5)]
 		public int x, y, z = 0;
+		public Vector3Int dimensions => new Vector3Int(x, y, z);
 	}
 
 #if UNITY_EDITOR

@@ -141,8 +141,10 @@ namespace Darklight.World
 
 					// SHOW WORLD STATS
 
-
-					CoordinateMapInspector(_worldBuilderScript.CoordinateMap);
+					if (_worldBuilderScript.CoordinateMap != null)
+					{
+						CoordinateMapInspector(_worldBuilderScript.CoordinateMap);
+					}
 					break;
 				case WorldEditor.EditMode.REGION:
 					if (_worldEditScript.selectedRegion == null && worldBuilder.AllRegions.Count > 0)

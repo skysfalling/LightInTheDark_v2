@@ -93,11 +93,11 @@ namespace Darklight.UniversalInput
             if (deviceFound)
             {
                 pointerScreenPosition.performed += context =>
-                    InvokeActivePointerPositionEvent(pointerScreenPosition.ReadValue<Vector2>());
+                //InvokeActivePointerPositionEvent(pointerScreenPosition.ReadValue<Vector2>());
                 primaryInteract.performed += context =>
-                    InvokePrimaryInteractionEvent(pointerScreenPosition.ReadValue<Vector2>());
+                //InvokePrimaryInteractionEvent(pointerScreenPosition.ReadValue<Vector2>());
                 secondaryInteract.performed += context =>
-                    InvokeSecondaryInteractionEvent(pointerScreenPosition.ReadValue<Vector2>());
+                //InvokeSecondaryInteractionEvent(pointerScreenPosition.ReadValue<Vector2>());
                 moveInput.performed += context =>
                     InvokeMoveInteractionEvent(moveInput.ReadValue<Vector2>()); // Sent out move input value
                 moveInput.canceled += context => InvokeMoveInteractionEvent(Vector2.zero); // Reset input value

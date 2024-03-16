@@ -47,7 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   customWorldGenSettings: {fileID: 11400000, guid: 32809448232478c43a1dc5f49fc640ae,
     type: 2}
-  defaultMaterial: {fileID: 0}
+  defaultMaterial: {fileID: 2100000, guid: e18ded4b611aa8f4a9f0f261d2f29537, type: 2}
   initializeOnStart: 1
 --- !u!1 &3916990068721736691
 GameObject:

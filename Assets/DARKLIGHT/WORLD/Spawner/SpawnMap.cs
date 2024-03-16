@@ -1,12 +1,13 @@
 using UnityEngine;
 namespace Darklight.World.Generation
 {
+    using Builder;
     public class SpawnMap : MonoBehaviour
     {
-        public SpawnMap()
-        {
+        public RegionBuilder regionBuilder;
 
-			
+        public void Start()
+        {
 
         }
     }

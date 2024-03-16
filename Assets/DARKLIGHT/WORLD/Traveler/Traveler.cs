@@ -13,8 +13,8 @@ namespace Darklight.World.Generation
 	using Builder;
 	using Darklight.World.Map;
 
-	[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
-	public class Traveler : Game.Movement.Player8DirMovement
+	[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider), typeof(Game.Movement.Player8DirMovement))]
+	public class Traveler : MonoBehaviour
 	{
 		public CoordinateMap coordinateMap;
 		public bool Active = false;
@@ -22,6 +22,7 @@ namespace Darklight.World.Generation
 		public Chunk CurrentChunk { get; private set; }
 		public CoordinateMap CurrentCoordinateMap { get; private set; }
 		public Coordinate CurrentCoordinate { get; private set; }
+		[SerializeField] public CoordinateMap coordinateMapParent;
 		[SerializeField] public WorldSpawnUnit worldSpawnUnit;
 
 		// [[ INSPECTOR VARIABLES ]]
@@ -40,6 +41,14 @@ namespace Darklight.World.Generation
 			CurrentCoordinateMap = map;
 			CurrentCoordinate = map.GetCoordinateAt(value);
 			transform.position = CurrentCoordinate.ScenePosition;
+		}
+
+		public void SpawnModelAtPosition()
+		{
+			GameObject model = Instantiate(worldSpawnUnit.modelPrefab, transform.position, Quaternion.identity);
+			model.transform.SetParent(transform);
+			model.transform.localScale = Vector3.one;
+			transform.localPosition = new Vector3(0, worldSpawnUnit.dimensions.y / 2, 0);
 		}
 	}
 
@@ -64,6 +73,11 @@ namespace Darklight.World.Generation
 			DrawDefaultInspector();
 
 			DrawWorldSpawnUnit();
+
+			if (GUILayout.Button("Spawn Model"))
+			{
+				((Traveler)target).SpawnModelAtPosition();
+			}
 
 			serializedObject.ApplyModifiedProperties();
 		}

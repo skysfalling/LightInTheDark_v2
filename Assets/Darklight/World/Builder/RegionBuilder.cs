@@ -100,7 +100,7 @@ namespace Darklight.World.Builder
 			customRegionSettings = customSettings;
 		}
 		#endregion
-		#region [[ RANDOM SEED ]] -------------------------------------- >> 
+		#region [[ RANDOM SEED ]] 
 
 		/// <summary>
 		/// Gets the seed used for random generation.
@@ -159,9 +159,11 @@ namespace Darklight.World.Builder
 			{
 				DestroyGameObject(gameObject);
 			}
+
+			TaskBotConsole.Reset();
+
 		}
-		
-		
+
 		// INITIALIZE ============================== /////
 		public override async Task Initialize()
 		{
@@ -171,8 +173,14 @@ namespace Darklight.World.Builder
 			await _coordinateMap.InitializeDefaultMap();
 			await base.Initialize();
 			Initialized = true;
+
+			if (selfGenerate)
+			{
+				await GenerationSequence();
+			}
 		}
 
+		public bool selfGenerate = false;
 		/// <summary>
 		/// The initialization sequence for the region builder.
 		/// </summary>
@@ -184,14 +192,17 @@ namespace Darklight.World.Builder
 			// Generate Exits, Paths and Zones based on neighboring regions
 			TaskBot RegionGenerationTask = new TaskBot(this, "RegionGenerationTask", async () =>
 			{
+				while (_coordinateMap.Initialized != true)
+				{
+					await Awaitable.WaitForSecondsAsync(0.1f);
+				}
+
 				await GenerateExits(true);
 				await CoordinateMap.GeneratePathsBetweenExits();
 				await CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.TYPE> { Zone.TYPE.FULL });
-				
-
 
 				TaskBotConsole.Log(this, $"Region Generation Complete with {CoordinateMap.Exits.Count} Exits and {CoordinateMap.Zones.Count} Zones");
-				Debug.Log($"Region {Coordinate.ValueKey} Generation Complete [[ {CoordinateMap.Exits.Count} Exits ,, {CoordinateMap.Zones.Count} Zones ]");
+				Debug.Log($"Region Generation Complete [[ {CoordinateMap.Exits.Count} Exits ,, {CoordinateMap.Zones.Count} Zones ]");
 
 				await Awaitable.WaitForSecondsAsync(0.25f);
 
@@ -240,53 +251,61 @@ namespace Darklight.World.Builder
 		/// <param name="createExits">Indicates whether to create exits if they don't exist.</param>
 		async Task GenerateExits(bool createExits)
 		{
-			Dictionary<WorldDirection, Vector2Int> neighborDirectionMap = this.Coordinate.NeighborDirectionMap;
-
-			// Iterate directly over the keys of the map
-			foreach (WorldDirection neighborDirection in neighborDirectionMap.Keys)
+			if (this.Coordinate == null)
 			{
-				Vector2Int neighborCoordinateValue = neighborDirectionMap[neighborDirection];
-				BorderDirection? currentBorderWithNeighbor = CoordinateMap.GetBorderDirection(neighborDirection);
+				Debug.LogError("RegionBuilder: CoordinateParent is null, abort GenerateExitsTask");
+				await Task.CompletedTask;
+			}
+			else
+			{
+				Dictionary<WorldDirection, Vector2Int> neighborDirectionMap = this.Coordinate.NeighborDirectionMap;
 
-				// Skip iteration if no border direction is found.
-				if (!currentBorderWithNeighbor.HasValue) continue;
-
-				// Check if the neighbor exists; close the border if it doesn't.
-				if (this.GenerationParent.CoordinateMap.GetCoordinateAt(neighborCoordinateValue) == null)
+				// Iterate directly over the keys of the map
+				foreach (WorldDirection neighborDirection in neighborDirectionMap.Keys)
 				{
-					// Close borders on chunks if neighbor not found.
-					this.CoordinateMap.CloseMapBorder(currentBorderWithNeighbor.Value);
-				}
-				else
-				{
-					// Proceed with exit handling if the neighbor exists.
-					BorderDirection borderInThisRegion = (BorderDirection)currentBorderWithNeighbor; // >> convert border direction to non-nullable type
-																									 // >> get reference to neighbor region
-					RegionBuilder neighborRegion = this.GenerationParent.RegionMap[neighborCoordinateValue];
-					// >> get matching border direction
-					BorderDirection matchingBorderOnNeighbor = (BorderDirection)CoordinateMap.GetOppositeBorder(borderInThisRegion);
-					// >> get exits on neighbor region
-					HashSet<Vector2Int> neighborBorderExits = neighborRegion.CoordinateMap.GetExitsOnBorder(matchingBorderOnNeighbor);
+					Vector2Int neighborCoordinateValue = neighborDirectionMap[neighborDirection];
+					BorderDirection? currentBorderWithNeighbor = CoordinateMap.GetBorderDirection(neighborDirection);
 
-					// If neighbor has exits, create matching exits.
-					if (neighborBorderExits != null && neighborBorderExits.Count > 0)
+					// Skip iteration if no border direction is found.
+					if (!currentBorderWithNeighbor.HasValue) continue;
+
+					// Check if the neighbor exists; close the border if it doesn't.
+					if (this.GenerationParent.CoordinateMap.GetCoordinateAt(neighborCoordinateValue) == null)
 					{
-						foreach (Vector2Int exit in neighborBorderExits)
+						// Close borders on chunks if neighbor not found.
+						this.CoordinateMap.CloseMapBorder(currentBorderWithNeighbor.Value);
+					}
+					else
+					{
+						// Proceed with exit handling if the neighbor exists.
+						BorderDirection borderInThisRegion = (BorderDirection)currentBorderWithNeighbor; // >> convert border direction to non-nullable type
+																										 // >> get reference to neighbor region
+						RegionBuilder neighborRegion = this.GenerationParent.RegionMap[neighborCoordinateValue];
+						// >> get matching border direction
+						BorderDirection matchingBorderOnNeighbor = (BorderDirection)CoordinateMap.GetOppositeBorder(borderInThisRegion);
+						// >> get exits on neighbor region
+						HashSet<Vector2Int> neighborBorderExits = neighborRegion.CoordinateMap.GetExitsOnBorder(matchingBorderOnNeighbor);
+
+						// If neighbor has exits, create matching exits.
+						if (neighborBorderExits != null && neighborBorderExits.Count > 0)
 						{
-							this.CoordinateMap.CreateMatchingExit(matchingBorderOnNeighbor, exit);
+							foreach (Vector2Int exit in neighborBorderExits)
+							{
+								this.CoordinateMap.CreateMatchingExit(matchingBorderOnNeighbor, exit);
+							}
+						}
+						// If neighbor has no exits and exits are to be created, generate them randomly.
+						else if (createExits)
+						{
+							this.CoordinateMap.GenerateRandomExitOnBorder(borderInThisRegion);
 						}
 					}
-					// If neighbor has no exits and exits are to be created, generate them randomly.
-					else if (createExits)
-					{
-						this.CoordinateMap.GenerateRandomExitOnBorder(borderInThisRegion);
-					}
 				}
-			}
 
-			// Clean up inactive corners once after all border processing is done.
-			CoordinateMap.SetInactiveCornersToType(Coordinate.TYPE.BORDER);
-			await Task.CompletedTask;
+				// Clean up inactive corners once after all border processing is done.
+				CoordinateMap.SetInactiveCornersToType(Coordinate.TYPE.BORDER);
+				await Task.CompletedTask;
+			}
 		}
 
 		/// <summary>
