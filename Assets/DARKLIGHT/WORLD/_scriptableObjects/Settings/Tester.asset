@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _seed: Default Game Seed
   _cellSize: 1
-  _chunkWidth: 5
+  _chunkWidth: 15
   _chunkDepth: 1
   _chunkMaxHeight: 0
   _regionWidth: 1

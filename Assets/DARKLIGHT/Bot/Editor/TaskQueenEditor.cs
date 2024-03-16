@@ -21,8 +21,6 @@ namespace Darklight.Bot.Editor
 
 		public override void OnInspectorGUI()
 		{
-			// Start checking for changes
-
 			DrawDefaultInspector();
 
 			GUILayout.Space(10);

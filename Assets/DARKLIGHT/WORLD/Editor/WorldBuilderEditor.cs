@@ -58,7 +58,7 @@ namespace Darklight.World.Editor
 			SerializedProperty customWorldGenSettingsProperty = _serializedObject.FindProperty("customWorldGenSettings");
 			if (_worldBuilderScript.customWorldGenSettings != null)
 			{
-				_worldBuilderScript.OverrideSettings((CustomGenerationSettings)customWorldGenSettingsProperty.objectReferenceValue);
+				WorldBuilder.OverrideSettings((CustomGenerationSettings)customWorldGenSettingsProperty.objectReferenceValue);
 
 				showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Custom World Generation Settings", true);
 				if (showGenerationSettingsFoldout)
@@ -76,7 +76,7 @@ namespace Darklight.World.Editor
 			}
 			else
 			{
-				_worldBuilderScript.OverrideSettings(null);
+				WorldBuilder.OverrideSettings(null);
 
 				showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "Default World Generation Settings", true);
 				if (showGenerationSettingsFoldout)

@@ -22,7 +22,7 @@ namespace Darklight.World.Builder
 		WorldBuilder _generationParent;
 		Coordinate _coordinate;
 		CoordinateMap _coordinateMap;
-		ChunkBuilder _chunkGeneration;
+		ChunkBuilder _chunkBuilder;
 		GameObject _combinedMeshObject;
 		HashSet<GameObject> _regionObjects = new();
 		#endregion
@@ -144,6 +144,11 @@ namespace Darklight.World.Builder
 		{
 			if (initializeOnStart == true)
 			{
+				if (WorldBuilder.Instance == null)
+				{
+					WorldBuilder.OverrideSettings(customRegionSettings);
+				}
+
 				Debug.Log($"{_prefix} Initialize On Start");
 				await this.Initialize();
 			}
@@ -187,7 +192,7 @@ namespace Darklight.World.Builder
 		/// <returns>The task representing the initialization sequence.</returns>
 		public async Task GenerationSequence()
 		{
-			this._chunkGeneration = GetComponent<ChunkBuilder>();
+			this._chunkBuilder = GetComponent<ChunkBuilder>();
 
 			// Generate Exits, Paths and Zones based on neighboring regions
 			TaskBot RegionGenerationTask = new TaskBot(this, "RegionGenerationTask", async () =>
@@ -204,8 +209,6 @@ namespace Darklight.World.Builder
 				TaskBotConsole.Log(this, $"Region Generation Complete with {CoordinateMap.Exits.Count} Exits and {CoordinateMap.Zones.Count} Zones");
 				Debug.Log($"Region Generation Complete [[ {CoordinateMap.Exits.Count} Exits ,, {CoordinateMap.Zones.Count} Zones ]");
 
-				await Awaitable.WaitForSecondsAsync(0.25f);
-
 				await Task.CompletedTask;
 			});
 			await Enqueue(RegionGenerationTask);
@@ -214,8 +217,8 @@ namespace Darklight.World.Builder
 			TaskBot ChunkGenerationTask = new TaskBot(this, "Initialize Chunk Generation", async () =>
 			{
 				// Initialize chunks
-				_chunkGeneration.Initialize(this, this._coordinateMap);
-				await _chunkGeneration.GenerationSequence();
+				_chunkBuilder.Initialize(this, this._coordinateMap);
+				await _chunkBuilder.GenerationSequence();
 			});
 			await Enqueue(ChunkGenerationTask);
 
@@ -228,7 +231,7 @@ namespace Darklight.World.Builder
 				{
 					TaskBotConsole.Log(this, "Starting mesh generation...");
 
-					while (_chunkGeneration == null || _chunkGeneration.Initialized == false)
+					while (_chunkBuilder == null || _chunkBuilder.Initialized == false)
 					{
 						await Awaitable.WaitForSecondsAsync(0.1f);
 					}
@@ -413,7 +416,7 @@ namespace Darklight.World.Builder
 		private Mesh CombineChunks()
 		{
 			List<Mesh> meshes = new List<Mesh>();
-			foreach (Chunk chunk in _chunkGeneration.AllChunks)
+			foreach (Chunk chunk in _chunkBuilder.AllChunks)
 			{
 				if (chunk?.ChunkMesh?.Mesh != null)
 				{

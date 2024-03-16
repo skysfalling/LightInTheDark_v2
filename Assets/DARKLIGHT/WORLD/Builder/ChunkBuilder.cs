@@ -33,8 +33,6 @@ namespace Darklight.World.Builder
 			_coordinateMap = coordinateMap;
 			Initialized = true;
 		}
-
-		// [[ CREATE WORLD CHUNKS ]]
 		async Task CreateChunkMesh()
 		{
 			ChunkBuilder self = this; // Capture the instance of ChunkGeneration

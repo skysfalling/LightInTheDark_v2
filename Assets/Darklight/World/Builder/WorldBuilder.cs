@@ -36,13 +36,13 @@ namespace Darklight.World.Builder
 		#endregion
 
 		#region [[ GENERATION SETTINGS ]] -------------------------------------- >> 
-		static GenerationSettings _settings = new();
+		static GenerationSettings _settings = new GenerationSettings();
 
 		/// <summary> Contains settings used during the world generation process. </summary>
 		public static GenerationSettings Settings => _settings;
 
 		/// <summary> Override the default generation settings. </summary>
-		public void OverrideSettings(CustomGenerationSettings customSettings)
+		public static void OverrideSettings(CustomGenerationSettings customSettings)
 		{
 			if (customSettings == null) { _settings = new GenerationSettings(); return; }
 			_settings = new GenerationSettings(customSettings);
