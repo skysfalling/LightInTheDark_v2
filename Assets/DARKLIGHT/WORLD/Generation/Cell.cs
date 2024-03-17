@@ -23,6 +23,7 @@ namespace Darklight.World.Generation
 
 		// [[ PUBLIC REFERENCE VARIABLES ]]
 		public Chunk ChunkParent { get; private set; }
+		public Coordinate Coordinate => ChunkParent.GetCoordinateAtCell(this);
 		public MeshQuad MeshQuad => _meshQuad;
 		public TYPE Type => _type;
 		public Color TypeColor { get; private set; }

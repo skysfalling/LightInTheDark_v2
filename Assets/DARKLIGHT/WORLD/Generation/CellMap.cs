@@ -40,5 +40,20 @@ namespace Darklight.World.Generation
                 }
             }
         }
+
+        public Cell GetCellAtCoordinate(Coordinate coordinate)
+        {
+            List<Cell> topFaceCells = _faceMap[FaceType.Top].ToList();
+            foreach (Cell cell in topFaceCells)
+            {
+                Vector3 cellXZ = new Vector3(cell.Position.x, 0, cell.Position.z);
+                Vector3 coordXZ = new Vector3(coordinate.ScenePosition.x, 0, coordinate.ScenePosition.z);
+                if (cellXZ == coordXZ)
+                {
+                    return cell;
+                }
+            }
+            return null;
+        }
     }
 }

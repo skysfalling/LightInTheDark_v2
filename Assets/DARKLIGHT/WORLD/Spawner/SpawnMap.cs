@@ -14,7 +14,7 @@ namespace Darklight.World.Generation
         RegionBuilder RegionBuilder => GetComponent<RegionBuilder>();
         CoordinateMap CoordinateMap => RegionBuilder.CoordinateMap;
         Dictionary<Chunk, CellMap> cellMaps = new();
-        Dictionary<Chunk, HashSet<Cell>> spawnCells = new();
+        Dictionary<Chunk, HashSet<Cell>> allSpawnCells = new();
 
         public Traveler playerTraveler;
 
@@ -40,12 +40,27 @@ namespace Darklight.World.Generation
 
             TaskBot MapSpawnFacesBot = new TaskBot(this, "MapSpawnFacesBot", async () =>
             {
+                // Track all of the cells
                 foreach (Chunk chunk in spawnChunks)
                 {
                     cellMaps[chunk] = chunk.CellMap;
-                    spawnCells[chunk] = chunk.CellMap.ChunkFaceMap[Chunk.FaceType.Top];
-                    TaskBotConsole.Log(this, $"Found {spawnCells[chunk].Count} Spawn Cells in Chunk {chunk.Coordinate.ValueKey}");
+
+                    HashSet<Cell> topFaceCells = chunk.CellMap.ChunkFaceMap[Chunk.FaceType.Top];
+                    foreach (Cell cell in topFaceCells)
+                    {
+                        if (cell.Coordinate.Type == Coordinate.TYPE.NULL)
+                        {
+                            allSpawnCells.TryAdd(chunk, new());
+                            allSpawnCells[chunk].Add(cell);
+                        }
+                    }
+
+
+                    TaskBotConsole.Log(this, $"Found {allSpawnCells[chunk].Count} Spawn Cells in Chunk {chunk.Coordinate.ValueKey}");
                 }
+
+
+
                 await Task.CompletedTask;
             }, true);
             await ExecuteBot(MapSpawnFacesBot);
@@ -55,7 +70,7 @@ namespace Darklight.World.Generation
 
             // Spawn Player
             GameObject player = Instantiate(playerTraveler.gameObject, spawnCell.Position, Quaternion.identity);
-            player.GetComponent<Traveler>().InitializeAtCell(spawnCell.ChunkParent, spawnCell);
+            player.GetComponent<Traveler>().InitializeAtCell(spawnCell);
 
 
         }
@@ -63,7 +78,7 @@ namespace Darklight.World.Generation
         public Cell GetRandomSpawnCell()
         {
             HashSet<Cell> allSpawnCells = new();
-            foreach (HashSet<Cell> cells in spawnCells.Values)
+            foreach (HashSet<Cell> cells in this.allSpawnCells.Values)
             {
                 allSpawnCells.UnionWith(cells);
             }

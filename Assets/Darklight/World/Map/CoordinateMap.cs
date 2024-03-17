@@ -321,6 +321,18 @@ namespace Darklight.World.Map
                 : null;
         }
 
+        public Coordinate GetClosestCoordinateAt(Vector3 scenePosition)
+        {
+            foreach (Coordinate coordinate in _coordinateMap.Values)
+            {
+                if (coordinate.ScenePosition.x == scenePosition.x && coordinate.ScenePosition.z == scenePosition.z)
+                {
+                    return coordinate;
+                }
+            }
+            return null;
+        }
+
         public Coordinate.TYPE? GetCoordinateTypeAt(Vector2Int valueKey)
         {
             if (Initialized && _coordinateMap.TryGetValue(valueKey, out var coordinate))

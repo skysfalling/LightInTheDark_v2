@@ -202,6 +202,25 @@ namespace Darklight.World.Generation
 			return neighborMap;
 		}
 
+		public Chunk GetNeighborInDirection(WorldDirection direction)
+		{
+			return GetNaturalNeighborMap()[direction];
+		}
+
+		public Coordinate GetCoordinateAtCell(Cell cell)
+		{
+			return _coordinateMap.GetClosestCoordinateAt(cell.Position);
+		}
+
+		public Cell GetCellAtCoordinate(Coordinate coordinate)
+		{
+			return _cellMap.GetCellAtCoordinate(coordinate);
+		}
+
+
+
+
+
 		// ================== SPAWN OBJECTS ============= >>
 
 

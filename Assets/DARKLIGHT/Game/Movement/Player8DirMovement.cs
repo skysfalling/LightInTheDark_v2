@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using Darklight.UniversalInput;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Darklight.World.Map;
+using Darklight.World;
+using Darklight.World.Generation;
+using System;
 
 namespace Darklight.Game.Movement
 {
@@ -10,19 +14,9 @@ namespace Darklight.Game.Movement
 	public class Player8DirMovement : MonoBehaviour
 	{
 		private UniversalInputManager _universalInputManager;
-		void Awake()
-		{
-			_universalInputManager = UniversalInputManager.Instance;
-			InputAction moveInput = _universalInputManager.moveInput;
-			moveInput.performed += context => UpdateMoveDirection(moveInput.ReadValue<Vector2>()); // Send out move input value
-			moveInput.canceled += context => UpdateMoveDirection(Vector2.zero); // Reset input value
-		}
-
-
-		/// <summary>
-		/// private storage of the current input direction
-		/// </summary>
-		[SerializeField] private Vector2 _universalMoveDirection;
+		[SerializeField] public WorldDirection? currentDirection;
+		public Vector3 targetPosition;
+		[SerializeField] private Vector2 _universalMoveInput;
 		[SerializeField] private int _multiplier = 10;
 
 		/// <summary>
@@ -34,6 +28,14 @@ namespace Darklight.Game.Movement
 		/// <returns></returns>
 		public new Rigidbody rigidbody => GetComponent<Rigidbody>();
 
+		public event Action<WorldDirection?> OnDirectionChanged;
+		void Awake()
+		{
+			_universalInputManager = UniversalInputManager.Instance;
+			InputAction moveInput = _universalInputManager.moveInput;
+			moveInput.performed += context => UpdateMoveDirection(moveInput.ReadValue<Vector2>()); // Send out move input value
+			moveInput.canceled += context => UpdateMoveDirection(Vector2.zero); // Reset input value
+		}
 
 		/// <summary>
 		/// This is updated by the UniversalInputManager
@@ -44,12 +46,19 @@ namespace Darklight.Game.Movement
 		/// <param name="moveInput"></param>
 		public void UpdateMoveDirection(Vector2 moveInput)
 		{
-			this._universalMoveDirection = moveInput;
+			// store input
+			this._universalMoveInput = moveInput.normalized;
+			currentDirection = CoordinateMap.GetEnumFromDirectionVector(new Vector2Int((int)_universalMoveInput.x, (int)_universalMoveInput.y));// get private world direction
 		}
 
 		public void FixedUpdate()
 		{
-			this.rigidbody.velocity = new Vector3(this._universalMoveDirection.x * this._multiplier, 0, this._universalMoveDirection.y * this._multiplier);
+			/*
+			Vector3 targetDirection = targetPosition - transform.position;
+			rigidbody.velocity = targetDirection * _multiplier;
+			*/
+			transform.position = targetPosition;
 		}
+
 	}
 }

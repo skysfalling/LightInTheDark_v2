@@ -503,7 +503,7 @@ MonoBehaviour:
   regionView: 2
   chunkView: 4
   cellView: 0
-  coordinateMapView: 2
+  coordinateMapView: 1
   chunkMapView: 0
   cellMapView: 0
   selectedRegion: {fileID: 0}
