@@ -12,7 +12,9 @@ namespace Darklight.World.Generation
 {
 	using Builder;
 	using Darklight.Game.Movement;
+	using Darklight.UniversalInput;
 	using Darklight.World.Map;
+	using static UnityEngine.InputSystem.InputAction;
 
 	[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider), typeof(Player8DirMovement))]
 	public class Traveler : MonoBehaviour
@@ -35,8 +37,18 @@ namespace Darklight.World.Generation
 		private void Awake()
 		{
 			playerMovement = GetComponent<Game.Movement.Player8DirMovement>();
+			if (UniversalInputManager.Instance != null)
+			{
+				UniversalInputManager.Instance.moveInput.performed += context => HandleMoveInput(context.ReadValue<Vector2>());
+			}
 		}
-
+		private void OnDestroy()
+		{
+			if (UniversalInputManager.Instance != null)
+			{
+				UniversalInputManager.Instance.moveInputEvent.RemoveListener(HandleMoveInput);
+			}
+		}
 		// [[ INSPECTOR VARIABLES ]]
 		public void InitializeAtCell(Cell cell)
 		{
@@ -56,6 +68,7 @@ namespace Darklight.World.Generation
 
 		public void Update()
 		{
+			/*
 			if (CurrentCoordinate != null)
 			{
 				WorldDirection? currentInputDirection = playerMovement.currentDirection;
@@ -68,8 +81,24 @@ namespace Darklight.World.Generation
 					}
 				}
 			}
+			*/
 		}
 
+		private void HandleMoveInput(Vector2 input)
+		{
+			if (!Active || CurrentCoordinate == null || input == Vector2.zero) return;
+
+			// Convert the Vector2 input to a WorldDirection
+			WorldDirection? direction = CoordinateMap.GetEnumFromDirectionVector(new Vector2Int((int)input.x, (int)input.y));
+			if (direction == null) return;
+
+			// Attempt to move to the cell in the input direction
+			bool validCellFound = MoveToCellInDirection(direction.Value);
+			if (!validCellFound)
+			{
+				MoveToChunkInDirection(direction.Value);
+			}
+		}
 
 		public bool MoveToChunkInDirection(WorldDirection worldDirection)
 		{
@@ -91,10 +120,10 @@ namespace Darklight.World.Generation
 				case BorderDirection.NORTH:
 					neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(CurrentCoordinate.ValueKey.x, neighborChunk.CoordinateMap.MaxCoordinateValue - 1));
 					break;
-				case BorderDirection.EAST:
+				case BorderDirection.WEST:
 					neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(0, CurrentCoordinate.ValueKey.y));
 					break;
-				case BorderDirection.WEST:
+				case BorderDirection.EAST:
 					neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(neighborChunk.CoordinateMap.MaxCoordinateValue - 1, CurrentCoordinate.ValueKey.y));
 					break;
 			}
