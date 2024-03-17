@@ -18,12 +18,12 @@ namespace Darklight.World
 		#region [[ EDITOR SETTINGS ]] ------------------- //
 		public enum EditMode { WORLD, REGION, CHUNK, CELL }
 		public enum WorldView { COORDINATE_MAP, FULL_COORDINATE_MAP, };
-		public enum RegionView { OUTLINE, COORDINATE_MAP, CHUNK_MAP, CELL_MAP }
+		public enum RegionView { OUTLINE, COORDINATE_MAP, CHUNK_MAP }
 		public enum ChunkView { OUTLINE, TYPE, HEIGHT, COORDINATE_MAP, CELL_MAP }
 		public enum CellView { OUTLINE, TYPE, FACE }
 		public enum CoordinateMapView { GRID_ONLY, COORDINATE_VALUE, COORDINATE_TYPE, ZONE_ID }
-		public enum ChunkMapView { TYPE, HEIGHT, COORDINATE_MAP, CELL_MAP }
-		public enum CellMapView { TYPE, FACE }
+		public enum ChunkMapView { TYPE, HEIGHT }
+		public enum CellMapView { SPAWNS, FACE }
 		public EditMode editMode = EditMode.WORLD;
 		public WorldView worldView = WorldView.COORDINATE_MAP;
 		public RegionView regionView = RegionView.COORDINATE_MAP;
@@ -31,7 +31,7 @@ namespace Darklight.World
 		public CellView cellView = CellView.OUTLINE;
 		public CoordinateMapView coordinateMapView = CoordinateMapView.COORDINATE_TYPE;
 		public ChunkMapView chunkMapView = ChunkMapView.TYPE;
-		public CellMapView cellMapView = CellMapView.TYPE;
+		public CellMapView cellMapView = CellMapView.SPAWNS;
 		#endregion
 
 		public RegionBuilder selectedRegion;
@@ -210,14 +210,6 @@ namespace Darklight.World
 			{
 				DrawChunkMap(chunkBuilder, editor);
 			}
-			// [[ DRAW CHUNK MAP ]]
-			else if (editor.regionView == WorldEditor.RegionView.CELL_MAP)
-			{
-				foreach (Chunk chunk in chunkBuilder.AllChunks)
-				{
-					DrawCellMap(chunk.CellMap, editor.cellMapView);
-				}
-			}
 		}
 
 		public static void DrawChunk(Chunk chunk, WorldEditor editor)
@@ -231,7 +223,7 @@ namespace Darklight.World
 					// Draw Selection Rectangle
 					Darklight.CustomGizmos.DrawButtonHandle(chunk.GroundPosition, Vector3.up, chunk.Width * 0.475f, Color.black, () =>
 					{
-						//_worldEditScript.SelectChunk(chunk);
+						editor.SelectChunk(chunk);
 					}, Handles.RectangleHandleCap);
 
 					break;
@@ -241,7 +233,7 @@ namespace Darklight.World
 
 					Darklight.CustomGizmos.DrawButtonHandle(chunk.CenterPosition, Vector3.up, chunk.Width * 0.475f, chunk.TypeColor, () =>
 					{
-						//_worldEditScript.SelectChunk(chunk);
+						editor.SelectChunk(chunk);
 					}, Handles.RectangleHandleCap);
 					break;
 				case WorldEditor.ChunkView.HEIGHT:
@@ -249,7 +241,7 @@ namespace Darklight.World
 
 					Darklight.CustomGizmos.DrawButtonHandle(chunk.GroundPosition, Vector3.up, chunk.Width * 0.475f, Color.grey, () =>
 					{
-						//_worldEditScript.SelectChunk(chunk);
+						editor.SelectChunk(chunk);
 					}, Handles.RectangleHandleCap);
 					break;
 				case WorldEditor.ChunkView.COORDINATE_MAP:
@@ -259,7 +251,7 @@ namespace Darklight.World
 					break;
 				case WorldEditor.ChunkView.CELL_MAP:
 
-					DrawCellMap(chunk.CellMap, WorldEditor.CellMapView.TYPE);
+					DrawCellMap(chunk.CellMap, editor.cellMapView);
 					break;
 			}
 		}
@@ -272,13 +264,11 @@ namespace Darklight.World
 			{
 				case WorldEditor.CellView.OUTLINE:
 					// Draw Selection Rectangle
-					Darklight.CustomGizmos.DrawButtonHandle(cell.Position, cell.Normal, cell.Size * 0.475f, Color.black, () =>
-					{
-					}, Handles.RectangleHandleCap);
+					Darklight.CustomGizmos.DrawWireSquare(cell.Position, cell.Size, Color.black, cell.Normal);
 					break;
 				case WorldEditor.CellView.TYPE:
 					// Draw Face Type Label
-					Darklight.CustomGizmos.DrawLabel($"{cell.Type.ToString()[0]}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
+					//Darklight.CustomGizmos.DrawLabel($"{cell.Type.ToString()[0]}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
 					Darklight.CustomGizmos.DrawFilledSquareAt(cell.Position, cell.Size * 0.75f, cell.Normal, cell.TypeColor);
 					break;
 				case WorldEditor.CellView.FACE:
@@ -288,6 +278,17 @@ namespace Darklight.World
 			}
 		}
 
+		/// <summary>
+		/// Draw a CoordinateMap with selectable coordinates
+		/// </summary>
+		/// <param name="coordinateMap"></param>
+		/// <param name="mapView"></param>
+		/// <param name="onCoordinateSelect"></param> <summary>
+		/// 
+		/// </summary>
+		/// <param name="coordinateMap"></param>
+		/// <param name="mapView"></param>
+		/// <param name="onCoordinateSelect"></param>
 		public static void DrawCoordinateMap(CoordinateMap coordinateMap, WorldEditor.CoordinateMapView mapView, System.Action<Coordinate> onCoordinateSelect)
 		{
 			GUIStyle coordLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
@@ -357,9 +358,6 @@ namespace Darklight.World
 						case WorldEditor.ChunkMapView.HEIGHT:
 							DrawChunk(chunk, editor);
 							break;
-						case WorldEditor.ChunkMapView.COORDINATE_MAP:
-							DrawChunk(chunk, editor);
-							break;
 					}
 				}
 			}
@@ -375,8 +373,12 @@ namespace Darklight.World
 				// Draw Custom View
 				switch (mapView)
 				{
-					case WorldEditor.CellMapView.TYPE:
-						DrawCell(cell, WorldEditor.CellView.TYPE);
+					case WorldEditor.CellMapView.SPAWNS:
+						if (cell.Type == Cell.TYPE.SPAWN_POINT)
+						{
+							DrawCell(cell, WorldEditor.CellView.TYPE);
+
+						}
 						break;
 					case WorldEditor.CellMapView.FACE:
 						DrawCell(cell, WorldEditor.CellView.FACE);

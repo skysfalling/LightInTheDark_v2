@@ -7,16 +7,15 @@ namespace Darklight
 {
     public static class CustomGizmos
     {
-        public static void DrawWireSquare(Vector3 position, float size, Color color)
+        public static void DrawWireSquare(Vector3 position, float size, Color color, Vector3 direction)
         {
             if (color == null)
             {
                 Handles.color = Color.black;
             }
             else { Handles.color = color; }
-            Handles.DrawWireCube(position, size * new Vector3(1, 0, 1));
+            Handles.DrawSolidRectangleWithOutline(GetRectangleVertices(position, size * Vector2.one, direction), Color.clear, color);
         }
-
         public static void DrawLabel(string label, Vector3 position, GUIStyle labelStyle)
         {
             //labelStyle.normal = new GUIStyleState { textColor = color }; // Set the text color

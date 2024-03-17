@@ -87,6 +87,7 @@ namespace Darklight.Bot
 			{
 				TaskBotConsole.Log(this, $"Try to Execute {taskBot.Name}");
 				await taskBot.ExecuteTask();
+				await Awaitable.MainThreadAsync(); // set back to main
 			}
 			catch (OperationCanceledException e)
 			{

@@ -6,7 +6,7 @@ namespace Darklight.World.Generation
     using Darklight.World.Map;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-
+    using System.Linq;
 
     public class SpawnMap : TaskQueen, ITaskEntity
     {
@@ -33,13 +33,14 @@ namespace Darklight.World.Generation
                 await Awaitable.WaitForSecondsAsync(0.1f);
             }
 
-            HashSet<Chunk> allChunks = _regionBuilder.ChunkBuilder.AllChunks;
+            List<Vector2Int> allZoneCoordinates = CoordinateMap.GetAllCoordinatesValuesOfType(Coordinate.TYPE.ZONE).ToList();
+            List<Chunk> spawnChunks = _regionBuilder.ChunkBuilder.GetChunksAtCoordinateValues(allZoneCoordinates);
             TaskBotConsole.Log(this, "Detected Region Generation");
             TaskBotConsole.Log(this, $"Found {RegionBuilder.ChunkBuilder.AllChunks.Count} Chunks");
 
             TaskBot MapSpawnFacesBot = new TaskBot(this, "MapSpawnFacesBot", async () =>
             {
-                foreach (Chunk chunk in allChunks)
+                foreach (Chunk chunk in spawnChunks)
                 {
                     cellMaps[chunk] = chunk.CellMap;
                     spawnCells[chunk] = chunk.CellMap.ChunkFaceMap[Chunk.FaceType.Top];
@@ -48,48 +49,70 @@ namespace Darklight.World.Generation
                 await Task.CompletedTask;
             }, true);
             await ExecuteBot(MapSpawnFacesBot);
+
+            Cell spawnCell = GetRandomSpawnCell();
+            spawnCell.SetCellType(Cell.TYPE.SPAWN_POINT);
+
+            // Spawn Player
+            GameObject player = Instantiate(playerTraveler.gameObject, spawnCell.Position, Quaternion.identity);
+            player.GetComponent<Traveler>().InitializeAtCell(spawnCell.ChunkParent, spawnCell);
+
+
         }
 
-        void DrawCell(Cell cell, WorldEditor.CellView type)
+        public Cell GetRandomSpawnCell()
         {
-            GUIStyle cellLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
-
-            switch (type)
+            HashSet<Cell> allSpawnCells = new();
+            foreach (HashSet<Cell> cells in spawnCells.Values)
             {
-                case WorldEditor.CellView.OUTLINE:
-                    // Draw Selection Rectangle
-                    break;
-                case WorldEditor.CellView.TYPE:
-                    // Draw Face Type Label
-                    Darklight.CustomGizmos.DrawLabel($"{cell.Type.ToString()[0]}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
-                    Darklight.CustomGizmos.DrawFilledSquareAt(cell.Position, cell.Size * 0.75f, cell.Normal, cell.TypeColor);
-                    break;
-                case WorldEditor.CellView.FACE:
-                    // Draw Face Type Label
-                    Darklight.CustomGizmos.DrawLabel($"{cell.FaceType}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
-                    break;
+                allSpawnCells.UnionWith(cells);
             }
+            return allSpawnCells.ElementAt(UnityEngine.Random.Range(0, allSpawnCells.Count));
         }
 
-        void DrawCells(HashSet<Cell> cells, WorldEditor.CellMapView mapView)
-        {
-            if (cells == null) return;
 
-            GUIStyle cellLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
-            foreach (Cell cell in cells)
-            {
-                // Draw Custom View
-                switch (mapView)
+
+        /*
+                void DrawCell(Cell cell, WorldEditor.CellView type)
                 {
-                    case WorldEditor.CellMapView.TYPE:
-                        DrawCell(cell, WorldEditor.CellView.TYPE);
-                        break;
-                    case WorldEditor.CellMapView.FACE:
-                        DrawCell(cell, WorldEditor.CellView.FACE);
-                        break;
-                }
-            }
-        }
+                    GUIStyle cellLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
 
+                    switch (type)
+                    {
+                        case WorldEditor.CellView.OUTLINE:
+                            // Draw Selection Rectangle
+                            break;
+                        case WorldEditor.CellView.TYPE:
+                            // Draw Face Type Label
+                            Darklight.CustomGizmos.DrawLabel($"{cell.Type.ToString()[0]}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
+                            Darklight.CustomGizmos.DrawFilledSquareAt(cell.Position, cell.Size * 0.75f, cell.Normal, cell.TypeColor);
+                            break;
+                        case WorldEditor.CellView.FACE:
+                            // Draw Face Type Label
+                            Darklight.CustomGizmos.DrawLabel($"{cell.FaceType}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
+                            break;
+                    }
+                }
+
+                void DrawCells(HashSet<Cell> cells, WorldEditor.CellMapView mapView)
+                {
+                    if (cells == null) return;
+
+                    GUIStyle cellLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
+                    foreach (Cell cell in cells)
+                    {
+                        // Draw Custom View
+                        switch (mapView)
+                        {
+                            case WorldEditor.CellMapView.TYPE:
+                                DrawCell(cell, WorldEditor.CellView.TYPE);
+                                break;
+                            case WorldEditor.CellMapView.FACE:
+                                DrawCell(cell, WorldEditor.CellView.FACE);
+                                break;
+                        }
+                    }
+                }
+                */
     }
 }

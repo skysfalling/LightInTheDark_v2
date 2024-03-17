@@ -18,21 +18,41 @@ namespace Darklight.World.Generation
 	{
 		public CoordinateMap coordinateMap;
 		public bool Active = false;
-		public RegionBuilder ParentRegion { get; private set; }
+		public RegionBuilder CurrentRegion { get; private set; }
 		public Chunk CurrentChunk { get; private set; }
 		public CoordinateMap CurrentCoordinateMap { get; private set; }
 		public Coordinate CurrentCoordinate { get; private set; }
+		public Cell CurrentCell { get; private set; }
 		[SerializeField] public CoordinateMap coordinateMapParent;
 		[SerializeField] public WorldSpawnUnit worldSpawnUnit;
+
+		public Vector3 OriginPosition => transform.position;
+		public Vector3 CenterPosition => transform.position + (Vector3Int.up * worldSpawnUnit.dimensions * WorldBuilder.Settings.CellSize_inGameUnits) / 2;
 
 		// [[ INSPECTOR VARIABLES ]]
 		public void InitializeAtChunk(RegionBuilder region, Chunk chunk)
 		{
-			ParentRegion = region;
+			CurrentRegion = region;
 			CurrentChunk = chunk;
 			CurrentCoordinateMap = region.CoordinateMap;
 			CurrentCoordinate = chunk.Coordinate;
 			Active = true;
+
+			SpawnModelAtPosition();
+		}
+
+		public void InitializeAtCell(Chunk chunk, Cell cell)
+		{
+			CurrentChunk = cell.ChunkParent;
+			CurrentRegion = CurrentChunk.ChunkBuilderParent.RegionParent;
+
+			CurrentCoordinateMap = CurrentChunk.CoordinateMap;
+			CurrentCell = cell;
+
+			Debug.Log($"Traveler Initialized at Cell: {cell.Position} {cell.FaceType}");
+			Active = true;
+
+			SpawnModelAtPosition();
 		}
 
 		public void InitializeAtCoordinate(CoordinateMap map, Vector2Int value)
@@ -45,10 +65,15 @@ namespace Darklight.World.Generation
 
 		public void SpawnModelAtPosition()
 		{
-			GameObject model = Instantiate(worldSpawnUnit.modelPrefab, transform.position, Quaternion.identity);
-			model.transform.SetParent(transform);
-			model.transform.localScale = Vector3.one;
-			transform.localPosition = new Vector3(0, worldSpawnUnit.dimensions.y / 2, 0);
+			GameObject model = Instantiate(worldSpawnUnit.modelPrefab, transform);
+			model.transform.position = CenterPosition;
+			model.transform.localScale = Vector3.one * worldSpawnUnit.modelScale;
+		}
+
+		public void OnDrawGizmos()
+		{
+			Gizmos.color = Color.red;
+			Gizmos.DrawWireCube(OriginPosition, worldSpawnUnit.dimensions * WorldBuilder.Settings.CellSize_inGameUnits);
 		}
 	}
 

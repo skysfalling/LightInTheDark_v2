@@ -1,12 +1,12 @@
 namespace Darklight.Game.CameraController
 {
+    using Darklight.World.Generation;
     using UnityEngine;
 
     public class ThirdPersonCamera : MonoBehaviour
     {
         #region [[ PRIVATE VARIABLES ]]
         private Vector3 _cameraPosOffset => new Vector3(_xPosOffset, _yPosOffset, _zPosOffset);
-        private Vector3 _cameraRotOffset => new Vector3(_xRotOffset, _yRotOffset, _zRotOffset);
         private Transform _pivotHandle; // Set to self transform
         private Camera _camera;
         #endregion
@@ -20,8 +20,7 @@ namespace Darklight.Game.CameraController
         [SerializeField]
         private GameObject cameraPrefab;
 
-        [SerializeField]
-        private Transform playerTarget;
+        public Transform focusTarget;
 
         [Header("CameraPositionOffset"), SerializeField, Range(-50, 50)]
         private int _xPosOffset = 0;
@@ -31,15 +30,6 @@ namespace Darklight.Game.CameraController
 
         [SerializeField, Range(-100, 0)]
         private int _zPosOffset = -50;
-
-        [Header("CameraRotationOffset"), SerializeField, Range(-180, 180)]
-        private int _xRotOffset = -45;
-
-        [SerializeField, Range(-90, 90)]
-        private int _yRotOffset = 0;
-
-        [SerializeField, Range(-45, 45)]
-        private int _zRotOffset = -50;
 
         [Header("PivotHandleRotation"), SerializeField, Range(-180, 180)]
         public int pivotHandleRotation = 0;
@@ -124,11 +114,18 @@ namespace Darklight.Game.CameraController
 
         public void FixedUpdate()
         {
-            if (!playerTarget || !_camera || !_pivotHandle)
+            if (!focusTarget || !_camera || !_pivotHandle)
+            {
+                if (FindFirstObjectByType<Traveler>() != null)
+                {
+                    focusTarget = FindFirstObjectByType<Traveler>().transform;
+                }
                 return;
-            // Calculate and Lerp position
+            }
+
+
             Vector3 targetPosition = GetCameraFollowPosition(
-                playerTarget.position,
+                focusTarget.position,
                 _cameraPosOffset
             );
             _camera.transform.localPosition = Vector3.Lerp(
@@ -139,11 +136,9 @@ namespace Darklight.Game.CameraController
 
             // Calculate and Slerp rotation
             Quaternion targetRotation = GetCameraLookRotation(
-                playerTarget.position,
-                _cameraRotOffset
-            );
+                focusTarget.position);
             _camera.transform.localRotation = Quaternion.Slerp(
-                transform.localRotation,
+                _camera.transform.localRotation,
                 targetRotation,
                 rotateSpeed * Time.deltaTime
             );
@@ -159,10 +154,9 @@ namespace Darklight.Game.CameraController
             return followTargetPosition + positionOffset;
         }
 
-        Quaternion GetCameraLookRotation(Vector3 focusTargetPosition, Vector3 focusPositionOffset)
+        Quaternion GetCameraLookRotation(Vector3 focusTargetPosition)
         {
-            Vector3 offset = focusTargetPosition + focusPositionOffset;
-            Vector3 direction = (offset - _camera.transform.position).normalized;
+            Vector3 direction = (focusTargetPosition - _camera.transform.position).normalized;
             Quaternion lookRotation = Quaternion.LookRotation(direction);
             return lookRotation;
         }
@@ -177,7 +171,7 @@ namespace Darklight.Game.CameraController
 
         public void SetToEditorValues()
         {
-            if (!playerTarget || !_camera || !_pivotHandle)
+            if (!focusTarget || !_camera || !_pivotHandle)
                 return;
 
             // Calculate pivot rotation
@@ -185,14 +179,13 @@ namespace Darklight.Game.CameraController
 
             // Calculate and override position
             _camera.transform.localPosition = GetCameraFollowPosition(
-                playerTarget.position,
+                focusTarget.position,
                 _cameraPosOffset
             );
 
             // Calculate and override rotation
             _camera.transform.rotation = GetCameraLookRotation(
-                playerTarget.position,
-                _cameraRotOffset
+                focusTarget.position
             );
         }
     }

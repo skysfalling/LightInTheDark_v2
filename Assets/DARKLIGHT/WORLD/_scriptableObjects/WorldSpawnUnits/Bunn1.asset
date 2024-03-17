@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a04c7d38ea71c847a8bd06d5ee6deee, type: 3}
   m_Name: Bunn1
   m_EditorClassIdentifier: 
-  UnitSpace: 2
+  UnitSpace: 3
   modelPrefab: {fileID: 919132149155446097, guid: 26a6c42b2fe5bd0489eccfefa3842ba7,
     type: 3}
   x: 1
   y: 2
   z: 1
+  modelScale: 5

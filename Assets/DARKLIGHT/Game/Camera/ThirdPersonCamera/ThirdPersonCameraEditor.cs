@@ -31,7 +31,6 @@ namespace Darklight.Game.CameraController
             {
                 // If something changed, apply the changes and update the camera position
                 serializedObject.ApplyModifiedProperties();
-                cameraScript.SetToEditorValues();
             }
         }
     }

@@ -8,6 +8,7 @@ namespace Darklight.World.Editor
 	using Settings;
 	using Darklight.Bot.Editor;
 
+#if UNITY_EDITOR
 	[CustomEditor(typeof(RegionBuilder))]
 	public class RegionBuilderEditor : TaskQueenEditor
 	{
@@ -54,11 +55,6 @@ namespace Darklight.World.Editor
 				// Optionally, mark the target object as dirty to ensure the changes are saved
 				EditorUtility.SetDirty(target);
 			}
-		}
-
-		private void OnDisable()
-		{
-			_regionBuilderScript.Reset();
 		}
 
 		private void DrawCustomGenerationSettings()
@@ -109,4 +105,5 @@ namespace Darklight.World.Editor
 			}
 		}
 	}
+#endif
 }

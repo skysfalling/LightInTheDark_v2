@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0777da32624bf64b8c4703d9bd7725b, type: 3}
   m_Name: Tester
   m_EditorClassIdentifier: 
-  _seed: Default Game Seed
-  _cellSize: 2
+  _seed: hello
+  _cellSize: 1
   _chunkWidth: 5
   _chunkDepth: 3
   _chunkMaxHeight: 5
@@ -21,3 +21,4 @@ MonoBehaviour:
   _regionBoundaryOffset: 1
   _worldWidth: 3
   _pathRandomness: 1
+  _perlinMultiplier: 0

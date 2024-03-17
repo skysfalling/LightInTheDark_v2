@@ -138,7 +138,7 @@ namespace Darklight.World.Generation
 					BorderDirection? neighborBorder = CoordinateMap.GetBorderDirection(direction); // get chunk border
 					if (neighborBorder == null) continue;
 
-					//CoordinateMap.CloseMapBorder((BorderDirection)neighborBorder); // close the chunk border
+					CoordinateMap.CloseMapBorder((BorderDirection)neighborBorder); // close the chunk border
 				}
 			}
 

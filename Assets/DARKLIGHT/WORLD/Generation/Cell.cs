@@ -25,7 +25,7 @@ namespace Darklight.World.Generation
 		public Chunk ChunkParent { get; private set; }
 		public MeshQuad MeshQuad => _meshQuad;
 		public TYPE Type => _type;
-		public Color TypeColor { get; private set; } = Color.white;
+		public Color TypeColor { get; private set; }
 		public Vector3 Position
 		{
 			get
@@ -51,7 +51,7 @@ namespace Darklight.World.Generation
 			this._type = newType;
 			switch (newType)
 			{
-				case TYPE.EMPTY: TypeColor = Color.clear; break;
+				case TYPE.EMPTY: TypeColor = Color.white; break;
 				case TYPE.EDGE: TypeColor = Color.red; break;
 				case TYPE.CORNER: TypeColor = Color.yellow; break;
 				case TYPE.OBSTACLE: TypeColor = Color.black; break;
