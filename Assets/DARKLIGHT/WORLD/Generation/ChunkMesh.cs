@@ -112,7 +112,8 @@ namespace Darklight.World.Generation
 						Vector3 topRight = topLeft + (cellSize * v);
 
 						// Adjust the order here if necessary to ensure correct winding
-						vertices.AddRange(new Vector3[] { bottomLeft, bottomRight, topRight, topLeft });
+						//vertices.AddRange(new Vector3[] { bottomLeft, bottomRight, topRight, topLeft });
+						vertices.AddRange(new Vector3[] { bottomLeft, topLeft, topRight, bottomRight });
 
 						// Set UVs
 						List<Vector2> quadUVs = new List<Vector2>
@@ -260,17 +261,17 @@ namespace Darklight.World.Generation
 			switch (faceType)
 			{
 				case FaceType.FRONT:
-					return MultiplyVectors(newSideFaceStartOffset, new Vector3(-1, 1, 1));
-				case FaceType.BACK:
-					return MultiplyVectors(newSideFaceStartOffset, new Vector3(1, 1, -1));
-				case FaceType.LEFT:
-					return MultiplyVectors(newSideFaceStartOffset, new Vector3(-1, 1, -1));
-				case FaceType.RIGHT:
 					return MultiplyVectors(newSideFaceStartOffset, new Vector3(1, 1, 1));
+				case FaceType.BACK:
+					return MultiplyVectors(newSideFaceStartOffset, new Vector3(-1, 1, -1));
+				case FaceType.LEFT:
+					return MultiplyVectors(newSideFaceStartOffset, new Vector3(-1, 1, 1));
+				case FaceType.RIGHT:
+					return MultiplyVectors(newSideFaceStartOffset, new Vector3(1, 1, -1));
 				case FaceType.TOP:
-					return MultiplyVectors(newVerticalFaceStartOffset, new Vector3(1, 0, -1));
+					return MultiplyVectors(newVerticalFaceStartOffset, new Vector3(-1, 0, -1));
 				case FaceType.BOTTOM:
-					return MultiplyVectors(newVerticalFaceStartOffset, new Vector3(-1, 1, -1));
+					return MultiplyVectors(newVerticalFaceStartOffset, new Vector3(1, 1, -1));
 				default:
 					return Vector3.zero;
 			}
@@ -300,27 +301,27 @@ namespace Darklight.World.Generation
 			switch (faceType)
 			{
 				case FaceType.FRONT:
-					u = Vector3.right;
+					u = Vector3.left;
 					v = Vector3.up;
 					break;
 				case FaceType.BACK:
-					u = Vector3.left;
+					u = Vector3.right;
 					v = Vector3.up;
 					break;
 				case FaceType.LEFT:
-					u = Vector3.forward;
-					v = Vector3.up;
-					break;
-				case FaceType.RIGHT:
 					u = Vector3.back;
 					v = Vector3.up;
 					break;
+				case FaceType.RIGHT:
+					u = Vector3.forward;
+					v = Vector3.up;
+					break;
 				case FaceType.TOP:
-					u = Vector3.left;
+					u = Vector3.right;
 					v = Vector3.forward;
 					break;
 				case FaceType.BOTTOM:
-					u = Vector3.right;
+					u = Vector3.left;
 					v = Vector3.forward;
 					break;
 			}
