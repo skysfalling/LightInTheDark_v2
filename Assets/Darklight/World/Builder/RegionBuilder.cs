@@ -160,6 +160,7 @@ namespace Darklight.World.Builder
 
 			Initialized = false;
 			_coordinateMap = null;
+			_chunkBuilder.Reset();
 
 			foreach (GameObject gameObject in _regionObjects)
 			{
@@ -167,7 +168,6 @@ namespace Darklight.World.Builder
 			}
 
 			TaskBotConsole.Reset();
-
 		}
 
 		// INITIALIZE ============================== /////

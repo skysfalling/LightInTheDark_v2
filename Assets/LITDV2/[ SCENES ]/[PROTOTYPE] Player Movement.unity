@@ -629,12 +629,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b09814cf5506b37469a777bae05b9186, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  editMode: 1
+  editMode: 2
   worldView: 0
-  regionView: 2
-  chunkView: 4
-  cellView: 0
-  coordinateMapView: 1
+  regionView: 1
+  chunkView: 2
+  cellView: 2
+  coordinateMapView: 2
   chunkMapView: 0
   cellMapView: 0
   selectedRegion: {fileID: 543254080984073197}

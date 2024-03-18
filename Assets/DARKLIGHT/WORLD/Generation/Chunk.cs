@@ -44,7 +44,7 @@ namespace Darklight.World.Generation
 		public ChunkBuilder ChunkBuilderParent { get; private set; }
 		public Coordinate Coordinate => _coordinate;
 		public CoordinateMap CoordinateMap => _coordinateMap;
-		public GameObject ChunkObject { get; private set; }
+		public GameObject ChunkObject;
 		public ChunkMesh ChunkMesh { get; private set; }
 		public CellMap CellMap => _cellMap;
 		public int GroundHeight => _groundHeight;

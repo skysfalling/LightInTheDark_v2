@@ -17,7 +17,7 @@ namespace Darklight.World.Generation
 		public Vector3 faceNormal;
 		List<Vector3> vertices = new();
 		List<int> triangles = new();
-		public List<Vector2> uvs { get; private set; } = new();
+		List<Vector2> uvs = new();
 
 		public MeshQuad(FaceType faceType, Vector2Int faceCoord, Vector3 faceNormal, List<Vector3> vertices, List<Vector2> uvs, List<int> triangles)
 		{
@@ -25,6 +25,7 @@ namespace Darklight.World.Generation
 			this.faceCoord = faceCoord;
 			this.faceNormal = faceNormal;
 			this.vertices = vertices;
+			this.triangles = triangles;
 			this.uvs = uvs;
 		}
 
@@ -40,6 +41,24 @@ namespace Darklight.World.Generation
 				Vector3 adjustedVertex = new Vector3(vertices[i].x, vertices[i].y + heightAdjustment, vertices[i].z);
 				vertices[i] = adjustedVertex;
 			}
+		}
+
+		public void GenerateMesh()
+		{
+			GameObject newMeshObject = new GameObject("MeshQuad");
+			MeshFilter meshFilter = newMeshObject.AddComponent<MeshFilter>();
+			MeshRenderer meshRenderer = newMeshObject.AddComponent<MeshRenderer>();
+			MeshCollider meshCollider = newMeshObject.AddComponent<MeshCollider>();
+
+			Mesh newMesh = new Mesh();
+			newMesh.vertices = vertices.ToArray();
+			newMesh.uv = uvs.ToArray();
+			newMesh.triangles = triangles.ToArray();
+			newMesh.RecalculateNormals();
+			newMesh.RecalculateBounds();
+
+			meshFilter.mesh = newMesh;
+			meshCollider.sharedMesh = newMesh;
 		}
 	}
 
@@ -59,7 +78,6 @@ namespace Darklight.World.Generation
 			FaceType.TOP, FaceType.BOTTOM
 		};
 
-
 		public Mesh Mesh => _mesh;
 		public Dictionary<FaceType, List<MeshQuad>> MeshQuads => _meshQuads;
 
@@ -72,10 +90,11 @@ namespace Darklight.World.Generation
 			OffsetMesh(_positionInScene);
 		}
 
-		public Mesh RecalculateChunkMesh()
+		public Mesh Recalculate(Chunk chunkParent)
 		{
-			this._groundHeight = _chunkParent.GroundHeight;
-			this._positionInScene = _chunkParent.CenterPosition;
+			this._chunkParent = chunkParent;
+			this._groundHeight = chunkParent.GroundHeight;
+			this._positionInScene = chunkParent.CenterPosition;
 			this._mesh = CreateMesh(_groundHeight, _visibleFaces);
 			OffsetMesh(_positionInScene);
 			return this._mesh;
