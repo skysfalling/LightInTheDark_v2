@@ -16,10 +16,10 @@ namespace Darklight.World.Generation
 		public Vector2Int faceCoord;
 		public Vector3 faceNormal;
 		List<Vector3> vertices = new();
-		List<Vector3> triangles = new();
+		List<int> triangles = new();
 		public List<Vector2> uvs { get; private set; } = new();
 
-		public MeshQuad(FaceType faceType, Vector2Int faceCoord, Vector3 faceNormal, List<Vector3> vertices, List<Vector2> uvs)
+		public MeshQuad(FaceType faceType, Vector2Int faceCoord, Vector3 faceNormal, List<Vector3> vertices, List<Vector2> uvs, List<int> triangles)
 		{
 			this.faceType = faceType;
 			this.faceCoord = faceCoord;
@@ -32,6 +32,15 @@ namespace Darklight.World.Generation
 		{
 			return (vertices[0] + vertices[1] + vertices[2] + vertices[3]) / 4;
 		}
+
+		public void AdjustHeight(float heightAdjustment)
+		{
+			for (int i = 0; i < vertices.Count; i++)
+			{
+				Vector3 adjustedVertex = new Vector3(vertices[i].x, vertices[i].y + heightAdjustment, vertices[i].z);
+				vertices[i] = adjustedVertex;
+			}
+		}
 	}
 
 	public class ChunkMesh
@@ -39,27 +48,68 @@ namespace Darklight.World.Generation
 		Vector3Int _defaultDimensions;
 		Vector3Int _currentDimensions;
 		Chunk _chunkParent;
+		int _groundHeight;
+		Vector3 _positionInScene;
 		Mesh _mesh;
 		Dictionary<FaceType, List<MeshQuad>> _meshQuads = new();
+		List<FaceType> _visibleFaces = new List<FaceType>()
+		{
+			FaceType.FRONT , FaceType.BACK ,
+			FaceType.LEFT, FaceType.RIGHT,
+			FaceType.TOP, FaceType.BOTTOM
+		};
+
 
 		public Mesh Mesh => _mesh;
 		public Dictionary<FaceType, List<MeshQuad>> MeshQuads => _meshQuads;
 
-		public ChunkMesh(Chunk chunkParent, int groundHeight, Vector3 position)
+		public ChunkMesh(Chunk chunkParent)
 		{
 			this._chunkParent = chunkParent;
-
-			List<FaceType> facesToGenerate = new List<FaceType>()
-			{
-				FaceType.FRONT , FaceType.BACK ,
-				FaceType.LEFT, FaceType.RIGHT,
-				FaceType.TOP, FaceType.BOTTOM
-			};
-
-			this._mesh = CreateMesh(groundHeight, facesToGenerate);
-			OffsetMesh(position);
+			this._groundHeight = chunkParent.GroundHeight;
+			this._positionInScene = chunkParent.GroundPosition;
+			this._mesh = CreateMesh(_groundHeight, _visibleFaces);
+			OffsetMesh(_positionInScene);
 		}
 
+		public Mesh RecalculateChunkMesh()
+		{
+			this._groundHeight = _chunkParent.GroundHeight;
+			this._positionInScene = _chunkParent.CenterPosition;
+			this._mesh = CreateMesh(_groundHeight, _visibleFaces);
+			OffsetMesh(_positionInScene);
+			return this._mesh;
+		}
+
+		void ApplyMeshData(Mesh mesh, List<Vector3> vertices, List<Vector2> uvs, List<int> triangles)
+		{
+			// << SET MESH VALUES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+			// Apply the vertices and triangles to the mesh
+			mesh.vertices = vertices.ToArray();
+			mesh.uv = uvs.ToArray();
+			mesh.triangles = triangles.ToArray();
+
+			// Recalculate normals for proper lighting
+			mesh.RecalculateNormals();
+			mesh.RecalculateBounds();
+		}
+
+		void OffsetMesh(Vector3 chunkWorldPosition)
+		{
+			Vector3[] vertices = this._mesh.vertices;
+			for (int i = 0; i < vertices.Length; i++)
+			{
+				vertices[i] += chunkWorldPosition;
+			}
+			_mesh.vertices = vertices;
+		}
+
+		/// <summary>
+		/// Main Chunk Mesh Creation
+		/// </summary>
+		/// <param name="groundHeight"></param>
+		/// <param name="facesToGenerate"></param>
+		/// <returns></returns>
 		Mesh CreateMesh(int groundHeight, List<FaceType> facesToGenerate)
 		{
 			int cellSize = WorldBuilder.Settings.CellSize_inGameUnits;
@@ -131,13 +181,16 @@ namespace Darklight.World.Generation
 						// Create and store the MeshQuad
 						Vector2Int faceCoordinate = new Vector2Int(i, j);
 						List<Vector3> quadVertices = new List<Vector3> { bottomLeft, bottomRight, topRight, topLeft };
-						MeshQuad quad = new MeshQuad(faceType, faceCoordinate, GetFaceNormal(faceType), quadVertices, quadUVs);
-						_meshQuads[faceType].Add(quad);
+
 
 						// Add triangles for the current quad
 						int baseIndex = quadIndex * 4;
-						triangles.AddRange(new int[] { baseIndex, baseIndex + 2, baseIndex + 1, baseIndex, baseIndex + 3, baseIndex + 2 });
+						List<int> quadTriangles = new List<int> { baseIndex, baseIndex + 2, baseIndex + 1, baseIndex, baseIndex + 3, baseIndex + 2 };
+						triangles.AddRange(quadTriangles);
 						quadIndex++;
+
+						MeshQuad quad = new MeshQuad(faceType, faceCoordinate, GetFaceNormal(faceType), quadVertices, quadUVs, quadTriangles);
+						_meshQuads[faceType].Add(quad);
 					}
 				}
 				// UPDATE VERTEX COUNT
@@ -161,19 +214,6 @@ namespace Darklight.World.Generation
 			ApplyMeshData(newMesh, vertices, uvs, triangles);
 
 			return newMesh;
-		}
-
-		void ApplyMeshData(Mesh mesh, List<Vector3> vertices, List<Vector2> uvs, List<int> triangles)
-		{
-			// << SET MESH VALUES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-			// Apply the vertices and triangles to the mesh
-			mesh.vertices = vertices.ToArray();
-			mesh.uv = uvs.ToArray();
-			mesh.triangles = triangles.ToArray();
-
-			// Recalculate normals for proper lighting
-			mesh.RecalculateNormals();
-			mesh.RecalculateBounds();
 		}
 
 		(int, int) GetFaceUVDivisions(FaceType faceType)
@@ -328,16 +368,6 @@ namespace Darklight.World.Generation
 			return (u, v);
 		}
 
-
-		void OffsetMesh(Vector3 chunkWorldPosition)
-		{
-			Vector3[] vertices = this._mesh.vertices;
-			for (int i = 0; i < vertices.Length; i++)
-			{
-				vertices[i] += chunkWorldPosition;
-			}
-			_mesh.vertices = vertices;
-		}
 
 	}
 }

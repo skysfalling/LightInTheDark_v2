@@ -89,7 +89,7 @@ namespace Darklight.World.Generation
 			UpdateChunkHeight();
 
 			// Create chunkMesh
-			ChunkMesh = new ChunkMesh(this, GroundHeight, GroundPosition);
+			ChunkMesh = new ChunkMesh(this);
 			_cellMap = new CellMap(this, ChunkMesh);
 
 			DetermineChunkType();
