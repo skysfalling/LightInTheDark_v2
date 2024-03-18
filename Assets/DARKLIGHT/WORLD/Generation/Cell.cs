@@ -26,7 +26,7 @@ namespace Darklight.World.Generation
 		public Coordinate Coordinate => ChunkParent.GetCoordinateAtCell(this);
 		public MeshQuad MeshQuad => _meshQuad;
 		public TYPE Type => _type;
-		public Color TypeColor { get; private set; }
+		public Color TypeColor { get; private set; } = Color.white;
 		public Vector3 Position
 		{
 			get

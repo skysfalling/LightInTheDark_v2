@@ -43,7 +43,7 @@ namespace Darklight.World.Generation
 
         public Cell GetCellAtCoordinate(Coordinate coordinate)
         {
-            List<Cell> topFaceCells = _faceMap[FaceType.Top].ToList();
+            List<Cell> topFaceCells = _faceMap[FaceType.TOP].ToList();
             foreach (Cell cell in topFaceCells)
             {
                 Vector3 cellXZ = new Vector3(cell.Position.x, 0, cell.Position.z);

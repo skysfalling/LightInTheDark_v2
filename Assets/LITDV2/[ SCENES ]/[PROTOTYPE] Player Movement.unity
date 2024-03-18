@@ -578,7 +578,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8293307686514958924}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3677fe2dc3f6fda468e449286c891a6b, type: 3}
   m_Name: 
@@ -624,12 +624,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8293307686514958924}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b09814cf5506b37469a777bae05b9186, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  editMode: 2
+  editMode: 1
   worldView: 0
   regionView: 2
   chunkView: 4
@@ -637,7 +637,7 @@ MonoBehaviour:
   coordinateMapView: 1
   chunkMapView: 0
   cellMapView: 0
-  selectedRegion: {fileID: 0}
+  selectedRegion: {fileID: 543254080984073197}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -51,9 +51,9 @@ namespace Darklight.World.Generation
 
 			List<FaceType> facesToGenerate = new List<FaceType>()
 			{
-				FaceType.Front , FaceType.Back ,
-				FaceType.Left, FaceType.Right,
-				FaceType.Top, FaceType.Bottom
+				FaceType.FRONT , FaceType.BACK ,
+				FaceType.LEFT, FaceType.RIGHT,
+				FaceType.TOP, FaceType.BOTTOM
 			};
 
 			this._mesh = CreateMesh(groundHeight, facesToGenerate);
@@ -101,26 +101,29 @@ namespace Darklight.World.Generation
 
 				if (!_meshQuads.ContainsKey(faceType)) _meshQuads[faceType] = new List<MeshQuad>();
 
-				for (int i = 0; i < vDivisions; i++)
+				for (int i = 0; i < uDivisions; i++)
 				{
-					for (int j = 0; j < uDivisions; j++)
+					for (int j = 0; j < vDivisions; j++)
 					{
 						// Calculate vertices for the current quad
-						Vector3 bottomLeft = startVertex + (i * cellSize * v) + (j * cellSize * u);
-						Vector3 bottomRight = bottomLeft + (cellSize * u);
-						Vector3 topLeft = bottomLeft + (cellSize * v);
-						Vector3 topRight = topLeft + (cellSize * u);
+						Vector3 bottomLeft = startVertex + (i * cellSize * u) + (j * cellSize * v);
+						Vector3 bottomRight = bottomLeft + (cellSize * v);
+						Vector3 topLeft = bottomLeft + (cellSize * u);
+						Vector3 topRight = topLeft + (cellSize * v);
 
 						// Adjust the order here if necessary to ensure correct winding
-						vertices.AddRange(new Vector3[] { bottomLeft, topLeft, topRight, bottomRight });
+						vertices.AddRange(new Vector3[] { bottomLeft, bottomRight, topRight, topLeft });
 
 						// Set UVs
 						List<Vector2> quadUVs = new List<Vector2>
 						{
-							new Vector2(1, 0),
-							new Vector2(1, 1),
-							new Vector2(0, 1),
-							new Vector2(0, 0),
+
+							new Vector2(1, 0), // bottomRight
+							new Vector2(1, 1), // topRight
+							new Vector2(0, 1),  // topLeft
+							new Vector2(0, 0), // bottomLeft
+
+
 						};
 						uvs.AddRange(quadUVs);
 
@@ -140,15 +143,15 @@ namespace Darklight.World.Generation
 				switch (faceType)
 				{
 					// Side Faces XY plane
-					case FaceType.Front:
-					case FaceType.Back:
-					case FaceType.Left:
-					case FaceType.Right:
+					case FaceType.FRONT:
+					case FaceType.BACK:
+					case FaceType.LEFT:
+					case FaceType.RIGHT:
 						currentVertexIndex += (_currentDimensions.x + 1) * (vDivisions + 1);
 						break;
 					// Top Faces XZ plane
-					case FaceType.Top:
-					case FaceType.Bottom:
+					case FaceType.TOP:
+					case FaceType.BOTTOM:
 						currentVertexIndex += (_currentDimensions.x + 1) * (_currentDimensions.z + 1);
 						break;
 				}
@@ -183,16 +186,16 @@ namespace Darklight.World.Generation
 
 				switch (type)
 				{
-					case FaceType.Front:
+					case FaceType.FRONT:
 						neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.NORTH];
 						break;
-					case FaceType.Back:
+					case FaceType.BACK:
 						neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.SOUTH];
 						break;
-					case FaceType.Left:
+					case FaceType.LEFT:
 						neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.WEST];
 						break;
-					case FaceType.Right:
+					case FaceType.RIGHT:
 						neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.EAST];
 						break;
 				}
@@ -212,20 +215,20 @@ namespace Darklight.World.Generation
 			switch (faceType)
 			{
 				// Side Faces XY plane
-				case FaceType.Front:
-				case FaceType.Back:
+				case FaceType.FRONT:
+				case FaceType.BACK:
 					uDivisions = _currentDimensions.x;
 					vDivisions = GetVisibleVDivisions(faceType);
 					break;
 				// Side Faces ZY plane
-				case FaceType.Left:
-				case FaceType.Right:
+				case FaceType.LEFT:
+				case FaceType.RIGHT:
 					uDivisions = _currentDimensions.z;
 					vDivisions = GetVisibleVDivisions(faceType);
 					break;
 				// Top Faces XZ plane
-				case FaceType.Top:
-				case FaceType.Bottom:
+				case FaceType.TOP:
+				case FaceType.BOTTOM:
 					uDivisions = _currentDimensions.x;
 					vDivisions = _currentDimensions.z;
 					break;
@@ -256,17 +259,17 @@ namespace Darklight.World.Generation
 
 			switch (faceType)
 			{
-				case FaceType.Front:
+				case FaceType.FRONT:
 					return MultiplyVectors(newSideFaceStartOffset, new Vector3(-1, 1, 1));
-				case FaceType.Back:
+				case FaceType.BACK:
 					return MultiplyVectors(newSideFaceStartOffset, new Vector3(1, 1, -1));
-				case FaceType.Left:
+				case FaceType.LEFT:
 					return MultiplyVectors(newSideFaceStartOffset, new Vector3(-1, 1, -1));
-				case FaceType.Right:
+				case FaceType.RIGHT:
 					return MultiplyVectors(newSideFaceStartOffset, new Vector3(1, 1, 1));
-				case FaceType.Top:
+				case FaceType.TOP:
 					return MultiplyVectors(newVerticalFaceStartOffset, new Vector3(1, 0, -1));
-				case FaceType.Bottom:
+				case FaceType.BOTTOM:
 					return MultiplyVectors(newVerticalFaceStartOffset, new Vector3(-1, 1, -1));
 				default:
 					return Vector3.zero;
@@ -278,12 +281,12 @@ namespace Darklight.World.Generation
 		{
 			switch (faceType)
 			{
-				case FaceType.Front: return Vector3.forward;
-				case FaceType.Back: return Vector3.back;
-				case FaceType.Left: return Vector3.left;
-				case FaceType.Right: return Vector3.right;
-				case FaceType.Top: return Vector3.up;
-				case FaceType.Bottom: return Vector3.down;
+				case FaceType.FRONT: return Vector3.forward;
+				case FaceType.BACK: return Vector3.back;
+				case FaceType.LEFT: return Vector3.left;
+				case FaceType.RIGHT: return Vector3.right;
+				case FaceType.TOP: return Vector3.up;
+				case FaceType.BOTTOM: return Vector3.down;
 				default: return Vector3.zero;
 			}
 		}
@@ -296,27 +299,27 @@ namespace Darklight.World.Generation
 
 			switch (faceType)
 			{
-				case FaceType.Front:
+				case FaceType.FRONT:
 					u = Vector3.right;
 					v = Vector3.up;
 					break;
-				case FaceType.Back:
+				case FaceType.BACK:
 					u = Vector3.left;
 					v = Vector3.up;
 					break;
-				case FaceType.Left:
+				case FaceType.LEFT:
 					u = Vector3.forward;
 					v = Vector3.up;
 					break;
-				case FaceType.Right:
+				case FaceType.RIGHT:
 					u = Vector3.back;
 					v = Vector3.up;
 					break;
-				case FaceType.Top:
+				case FaceType.TOP:
 					u = Vector3.left;
 					v = Vector3.forward;
 					break;
-				case FaceType.Bottom:
+				case FaceType.BOTTOM:
 					u = Vector3.right;
 					v = Vector3.forward;
 					break;

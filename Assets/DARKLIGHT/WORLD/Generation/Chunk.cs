@@ -30,7 +30,7 @@ namespace Darklight.World.Generation
 			/// <summary>Indicates an exit point, set by WorldExit.</summary>
 			EXIT
 		}
-		public enum FaceType { Front, Back, Left, Right, Top, Bottom }
+		public enum FaceType { FRONT, BACK, LEFT, RIGHT, TOP, BOTTOM }
 
 		// [[ PRIVATE VARIABLES ]]
 		Coordinate _coordinate;
@@ -134,7 +134,7 @@ namespace Darklight.World.Generation
 			foreach (WorldDirection direction in naturalNeighborMap.Keys.ToList())
 			{
 				Chunk neighborChunk = naturalNeighborMap[direction];
-				if (neighborChunk != null && neighborChunk.GroundHeight != this.GroundHeight)
+				if (neighborChunk == null)
 				{
 					BorderDirection? neighborBorder = CoordinateMap.GetBorderDirection(direction); // get chunk border
 					if (neighborBorder == null) continue;
@@ -218,12 +218,7 @@ namespace Darklight.World.Generation
 			return _cellMap.GetCellAtCoordinate(coordinate);
 		}
 
-
-
-
-
 		// ================== SPAWN OBJECTS ============= >>
-
 
 		public List<Cell> FindSpace(EnvironmentObject envObj)
 		{

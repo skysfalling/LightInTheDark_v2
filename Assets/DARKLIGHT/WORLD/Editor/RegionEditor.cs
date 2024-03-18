@@ -12,7 +12,10 @@ namespace Darklight.World.Editor
 
     public class RegionEditor : WorldEditor
     {
-        public RegionBuilder regionBuilder => GetComponent<RegionBuilder>();
+        void Start()
+        {
+            SelectRegion(this.GetComponent<RegionBuilder>());
+        }
     }
 
 #if UNITY_EDITOR
@@ -20,45 +23,32 @@ namespace Darklight.World.Editor
     public class RegionEditorGUI : WorldEditorGUI
     {
         private SerializedObject _serializedObject;
-        private RegionEditor _regionEditorScript;
-        private RegionBuilder _regionBuilder;
+        private RegionEditor _regionEditor;
+
 
         public override void OnEnable()
         {
             _serializedObject = new SerializedObject(target);
-            _regionEditorScript = (RegionEditor)target;
-            _regionBuilder = _regionEditorScript.regionBuilder;
+            _regionEditor = (RegionEditor)target;
         }
 
         public override void OnInspectorGUI()
         {
-            _regionBuilder = _regionEditorScript.regionBuilder;
-            _serializedObject.Update();
-            if (_regionBuilder == null)
+            // Make sure region is selected
+            if (_regionEditor.selectedRegion == null)
             {
-                EditorGUILayout.HelpBox("RegionBuilder not found", MessageType.Error);
+                _regionEditor.SelectRegion(_regionEditor.GetComponent<RegionBuilder>());
             }
-            else
-            {
-                EditorGUILayout.PropertyField(_serializedObject.FindProperty("regionView"));
-                EditorGUILayout.PropertyField(_serializedObject.FindProperty("coordinateMapView"));
-                EditorGUILayout.PropertyField(_serializedObject.FindProperty("chunkMapView"));
-                EditorGUILayout.PropertyField(_serializedObject.FindProperty("chunkView"));
 
-
-            }
-            _serializedObject.ApplyModifiedProperties(); // Apply changes to the serializedProperty - always do this in the end of OnInspectorGUI.
+            base.OnInspectorGUI();
         }
 
         /// <summary>
         /// Enables the Editor to handle an event in the scene view.
         /// </summary>
-        public void OnSceneGUI()
+        public override void OnSceneGUI()
         {
-            if (_regionBuilder)
-            {
-                DrawRegion(_regionBuilder, _regionEditorScript);
-            }
+            base.OnSceneGUI();
         }
     }
 #endif
