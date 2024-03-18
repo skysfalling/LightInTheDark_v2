@@ -13,18 +13,19 @@ namespace Darklight.World.Builder
 	using Darklight.World.Settings;
 	using Darklight.World.Map;
 	using System;
+	using Darklight.World.Editor;
 
 	public class ChunkBuilder : TaskQueen, ITaskEntity
 	{
-		HashSet<Chunk> _chunks = new();
-		Dictionary<Vector2Int, Chunk> _chunkMap = new();
+		HashSet<ChunkData> _chunks = new();
+		Dictionary<Vector2Int, ChunkData> _chunkMap = new();
 
 		public bool Initialized { get; private set; }
 		public bool GenerationFinished { get; private set; }
 		public bool CreateObjects { get; private set; } = false;
 		public RegionBuilder RegionParent { get; private set; }
 		CoordinateMap _coordinateMap;
-		public HashSet<Chunk> AllChunks { get { return _chunks; } private set { } }
+		public HashSet<ChunkData> AllChunks { get { return _chunks; } private set { } }
 
 		public async void Initialize(RegionBuilder worldRegion, CoordinateMap coordinateMap)
 		{
@@ -42,7 +43,7 @@ namespace Darklight.World.Builder
 			{
 				TaskBotConsole.Log(self, $"\t>> Creating Chunk {position}");
 				Coordinate coordinate = _coordinateMap.GetCoordinateAt(position);
-				Chunk newChunk = new Chunk(self, coordinate); // Use the captured instance
+				ChunkData newChunk = new ChunkData(self, coordinate); // Use the captured instance
 				_chunks.Add(newChunk);
 				_chunkMap[coordinate.ValueKey] = newChunk;
 			}
@@ -53,17 +54,51 @@ namespace Darklight.World.Builder
 		async Task CreateChunkObjs()
 		{
 			TaskBotConsole.Log(this, $"Creating {_chunks.Count} Meshes");
-			foreach (Chunk chunk in _chunks)
+			foreach (ChunkData chunk in _chunks)
 			{
 				ChunkMesh newMesh = chunk.CreateChunkMesh();
 
 				if (WorldBuilder.Instance != null) { continue; }
-				GameObject newObject = RegionParent.CreateMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.ChunkMesh.Mesh);
-				TaskBotConsole.Log(this, $"\tNewChunkMeshObject : {newObject}");
+				GameObject newChunkObject = CreateMeshObject(chunk.Coordinate.ValueKey.ToString(), newMesh.Mesh, RegionParent.defaultMaterial);
+				TaskBotConsole.Log(this, $"\tNewChunkMeshObject : {newChunkObject.name} : {newMesh.Mesh.vertexCount}");
 			}
 			await Task.CompletedTask;
 		}
 
+
+		public GameObject CreateMeshObject(string name, Mesh mesh, Material material)
+		{
+
+			Material defaultMaterial = RegionParent.defaultMaterial;
+			if (RegionParent && RegionParent.defaultMaterial != null && material == null)
+			{
+				Debug.LogWarning($"{name} SetMaterial to GenerationParent default");
+				material = RegionParent.defaultMaterial;
+			}
+			else if (mesh == null) { Debug.LogWarning($"{name} Mesh is null"); }
+
+			GameObject worldObject = new GameObject(name);
+			ChunkEditor chunkEditor = worldObject.AddComponent<ChunkEditor>();
+			worldObject.transform.parent = transform;
+			worldObject.transform.localPosition = Vector3.zero;
+
+			MeshFilter meshFilter = worldObject.AddComponent<MeshFilter>();
+			meshFilter.sharedMesh = mesh;
+			meshFilter.sharedMesh.RecalculateBounds();
+			meshFilter.sharedMesh.RecalculateNormals();
+
+			if (material == null)
+			{
+				worldObject.AddComponent<MeshRenderer>().material = defaultMaterial;
+				worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
+			}
+			else
+			{
+				worldObject.AddComponent<MeshRenderer>().material = material;
+				worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
+			}
+			return worldObject;
+		}
 		public async Task GenerationSequence()
 		{
 			/// STAGE 1 : [[ CREATE CHUNKS ]]
@@ -78,23 +113,23 @@ namespace Darklight.World.Builder
 			GenerationFinished = true;
 		}
 
-		public Chunk GetChunkAt(Vector2Int position)
+		public ChunkData GetChunkAt(Vector2Int position)
 		{
 			if (!Initialized || !_coordinateMap.AllCoordinateValues.Contains(position)) { return null; }
 			return _chunkMap[position];
 		}
 
-		public Chunk GetChunkAt(Coordinate worldCoord)
+		public ChunkData GetChunkAt(Coordinate worldCoord)
 		{
 			if (!Initialized || worldCoord == null) { return null; }
 			return GetChunkAt(worldCoord.ValueKey);
 		}
 
-		public List<Chunk> GetChunksAtCoordinateValues(List<Vector2Int> values)
+		public List<ChunkData> GetChunksAtCoordinateValues(List<Vector2Int> values)
 		{
-			if (!Initialized) { return new List<Chunk>(); }
+			if (!Initialized) { return new List<ChunkData>(); }
 
-			List<Chunk> chunks = new List<Chunk>();
+			List<ChunkData> chunks = new List<ChunkData>();
 			foreach (Vector2Int value in values)
 			{
 				chunks.Add(GetChunkAt(value));
@@ -105,15 +140,15 @@ namespace Darklight.World.Builder
 
 		public void ResetAllChunkHeights()
 		{
-			foreach (Chunk chunk in AllChunks)
+			foreach (ChunkData chunk in AllChunks)
 			{
 				chunk.SetGroundHeight(0);
 			}
 		}
 
-		public void SetChunksToHeight(List<Chunk> worldChunk, int chunkHeight)
+		public void SetChunksToHeight(List<ChunkData> worldChunk, int chunkHeight)
 		{
-			foreach (Chunk chunk in worldChunk)
+			foreach (ChunkData chunk in worldChunk)
 			{
 				chunk.SetGroundHeight(chunkHeight);
 			}
@@ -123,7 +158,7 @@ namespace Darklight.World.Builder
 		{
 			foreach (Vector2Int pos in positions)
 			{
-				Chunk chunk = GetChunkAt(pos);
+				ChunkData chunk = GetChunkAt(pos);
 				if (chunk != null)
 				{
 					chunk.SetGroundHeight(chunkHeight);
@@ -144,7 +179,7 @@ namespace Darklight.World.Builder
 			// Iterate through the chunks
 			for (int i = 0; i < path.AllPositions.Count; i++)
 			{
-				Chunk currentChunk = GetChunkAt(path.AllPositions[i]);
+				ChunkData currentChunk = GetChunkAt(path.AllPositions[i]);
 
 				// Assign start/end chunk heights & CONTINUE
 				if (i == 0) { currentChunk.SetGroundHeight(startHeight); continue; }
@@ -155,8 +190,8 @@ namespace Darklight.World.Builder
 					int heightOffset = 0;
 
 					// Determine the direction of the last & next chunk in path
-					Chunk previousChunk = GetChunkAt(path.AllPositions[i - 1]);
-					Chunk nextChunk = GetChunkAt(path.AllPositions[i + 1]);
+					ChunkData previousChunk = GetChunkAt(path.AllPositions[i - 1]);
+					ChunkData nextChunk = GetChunkAt(path.AllPositions[i + 1]);
 					WorldDirection? lastChunkDirection = currentChunk.Coordinate.GetWorldDirectionOfNeighbor(previousChunk.Coordinate);
 					WorldDirection? nextChunkDirection = currentChunk.Coordinate.GetWorldDirectionOfNeighbor(nextChunk.Coordinate);
 					if (lastChunkDirection != null && nextChunkDirection != null)

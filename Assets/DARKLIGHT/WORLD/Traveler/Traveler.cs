@@ -24,7 +24,7 @@ namespace Darklight.World.Generation
 		public Player8DirMovement playerMovement;
 		public bool Active = false;
 		public RegionBuilder CurrentRegion { get; private set; }
-		public Chunk CurrentChunk { get; private set; }
+		public ChunkData CurrentChunk { get; private set; }
 		public CoordinateMap CurrentCoordinateMap { get; private set; }
 		public Coordinate CurrentCoordinate { get; private set; }
 		public Cell CurrentCell { get; private set; }
@@ -129,7 +129,7 @@ namespace Darklight.World.Generation
 		}
 		public bool MoveToChunkInDirection(WorldDirection worldDirection)
 		{
-			Chunk neighborChunk = CurrentChunk.GetNeighborInDirection(worldDirection);
+			ChunkData neighborChunk = CurrentChunk.GetNeighborInDirection(worldDirection);
 			if (neighborChunk == null) return false;
 
 			BorderDirection? borderDirection = CoordinateMap.GetBorderDirection(worldDirection);

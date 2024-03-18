@@ -5,21 +5,21 @@ using UnityEngine;
 
 namespace Darklight.World.Generation
 {
-    using FaceType = Chunk.FaceType;
+    using FaceType = ChunkData.FaceType;
 
     public class CellMap
     {
-        Chunk _chunk;
+        ChunkData _chunk;
         ChunkMesh _chunkMesh;
         HashSet<Cell> _cells = new();
         Dictionary<FaceType, List<MeshQuad>> _quads = new();
         Dictionary<FaceType, HashSet<Cell>> _faceMap = new();
 
-        public Chunk ChunkParent { get; private set; }
+        public ChunkData ChunkParent { get; private set; }
         public List<Cell> AllCells => _cells.ToList();
         public Dictionary<FaceType, HashSet<Cell>> ChunkFaceMap => _faceMap;
 
-        public CellMap(Chunk chunk, ChunkMesh chunkMesh)
+        public CellMap(ChunkData chunk, ChunkMesh chunkMesh)
         {
             _chunk = chunk;
             _chunkMesh = chunkMesh;

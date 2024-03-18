@@ -22,7 +22,7 @@ namespace Darklight.World.Generation
 		TYPE _type;
 
 		// [[ PUBLIC REFERENCE VARIABLES ]]
-		public Chunk ChunkParent { get; private set; }
+		public ChunkData ChunkParent { get; private set; }
 		public Coordinate Coordinate => ChunkParent.GetCoordinateAtCell(this);
 		public MeshQuad MeshQuad => _meshQuad;
 		public TYPE Type => _type;
@@ -36,12 +36,12 @@ namespace Darklight.World.Generation
 		}
 
 		public Vector2Int FaceCoord => _meshQuad.faceCoord;
-		public Chunk.FaceType FaceType => _meshQuad.faceType;
+		public ChunkData.FaceType FaceType => _meshQuad.faceType;
 		public Vector3 Normal => _meshQuad.faceNormal;
 		public int Size = WorldBuilder.Settings.CellSize_inGameUnits;
 
 
-		public Cell(Chunk chunkParent, MeshQuad meshQuad)
+		public Cell(ChunkData chunkParent, MeshQuad meshQuad)
 		{
 			this.ChunkParent = chunkParent;
 			this._meshQuad = meshQuad;

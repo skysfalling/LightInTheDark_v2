@@ -69,7 +69,7 @@ namespace Darklight.World.Generation
         {
             await base.InitializationSequence();
             TaskBotConsole.Log(this, "SpawnMap Initialization Started");
-            List<Chunk> allChunks = _regionBuilder.ChunkBuilder.AllChunks.ToList();
+            List<ChunkData> allChunks = _regionBuilder.ChunkBuilder.AllChunks.ToList();
             TaskBotConsole.Log(this, "Detected Region Generation");
             TaskBotConsole.Log(this, $"Found {_regionBuilder.ChunkBuilder.AllChunks.Count} Chunks");
 

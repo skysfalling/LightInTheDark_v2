@@ -13,12 +13,12 @@ namespace Darklight.World.Entity
 		public bool active;
 		public Path currentPath;
 		public RegionBuilder regionParent;
-		public Chunk currentChunk;
-		public Chunk targetChunk;
+		public ChunkData currentChunk;
+		public ChunkData targetChunk;
 		public Coordinate currentCoordinate;
 		public GameObject modelObject;
 
-		public void Initialize(string name, GameObject modelPrefab, RegionBuilder region, Chunk chunk)
+		public void Initialize(string name, GameObject modelPrefab, RegionBuilder region, ChunkData chunk)
 		{
 			this.gameObject.name = $"_entity({name})";
 			regionParent = region;
@@ -37,10 +37,10 @@ namespace Darklight.World.Entity
 			currentPath = new Path(regionParent.CoordinateMap, currentChunk.Coordinate.ValueKey, targetChunk.Coordinate.ValueKey, new List<Coordinate.TYPE>() { Coordinate.TYPE.NULL });
 		}
 
-		public Chunk DetermineNewTargetChunk()
+		public ChunkData DetermineNewTargetChunk()
 		{
 			Vector2Int randomCoordinateValue = regionParent.CoordinateMap.GetRandomCoordinateValueOfType(Coordinate.TYPE.NULL);
-			Chunk randomChunk = regionParent.ChunkBuilder.GetChunkAt(randomCoordinateValue);
+			ChunkData randomChunk = regionParent.ChunkBuilder.GetChunkAt(randomCoordinateValue);
 			return randomChunk;
 		}
 	}

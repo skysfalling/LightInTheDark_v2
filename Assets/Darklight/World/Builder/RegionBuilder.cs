@@ -11,8 +11,7 @@ namespace Darklight.World.Builder
 	using Generation;
 	using Map;
 	using Settings;
-
-
+	using Darklight.World.Editor;
 
 	[RequireComponent(typeof(ChunkBuilder))]
 	public class RegionBuilder : TaskQueen, ITaskEntity
@@ -339,6 +338,7 @@ namespace Darklight.World.Builder
 			else if (mesh == null) { Debug.LogWarning($"{name} Mesh is null"); }
 
 			GameObject worldObject = new GameObject(name);
+			ChunkEditor chunkEditor = worldObject.AddComponent<ChunkEditor>();
 			worldObject.transform.parent = transform;
 			worldObject.transform.localPosition = Vector3.zero;
 
@@ -417,7 +417,7 @@ namespace Darklight.World.Builder
 		private Mesh CombineChunks()
 		{
 			List<Mesh> meshes = new List<Mesh>();
-			foreach (Chunk chunk in _chunkBuilder.AllChunks)
+			foreach (ChunkData chunk in _chunkBuilder.AllChunks)
 			{
 				if (chunk?.ChunkMesh?.Mesh != null)
 				{

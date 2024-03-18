@@ -4,9 +4,11 @@ using System.Linq;
 using UnityEngine;
 namespace Darklight.World.Generation
 {
+	using System.Threading.Tasks;
+	using Darklight.Bot;
 	using Darklight.World.Builder;
 	using Darklight.World.Map;
-	public class Chunk
+	public class ChunkData : TaskQueen, ITaskEntity
 	{
 		/// <summary>
 		/// Defines World Chunks based on wall count / location
@@ -72,7 +74,7 @@ namespace Darklight.World.Generation
 		}
 		public Vector3 ChunkMeshDimensions => WorldBuilder.Settings.ChunkVec3Dimensions_inCellUnits + new Vector3Int(0, GroundHeight, 0);
 
-		public Chunk(ChunkBuilder chunkGeneration, Coordinate coordinate)
+		public ChunkData(ChunkBuilder chunkGeneration, Coordinate coordinate)
 		{
 			this.ChunkBuilderParent = chunkGeneration;
 			this._coordinate = coordinate;
@@ -118,7 +120,7 @@ namespace Darklight.World.Generation
 				if (coordinateZone != null && coordinateZone.CenterCoordinate.ValueKey != _coordinate.ValueKey)
 				{
 					// Try to find center chunk of zone and set height to match
-					Chunk centerChunk = ChunkBuilderParent.GetChunkAt(coordinateZone.CenterCoordinate);
+					ChunkData centerChunk = ChunkBuilderParent.GetChunkAt(coordinateZone.CenterCoordinate);
 					if (centerChunk != null)
 					{
 						this._groundHeight = centerChunk.GroundHeight;
@@ -130,10 +132,10 @@ namespace Darklight.World.Generation
 		void DetermineChunkType()
 		{
 			// [[ ITERATE THROUGH CHUNK NEIGHBORS ]] 
-			Dictionary<WorldDirection, Chunk> naturalNeighborMap = GetNaturalNeighborMap();
+			Dictionary<WorldDirection, ChunkData> naturalNeighborMap = GetNaturalNeighborMap();
 			foreach (WorldDirection direction in naturalNeighborMap.Keys.ToList())
 			{
-				Chunk neighborChunk = naturalNeighborMap[direction];
+				ChunkData neighborChunk = naturalNeighborMap[direction];
 				if (neighborChunk == null)
 				{
 					BorderDirection? neighborBorder = CoordinateMap.GetBorderDirection(direction); // get chunk border
@@ -189,9 +191,9 @@ namespace Darklight.World.Generation
 			}
 		}
 
-		public Dictionary<WorldDirection, Chunk> GetNaturalNeighborMap()
+		public Dictionary<WorldDirection, ChunkData> GetNaturalNeighborMap()
 		{
-			Dictionary<WorldDirection, Chunk> neighborMap = new();
+			Dictionary<WorldDirection, ChunkData> neighborMap = new();
 
 			List<WorldDirection> naturalNeighborDirections = new List<WorldDirection> { WorldDirection.NORTH, WorldDirection.SOUTH, WorldDirection.EAST, WorldDirection.WEST };
 			foreach (WorldDirection direction in naturalNeighborDirections)
@@ -203,7 +205,7 @@ namespace Darklight.World.Generation
 			return neighborMap;
 		}
 
-		public Chunk GetNeighborInDirection(WorldDirection direction)
+		public ChunkData GetNeighborInDirection(WorldDirection direction)
 		{
 			return GetNaturalNeighborMap()[direction];
 		}
@@ -219,7 +221,6 @@ namespace Darklight.World.Generation
 		}
 
 		// ================== SPAWN OBJECTS ============= >>
-
 		public List<Cell> FindSpace(EnvironmentObject envObj)
 		{
 			Dictionary<int, List<Cell>> availableSpace = new Dictionary<int, List<Cell>>();

@@ -638,6 +638,7 @@ MonoBehaviour:
   chunkMapView: 0
   cellMapView: 0
   selectedRegion: {fileID: 543254080984073197}
+  selectedChunk: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

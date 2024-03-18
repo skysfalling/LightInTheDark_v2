@@ -38,8 +38,8 @@ namespace Darklight.World.Generation
 		ChunkBuilder _worldChunkMap;
 
 		string parentObjectPrefix = "env_parent :: ";
-		Dictionary<Chunk, Transform> _worldChunkEnvParentMap = new Dictionary<Chunk, Transform>();
-		Dictionary<Chunk, Transform> _borderChunkEnvParentMap = new Dictionary<Chunk, Transform>();
+		Dictionary<ChunkData, Transform> _worldChunkEnvParentMap = new Dictionary<ChunkData, Transform>();
+		Dictionary<ChunkData, Transform> _borderChunkEnvParentMap = new Dictionary<ChunkData, Transform>();
 
 		[Header("PLAYER")]
 		public GameObject playerPrefab;
@@ -126,7 +126,7 @@ namespace Darklight.World.Generation
 		}
 
 		// ======================= CREATE CHUNK ENVIRONMENT =========================================
-		private void CreateChunkEnvironment(Chunk chunk, List<EnvironmentObject> envObjects, Dictionary<Chunk, Transform> parentMap)
+		private void CreateChunkEnvironment(ChunkData chunk, List<EnvironmentObject> envObjects, Dictionary<ChunkData, Transform> parentMap)
 		{
 			if (envObjects.Count == 0) { return; }
 			EnvironmentObject envObj = envObjects[Random.Range(0, envObjects.Count)];

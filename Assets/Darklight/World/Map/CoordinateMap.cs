@@ -172,7 +172,7 @@ namespace Darklight.World.Map
             _mapWidthCount = WorldBuilder.Settings.RegionFullWidth_inChunkUnits;
             _coordinateSize = WorldBuilder.Settings.ChunkWidth_inGameUnits;
         }
-        public CoordinateMap(Chunk parent)
+        public CoordinateMap(ChunkData parent)
         {
             _mapUnitSpace = UnitSpace.CHUNK;
             _mapOriginPosition = parent.OriginPosition;
