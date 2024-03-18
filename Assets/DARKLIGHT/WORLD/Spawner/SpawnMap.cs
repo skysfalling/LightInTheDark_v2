@@ -11,16 +11,56 @@ namespace Darklight.World.Generation
     public class SpawnMap : TaskQueen, ITaskEntity
     {
         RegionBuilder _regionBuilder;
-        RegionBuilder RegionBuilder => GetComponent<RegionBuilder>();
-        CoordinateMap CoordinateMap => RegionBuilder.CoordinateMap;
-        Dictionary<Chunk, CellMap> cellMaps = new();
-        Dictionary<Chunk, HashSet<Cell>> allSpawnCells = new();
+        WorldBuilder _worldBuilder;
+        CoordinateMap _coordinateMap;
 
-        public Traveler playerTraveler;
+
+
+
+
+
+
+
+        public GameObject playerTravelerObject;
 
         public async void Start()
         {
-            _regionBuilder = RegionBuilder;
+            _worldBuilder = WorldBuilder.Instance;
+            if (_worldBuilder == null)
+            {
+                TaskBotConsole.Log(this, "WorldBuilder not found");
+                _regionBuilder = FindFirstObjectByType<RegionBuilder>();
+                if (_regionBuilder == null)
+                {
+                    TaskBotConsole.Log(this, "RegionBuilder not found");
+                    TaskBotConsole.Log(this, "SpawnMap Initialization Failed");
+                    return;
+                }
+                else
+                {
+                    TaskBotConsole.Log(this, "RegionBuilder found");
+                    while (_regionBuilder.GenerationFinished == false)
+                    {
+                        await Awaitable.WaitForSecondsAsync(1f);
+                    }
+                    _coordinateMap = _regionBuilder.CoordinateMap;
+                }
+            }
+            else
+            {
+                TaskBotConsole.Log(this, "WorldBuilder found");
+                _regionBuilder = null;
+                while (_worldBuilder.Initialized == false)
+                {
+                    await Awaitable.WaitForSecondsAsync(1f);
+                }
+
+                _coordinateMap = _worldBuilder.CoordinateMap;
+                _regionBuilder = _worldBuilder.AllRegions.First();
+            }
+
+            await Awaitable.WaitForSecondsAsync(3f);
+
             await base.Initialize();
             await InitializationSequence();
         }
@@ -28,64 +68,58 @@ namespace Darklight.World.Generation
         public override async Awaitable InitializationSequence()
         {
             await base.InitializationSequence();
-            while (RegionBuilder.GenerationFinished == false)
+            TaskBotConsole.Log(this, "SpawnMap Initialization Started");
+            List<Chunk> allChunks = _regionBuilder.ChunkBuilder.AllChunks.ToList();
+            TaskBotConsole.Log(this, "Detected Region Generation");
+            TaskBotConsole.Log(this, $"Found {_regionBuilder.ChunkBuilder.AllChunks.Count} Chunks");
+
+            /* 
+            TODO : Scan the region for chunks of a certain type & match with library of prefabs
+            
+            */
+
+
+            /*
+            // Track all of the cells
+            foreach (Chunk chunk in spawnChunks)
             {
-                await Awaitable.WaitForSecondsAsync(0.1f);
+                cellMaps[chunk] = chunk.CellMap;
+
+                HashSet<Cell> topFaceCells = chunk.CellMap.ChunkFaceMap[Chunk.FaceType.Top];
+                foreach (Cell cell in topFaceCells)
+                {
+                    if (cell.Coordinate.Type == Coordinate.TYPE.NULL)
+                    {
+                        allSpawnCells.TryAdd(chunk, new HashSet<Cell>());
+                        allSpawnCells[chunk].Add(cell);
+                    }
+                }
+                TaskBotConsole.Log(this, $"Found {allSpawnCells[chunk].Count} Spawn Cells in Chunk {chunk.Coordinate.ValueKey}");
             }
 
-            List<Vector2Int> allZoneCoordinates = CoordinateMap.GetAllCoordinatesValuesOfType(Coordinate.TYPE.ZONE).ToList();
-            List<Chunk> spawnChunks = _regionBuilder.ChunkBuilder.GetChunksAtCoordinateValues(allZoneCoordinates);
-            TaskBotConsole.Log(this, "Detected Region Generation");
-            TaskBotConsole.Log(this, $"Found {RegionBuilder.ChunkBuilder.AllChunks.Count} Chunks");
+            await Awaitable.WaitForSecondsAsync(1f);
+            Debug.Log($"Spawn Chunk Count {spawnChunks.Count}");
 
-            TaskBot MapSpawnFacesBot = new TaskBot(this, "MapSpawnFacesBot", async () =>
+            Chunk spawnChunk = spawnChunks[UnityEngine.Random.Range(0, spawnChunks.Count - 1)];
+            Cell spawnCell = spawnChunk.CellMap.AllCells.ElementAt(UnityEngine.Random.Range(0, spawnChunk.CellMap.AllCells.Count - 1));
+
+            if (spawnCell == null)
             {
-                // Track all of the cells
-                foreach (Chunk chunk in spawnChunks)
-                {
-                    cellMaps[chunk] = chunk.CellMap;
-
-                    HashSet<Cell> topFaceCells = chunk.CellMap.ChunkFaceMap[Chunk.FaceType.Top];
-                    foreach (Cell cell in topFaceCells)
-                    {
-                        if (cell.Coordinate.Type == Coordinate.TYPE.NULL)
-                        {
-                            allSpawnCells.TryAdd(chunk, new());
-                            allSpawnCells[chunk].Add(cell);
-                        }
-                    }
-
-
-                    TaskBotConsole.Log(this, $"Found {allSpawnCells[chunk].Count} Spawn Cells in Chunk {chunk.Coordinate.ValueKey}");
-                }
-
-
-
-                await Task.CompletedTask;
-            }, true);
-            await ExecuteBot(MapSpawnFacesBot);
-
-            Cell spawnCell = GetRandomSpawnCell();
-            spawnCell.SetCellType(Cell.TYPE.SPAWN_POINT);
+                TaskBotConsole.Log(this, "Spawn Cell not found");
+                return;
+            }
+            else
+            {
+                TaskBotConsole.Log(this, "Spawn Cell found");
+                spawnCell.SetCellType(Cell.TYPE.SPAWN_POINT);
+            }
 
             // Spawn Player
-            GameObject player = Instantiate(playerTraveler.gameObject, spawnCell.Position, Quaternion.identity);
+            GameObject player = Instantiate(playerTravelerObject, spawnCell.Position, Quaternion.identity);
             player.GetComponent<Traveler>().InitializeAtCell(spawnCell);
-
+*/
 
         }
-
-        public Cell GetRandomSpawnCell()
-        {
-            HashSet<Cell> allSpawnCells = new();
-            foreach (HashSet<Cell> cells in this.allSpawnCells.Values)
-            {
-                allSpawnCells.UnionWith(cells);
-            }
-            return allSpawnCells.ElementAt(UnityEngine.Random.Range(0, allSpawnCells.Count));
-        }
-
-
 
         /*
                 void DrawCell(Cell cell, WorldEditor.CellView type)

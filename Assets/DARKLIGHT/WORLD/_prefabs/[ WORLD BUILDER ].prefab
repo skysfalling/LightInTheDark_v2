@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5845749257906015333}
   - component: {fileID: 6712875993486741718}
+  - component: {fileID: 8167394544480399410}
   m_Layer: 0
   m_Name: '[ WORLD BUILDER ]'
   m_TagString: Untagged
@@ -49,6 +50,27 @@ MonoBehaviour:
     type: 2}
   defaultMaterial: {fileID: 2100000, guid: e18ded4b611aa8f4a9f0f261d2f29537, type: 2}
   initializeOnStart: 1
+--- !u!114 &8167394544480399410
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3048074976327827359}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfb021a075759f94c89f99d761b0ac9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  editMode: 1
+  worldView: 0
+  regionView: 1
+  chunkView: 3
+  cellView: 0
+  coordinateMapView: 2
+  chunkMapView: 0
+  cellMapView: 0
+  selectedRegion: {fileID: 0}
 --- !u!1 &3916990068721736691
 GameObject:
   m_ObjectHideFlags: 0

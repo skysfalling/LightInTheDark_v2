@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: Tester
   m_EditorClassIdentifier: 
   _seed: hello
-  _cellSize: 1
-  _chunkWidth: 5
-  _chunkDepth: 3
-  _chunkMaxHeight: 5
-  _regionWidth: 5
-  _regionBoundaryOffset: 1
-  _worldWidth: 3
-  _pathRandomness: 1
-  _perlinMultiplier: 0
+  _cellSize: 4
+  _chunkWidth: 4
+  _chunkDepth: 0
+  _chunkMaxHeight: 1
+  _regionWidth: 10
+  _regionBoundaryOffset: 0
+  _worldWidth: 2
+  _pathRandomness: 0.5
+  _perlinMultiplier: 1

@@ -17,7 +17,7 @@ namespace Darklight.Game.Movement
 		[SerializeField] public WorldDirection? currentDirection;
 		public Vector3 targetPosition;
 		[SerializeField] private Vector2 _universalMoveInput;
-		[SerializeField] private int _multiplier = 10;
+		public float multiplier = 10;
 
 		/// <summary>
 		/// Gets the child Rigidbody component
@@ -28,7 +28,6 @@ namespace Darklight.Game.Movement
 		/// <returns></returns>
 		public new Rigidbody rigidbody => GetComponent<Rigidbody>();
 
-		public event Action<WorldDirection?> OnDirectionChanged;
 		void Awake()
 		{
 			_universalInputManager = UniversalInputManager.Instance;
@@ -51,13 +50,15 @@ namespace Darklight.Game.Movement
 			currentDirection = CoordinateMap.GetEnumFromDirectionVector(new Vector2Int((int)_universalMoveInput.x, (int)_universalMoveInput.y));// get private world direction
 		}
 
+
 		public void FixedUpdate()
 		{
-			/*
-			Vector3 targetDirection = targetPosition - transform.position;
-			rigidbody.velocity = targetDirection * _multiplier;
-			*/
-			transform.position = targetPosition;
+			//Vector3 targetDirection = targetPosition - transform.position;
+			//rigidbody.velocity = targetDirection * _multiplier;
+
+			//transform.position = targetPosition;
+			//transform.position = new Vector3(transform.position.x, targetPosition.y, transform.position.z);
+			transform.position = Vector3.Lerp(transform.position, targetPosition, Time.fixedDeltaTime * multiplier);
 		}
 
 	}

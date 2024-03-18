@@ -147,6 +147,34 @@ namespace Darklight.World
 
 
 		#region [[ SCENE GUI ]]
+		/// <summary>
+		/// Enables the Editor to handle an event in the scene view.
+		/// </summary>
+		private void OnSceneGUI()
+		{
+			_worldEditScript = (WorldEditor)target;
+			WorldBuilder worldBuilder = FindFirstObjectByType<WorldBuilder>();
+
+			// Draw World Editor GUI
+			DrawWorldEditorGUI(worldBuilder);
+
+			// Draw Region
+			if (_worldEditScript.editMode == WorldEditor.EditMode.REGION && _worldEditScript.selectedRegion != null)
+			{
+				DrawRegion(_worldEditScript.selectedRegion, _worldEditScript);
+			}
+			// Draw Chunk
+			else if (_worldEditScript.editMode == WorldEditor.EditMode.CHUNK && _worldEditScript.selectedChunk != null)
+			{
+				DrawChunk(_worldEditScript.selectedChunk, _worldEditScript);
+			}
+			// Draw Cell
+			else if (_worldEditScript.editMode == WorldEditor.EditMode.CELL && _worldEditScript.selectedCell != null)
+			{
+				DrawCell(_worldEditScript.selectedCell, _worldEditScript.cellView);
+			}
+		}
+
 
 		void DrawWorldEditorGUI(WorldBuilder worldBuilder)
 		{

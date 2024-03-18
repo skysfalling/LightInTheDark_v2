@@ -20,7 +20,6 @@ namespace Darklight.World.Generation
 	public class Traveler : MonoBehaviour
 	{
 		private GameObject _modelObject;
-
 		public CoordinateMap coordinateMap;
 		public Player8DirMovement playerMovement;
 		public bool Active = false;
@@ -33,13 +32,24 @@ namespace Darklight.World.Generation
 		[SerializeField] public WorldSpawnUnit worldSpawnUnit;
 
 		public Vector3 OriginPosition => transform.position;
-		public Vector3 CenterPosition => transform.position + (Vector3Int.up * worldSpawnUnit.dimensions * WorldBuilder.Settings.CellSize_inGameUnits) / 2;
+		public Vector3 CenterPosition => transform.position + (Vector3Int.up * worldSpawnUnit.dimensions * WorldBuilder.Settings.CellSize_inGameUnits);
+
+		private WorldDirection? _continuousMoveDirection = null;
+		private float _inputHoldDuration = 0f;
+		private bool _isContinuouslyMoving = false;
+		private float _continuousMoveThreshold = 0.1f; // Time in seconds to trigger continuous movement
+		private float _continuousMoveInterval = 0.1f; // Time interval between continuous moves
+		private float _timeSinceLastMove = 0f;
+
+
 		private void Awake()
 		{
 			playerMovement = GetComponent<Game.Movement.Player8DirMovement>();
 			if (UniversalInputManager.Instance != null)
 			{
 				UniversalInputManager.Instance.moveInput.performed += context => HandleMoveInput(context.ReadValue<Vector2>());
+				UniversalInputManager.Instance.moveInput.canceled += context => HandleMoveInput(Vector2.zero);
+
 			}
 		}
 		private void OnDestroy()
@@ -66,40 +76,57 @@ namespace Darklight.World.Generation
 			SpawnModelAtPosition();
 		}
 
-		public void Update()
+		private void Update()
 		{
-			/*
-			if (CurrentCoordinate != null)
+			if (_continuousMoveDirection.HasValue)
 			{
-				WorldDirection? currentInputDirection = playerMovement.currentDirection;
-				if (currentInputDirection != null)
+				_inputHoldDuration += Time.deltaTime;
+				_timeSinceLastMove += Time.deltaTime;
+
+				if (_inputHoldDuration >= _continuousMoveThreshold && !_isContinuouslyMoving)
 				{
-					bool validCellFound = MoveToCellInDirection(currentInputDirection.Value);
-					if (!validCellFound)
-					{
-						bool validChunkFound = MoveToChunkInDirection(currentInputDirection.Value);
-					}
+					_isContinuouslyMoving = true;
+					_timeSinceLastMove = 0f; // Reset to immediately trigger the first continuous move
+				}
+
+				if (_isContinuouslyMoving && _timeSinceLastMove >= _continuousMoveInterval)
+				{
+					MoveToDirection(_continuousMoveDirection.Value);
+					_timeSinceLastMove = 0f;
 				}
 			}
-			*/
 		}
 
 		private void HandleMoveInput(Vector2 input)
 		{
-			if (!Active || CurrentCoordinate == null || input == Vector2.zero) return;
+			if (!Active || CurrentCoordinate == null) return;
+			if (input == Vector2.zero)
+			{
+				_continuousMoveDirection = null;
+				_isContinuouslyMoving = false;
+				_inputHoldDuration = 0f;
+				return;
+			}
 
 			// Convert the Vector2 input to a WorldDirection
 			WorldDirection? direction = CoordinateMap.GetEnumFromDirectionVector(new Vector2Int((int)input.x, (int)input.y));
 			if (direction == null) return;
-
-			// Attempt to move to the cell in the input direction
-			bool validCellFound = MoveToCellInDirection(direction.Value);
-			if (!validCellFound)
+			if (direction.HasValue && (_continuousMoveDirection != direction || !_isContinuouslyMoving))
 			{
-				MoveToChunkInDirection(direction.Value);
+				_continuousMoveDirection = direction;
+				_isContinuouslyMoving = false;
+				_inputHoldDuration = 0f;
+				MoveToDirection(direction.Value);
 			}
 		}
-
+		void MoveToDirection(WorldDirection direction)
+		{
+			bool validCellFound = MoveToCellInDirection(direction);
+			if (!validCellFound)
+			{
+				MoveToChunkInDirection(direction);
+			}
+		}
 		public bool MoveToChunkInDirection(WorldDirection worldDirection)
 		{
 			Chunk neighborChunk = CurrentChunk.GetNeighborInDirection(worldDirection);
@@ -184,7 +211,7 @@ namespace Darklight.World.Generation
 		{
 			_modelObject = Instantiate(worldSpawnUnit.modelPrefab, transform);
 			_modelObject.transform.position = CenterPosition;
-			_modelObject.transform.localScale = Vector3.one * worldSpawnUnit.modelScale;
+			_modelObject.transform.localScale = Vector3.one * worldSpawnUnit.modelScale * WorldBuilder.Settings.CellSize_inGameUnits;
 		}
 
 
@@ -193,7 +220,7 @@ namespace Darklight.World.Generation
 		public void OnDrawGizmos()
 		{
 			Gizmos.color = Color.red;
-			Gizmos.DrawWireCube(OriginPosition, worldSpawnUnit.dimensions * WorldBuilder.Settings.CellSize_inGameUnits);
+			Gizmos.DrawWireCube(CenterPosition, worldSpawnUnit.dimensions * WorldBuilder.Settings.CellSize_inGameUnits);
 
 			if (CurrentCell != null)
 			{

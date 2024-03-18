@@ -108,8 +108,9 @@ namespace Darklight.World.Generation
 			Vector2Int perlinOffset = new Vector2Int((int)_coordinate.ScenePosition.x, (int)_coordinate.ScenePosition.z);
 			this._groundHeight = Mathf.RoundToInt(PerlinNoise.CalculateHeightFromNoise(perlinOffset) * WorldBuilder.Settings.PerlinMultiplier);
 			this._groundHeight = Mathf.Clamp(this._groundHeight, 0, WorldBuilder.Settings.ChunkMaxHeight_inCellUnits);
+			this._groundHeight *= WorldBuilder.Settings.CellSize_inGameUnits; // Convert to game units
 
-			// Set Zone Chunks to same height as center
+			// Set Zone Chunks to same height as centerE
 			if (type == Coordinate.TYPE.ZONE)
 			{
 				this._groundHeight = 0;
