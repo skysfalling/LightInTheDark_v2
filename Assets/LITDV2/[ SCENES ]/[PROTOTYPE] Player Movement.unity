@@ -435,6 +435,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[ WORLD BUILDER ]'
       objectReference: {fileID: 0}
+    - target: {fileID: 3048074976327827359, guid: dad85dccd7fc00b49a2afeef84d99cca,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5845749257906015333, guid: dad85dccd7fc00b49a2afeef84d99cca,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -556,7 +561,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8293307686514958924}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9218f1fdf36b8cd488753d7b1e6ddd66, type: 3}
   m_Name: 
@@ -596,7 +601,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &8879651500629605159
 Transform:
   m_ObjectHideFlags: 0

@@ -8,6 +8,7 @@ namespace Darklight.World.Generation
 {
 	using FaceType = Chunk.FaceType;
 	using Builder;
+	using System.Linq;
 
 	public class MeshQuad
 	{
@@ -15,13 +16,16 @@ namespace Darklight.World.Generation
 		public Vector2Int faceCoord;
 		public Vector3 faceNormal;
 		List<Vector3> vertices = new();
+		List<Vector3> triangles = new();
+		public List<Vector2> uvs { get; private set; } = new();
 
-		public MeshQuad(FaceType faceType, Vector2Int faceCoord, Vector3 faceNormal, List<Vector3> vertices)
+		public MeshQuad(FaceType faceType, Vector2Int faceCoord, Vector3 faceNormal, List<Vector3> vertices, List<Vector2> uvs)
 		{
 			this.faceType = faceType;
 			this.faceCoord = faceCoord;
 			this.faceNormal = faceNormal;
 			this.vertices = vertices;
+			this.uvs = uvs;
 		}
 
 		public Vector3 GetCenterPosition()
@@ -36,12 +40,10 @@ namespace Darklight.World.Generation
 		Vector3Int _currentDimensions;
 		Chunk _chunkParent;
 		Mesh _mesh;
-		Dictionary<FaceType, List<Vector3>> _meshVertices = new();
-		Dictionary<FaceType, List<Vector2>> _meshUVs = new();
-		Dictionary<FaceType, HashSet<MeshQuad>> _meshQuads = new();
+		Dictionary<FaceType, List<MeshQuad>> _meshQuads = new();
 
 		public Mesh Mesh => _mesh;
-		public Dictionary<FaceType, HashSet<MeshQuad>> MeshQuads => _meshQuads;
+		public Dictionary<FaceType, List<MeshQuad>> MeshQuads => _meshQuads;
 
 		public ChunkMesh(Chunk chunkParent, int groundHeight, Vector3 position)
 		{
@@ -60,12 +62,16 @@ namespace Darklight.World.Generation
 
 		Mesh CreateMesh(int groundHeight, List<FaceType> facesToGenerate)
 		{
-			int cellSize = 2;
+			int cellSize = WorldBuilder.Settings.CellSize_inGameUnits;
 			Mesh newMesh = new Mesh();
 			List<Vector3> vertices = new();
 			List<Vector2> uvs = new();
 			List<int> triangles = new();
+			int currentVertexIndex = 0;
+			int quadIndex = 0; // Keep track of the current quad index for UV mapping
 
+
+			// << GET SETTINGS >>
 			if (WorldBuilder.Settings != null)
 			{
 				cellSize = WorldBuilder.Settings.CellSize_inGameUnits;
@@ -87,151 +93,84 @@ namespace Darklight.World.Generation
 			// << CREATE MESH FACES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 			// Updates meshVertices dictionary with < FaceType , List<Vector3> vertices >
 			// 'start' is the starting point of the face, 'u' and 'v' are the directions of the grid
-			void CreateMeshFaces()
+			foreach (FaceType faceType in facesToGenerate)
 			{
-				for (int faceIndex = 0; faceIndex < facesToGenerate.Count; faceIndex++)
+				(Vector3 u, Vector3 v) = GetFaceUVDirectionalVectors(faceType);
+				(int uDivisions, int vDivisions) = GetFaceUVDivisions(faceType);
+				Vector3 startVertex = GetFaceStartVertex(faceType, vDivisions);
+
+				if (!_meshQuads.ContainsKey(faceType)) _meshQuads[faceType] = new List<MeshQuad>();
+
+				for (int i = 0; i < vDivisions; i++)
 				{
-					// Determine face plane values
-					FaceType faceType = facesToGenerate[faceIndex];
-
-					(Vector3 u, Vector3 v) = GetFaceUVDirectionalVectors(faceType); // Directional Vectors
-					(int uDivisions, int vDivisions) = GetFaceUVDivisions(faceType); // Divisions of Plane
-					Vector3 startVertex = GetFaceStartVertex(faceType, vDivisions); // Start Vertex
-
-					// Create Vertices & paired UVs
-					List<Vector3> faceVerticesList = new List<Vector3>();
-					List<Vector2> faceUVsList = new List<Vector2>();
-					for (int i = 0; i <= vDivisions; i++)
+					for (int j = 0; j < uDivisions; j++)
 					{
-						for (int j = 0; j <= uDivisions; j++)
+						// Calculate vertices for the current quad
+						Vector3 bottomLeft = startVertex + (i * cellSize * v) + (j * cellSize * u);
+						Vector3 bottomRight = bottomLeft + (cellSize * u);
+						Vector3 topLeft = bottomLeft + (cellSize * v);
+						Vector3 topRight = topLeft + (cellSize * u);
+
+						// Adjust the order here if necessary to ensure correct winding
+						vertices.AddRange(new Vector3[] { bottomLeft, topLeft, topRight, bottomRight });
+
+						// Set UVs
+						List<Vector2> quadUVs = new List<Vector2>
 						{
-							// Create new Vertex
-							Vector3 newVertex = startVertex + (i * cellSize * v) + (j * cellSize * u);
-							vertices.Add(newVertex);
-							faceVerticesList.Add(newVertex);
+							new Vector2(1, 0),
+							new Vector2(1, 1),
+							new Vector2(0, 1),
+							new Vector2(0, 0),
+						};
+						uvs.AddRange(quadUVs);
 
-							// Standard UV rectangle for each face
-							float uCoord = 1 - (j / (float)uDivisions); // Flipped horizontally
-							float vCoord = i / (float)vDivisions;
-							Vector2 newUV = new Vector2(uCoord, vCoord);
-							uvs.Add(newUV);
-							faceUVsList.Add(newUV); // UV mapping
-						}
+						// Create and store the MeshQuad
+						Vector2Int faceCoordinate = new Vector2Int(i, j);
+						List<Vector3> quadVertices = new List<Vector3> { bottomLeft, bottomRight, topRight, topLeft };
+						MeshQuad quad = new MeshQuad(faceType, faceCoordinate, GetFaceNormal(faceType), quadVertices, quadUVs);
+						_meshQuads[faceType].Add(quad);
+
+						// Add triangles for the current quad
+						int baseIndex = quadIndex * 4;
+						triangles.AddRange(new int[] { baseIndex, baseIndex + 2, baseIndex + 1, baseIndex, baseIndex + 3, baseIndex + 2 });
+						quadIndex++;
 					}
-
-					// Update the dictionary with vertices of the current face
-					_meshVertices[faceType] = faceVerticesList;
-					_meshUVs[faceType] = faceUVsList;
+				}
+				// UPDATE VERTEX COUNT
+				switch (faceType)
+				{
+					// Side Faces XY plane
+					case FaceType.Front:
+					case FaceType.Back:
+					case FaceType.Left:
+					case FaceType.Right:
+						currentVertexIndex += (_currentDimensions.x + 1) * (vDivisions + 1);
+						break;
+					// Top Faces XZ plane
+					case FaceType.Top:
+					case FaceType.Bottom:
+						currentVertexIndex += (_currentDimensions.x + 1) * (_currentDimensions.z + 1);
+						break;
 				}
 			}
 
-			// << CREATE MESH TRIANGLES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-			// Updated AddFaceTriangles to include FaceType and to track quads
-			void CreateMeshTriangles()
-			{
-				// Store overall vertex count
-				int currentVertexIndex = 0;
-
-				for (int faceIndex = 0; faceIndex < facesToGenerate.Count; faceIndex++)
-				{
-					FaceType faceType = facesToGenerate[faceIndex];
-
-					// SET U & V DIVISIONS
-					(int uDivisions, int vDivisions) = GetFaceUVDivisions(faceType);
-
-					/*
-										Debug.Log($"Chunk Mesh {_chunkParent} : {faceType}" +
-											$"\n\t chunkMeshDimensions {_currentDimensions}" +
-											$"\n\t uDivisions {uDivisions} vDivisions {vDivisions}");
-					*/
-
-					// ADD FACE TRIANGLES
-					for (int i = 0; i < vDivisions; i++)
-					{
-						for (int j = 0; j < uDivisions; j++)
-						{
-							// Get rows
-							int rowStart = currentVertexIndex + i * (uDivisions + 1);
-							int nextRowStart = currentVertexIndex + (i + 1) * (uDivisions + 1);
-
-							// Get vertices
-							int bottomLeft = rowStart + j;
-							int bottomRight = bottomLeft + 1;
-							int topLeft = nextRowStart + j;
-							int topRight = topLeft + 1;
-
-							// Track the quad
-							Vector2Int faceCoordinate = new Vector2Int(i, j);
-							List<Vector3> quadVertices = new();
-							try
-							{
-								quadVertices = new List<Vector3>
-							{
-								vertices[bottomLeft],
-								vertices[bottomRight],
-								vertices[topRight],
-								vertices[topLeft]
-							};
-							}
-							catch
-							{
-								Debug.LogError($"Quad Creation Failed. " +
-									$"\n\tCurrent Vertice count {vertices.Count}" +
-									$"\n\tBottomLeft index {bottomLeft} || BottomRight index {topRight}" +
-									$"\n\tTopLeft index {topLeft} || TopRight index {topRight}");
-							}
-
-
-							MeshQuad quad = new MeshQuad(faceType, faceCoordinate, GetFaceNormal(faceType), quadVertices);
-
-							if (!_meshQuads.ContainsKey(faceType)) { _meshQuads[faceType] = new(); }
-							_meshQuads[faceType].Add(quad);
-
-							// Add two triangles for each square
-							List<int> newSquareMesh = new List<int>() { bottomLeft, topRight, topLeft, topRight, bottomLeft, bottomRight };
-							triangles.AddRange(newSquareMesh);
-						}
-					}
-
-					// UPDATE VERTEX COUNT
-					switch (faceType)
-					{
-						// Side Faces XY plane
-						case FaceType.Front:
-						case FaceType.Back:
-						case FaceType.Left:
-						case FaceType.Right:
-							currentVertexIndex += (_currentDimensions.x + 1) * (vDivisions + 1);
-							break;
-						// Top Faces XZ plane
-						case FaceType.Top:
-						case FaceType.Bottom:
-							currentVertexIndex += (_currentDimensions.x + 1) * (_currentDimensions.z + 1);
-							break;
-					}
-				}
-			}
-
-			// Mesh generation
-			CreateMeshFaces();
-
-			// Triangles generation
-			CreateMeshTriangles();
-
-			// << SET MESH VALUES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-			// Apply the vertices and triangles to the mesh
-			newMesh.vertices = vertices.ToArray();
-			newMesh.uv = uvs.ToArray();
-			newMesh.triangles = triangles.ToArray();
-
-			// Recalculate normals for proper lighting
-			newMesh.RecalculateNormals();
-			newMesh.RecalculateBounds();
+			ApplyMeshData(newMesh, vertices, uvs, triangles);
 
 			return newMesh;
 		}
 
-		// [[[[ FACES ]]]] 
+		void ApplyMeshData(Mesh mesh, List<Vector3> vertices, List<Vector2> uvs, List<int> triangles)
+		{
+			// << SET MESH VALUES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+			// Apply the vertices and triangles to the mesh
+			mesh.vertices = vertices.ToArray();
+			mesh.uv = uvs.ToArray();
+			mesh.triangles = triangles.ToArray();
+
+			// Recalculate normals for proper lighting
+			mesh.RecalculateNormals();
+			mesh.RecalculateBounds();
+		}
 
 		(int, int) GetFaceUVDivisions(FaceType faceType)
 		{

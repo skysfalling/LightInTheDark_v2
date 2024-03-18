@@ -12,7 +12,7 @@ namespace Darklight.World.Generation
         Chunk _chunk;
         ChunkMesh _chunkMesh;
         HashSet<Cell> _cells = new();
-        Dictionary<FaceType, HashSet<MeshQuad>> _quads = new();
+        Dictionary<FaceType, List<MeshQuad>> _quads = new();
         Dictionary<FaceType, HashSet<Cell>> _faceMap = new();
 
         public Chunk ChunkParent { get; private set; }
