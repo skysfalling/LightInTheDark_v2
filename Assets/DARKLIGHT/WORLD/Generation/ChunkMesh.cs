@@ -262,10 +262,11 @@ namespace Darklight.World.Generation
 
 			Quad baseQuad = _quadData[faceDir][faceCoord];
 			int newHeight = baseQuad.baseHeightOffset + 1; // Increase height by 1
-			List<Vector3> baseVertices = baseQuad.verticeIndexes.Select(index => _globalVertices[index]).ToList();
 
 			// Calculate new top vertices based on the height offset
-			List<Vector3> topVertices = baseVertices.Select(v => v + Vector3.up * newHeight).ToList();
+			List<Vector3> baseQuadVertices = baseQuad.verticeIndexes.Select(index => _globalVertices[index]).ToList();
+			List<Vector3> bottomVertices = baseQuadVertices.Select(v => v + Vector3.up * (newHeight - 1)).ToList();
+			List<Vector3> topVertices = baseQuadVertices.Select(v => v + Vector3.up * newHeight).ToList();
 
 			// Update global vertices with top vertices and get their indices
 			List<int> topVerticeIndexes = new List<int>();
@@ -279,6 +280,7 @@ namespace Darklight.World.Generation
 			List<Quad> extrudedQuads = new List<Quad>();
 
 			// Generate the new top quad and side quads
+			List<int> newBottomVerticeIndexes = bottomVertices.Select(vertex => _globalVertices.IndexOf(vertex)).ToList();
 			List<int> newTopVerticeIndexes = topVertices.Select(vertex => _globalVertices.IndexOf(vertex)).ToList();
 			Quad newTopQuad = new Quad(_chunkParent, newTopVerticeIndexes, FaceDirection.TOP, faceCoord); // Adjust faceCoord for top quad
 			extrudedQuads.Add(newTopQuad);
@@ -288,8 +290,8 @@ namespace Darklight.World.Generation
 			{
 				List<int> sideVerticeIndexes = new List<int>
 				{
-					baseQuad.verticeIndexes[i],
-					baseQuad.verticeIndexes[(i + 1) % 4],
+					newBottomVerticeIndexes[i],
+					newBottomVerticeIndexes[(i + 1) % 4],
 					newTopVerticeIndexes[(i + 1) % 4],
 					newTopVerticeIndexes[i]
 				};
