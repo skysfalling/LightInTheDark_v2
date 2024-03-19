@@ -5,18 +5,18 @@ using UnityEngine;
 
 namespace Darklight.World.Generation
 {
-    using FaceType = Chunk.FaceType;
+    using FaceDirection = Chunk.FaceDirection;
 
     public class CellMap
     {
         Chunk _chunk;
         ChunkMesh _chunkMesh;
         HashSet<Cell> _cells = new();
-        Dictionary<FaceType, HashSet<Cell>> _faceMap = new();
+        Dictionary<FaceDirection, HashSet<Cell>> _faceMap = new();
 
         public Chunk ChunkParent { get; private set; }
         public List<Cell> AllCells => _cells.ToList();
-        public Dictionary<FaceType, HashSet<Cell>> ChunkFaceMap => _faceMap;
+        public Dictionary<FaceDirection, HashSet<Cell>> ChunkFaceMap => _faceMap;
 
         public CellMap(Chunk chunk, ChunkMesh chunkMesh)
         {
@@ -43,7 +43,7 @@ namespace Darklight.World.Generation
 
         public Cell GetCellAtCoordinate(Coordinate coordinate)
         {
-            List<Cell> topFaceCells = _faceMap[FaceType.TOP].ToList();
+            List<Cell> topFaceCells = _faceMap[FaceDirection.TOP].ToList();
             foreach (Cell cell in topFaceCells)
             {
                 Vector3 cellXZ = new Vector3(cell.Position.x, 0, cell.Position.z);

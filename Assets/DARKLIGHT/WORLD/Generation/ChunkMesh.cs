@@ -6,75 +6,72 @@ using UnityEngine;
 
 namespace Darklight.World.Generation
 {
-	using FaceType = Chunk.FaceType;
+	using FaceDirection = Chunk.FaceDirection;
 	using Builder;
 	using System.Linq;
 
-	public class MeshQuad
+	/// <summary>
+	/// This Quad manipulates and stores the chunk mesh values
+	/// </summary> 
+	public class Quad
 	{
 		public Chunk chunkParent;
-		public FaceType faceType;
+		public int startVertexIndex;
+		public FaceDirection faceDirection;
 		public Vector2Int faceCoord;
-		public Vector3 faceNormal;
-		public List<Vector3> vertices = new();
-		public List<int> triangles = new();
-		public List<Vector2> uvs = new();
+		public List<int> verticeIndexes = new List<int>(4);
+		public List<Vector2> uvs = new List<Vector2>
+		{
+			new Vector2(1, 0), // bottomRight
+			new Vector2(1, 1), // topRight
+			new Vector2(0, 1),  // topLeft
+			new Vector2(0, 0), // bottomLeft
+		};
+		public List<int> triangles = new List<int> { 0, 1, 2, 2, 3, 0 };
+		//triangles = new List<int> { 0, 2, 1, 0, 3, 2 };
 
-		public MeshQuad(Chunk parent, FaceType faceType, Vector2Int faceCoord, Vector3 faceNormal, List<Vector3> vertices, List<Vector2> uvs)
+		public Quad(Chunk parent, List<int> vertices, FaceDirection faceDir, Vector2Int faceCoord)
 		{
 			this.chunkParent = parent;
-			this.faceType = faceType;
+			this.verticeIndexes = vertices;
+			this.faceDirection = faceDir;
 			this.faceCoord = faceCoord;
-			this.faceNormal = faceNormal;
 
-			for (int i = 0; i < vertices.Count; i++)
+			if (vertices.Count != 4)
 			{
-				vertices[i] += parent.GroundPosition;
+				Debug.LogError("Quad must have 4 vertices");
 			}
-			this.vertices = vertices;
 
-			/*
-			List<Vector2> quadUVs = new List<Vector2>
-			{
-
-				new Vector2(1, 0), // bottomRight
-				new Vector2(1, 1), // topRight
-				new Vector2(0, 1),  // topLeft
-				new Vector2(0, 0), // bottomLeft
-			};
-			*/
-			this.uvs = uvs;
-
-			triangles = new List<int> { 0, 1, 2, 2, 3, 0 };
-			//triangles = new List<int> { 0, 2, 1, 0, 3, 2 };
 		}
 
-		public Vector3 GetCenterPosition()
-		{
-			return (vertices[0] + vertices[1] + vertices[2] + vertices[3]) / 4;
-		}
+		/*
+				public Vector3 GetCenterPosition()
+				{
+					return (vertices[0] + vertices[1] + vertices[2] + vertices[3]) / 4;
+				}
 
-		public void AdjustHeight(float heightAdjustment)
-		{
-			for (int i = 0; i < vertices.Count; i++)
-			{
-				Vector3 adjustedVertex = new Vector3(vertices[i].x, vertices[i].y + heightAdjustment, vertices[i].z);
-				vertices[i] = adjustedVertex;
-			}
-		}
+				public void AdjustHeight(float heightAdjustment)
+				{
+					for (int i = 0; i < vertices.Count; i++)
+					{
+						Vector3 adjustedVertex = new Vector3(vertices[i].x, vertices[i].y + heightAdjustment, vertices[i].z);
+						vertices[i] = adjustedVertex;
+					}
+				}
 
-		public Mesh GenerateMesh()
-		{
-			Mesh mesh = new Mesh
-			{
-				vertices = vertices.ToArray(),
-				uv = uvs.ToArray(),
-				triangles = triangles.ToArray()
-			};
-			mesh.RecalculateNormals();
-			mesh.RecalculateBounds();
-			return mesh;
-		}
+				public Mesh GenerateMesh()
+				{
+					Mesh mesh = new Mesh
+					{
+						vertices = vertices.ToArray(),
+						uv = uvs.ToArray(),
+						triangles = triangles.ToArray()
+					};
+					mesh.RecalculateNormals();
+					mesh.RecalculateBounds();
+					return mesh;
+				}
+				*/
 	}
 
 	public class ChunkMesh
@@ -85,13 +82,15 @@ namespace Darklight.World.Generation
 		int _groundHeight;
 		Vector3 _positionInScene;
 		Mesh _mesh;
-		// Change the storage to a nested dictionary for easier access by faceType and coordinates
-		Dictionary<FaceType, Dictionary<Vector2Int, MeshQuad>> _meshData = new();
-		List<FaceType> _visibleFaces = new List<FaceType>()
+
+
+		List<Vector3> _globalVertices = new(); // global vertices dictionary 
+		Dictionary<FaceDirection, Dictionary<Vector2Int, Quad>> _quadData = new();
+		List<FaceDirection> _visibleFaces = new List<FaceDirection>()
 		{
-			FaceType.FRONT , FaceType.BACK ,
-			FaceType.LEFT, FaceType.RIGHT,
-			FaceType.TOP, FaceType.BOTTOM
+			FaceDirection.FRONT , FaceDirection.BACK ,
+			FaceDirection.LEFT, FaceDirection.RIGHT,
+			FaceDirection.TOP, FaceDirection.BOTTOM
 		};
 
 		public Mesh Mesh => _mesh;
@@ -111,9 +110,9 @@ namespace Darklight.World.Generation
 			return this._mesh;
 		}
 
-		public void AdjustQuadByHeight(FaceType faceType, Vector2Int faceCoord, float heightAdjustment)
+		public void AdjustQuadByHeight(FaceDirection faceType, Vector2Int faceCoord, float heightAdjustment)
 		{
-			_meshData[faceType][faceCoord].AdjustHeight(heightAdjustment);
+			//_quadData[faceType][faceCoord].AdjustHeight(heightAdjustment);
 		}
 
 		public Mesh CreateMeshFromGeneratedData()
@@ -121,27 +120,32 @@ namespace Darklight.World.Generation
 			List<Vector3> allVertices = new List<Vector3>();
 			List<int> allTriangles = new List<int>();
 			List<Vector2> allUVs = new List<Vector2>();
+			int currentIndex = 0;
 
 			// This offset is necessary because each quad has its own set of vertices starting from 0,
 			// but when combined into one mesh, we need to adjust the triangle indices accordingly.
-			int vertexOffset = 0;
-
-			foreach (var faceType in _meshData.Keys)
+			foreach (FaceDirection faceDir in _quadData.Keys)
 			{
-				foreach (var quad in _meshData[faceType].Values)
+				foreach (Quad quad in _quadData[faceDir].Values)
 				{
-					// Add the current quad's vertices and UVs directly to the lists
-					allVertices.AddRange(quad.vertices);
-					allUVs.AddRange(quad.uvs);
-
-					// Adjust the triangle indices for the current offset and add them to the list
-					foreach (var tri in quad.triangles)
+					// Get the stored global vertex for each index
+					foreach (int index in quad.verticeIndexes)
 					{
-						allTriangles.Add(tri + vertexOffset);
+						// get the global vertice at index
+						Vector3 vertice = _globalVertices[index];
+						allVertices.Add(vertice);
 					}
 
-					// Update the vertexOffset for the next quad
-					vertexOffset += quad.vertices.Count;
+					// Set Triangles for each index
+					foreach (int triangle in quad.triangles)
+					{
+						allTriangles.Add(triangle + currentIndex);
+					}
+
+					// Store all UVs
+					allUVs.AddRange(quad.uvs);
+
+					currentIndex += 4;
 				}
 			}
 
@@ -170,14 +174,9 @@ namespace Darklight.World.Generation
 		void GenerateMeshData()
 		{
 			int groundHeight = _groundHeight;
-			List<FaceType> facesToGenerate = _visibleFaces;
+			List<FaceDirection> facesToGenerate = _visibleFaces;
 			int cellSize = WorldBuilder.Settings.CellSize_inGameUnits;
-			Mesh newMesh = new Mesh();
-			List<Vector3> vertices = new();
-			List<Vector2> uvs = new();
-			List<int> triangles = new();
 			int currentVertexIndex = 0;
-			int quadIndex = 0; // Keep track of the current quad index for UV mapping
 
 			// << GET SETTINGS >>
 			if (WorldBuilder.Settings != null)
@@ -201,12 +200,12 @@ namespace Darklight.World.Generation
 			// << CREATE MESH FACES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 			// Updates meshVertices dictionary with < FaceType , List<Vector3> vertices >
 			// 'start' is the starting point of the face, 'u' and 'v' are the directions of the grid
-			foreach (FaceType faceType in facesToGenerate)
+			foreach (FaceDirection faceDir in facesToGenerate)
 			{
-				(Vector3 u, Vector3 v) = GetFaceUVDirectionalVectors(faceType);
-				(int uDivisions, int vDivisions) = GetFaceUVDivisions(faceType);
-				Vector3 startVertex = GetFaceStartVertex(faceType, vDivisions);
-				_meshData[faceType] = new Dictionary<Vector2Int, MeshQuad>(); // << RESET MESH DATA
+				(Vector3 u, Vector3 v) = GetFaceUVDirectionalVectors(faceDir);
+				(int uDivisions, int vDivisions) = GetFaceUVDivisions(faceDir);
+				Vector3 startVertex = GetFaceStartVertex(faceDir, vDivisions);
+				_quadData[faceDir] = new Dictionary<Vector2Int, Quad>(); // << RESET MESH DATA
 
 				for (int i = 0; i < uDivisions; i++)
 				{
@@ -220,73 +219,57 @@ namespace Darklight.World.Generation
 
 						// Adjust the order here if necessary to ensure correct winding
 						//vertices.AddRange(new Vector3[] { bottomLeft, bottomRight, topRight, topLeft });
-						vertices.AddRange(new Vector3[] { bottomLeft, topLeft, topRight, bottomRight });
-
-						// Set UVs
-						List<Vector2> quadUVs = new List<Vector2>
+						List<Vector3> quadVertices = new List<Vector3> { bottomLeft, bottomRight, topRight, topLeft };
+						List<int> verticeIndexes = new List<int>();
+						for (int q = 0; q < quadVertices.Count; q++)
 						{
-							new Vector2(1, 0), // bottomRight
-							new Vector2(1, 1), // topRight
-							new Vector2(0, 1),  // topLeft
-							new Vector2(0, 0), // bottomLeft
-						};
-						uvs.AddRange(quadUVs);
+							quadVertices[q] += _positionInScene; // Apply offset
+
+							// Create new Vertex
+							if (!_globalVertices.Contains(quadVertices[q]))
+							{
+								_globalVertices.Add(quadVertices[q]); // Store in global list
+								verticeIndexes.Add(currentVertexIndex);
+								currentVertexIndex++; // Update Vertex Count
+							}
+							// Link the Quad to an old Vertex
+							else
+							{
+								verticeIndexes.Add(_globalVertices.IndexOf(quadVertices[q]));
+							}
+						}
 
 						// Create and store the MeshQuad
 						Vector2Int faceCoordinate = new Vector2Int(i, j);
-						List<Vector3> quadVertices = new List<Vector3> { bottomLeft, bottomRight, topRight, topLeft };
 
-
-						// Add triangles for the current quad
-						int baseIndex = quadIndex * 4;
-						List<int> quadTriangles = new List<int> { baseIndex, baseIndex + 2, baseIndex + 1, baseIndex, baseIndex + 3, baseIndex + 2 };
-						triangles.AddRange(quadTriangles);
-						quadIndex++;
-
-						MeshQuad quad = new MeshQuad(_chunkParent, faceType, faceCoordinate, GetFaceNormal(faceType), quadVertices, quadUVs);
-						_meshData[faceType][faceCoordinate] = quad; // Store in the nested dictionary
+						Quad quad = new Quad(_chunkParent, verticeIndexes, faceDir, faceCoordinate);
+						_quadData[faceDir][faceCoordinate] = quad; // Store in the nested dictionary
 					}
-				}
-				// UPDATE VERTEX COUNT
-				switch (faceType)
-				{
-					// Side Faces XY plane
-					case FaceType.FRONT:
-					case FaceType.BACK:
-					case FaceType.LEFT:
-					case FaceType.RIGHT:
-						currentVertexIndex += (_currentDimensions.x + 1) * (vDivisions + 1);
-						break;
-					// Top Faces XZ plane
-					case FaceType.TOP:
-					case FaceType.BOTTOM:
-						currentVertexIndex += (_currentDimensions.x + 1) * (_currentDimensions.z + 1);
-						break;
 				}
 			}
 		}
 
-		(int, int) GetFaceUVDivisions(FaceType faceType)
+		(int, int) GetFaceUVDivisions(FaceDirection faceType)
 		{
 			// [[ GET VISIBLE DIVISIONS ]]
 			// based on neighbors
-			int GetVisibleVDivisions(FaceType type)
+			int GetVisibleVDivisions(FaceDirection type)
 			{
 				int faceHeight = _currentDimensions.y; // Get current height
 				Chunk neighborChunk = null;
 
 				switch (type)
 				{
-					case FaceType.FRONT:
+					case FaceDirection.FRONT:
 						neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.NORTH];
 						break;
-					case FaceType.BACK:
+					case FaceDirection.BACK:
 						neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.SOUTH];
 						break;
-					case FaceType.LEFT:
+					case FaceDirection.LEFT:
 						neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.WEST];
 						break;
-					case FaceType.RIGHT:
+					case FaceDirection.RIGHT:
 						neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.EAST];
 						break;
 				}
@@ -306,20 +289,20 @@ namespace Darklight.World.Generation
 			switch (faceType)
 			{
 				// Side Faces XY plane
-				case FaceType.FRONT:
-				case FaceType.BACK:
+				case FaceDirection.FRONT:
+				case FaceDirection.BACK:
 					uDivisions = _currentDimensions.x;
 					vDivisions = GetVisibleVDivisions(faceType);
 					break;
 				// Side Faces ZY plane
-				case FaceType.LEFT:
-				case FaceType.RIGHT:
+				case FaceDirection.LEFT:
+				case FaceDirection.RIGHT:
 					uDivisions = _currentDimensions.z;
 					vDivisions = GetVisibleVDivisions(faceType);
 					break;
 				// Top Faces XZ plane
-				case FaceType.TOP:
-				case FaceType.BOTTOM:
+				case FaceDirection.TOP:
+				case FaceDirection.BOTTOM:
 					uDivisions = _currentDimensions.x;
 					vDivisions = _currentDimensions.z;
 					break;
@@ -331,7 +314,7 @@ namespace Darklight.World.Generation
 
 		// note** :: starts the faces at -visibleDimensions.y so that top of chunk is at y=0
 		// -- the chunks will be treated as a 'Generated Ground' to build upon
-		Vector3 GetFaceStartVertex(FaceType faceType, int vDivisions)
+		Vector3 GetFaceStartVertex(FaceDirection faceType, int vDivisions)
 		{
 			Vector3 MultiplyVectors(Vector3 a, Vector3 b)
 			{
@@ -350,17 +333,17 @@ namespace Darklight.World.Generation
 
 			switch (faceType)
 			{
-				case FaceType.FRONT:
+				case FaceDirection.FRONT:
 					return MultiplyVectors(newSideFaceStartOffset, new Vector3(1, 1, 1));
-				case FaceType.BACK:
+				case FaceDirection.BACK:
 					return MultiplyVectors(newSideFaceStartOffset, new Vector3(-1, 1, -1));
-				case FaceType.LEFT:
+				case FaceDirection.LEFT:
 					return MultiplyVectors(newSideFaceStartOffset, new Vector3(-1, 1, 1));
-				case FaceType.RIGHT:
+				case FaceDirection.RIGHT:
 					return MultiplyVectors(newSideFaceStartOffset, new Vector3(1, 1, -1));
-				case FaceType.TOP:
+				case FaceDirection.TOP:
 					return MultiplyVectors(newVerticalFaceStartOffset, new Vector3(-1, 0, -1));
-				case FaceType.BOTTOM:
+				case FaceDirection.BOTTOM:
 					return MultiplyVectors(newVerticalFaceStartOffset, new Vector3(1, 1, -1));
 				default:
 					return Vector3.zero;
@@ -368,49 +351,49 @@ namespace Darklight.World.Generation
 
 		}
 
-		Vector3 GetFaceNormal(FaceType faceType)
+		Vector3 GetFaceNormal(FaceDirection faceType)
 		{
 			switch (faceType)
 			{
-				case FaceType.FRONT: return Vector3.forward;
-				case FaceType.BACK: return Vector3.back;
-				case FaceType.LEFT: return Vector3.left;
-				case FaceType.RIGHT: return Vector3.right;
-				case FaceType.TOP: return Vector3.up;
-				case FaceType.BOTTOM: return Vector3.down;
+				case FaceDirection.FRONT: return Vector3.forward;
+				case FaceDirection.BACK: return Vector3.back;
+				case FaceDirection.LEFT: return Vector3.left;
+				case FaceDirection.RIGHT: return Vector3.right;
+				case FaceDirection.TOP: return Vector3.up;
+				case FaceDirection.BOTTOM: return Vector3.down;
 				default: return Vector3.zero;
 			}
 		}
 
 
-		(Vector3, Vector3) GetFaceUVDirectionalVectors(FaceType faceType)
+		(Vector3, Vector3) GetFaceUVDirectionalVectors(FaceDirection faceType)
 		{
 			Vector3 u = Vector3.zero;
 			Vector3 v = Vector3.zero;
 
 			switch (faceType)
 			{
-				case FaceType.FRONT:
+				case FaceDirection.FRONT:
 					u = Vector3.left;
 					v = Vector3.up;
 					break;
-				case FaceType.BACK:
+				case FaceDirection.BACK:
 					u = Vector3.right;
 					v = Vector3.up;
 					break;
-				case FaceType.LEFT:
+				case FaceDirection.LEFT:
 					u = Vector3.back;
 					v = Vector3.up;
 					break;
-				case FaceType.RIGHT:
+				case FaceDirection.RIGHT:
 					u = Vector3.forward;
 					v = Vector3.up;
 					break;
-				case FaceType.TOP:
+				case FaceDirection.TOP:
 					u = Vector3.right;
 					v = Vector3.forward;
 					break;
-				case FaceType.BOTTOM:
+				case FaceDirection.BOTTOM:
 					u = Vector3.left;
 					v = Vector3.forward;
 					break;

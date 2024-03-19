@@ -30,7 +30,7 @@ namespace Darklight.World.Generation
 			/// <summary>Indicates an exit point, set by WorldExit.</summary>
 			EXIT
 		}
-		public enum FaceType { FRONT, BACK, LEFT, RIGHT, TOP, BOTTOM }
+		public enum FaceDirection { FRONT, BACK, LEFT, RIGHT, TOP, BOTTOM }
 
 		// [[ PRIVATE VARIABLES ]]
 		Coordinate _coordinate;

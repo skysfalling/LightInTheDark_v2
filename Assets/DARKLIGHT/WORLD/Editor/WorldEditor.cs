@@ -159,6 +159,7 @@ namespace Darklight.World
 							{
 								foreach (Chunk neighbor in _editorScript.selectedChunk.GetNaturalNeighborMap().Values.ToList())
 								{
+									if (neighbor == null) { continue; }
 									neighbor.ChunkMesh.Recalculate();
 									_editorScript.selectedChunk.ChunkBuilderParent.DestroyGameObject(neighbor.ChunkObject);
 									_editorScript.selectedChunk.ChunkBuilderParent.CreateChunkObject(neighbor);
@@ -168,7 +169,7 @@ namespace Darklight.World
 
 						if (GUILayout.Button("Apply Height"))
 						{
-							_editorScript.selectedChunk.ChunkMesh.AdjustQuadByHeight(Chunk.FaceType.TOP, Vector2Int.zero, 1);
+							_editorScript.selectedChunk.ChunkMesh.AdjustQuadByHeight(Chunk.FaceDirection.TOP, Vector2Int.zero, 1);
 						}
 					}
 					break;
@@ -271,6 +272,7 @@ namespace Darklight.World
 					{
 						foreach (Chunk neighbor in _editorScript.selectedChunk.GetNaturalNeighborMap().Values.ToList())
 						{
+							if (neighbor == null) { continue; }
 							DrawChunkSceneGUI(neighbor, _editorScript);
 						}
 					}
@@ -405,7 +407,7 @@ namespace Darklight.World
 			{
 				case WorldEditor.CellView.OUTLINE:
 					// Draw Selection Rectangle
-					Darklight.CustomGizmos.DrawWireSquare(cell.Position, cell.Size, Color.black, cell.Normal);
+					//Darklight.CustomGizmos.DrawWireSquare(cell.Position, cell.Size, Color.black, cell.Normal);
 					Darklight.CustomGizmos.DrawButtonHandle(cell.Position, Vector3.up, cell.Size * 0.475f, cell.TypeColor, () =>
 					{
 						editor.SelectCell(cell);
@@ -414,7 +416,7 @@ namespace Darklight.World
 				case WorldEditor.CellView.TYPE:
 					// Draw Face Type Label
 					//Darklight.CustomGizmos.DrawLabel($"{cell.Type.ToString()[0]}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
-					Darklight.CustomGizmos.DrawFilledSquareAt(cell.Position, cell.Size * 0.75f, cell.Normal, cell.TypeColor);
+					//Darklight.CustomGizmos.DrawFilledSquareAt(cell.Position, cell.Size * 0.75f, cell.Normal, cell.TypeColor);
 					Darklight.CustomGizmos.DrawButtonHandle(cell.Position, Vector3.up, cell.Size * 0.475f, cell.TypeColor, () =>
 					{
 						editor.SelectCell(cell);
@@ -425,7 +427,7 @@ namespace Darklight.World
 					{
 						editor.SelectCell(cell);
 					}, Handles.RectangleHandleCap);
-					Darklight.CustomGizmos.DrawLabel($"{cell.FaceType} {cell.FaceCoord}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
+					//Darklight.CustomGizmos.DrawLabel($"{cell.FaceType} {cell.FaceCoord}", cell.Position + (cell.Normal * cell.Size), cellLabelStyle);
 					break;
 			}
 		}
