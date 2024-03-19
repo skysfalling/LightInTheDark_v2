@@ -13,7 +13,7 @@ namespace Darklight.World.Generation
 	/// <summary>
 	/// This Quad manipulates and stores the chunk mesh values
 	/// </summary> 
-	public struct Quad
+	public class Quad
 	{
 		public Chunk chunkParent;
 		public FaceDirection faceDirection;
@@ -21,8 +21,8 @@ namespace Darklight.World.Generation
 		public List<int> verticeIndexes;
 		public List<Vector2> uvs;
 		public List<int> triangles;
-		//triangles = new List<int> { 0, 2, 1, 0, 3, 2 };
-
+		public Dictionary<int, List<Quad>> extrudedQuads { get; private set; }
+		public int baseHeightOffset;
 		public Quad(Chunk parent, List<int> verticeIndexes, FaceDirection faceDirection, Vector2Int faceCoord)
 		{
 			this.chunkParent = parent;
@@ -39,6 +39,19 @@ namespace Darklight.World.Generation
 			};
 
 			this.triangles = new List<int> { 0, 1, 2, 2, 3, 0 };
+
+			extrudedQuads = new Dictionary<int, List<Quad>>();
+			baseHeightOffset = 0;
+		}
+
+		/// <summary>
+		/// Adds a list of quads that have been extruded to a certain height relative to this quad.
+		/// </summary>
+		/// <param name="quads">The quads extruded from this one.</param>
+		public void AddExtrudedQuads(List<Quad> quads)
+		{
+			this.baseHeightOffset = this.baseHeightOffset + 1; // Add to base height
+			extrudedQuads.Add(this.baseHeightOffset, new List<Quad>(quads));
 		}
 	}
 
@@ -98,31 +111,44 @@ namespace Darklight.World.Generation
 			List<Vector2> allUVs = new List<Vector2>();
 			int currentIndex = 0;
 
+			List<Quad> allQuads = new List<Quad>();
+
+
 			// This offset is necessary because each quad has its own set of vertices starting from 0,
 			// but when combined into one mesh, we need to adjust the triangle indices accordingly.
 			foreach (FaceDirection faceDir in _quadData.Keys)
 			{
 				foreach (Quad quad in _quadData[faceDir].Values)
 				{
-					// Get the stored global vertex for each index
-					foreach (int index in quad.verticeIndexes)
+					allQuads.Add(quad);
+					if (quad.extrudedQuads.Count > 0)
 					{
-						// get the global vertice at index
-						Vector3 vertice = _globalVertices[index];
-						allVertices.Add(vertice);
+						allQuads.AddRange(quad.extrudedQuads.Values.SelectMany(quads => quads));
 					}
-
-					// Set Triangles for each index
-					foreach (int triangle in quad.triangles)
-					{
-						allTriangles.Add(triangle + currentIndex);
-					}
-
-					// Store all UVs
-					allUVs.AddRange(quad.uvs);
-
-					currentIndex += 4;
 				}
+			}
+
+			// Store Quad Data
+			foreach (Quad quad in allQuads)
+			{
+				// Get the stored global vertex for each index
+				foreach (int index in quad.verticeIndexes)
+				{
+					// get the global vertice at index
+					Vector3 vertice = _globalVertices[index];
+					allVertices.Add(vertice);
+				}
+
+				// Set Triangles for each index
+				foreach (int triangle in quad.triangles)
+				{
+					allTriangles.Add(triangle + currentIndex);
+				}
+
+				// Store all UVs
+				allUVs.AddRange(quad.uvs);
+
+				currentIndex += 4;
 			}
 
 			// Now that we have all the data consolidated, let's create the mesh
@@ -225,7 +251,7 @@ namespace Darklight.World.Generation
 			}
 		}
 
-		public void ExtrudeQuad(FaceDirection faceDir, Vector2Int faceCoord, float heightOffset)
+		public void ExtrudeQuad(FaceDirection faceDir, Vector2Int faceCoord)
 		{
 			// Check if the specified quad exists
 			if (!_quadData.ContainsKey(faceDir) || !_quadData[faceDir].ContainsKey(faceCoord))
@@ -235,10 +261,11 @@ namespace Darklight.World.Generation
 			}
 
 			Quad baseQuad = _quadData[faceDir][faceCoord];
+			int newHeight = baseQuad.baseHeightOffset + 1; // Increase height by 1
 			List<Vector3> baseVertices = baseQuad.verticeIndexes.Select(index => _globalVertices[index]).ToList();
 
 			// Calculate new top vertices based on the height offset
-			List<Vector3> topVertices = baseVertices.Select(v => v + Vector3.up * heightOffset).ToList();
+			List<Vector3> topVertices = baseVertices.Select(v => v + Vector3.up * newHeight).ToList();
 
 			// Update global vertices with top vertices and get their indices
 			List<int> topVerticeIndexes = new List<int>();
@@ -249,13 +276,12 @@ namespace Darklight.World.Generation
 				topVerticeIndexes.Add(index);  // Store new index
 			}
 
-			// Create top quad
-			Quad topQuad = new Quad(_chunkParent, topVerticeIndexes, FaceDirection.TOP, faceCoord);
+			List<Quad> extrudedQuads = new List<Quad>();
 
 			// Generate the new top quad and side quads
 			List<int> newTopVerticeIndexes = topVertices.Select(vertex => _globalVertices.IndexOf(vertex)).ToList();
 			Quad newTopQuad = new Quad(_chunkParent, newTopVerticeIndexes, FaceDirection.TOP, faceCoord); // Adjust faceCoord for top quad
-			_quadData[FaceDirection.TOP][faceCoord] = newTopQuad; // Store the new top quad at the same face coordinate
+			extrudedQuads.Add(newTopQuad);
 
 			// Generate side quads for each side
 			for (int i = 0; i < 4; i++)
@@ -269,16 +295,14 @@ namespace Darklight.World.Generation
 				};
 
 				// Determine the side face direction based on i and faceDir
-				FaceDirection sideFaceDirection = DetermineSideFaceDirection(i, faceDir); // Implement this method based on your game logic
+				FaceDirection sideFaceDirection = DetermineSideFaceDirection(i, faceDir);
 
 				// Create and store the side quad
-				Quad sideQuad = new Quad(_chunkParent, sideVerticeIndexes, sideFaceDirection, (faceCoord * -1) + Vector2Int.one); // May need adjustment for side quad positioning
-				if (!_quadData.ContainsKey(sideFaceDirection))
-				{
-					_quadData[sideFaceDirection] = new Dictionary<Vector2Int, Quad>();
-				}
-				_quadData[sideFaceDirection].Add((faceCoord * -1) + Vector2Int.one, sideQuad);
+				Quad sideQuad = new Quad(_chunkParent, sideVerticeIndexes, sideFaceDirection, faceCoord);
+				extrudedQuads.Add(sideQuad);
 			}
+
+			baseQuad.AddExtrudedQuads(extrudedQuads);
 		}
 
 		(int, int) GetFaceUVDivisions(FaceDirection faceType)
