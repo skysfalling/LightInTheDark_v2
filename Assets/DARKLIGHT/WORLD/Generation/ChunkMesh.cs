@@ -13,65 +13,33 @@ namespace Darklight.World.Generation
 	/// <summary>
 	/// This Quad manipulates and stores the chunk mesh values
 	/// </summary> 
-	public class Quad
+	public struct Quad
 	{
 		public Chunk chunkParent;
-		public int startVertexIndex;
 		public FaceDirection faceDirection;
 		public Vector2Int faceCoord;
-		public List<int> verticeIndexes = new List<int>(4);
-		public List<Vector2> uvs = new List<Vector2>
-		{
-			new Vector2(1, 0), // bottomRight
-			new Vector2(1, 1), // topRight
-			new Vector2(0, 1),  // topLeft
-			new Vector2(0, 0), // bottomLeft
-		};
-		public List<int> triangles = new List<int> { 0, 1, 2, 2, 3, 0 };
+		public List<int> verticeIndexes;
+		public List<Vector2> uvs;
+		public List<int> triangles;
 		//triangles = new List<int> { 0, 2, 1, 0, 3, 2 };
 
-		public Quad(Chunk parent, List<int> vertices, FaceDirection faceDir, Vector2Int faceCoord)
+		public Quad(Chunk parent, List<int> verticeIndexes, FaceDirection faceDirection, Vector2Int faceCoord)
 		{
 			this.chunkParent = parent;
-			this.verticeIndexes = vertices;
-			this.faceDirection = faceDir;
+			this.faceDirection = faceDirection;
 			this.faceCoord = faceCoord;
 
-			if (vertices.Count != 4)
+			this.verticeIndexes = verticeIndexes;
+			this.uvs = new List<Vector2>
 			{
-				Debug.LogError("Quad must have 4 vertices");
-			}
+				new Vector2(1, 0), // bottomRight
+				new Vector2(1, 1), // topRight
+				new Vector2(0, 1),  // topLeft
+				new Vector2(0, 0), // bottomLeft
+			};
 
+			this.triangles = new List<int> { 0, 1, 2, 2, 3, 0 };
 		}
-
-		/*
-				public Vector3 GetCenterPosition()
-				{
-					return (vertices[0] + vertices[1] + vertices[2] + vertices[3]) / 4;
-				}
-
-				public void AdjustHeight(float heightAdjustment)
-				{
-					for (int i = 0; i < vertices.Count; i++)
-					{
-						Vector3 adjustedVertex = new Vector3(vertices[i].x, vertices[i].y + heightAdjustment, vertices[i].z);
-						vertices[i] = adjustedVertex;
-					}
-				}
-
-				public Mesh GenerateMesh()
-				{
-					Mesh mesh = new Mesh
-					{
-						vertices = vertices.ToArray(),
-						uv = uvs.ToArray(),
-						triangles = triangles.ToArray()
-					};
-					mesh.RecalculateNormals();
-					mesh.RecalculateBounds();
-					return mesh;
-				}
-				*/
 	}
 
 	public class ChunkMesh
@@ -110,10 +78,18 @@ namespace Darklight.World.Generation
 			return this._mesh;
 		}
 
-		public void AdjustQuadByHeight(FaceDirection faceType, Vector2Int faceCoord, float heightAdjustment)
+
+
+		public List<Vector3> GetGlobalVertices(List<int> verticeIndexes, List<Vector3> globalVertices)
 		{
-			//_quadData[faceType][faceCoord].AdjustHeight(heightAdjustment);
+			List<Vector3> positions = new List<Vector3>();
+			foreach (int index in verticeIndexes)
+			{
+				positions.Add(globalVertices[index]);
+			}
+			return positions;
 		}
+
 
 		public Mesh CreateMeshFromGeneratedData()
 		{
@@ -246,6 +222,62 @@ namespace Darklight.World.Generation
 						_quadData[faceDir][faceCoordinate] = quad; // Store in the nested dictionary
 					}
 				}
+			}
+		}
+
+		public void ExtrudeQuad(FaceDirection faceDir, Vector2Int faceCoord, float heightOffset)
+		{
+			// Check if the specified quad exists
+			if (!_quadData.ContainsKey(faceDir) || !_quadData[faceDir].ContainsKey(faceCoord))
+			{
+				Debug.LogError("Quad does not exist.");
+				return;
+			}
+
+			Quad baseQuad = _quadData[faceDir][faceCoord];
+			List<Vector3> baseVertices = baseQuad.verticeIndexes.Select(index => _globalVertices[index]).ToList();
+
+			// Calculate new top vertices based on the height offset
+			List<Vector3> topVertices = baseVertices.Select(v => v + Vector3.up * heightOffset).ToList();
+
+			// Update global vertices with top vertices and get their indices
+			List<int> topVerticeIndexes = new List<int>();
+			foreach (Vector3 vertex in topVertices)
+			{
+				int index = _globalVertices.Count;  // Assume _globalVertices is a List<Vector3>
+				_globalVertices.Add(vertex);  // Add new vertex to global list
+				topVerticeIndexes.Add(index);  // Store new index
+			}
+
+			// Create top quad
+			Quad topQuad = new Quad(_chunkParent, topVerticeIndexes, FaceDirection.TOP, faceCoord);
+
+			// Generate the new top quad and side quads
+			List<int> newTopVerticeIndexes = topVertices.Select(vertex => _globalVertices.IndexOf(vertex)).ToList();
+			Quad newTopQuad = new Quad(_chunkParent, newTopVerticeIndexes, FaceDirection.TOP, faceCoord); // Adjust faceCoord for top quad
+			_quadData[FaceDirection.TOP][faceCoord] = newTopQuad; // Store the new top quad at the same face coordinate
+
+			// Generate side quads for each side
+			for (int i = 0; i < 4; i++)
+			{
+				List<int> sideVerticeIndexes = new List<int>
+				{
+					baseQuad.verticeIndexes[i],
+					baseQuad.verticeIndexes[(i + 1) % 4],
+					newTopVerticeIndexes[(i + 1) % 4],
+					newTopVerticeIndexes[i]
+				};
+
+				// Determine the side face direction based on i and faceDir
+				FaceDirection sideFaceDirection = DetermineSideFaceDirection(i, faceDir); // Implement this method based on your game logic
+
+				// Create and store the side quad
+				Quad sideQuad = new Quad(_chunkParent, sideVerticeIndexes, sideFaceDirection, (faceCoord * -1) + Vector2Int.one); // May need adjustment for side quad positioning
+				if (!_quadData.ContainsKey(sideFaceDirection))
+				{
+					_quadData[sideFaceDirection] = new Dictionary<Vector2Int, Quad>();
+				}
+				_quadData[sideFaceDirection].Add((faceCoord * -1) + Vector2Int.one, sideQuad);
 			}
 		}
 
@@ -401,6 +433,74 @@ namespace Darklight.World.Generation
 			return (u, v);
 		}
 
+		FaceDirection DetermineSideFaceDirection(int sideIndex, FaceDirection baseFaceDirection)
+		{
+			// This switch determines the side face direction based on the base face direction and the side index.
+			// The side index corresponds to the vertices of the base quad being extruded:
+			// 0 -> the side between the first and second vertices, 1 -> between second and third, etc.
+			switch (baseFaceDirection)
+			{
+				case FaceDirection.FRONT:
+					// Assuming clockwise order of vertices
+					switch (sideIndex)
+					{
+						case 0: return FaceDirection.LEFT;
+						case 1: return FaceDirection.TOP;
+						case 2: return FaceDirection.RIGHT;
+						case 3: return FaceDirection.BOTTOM;
+					}
+					break;
+				case FaceDirection.BACK:
+					switch (sideIndex)
+					{
+						case 0: return FaceDirection.RIGHT;
+						case 1: return FaceDirection.TOP;
+						case 2: return FaceDirection.LEFT;
+						case 3: return FaceDirection.BOTTOM;
+					}
+					break;
+				case FaceDirection.LEFT:
+					switch (sideIndex)
+					{
+						case 0: return FaceDirection.BACK;
+						case 1: return FaceDirection.TOP;
+						case 2: return FaceDirection.FRONT;
+						case 3: return FaceDirection.BOTTOM;
+					}
+					break;
+				case FaceDirection.RIGHT:
+					switch (sideIndex)
+					{
+						case 0: return FaceDirection.FRONT;
+						case 1: return FaceDirection.TOP;
+						case 2: return FaceDirection.BACK;
+						case 3: return FaceDirection.BOTTOM;
+					}
+					break;
+				case FaceDirection.TOP:
+					// For the top face, side quads are vertical faces, so their directions are based on their positions relative to the top
+					switch (sideIndex)
+					{
+						case 0: return FaceDirection.LEFT;
+						case 1: return FaceDirection.BACK;
+						case 2: return FaceDirection.RIGHT;
+						case 3: return FaceDirection.FRONT;
+					}
+					break;
+				case FaceDirection.BOTTOM:
+					switch (sideIndex)
+					{
+						case 0: return FaceDirection.LEFT;
+						case 1: return FaceDirection.FRONT;
+						case 2: return FaceDirection.RIGHT;
+						case 3: return FaceDirection.BACK;
+					}
+					break;
+			}
+
+			Debug.LogError($"Invalid combination of face direction: {baseFaceDirection} and side index: {sideIndex}");
+			return baseFaceDirection; // Default return to prevent compile error, logic should be verified to avoid reaching here.
+		}
 
 	}
 }

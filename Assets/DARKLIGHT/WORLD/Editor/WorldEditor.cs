@@ -169,7 +169,7 @@ namespace Darklight.World
 
 						if (GUILayout.Button("Apply Height"))
 						{
-							_editorScript.selectedChunk.ChunkMesh.AdjustQuadByHeight(Chunk.FaceDirection.TOP, Vector2Int.zero, 1);
+							_editorScript.selectedChunk.ChunkMesh.ExtrudeQuad(Chunk.FaceDirection.TOP, Vector2Int.zero, 1);
 						}
 					}
 					break;
