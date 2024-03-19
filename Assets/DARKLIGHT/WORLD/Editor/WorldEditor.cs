@@ -155,6 +155,11 @@ namespace Darklight.World
 					break;
 				case WorldEditor.EditMode.CELL:
 					_editorScript.cellView = (WorldEditor.CellView)EditorGUILayout.EnumPopup("Cell View", _editorScript.cellView);
+
+					if (GUILayout.Button("Generate Cell Mesh"))
+					{
+						_editorScript.selectedCell.CreateCellMeshObject();
+					}
 					break;
 			}
 

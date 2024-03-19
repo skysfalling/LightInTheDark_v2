@@ -12,7 +12,6 @@ namespace Darklight.World.Generation
         Chunk _chunk;
         ChunkMesh _chunkMesh;
         HashSet<Cell> _cells = new();
-        Dictionary<FaceType, List<MeshQuad>> _quads = new();
         Dictionary<FaceType, HashSet<Cell>> _faceMap = new();
 
         public Chunk ChunkParent { get; private set; }
@@ -23,22 +22,23 @@ namespace Darklight.World.Generation
         {
             _chunk = chunk;
             _chunkMesh = chunkMesh;
-            _quads = _chunkMesh.MeshQuads;
 
-            // Create a new Cell for each quad
-            foreach (FaceType faceType in _quads.Keys)
-            {
-                foreach (MeshQuad quad in _quads[faceType])
-                {
-                    // >> create new cell
-                    Cell newCell = new Cell(_chunk, quad);
-                    _cells.Add(newCell);
+            /*
+                        // Create a new Cell for each quad
+                        foreach (FaceType faceType in chunkMesh)
+                        {
+                            foreach (MeshQuad quad in _quads[faceType])
+                            {
+                                // >> create new cell
+                                Cell newCell = new Cell(_chunk, quad);
+                                _cells.Add(newCell);
 
-                    // >> add to face map
-                    if (!_faceMap.ContainsKey(quad.faceType)) { _faceMap[faceType] = new(); }
-                    _faceMap[faceType].Add(newCell);
-                }
-            }
+                                // >> add to face map
+                                if (!_faceMap.ContainsKey(quad.faceType)) { _faceMap[faceType] = new(); }
+                                _faceMap[faceType].Add(newCell);
+                            }
+                        }
+                        */
         }
 
         public Cell GetCellAtCoordinate(Coordinate coordinate)

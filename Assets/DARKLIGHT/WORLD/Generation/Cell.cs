@@ -47,6 +47,16 @@ namespace Darklight.World.Generation
 			this._meshQuad = meshQuad;
 		}
 
+		public void CreateCellMeshObject()
+		{
+			GameObject cellObject = new GameObject("Cell");
+			Mesh mesh = _meshQuad.GenerateMesh();
+
+			cellObject.transform.position = Position;
+			cellObject.AddComponent<MeshFilter>().mesh = mesh;
+			cellObject.AddComponent<MeshRenderer>().material = ChunkParent.ChunkBuilderParent.RegionParent.defaultMaterial;
+		}
+
 		public void SetCellType(TYPE newType)
 		{
 			this._type = newType;

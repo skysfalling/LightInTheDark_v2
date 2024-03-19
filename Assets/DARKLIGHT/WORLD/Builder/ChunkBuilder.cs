@@ -75,7 +75,7 @@ namespace Darklight.World.Builder
 		public GameObject CreateChunkObject(Chunk chunk)
 		{
 			if (chunk == null) { return null; }
-			GameObject chunkObject = RegionParent.CreateMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.ChunkMesh.Mesh);
+			GameObject chunkObject = RegionParent.CreateMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.ChunkMesh.CreateMeshFromGeneratedData());
 			chunk.ChunkObject = chunkObject;
 			return chunkObject;
 		}
