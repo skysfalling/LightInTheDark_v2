@@ -14,6 +14,7 @@ namespace Darklight.World
 	using System;
 	using Darklight.Bot;
 	using System.Linq;
+	using System.Collections.Generic;
 
 	public class WorldEditor : MonoBehaviour
 	{
@@ -39,6 +40,8 @@ namespace Darklight.World
 		public RegionBuilder selectedRegion;
 		public Chunk selectedChunk;
 		public Cell selectedCell;
+
+		public bool showNeighbors = false;
 
 		public void SelectRegion(RegionBuilder region)
 		{
@@ -134,6 +137,8 @@ namespace Darklight.World
 					if (_editorScript.selectedChunk != null)
 					{
 						_editorScript.chunkView = (WorldEditor.ChunkView)EditorGUILayout.EnumPopup("Chunk View", _editorScript.chunkView);
+						_editorScript.showNeighbors = EditorGUILayout.Toggle("Show Neighbors", _editorScript.showNeighbors);
+
 						if (_editorScript.chunkView == WorldEditor.ChunkView.COORDINATE_MAP)
 						{
 							CoordinateMapInspectorGUI(_editorScript.selectedChunk.CoordinateMap, _editorScript);
@@ -146,10 +151,24 @@ namespace Darklight.World
 
 						if (GUILayout.Button("Generate Chunk Mesh"))
 						{
-							_editorScript.selectedChunk.ChunkMesh.Recalculate(_editorScript.selectedChunk);
-
+							_editorScript.selectedChunk.ChunkMesh.Recalculate();
 							_editorScript.selectedChunk.ChunkBuilderParent.DestroyGameObject(_editorScript.selectedChunk.ChunkObject);
 							_editorScript.selectedChunk.ChunkBuilderParent.CreateChunkObject(_editorScript.selectedChunk);
+
+							if (_editorScript.showNeighbors)
+							{
+								foreach (Chunk neighbor in _editorScript.selectedChunk.GetNaturalNeighborMap().Values.ToList())
+								{
+									neighbor.ChunkMesh.Recalculate();
+									_editorScript.selectedChunk.ChunkBuilderParent.DestroyGameObject(neighbor.ChunkObject);
+									_editorScript.selectedChunk.ChunkBuilderParent.CreateChunkObject(neighbor);
+								}
+							}
+						}
+
+						if (GUILayout.Button("Apply Height"))
+						{
+							_editorScript.selectedChunk.ChunkMesh.AdjustQuadByHeight(Chunk.FaceType.TOP, Vector2Int.zero, 1);
 						}
 					}
 					break;
@@ -248,6 +267,13 @@ namespace Darklight.World
 				case WorldEditor.EditMode.CHUNK:
 					if (_editorScript.selectedChunk != null)
 						DrawChunkSceneGUI(_editorScript.selectedChunk, _editorScript);
+					if (_editorScript.showNeighbors)
+					{
+						foreach (Chunk neighbor in _editorScript.selectedChunk.GetNaturalNeighborMap().Values.ToList())
+						{
+							DrawChunkSceneGUI(neighbor, _editorScript);
+						}
+					}
 					else if (_regionBuilder != null)
 						_editorScript.SelectChunk(_regionBuilder.ChunkBuilder.AllChunks.First());
 					break;
@@ -292,6 +318,7 @@ namespace Darklight.World
 			CoordinateMap coordinateMap = region.CoordinateMap;
 			ChunkBuilder chunkBuilder = region.ChunkBuilder;
 			GUIStyle regionLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
+			Darklight.CustomGizmos.DrawWireSquare_withLabel("Region", region.CenterPosition, RegionBuilder.Settings.RegionFullWidth_inGameUnits, Color.black, CustomInspectorGUI.BoldStyle);
 
 			// [[ DRAW GRID ONLY ]]
 			if (editor.regionView == WorldEditor.RegionView.OUTLINE)
@@ -322,7 +349,9 @@ namespace Darklight.World
 
 		public void DrawChunkSceneGUI(Chunk chunk, WorldEditor editor)
 		{
+			if (chunk == null || chunk.CoordinateMap == null) { return; }
 			GUIStyle chunkLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
+			Darklight.CustomGizmos.DrawWireSquare_withLabel("Region", chunk.ChunkBuilderParent.RegionParent.CenterPosition, WorldBuilder.Settings.RegionFullWidth_inGameUnits, Color.black, CustomInspectorGUI.BoldStyle);
 
 			switch (editor.chunkView)
 			{

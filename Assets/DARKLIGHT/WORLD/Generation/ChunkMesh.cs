@@ -102,16 +102,18 @@ namespace Darklight.World.Generation
 			this._groundHeight = chunkParent.GroundHeight;
 			this._positionInScene = chunkParent.GroundPosition;
 			GenerateMeshData();
+			this._mesh = CreateMeshFromGeneratedData();
 		}
 
-		public Mesh Recalculate(Chunk chunkParent)
+		public Mesh Recalculate()
 		{
-			this._chunkParent = chunkParent;
-			this._groundHeight = chunkParent.GroundHeight;
-			this._positionInScene = chunkParent.GroundPosition;
-
-			GenerateMeshData();
+			this._mesh = CreateMeshFromGeneratedData();
 			return this._mesh;
+		}
+
+		public void AdjustQuadByHeight(FaceType faceType, Vector2Int faceCoord, float heightAdjustment)
+		{
+			_meshData[faceType][faceCoord].AdjustHeight(heightAdjustment);
 		}
 
 		public Mesh CreateMeshFromGeneratedData()
