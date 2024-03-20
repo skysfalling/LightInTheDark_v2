@@ -127,30 +127,35 @@ namespace Darklight.World.Generation
 				MoveToChunkInDirection(direction);
 			}
 		}
+		/// <summary>
+		/// Moves the traveler to the neighboring chunk in the specified direction.
+		/// </summary>
+		/// <param name="worldDirection">The direction in which to move.</param>
+		/// <returns>True if the traveler successfully moved to the neighboring chunk, false otherwise.</returns>
 		public bool MoveToChunkInDirection(WorldDirection worldDirection)
 		{
 			Chunk neighborChunk = CurrentChunk.GetNeighborInDirection(worldDirection);
 			if (neighborChunk == null) return false;
 
-			BorderDirection? borderDirection = CoordinateMap.GetBorderDirection(worldDirection);
+			EdgeDirection? borderDirection = CoordinateMap.GetBorderDirection(worldDirection);
 			if (borderDirection == null) return false;
 
-			BorderDirection? neighborBorderDirection = CoordinateMap.GetOppositeBorder(borderDirection.Value);
+			EdgeDirection? neighborBorderDirection = CoordinateMap.GetOppositeBorder(borderDirection.Value);
 			if (neighborBorderDirection == null) return false;
 
 			Coordinate neighborBorderCoordinate = null;
 			switch (neighborBorderDirection)
 			{
-				case BorderDirection.SOUTH:
+				case EdgeDirection.SOUTH:
 					neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(CurrentCoordinate.ValueKey.x, 0));
 					break;
-				case BorderDirection.NORTH:
+				case EdgeDirection.NORTH:
 					neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(CurrentCoordinate.ValueKey.x, neighborChunk.CoordinateMap.MaxCoordinateValue - 1));
 					break;
-				case BorderDirection.WEST:
+				case EdgeDirection.WEST:
 					neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(0, CurrentCoordinate.ValueKey.y));
 					break;
-				case BorderDirection.EAST:
+				case EdgeDirection.EAST:
 					neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(neighborChunk.CoordinateMap.MaxCoordinateValue - 1, CurrentCoordinate.ValueKey.y));
 					break;
 			}
@@ -162,8 +167,6 @@ namespace Darklight.World.Generation
 
 			return MoveToCell(cell);
 		}
-
-
 
 		public bool MoveToCellInDirection(WorldDirection worldDirection)
 		{
@@ -198,8 +201,6 @@ namespace Darklight.World.Generation
 			return true;
 		}
 
-
-
 		public void InitializeAtCoordinate(CoordinateMap map, Vector2Int value)
 		{
 			Debug.Log("Traveler Initialized at Coordinate: " + value);
@@ -213,9 +214,6 @@ namespace Darklight.World.Generation
 			_modelObject.transform.position = CenterPosition;
 			_modelObject.transform.localScale = Vector3.one * worldSpawnUnit.modelScale * WorldBuilder.Settings.CellSize_inGameUnits;
 		}
-
-
-
 
 		public void OnDrawGizmos()
 		{

@@ -12,35 +12,35 @@ namespace Darklight.World.Map
     public class CoordinateMap
     {
         #region << STATIC FUNCTIONS <<
-        public static BorderDirection? GetBorderDirection(WorldDirection direction)
+        public static EdgeDirection? GetBorderDirection(WorldDirection direction)
         {
             switch (direction)
             {
                 case WorldDirection.NORTH:
-                    return BorderDirection.NORTH;
+                    return EdgeDirection.NORTH;
                 case WorldDirection.SOUTH:
-                    return BorderDirection.SOUTH;
+                    return EdgeDirection.SOUTH;
                 case WorldDirection.WEST:
-                    return BorderDirection.WEST;
+                    return EdgeDirection.WEST;
                 case WorldDirection.EAST:
-                    return BorderDirection.EAST;
+                    return EdgeDirection.EAST;
                 default:
                     return null;
             }
         }
 
-        public static BorderDirection? GetOppositeBorder(BorderDirection border)
+        public static EdgeDirection? GetOppositeBorder(EdgeDirection border)
         {
             switch (border)
             {
-                case BorderDirection.NORTH:
-                    return BorderDirection.SOUTH;
-                case BorderDirection.SOUTH:
-                    return BorderDirection.NORTH;
-                case BorderDirection.WEST:
-                    return BorderDirection.EAST;
-                case BorderDirection.EAST:
-                    return BorderDirection.WEST;
+                case EdgeDirection.NORTH:
+                    return EdgeDirection.SOUTH;
+                case EdgeDirection.SOUTH:
+                    return EdgeDirection.NORTH;
+                case EdgeDirection.WEST:
+                    return EdgeDirection.EAST;
+                case EdgeDirection.EAST:
+                    return EdgeDirection.WEST;
                 default:
                     return null;
             }
@@ -123,11 +123,11 @@ namespace Darklight.World.Map
         Dictionary<Coordinate.TYPE, HashSet<Vector2Int>> _typeMap = new();
 
         // >>>> border References
-        Dictionary<BorderDirection, HashSet<Vector2Int>> _borderMap = new();
-        Dictionary<BorderDirection, HashSet<Vector2Int>> _borderExitMap = new();
-        Dictionary<BorderDirection, Vector2Int[]> _borderIndexMap = new();
-        Dictionary<BorderDirection, (Vector2Int, Vector2Int)> _borderCornersMap = new();
-        Dictionary<BorderDirection, bool> _activeBorderMap = new(4);
+        Dictionary<EdgeDirection, HashSet<Vector2Int>> _borderMap = new();
+        Dictionary<EdgeDirection, HashSet<Vector2Int>> _borderExitMap = new();
+        Dictionary<EdgeDirection, Vector2Int[]> _borderIndexMap = new();
+        Dictionary<EdgeDirection, (Vector2Int, Vector2Int)> _borderCornersMap = new();
+        Dictionary<EdgeDirection, bool> _activeBorderMap = new(4);
 
         // >>>> zone references
         List<Zone> _zones = new();
@@ -142,7 +142,9 @@ namespace Darklight.World.Map
         public int CoordinateSize => _coordinateSize;
         public List<Vector2Int> AllCoordinateValues => _coordinateMap.Keys.ToList();
         public List<Coordinate> AllCoordinates => _coordinateMap.Values.ToList();
-        public Dictionary<BorderDirection, bool> ActiveBorderMap => _activeBorderMap;
+        public Dictionary<EdgeDirection, bool> ActiveBorderMap => _activeBorderMap;
+        public Dictionary<EdgeDirection, HashSet<Vector2Int>> BorderValuesMap => _borderMap;
+
 
         public List<Vector2Int> Exits => _borderExitMap.Values.SelectMany(exit => exit).ToList(); // Collapse all values into list
         public List<Path> Paths = new();
@@ -208,7 +210,7 @@ namespace Darklight.World.Map
             }
 
             // >> initialize _border positions and indexes in a loop
-            foreach (BorderDirection direction in Enum.GetValues(typeof(BorderDirection)))
+            foreach (EdgeDirection direction in Enum.GetValues(typeof(EdgeDirection)))
             {
                 _borderMap[direction] = new HashSet<Vector2Int>();
                 _borderIndexMap[direction] = new Vector2Int[coordMax];
@@ -225,13 +227,13 @@ namespace Darklight.World.Map
                 new Vector2Int(mapRange.y, mapRange.x) // max min { SOUTH EAST }
             };
             // >> store references to the corners of each border
-            _borderCornersMap[BorderDirection.NORTH] = (corners[2], corners[1]); // NW, NE
-            _borderCornersMap[BorderDirection.SOUTH] = (corners[0], corners[3]); // SW, SE
-            _borderCornersMap[BorderDirection.EAST] = (corners[1], corners[3]); // NE, SE
-            _borderCornersMap[BorderDirection.WEST] = (corners[0], corners[2]); // SW, NW
+            _borderCornersMap[EdgeDirection.NORTH] = (corners[2], corners[1]); // NW, NE
+            _borderCornersMap[EdgeDirection.SOUTH] = (corners[0], corners[3]); // SW, SE
+            _borderCornersMap[EdgeDirection.EAST] = (corners[1], corners[3]); // NE, SE
+            _borderCornersMap[EdgeDirection.WEST] = (corners[0], corners[2]); // SW, NW
 
             // >> initialize the active border map
-            foreach (BorderDirection direction in Enum.GetValues(typeof(BorderDirection)))
+            foreach (EdgeDirection direction in Enum.GetValues(typeof(EdgeDirection)))
             {
                 _activeBorderMap[direction] = false;
             }
@@ -240,10 +242,10 @@ namespace Darklight.World.Map
             void HandleBorderCoordinate(Vector2Int pos, Vector2Int mapRange)
             {
                 SetCoordinateToType(pos, Coordinate.TYPE.BORDER);
-                BorderDirection borderType = DetermineBorderType(pos, mapRange);
+                EdgeDirection borderType = DetermineBorderType(pos, mapRange);
 
                 _borderMap[borderType].Add(pos);
-                if (borderType == BorderDirection.EAST || borderType == BorderDirection.WEST)
+                if (borderType == EdgeDirection.EAST || borderType == EdgeDirection.WEST)
                 {
                     _borderIndexMap[borderType][pos.y] = pos;
                 }
@@ -253,16 +255,16 @@ namespace Darklight.World.Map
                 }
             }
 
-            BorderDirection DetermineBorderType(Vector2Int pos, Vector2Int range)
+            EdgeDirection DetermineBorderType(Vector2Int pos, Vector2Int range)
             {
                 if (pos.x == range.y)
-                    return BorderDirection.EAST;
+                    return EdgeDirection.EAST;
                 if (pos.x == range.x)
-                    return BorderDirection.WEST;
+                    return EdgeDirection.WEST;
                 if (pos.y == range.y)
-                    return BorderDirection.NORTH;
+                    return EdgeDirection.NORTH;
                 if (pos.y == range.x)
-                    return BorderDirection.SOUTH;
+                    return EdgeDirection.SOUTH;
                 return default; // Return a default or undefined value
             }
 
@@ -361,7 +363,7 @@ namespace Darklight.World.Map
             return _typeMap[type];
         }
 
-        public HashSet<Vector2Int> GetExitsOnBorder(BorderDirection border)
+        public HashSet<Vector2Int> GetExitsOnBorder(EdgeDirection border)
         {
             if (_borderExitMap.ContainsKey(border))
             {
@@ -463,7 +465,7 @@ namespace Darklight.World.Map
             }
         }
 
-        public void CloseMapBorder(BorderDirection mapBorder)
+        public void CloseMapBorder(EdgeDirection mapBorder)
         {
             // Destroy that border >:#!!
 
@@ -482,27 +484,27 @@ namespace Darklight.World.Map
             List<Vector2Int> inactiveCorners = new List<Vector2Int>();
 
             // Mapping corners to their adjacent borders
-            var cornerBordersMap = new Dictionary<Vector2Int, List<BorderDirection>>
+            Dictionary<Vector2Int, List<EdgeDirection>> cornerBordersMap = new Dictionary<Vector2Int, List<EdgeDirection>>
             {
-                [_borderCornersMap[BorderDirection.NORTH].Item1] = new List<BorderDirection>
+                [_borderCornersMap[EdgeDirection.NORTH].Item1] = new List<EdgeDirection>
                 {
-                    BorderDirection.NORTH,
-                    BorderDirection.WEST
+                    EdgeDirection.NORTH,
+                    EdgeDirection.WEST
                 }, // NW
-                [_borderCornersMap[BorderDirection.NORTH].Item2] = new List<BorderDirection>
+                [_borderCornersMap[EdgeDirection.NORTH].Item2] = new List<EdgeDirection>
                 {
-                    BorderDirection.NORTH,
-                    BorderDirection.EAST
+                    EdgeDirection.NORTH,
+                    EdgeDirection.EAST
                 }, // NE
-                [_borderCornersMap[BorderDirection.SOUTH].Item1] = new List<BorderDirection>
+                [_borderCornersMap[EdgeDirection.SOUTH].Item1] = new List<EdgeDirection>
                 {
-                    BorderDirection.SOUTH,
-                    BorderDirection.WEST
+                    EdgeDirection.SOUTH,
+                    EdgeDirection.WEST
                 }, // SW
-                [_borderCornersMap[BorderDirection.SOUTH].Item2] = new List<BorderDirection>
+                [_borderCornersMap[EdgeDirection.SOUTH].Item2] = new List<EdgeDirection>
                 {
-                    BorderDirection.SOUTH,
-                    BorderDirection.EAST
+                    EdgeDirection.SOUTH,
+                    EdgeDirection.EAST
                 }, // SE
             };
 
@@ -583,7 +585,7 @@ namespace Darklight.World.Map
             }
 
             // Search borders for exit
-            foreach (BorderDirection direction in _borderMap.Keys)
+            foreach (EdgeDirection direction in _borderMap.Keys)
             {
                 if (_borderMap[direction].Contains(coordinate.ValueKey))
                 {
@@ -618,7 +620,7 @@ namespace Darklight.World.Map
             //Debug.Log($"{numberOfExits} exits have been created on the map borders.");
         }
 
-        public void GenerateRandomExitOnBorder(BorderDirection borderType)
+        public void GenerateRandomExitOnBorder(EdgeDirection borderType)
         {
             List<Vector2Int> allBorderPositions = _borderMap[borderType].ToList();
             Vector2Int randomCoordinate = allBorderPositions[
@@ -628,7 +630,7 @@ namespace Darklight.World.Map
         }
 
         public void CreateMatchingExit(
-            BorderDirection neighborBorder,
+            EdgeDirection neighborBorder,
             Vector2Int neighborExitCoordinate
         )
         {
@@ -636,22 +638,22 @@ namespace Darklight.World.Map
             Vector2Int matchingCoordinate;
             switch (neighborBorder)
             {
-                case BorderDirection.NORTH:
+                case EdgeDirection.NORTH:
                     // if this border is NORTH, then the matching neighbor's border is SOUTH
                     matchingCoordinate = new Vector2Int(neighborExitCoordinate.x, 0);
                     break;
-                case BorderDirection.SOUTH:
+                case EdgeDirection.SOUTH:
                     // if this border is SOUTH, then the matching neighbor's border is NORTH
                     matchingCoordinate = new Vector2Int(
                         neighborExitCoordinate.x,
                         this.MaxCoordinateValue - 1
                     );
                     break;
-                case BorderDirection.EAST:
+                case EdgeDirection.EAST:
                     // if this border is EAST, then the matching neighbor's border is WEST
                     matchingCoordinate = new Vector2Int(0, neighborExitCoordinate.y);
                     break;
-                case BorderDirection.WEST:
+                case EdgeDirection.WEST:
                     // if this border is EAST, then the matching neighbor's border is WEST
                     matchingCoordinate = new Vector2Int(
                         this.MaxCoordinateValue - 1,

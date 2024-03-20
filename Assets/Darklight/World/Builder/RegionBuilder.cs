@@ -144,12 +144,6 @@ namespace Darklight.World.Builder
 		{
 			if (initializeOnStart == true)
 			{
-				if (WorldBuilder.Instance == null)
-				{
-					WorldBuilder.OverrideSettings(customRegionSettings);
-					this._coordinate = new Coordinate(Vector2Int.zero, UnitSpace.REGION);
-				}
-
 				Debug.Log($"{_prefix} Initialize On Start");
 				await this.Initialize();
 			}
@@ -175,6 +169,11 @@ namespace Darklight.World.Builder
 		{
 			this.Name = "RegionAsyncTaskQueen";
 			if (Initialized) return;
+			if (WorldBuilder.Instance == null)
+			{
+				WorldBuilder.OverrideSettings(customRegionSettings);
+				this._coordinate = new Coordinate(Vector2Int.zero, UnitSpace.REGION);
+			}
 			this._coordinateMap = new CoordinateMap(this);
 			await _coordinateMap.InitializeDefaultMap();
 			await base.Initialize();
@@ -268,7 +267,7 @@ namespace Darklight.World.Builder
 				foreach (WorldDirection neighborDirection in neighborDirectionMap.Keys)
 				{
 					Vector2Int neighborCoordinateValue = neighborDirectionMap[neighborDirection];
-					BorderDirection? currentBorderWithNeighbor = CoordinateMap.GetBorderDirection(neighborDirection);
+					EdgeDirection? currentBorderWithNeighbor = CoordinateMap.GetBorderDirection(neighborDirection);
 
 					// Skip iteration if no border direction is found.
 					if (!currentBorderWithNeighbor.HasValue) continue;
@@ -282,11 +281,11 @@ namespace Darklight.World.Builder
 					else
 					{
 						// Proceed with exit handling if the neighbor exists.
-						BorderDirection borderInThisRegion = (BorderDirection)currentBorderWithNeighbor; // >> convert border direction to non-nullable type
-																										 // >> get reference to neighbor region
+						EdgeDirection borderInThisRegion = (EdgeDirection)currentBorderWithNeighbor; // >> convert border direction to non-nullable type
+																									 // >> get reference to neighbor region
 						RegionBuilder neighborRegion = this.GenerationParent.RegionMap[neighborCoordinateValue];
 						// >> get matching border direction
-						BorderDirection matchingBorderOnNeighbor = (BorderDirection)CoordinateMap.GetOppositeBorder(borderInThisRegion);
+						EdgeDirection matchingBorderOnNeighbor = (EdgeDirection)CoordinateMap.GetOppositeBorder(borderInThisRegion);
 						// >> get exits on neighbor region
 						HashSet<Vector2Int> neighborBorderExits = neighborRegion.CoordinateMap.GetExitsOnBorder(matchingBorderOnNeighbor);
 

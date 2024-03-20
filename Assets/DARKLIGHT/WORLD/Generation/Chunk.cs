@@ -30,7 +30,7 @@ namespace Darklight.World.Generation
 			/// <summary>Indicates an exit point, set by WorldExit.</summary>
 			EXIT
 		}
-		public enum FaceDirection { FRONT, BACK, LEFT, RIGHT, TOP, BOTTOM }
+		public enum FaceDirection { FRONT, BACK, LEFT, RIGHT, TOP, BOTTOM, SPLIT }
 
 		// [[ PRIVATE VARIABLES ]]
 		Coordinate _coordinate;
@@ -127,27 +127,28 @@ namespace Darklight.World.Generation
 			}
 		}
 
-		void DetermineChunkType()
+		public void DetermineChunkType()
 		{
 			// [[ ITERATE THROUGH CHUNK NEIGHBORS ]] 
 			Dictionary<WorldDirection, Chunk> naturalNeighborMap = GetNaturalNeighborMap();
 			foreach (WorldDirection direction in naturalNeighborMap.Keys.ToList())
 			{
 				Chunk neighborChunk = naturalNeighborMap[direction];
-				if (neighborChunk == null)
+				EdgeDirection? neighborBorder = CoordinateMap.GetBorderDirection(direction); // get chunk border
+
+				// << CLOSE BORDER WITH NULL NEIGHBOR OR NEIGHBOR WITH HEIGHT OFFSET >>
+				if (neighborChunk == null || neighborChunk.GroundHeight != GroundHeight)
 				{
-					BorderDirection? neighborBorder = CoordinateMap.GetBorderDirection(direction); // get chunk border
 					if (neighborBorder == null) continue;
 
-					CoordinateMap.CloseMapBorder((BorderDirection)neighborBorder); // close the chunk border
+					CoordinateMap.CloseMapBorder((EdgeDirection)neighborBorder); // close the chunk border
 				}
 			}
 
 			// ========================================================
 
 			// [[ DETERMINE TYPE FROM BORDERS ]]
-			//Dictionary<BorderDirection, bool> activeBorderMap = CoordinateMap.ActiveBorderMap;
-			Dictionary<BorderDirection, bool> activeBorderMap = new();
+			Dictionary<EdgeDirection, bool> activeBorderMap = CoordinateMap.ActiveBorderMap;
 
 			// Count active borders directly from the dictionary
 			int activeBorderCount = activeBorderMap.Count(kv => kv.Value == true);
@@ -161,9 +162,9 @@ namespace Darklight.World.Generation
 					SetType(TYPE.DEADEND); break;
 				case 2:
 					// Check for parallel edges
-					if (activeBorderMap[BorderDirection.NORTH] && activeBorderMap[BorderDirection.SOUTH])
+					if (activeBorderMap[EdgeDirection.NORTH] && activeBorderMap[EdgeDirection.SOUTH])
 					{ SetType(TYPE.HALLWAY); break; }
-					if (activeBorderMap[BorderDirection.EAST] && activeBorderMap[BorderDirection.WEST])
+					if (activeBorderMap[EdgeDirection.EAST] && activeBorderMap[EdgeDirection.WEST])
 					{ SetType(TYPE.HALLWAY); break; }
 
 					// Otherwise chunk is in corner
@@ -191,7 +192,7 @@ namespace Darklight.World.Generation
 
 		public Dictionary<WorldDirection, Chunk> GetNaturalNeighborMap()
 		{
-			Dictionary<WorldDirection, Chunk> neighborMap = new();
+			Dictionary<WorldDirection, Chunk> neighborMap = new Dictionary<WorldDirection, Chunk>();
 
 			List<WorldDirection> naturalNeighborDirections = new List<WorldDirection> { WorldDirection.NORTH, WorldDirection.SOUTH, WorldDirection.EAST, WorldDirection.WEST };
 			foreach (WorldDirection direction in naturalNeighborDirections)

@@ -46,10 +46,12 @@ namespace Darklight.World
 		public void SelectRegion(RegionBuilder region)
 		{
 			selectedRegion = region;
-
-			Debug.Log("Selected Region: " + selectedRegion.Coordinate.ValueKey);
-
-			Darklight.CustomInspectorGUI.FocusSceneView(region.Coordinate.ScenePosition);
+			if (selectedRegion.Coordinate != null)
+			{
+				Debug.Log("Selected Region: " + selectedRegion.Coordinate.ValueKey);
+				Darklight.CustomInspectorGUI.FocusSceneView(region.Coordinate.ScenePosition);
+			}
+			else { Debug.Log("Selected Region: " + region.name); }
 
 			editMode = EditMode.REGION;
 			regionView = RegionView.COORDINATE_MAP;
@@ -91,6 +93,8 @@ namespace Darklight.World
 		private WorldEditor _editorScript;
 		private WorldBuilder _worldBuilder;
 		private RegionBuilder _regionBuilder;
+
+		EdgeDirection splitBorderDirection = EdgeDirection.NORTH; // default
 
 		public virtual void OnEnable()
 		{
@@ -167,9 +171,22 @@ namespace Darklight.World
 							}
 						}
 
-						if (GUILayout.Button("Apply Height"))
+
+						EditorGUILayout.Space(10);
+						splitBorderDirection = (EdgeDirection)EditorGUILayout.EnumPopup("Border Direction", splitBorderDirection);
+						if (GUILayout.Button("Split Edge"))
 						{
-							_editorScript.selectedChunk.ChunkMesh.ExtrudeQuad(Chunk.FaceDirection.TOP, Vector2Int.zero);
+							//_editorScript.selectedChunk.ChunkMesh.ExtrudeQuad(Chunk.FaceDirection.TOP, Vector2Int.zero);
+							HashSet<Vector2Int> borderValues = _editorScript.selectedChunk.CoordinateMap.BorderValuesMap[splitBorderDirection];
+
+							foreach (Vector2Int borderValue in borderValues)
+							{
+								_editorScript.selectedChunk.ChunkMesh.SplitQuad(Chunk.FaceDirection.TOP, borderValue, splitBorderDirection);
+							}
+
+							_editorScript.selectedChunk.ChunkMesh.Recalculate();
+							_editorScript.selectedChunk.ChunkBuilderParent.DestroyGameObject(_editorScript.selectedChunk.ChunkObject);
+							_editorScript.selectedChunk.ChunkBuilderParent.CreateChunkObject(_editorScript.selectedChunk);
 						}
 					}
 					break;
@@ -368,7 +385,7 @@ namespace Darklight.World
 					break;
 				case WorldEditor.ChunkView.TYPE:
 					chunkLabelStyle.normal.textColor = chunk.TypeColor;
-					Darklight.CustomGizmos.DrawLabel($"{chunk.Type.ToString()[0]}", chunk.CenterPosition, chunkLabelStyle);
+					Darklight.CustomGizmos.DrawLabel($"{chunk.Type.ToString()}", chunk.GroundPosition, chunkLabelStyle);
 
 					Darklight.CustomGizmos.DrawButtonHandle(chunk.CenterPosition, Vector3.up, chunk.Width * 0.475f, chunk.TypeColor, () =>
 					{

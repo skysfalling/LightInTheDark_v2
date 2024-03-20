@@ -13,7 +13,7 @@ namespace Darklight.World
 	/// </summary>
 	public enum WorldDirection { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
 	/// <summary> Specifies the directions for borders relative to a given region or chunk. </summary>
-	public enum BorderDirection { NORTH, SOUTH, EAST, WEST }
+	public enum EdgeDirection { WEST, NORTH, EAST, SOUTH }
 }
 
 namespace Darklight.World.Generation

@@ -30,6 +30,11 @@ namespace Darklight.World.Editor
         {
             _serializedObject = new SerializedObject(target);
             _regionEditor = (RegionEditor)target;
+            _regionEditor.editMode = WorldEditor.EditMode.REGION;
+
+            _regionEditor.selectedRegion = null;
+            _regionEditor.selectedChunk = null;
+            _regionEditor.selectedCell = null;
         }
 
         public override void OnInspectorGUI()

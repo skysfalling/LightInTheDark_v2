@@ -9,7 +9,6 @@ namespace Darklight.World.Generation
 	using FaceDirection = Chunk.FaceDirection;
 	using Builder;
 	using System.Linq;
-
 	/// <summary>
 	/// This Quad manipulates and stores the chunk mesh values
 	/// </summary> 
@@ -32,10 +31,10 @@ namespace Darklight.World.Generation
 			this.verticeIndexes = verticeIndexes;
 			this.uvs = new List<Vector2>
 			{
-				new Vector2(1, 0), // bottomRight
-				new Vector2(1, 1), // topRight
-				new Vector2(0, 1),  // topLeft
 				new Vector2(0, 0), // bottomLeft
+				new Vector2(0, 1),  // topLeft
+				new Vector2(1, 1), // topRight
+				new Vector2(1, 0), // bottomRight
 			};
 
 			this.triangles = new List<int> { 0, 1, 2, 2, 3, 0 };
@@ -87,6 +86,8 @@ namespace Darklight.World.Generation
 
 		public Mesh Recalculate()
 		{
+			this._chunkParent.UpdateChunkHeight();
+			this._chunkParent.DetermineChunkType();
 			this._mesh = CreateMeshFromGeneratedData();
 			return this._mesh;
 		}
@@ -307,6 +308,103 @@ namespace Darklight.World.Generation
 			baseQuad.AddExtrudedQuads(extrudedQuads);
 		}
 
+		public void SplitQuad(FaceDirection faceDir, Vector2Int faceCoord, EdgeDirection edgeDirection)
+		{
+			if (!_quadData.ContainsKey(faceDir) || !_quadData[faceDir].ContainsKey(faceCoord))
+			{
+				Debug.LogError("Quad does not exist.");
+				return;
+			}
+
+			Quad baseQuad = _quadData[faceDir][faceCoord];
+
+			List<Vector3> baseQuadGlobalVertices = baseQuad.verticeIndexes.Select(index => _globalVertices[index]).ToList();
+			List<Vector3> splitQuadGlobalVertices = new List<Vector3>(baseQuadGlobalVertices);
+			// Initialize variables to hold the indices of the farthest vertices in the given direction
+
+			splitQuadGlobalVertices[(int)edgeDirection] += Vector3.down;
+			splitQuadGlobalVertices[(int)(edgeDirection + 1) % 4] += Vector3.down;
+
+			List<int> splitQuadVerticeIndex = splitQuadGlobalVertices.Select(vertex => AddVertexToGlobal(vertex)).ToList();
+
+			// Create a new quad with the extruded edge and side triangles
+			Quad splitQuad = new Quad(baseQuad.chunkParent, splitQuadVerticeIndex.ToList(), FaceDirection.SPLIT, baseQuad.faceCoord);
+
+			// Remove the base quad
+			_quadData[baseQuad.faceDirection].Remove(baseQuad.faceCoord);
+
+			// Add the split quad
+			if (!_quadData.ContainsKey(splitQuad.faceDirection))
+			{
+				_quadData[splitQuad.faceDirection] = new Dictionary<Vector2Int, Quad>();
+			}
+			_quadData[splitQuad.faceDirection][splitQuad.faceCoord] = splitQuad;
+		}
+
+		public void CreateBridgeBetweenQuads(FaceDirection quad1Dir, Vector2Int quad1Coord, FaceDirection quad2Dir, Vector2Int quad2Coord)
+		{
+			// Ensure both quads exist
+			if (!_quadData.ContainsKey(quad1Dir) || !_quadData[quad1Dir].ContainsKey(quad1Coord) ||
+				!_quadData.ContainsKey(quad2Dir) || !_quadData[quad2Dir].ContainsKey(quad2Coord))
+			{
+				Debug.LogError("One or both quads do not exist.");
+				return;
+			}
+
+			Quad quad1 = _quadData[quad1Dir][quad1Coord];
+			Quad quad2 = _quadData[quad2Dir][quad2Coord];
+
+			// Verify the quads are perpendicular and share an edge
+			// If they are not perpendicular or do not share an edge, log an error and return.
+			Vector3 quad1Normal = GetFaceNormal(quad1.faceDirection);
+			Vector3 quad2Normal = GetFaceNormal(quad2.faceDirection);
+			if (Vector3.Dot(quad1Normal, quad2Normal) != 0)
+			{
+				Debug.LogError("Quads are not perpendicular.");
+				return;
+			}
+
+			// Assuming they share an edge and are perpendicular, calculate the new quad vertices.
+			// This involves determining the farthest points of quad1 and quad2 from their shared edge and creating vertices at those points.
+			Vector3[] quad1VerticeIndexes = quad1.verticeIndexes.Select(index => _globalVertices[index]).ToArray();
+			Vector3[] quad2VerticeIndexes = quad2.verticeIndexes.Select(index => _globalVertices[index]).ToArray();
+			List<Vector3> bridgeVertices = new List<Vector3> { quad1VerticeIndexes[0], quad1VerticeIndexes[1], quad2VerticeIndexes[2], quad2VerticeIndexes[3] };
+			List<int> bridgeVertexIndexes = bridgeVertices.Select(vertex => AddVertexToGlobal(vertex)).ToList();
+
+			// Define the new quad
+			Quad newQuad = new Quad(_chunkParent, bridgeVertexIndexes, quad1.faceDirection, quad1.faceCoord);
+
+			// Remove original quads from data structure
+			_quadData[quad1Dir].Remove(quad1Coord);
+			_quadData[quad2Dir].Remove(quad2Coord);
+
+			// Add the new quad to the quad data structure
+			// Determine the appropriate FaceDirection and faceCoord for the new quad.
+			// This depends on your specific requirements and data structure.
+			FaceDirection newQuadDir = FaceDirection.SPLIT;
+			Vector2Int newQuadCoord = quad1Coord;
+			_quadData[newQuadDir][newQuadCoord] = newQuad;
+		}
+
+		private int AddVertexToGlobal(Vector3 vertex)
+		{
+			if (!_globalVertices.Contains(vertex))
+			{
+				_globalVertices.Add(vertex);
+				return _globalVertices.Count - 1; // Return the new index
+			}
+			else
+			{
+				return _globalVertices.IndexOf(vertex); // Return existing index
+			}
+		}
+
+		private void OverrideGlobalVertex(int index, Vector3 newVertex)
+		{
+			_globalVertices[index] = newVertex;
+		}
+
+
 		(int, int) GetFaceUVDivisions(FaceDirection faceType)
 		{
 			// [[ GET VISIBLE DIVISIONS ]]
@@ -409,7 +507,7 @@ namespace Darklight.World.Generation
 
 		}
 
-		Vector3 GetFaceNormal(FaceDirection faceType)
+		public static Vector3 GetFaceNormal(FaceDirection faceType)
 		{
 			switch (faceType)
 			{
