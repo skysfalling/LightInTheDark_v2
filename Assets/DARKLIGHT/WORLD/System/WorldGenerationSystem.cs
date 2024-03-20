@@ -9,7 +9,6 @@ using UnityEditor;
 namespace Darklight.World
 {
     using Debug = UnityEngine.Debug;
-    using GridCoordinate = Darklight.World.Map.GridMap2D<Type>.Coordinate;
 
     using Darklight.Bot;
     using Settings;
@@ -63,8 +62,7 @@ namespace Darklight.World
         #endregion
 
         string _prefix = "< WORLD GENERATION SYSTEM > ";
-        GridMap2D<Type> _gridMap = new GridMap2D<Type>();
-        public GridMap2D<Type> GridMap { get { return _gridMap; } }
+        public GridMap2D regionGrid = new GridMap2D();
 
         // [[ PUBLIC REFERENCE VARIABLES ]]
         public Vector3 CenterPosition { get { return transform.position; } }
@@ -113,24 +111,24 @@ namespace Darklight.World
         private void OnSceneGUI()
         {
             WorldGenerationSystem worldGenSystem = (WorldGenerationSystem)target;
-            SceneGUI_DrawGridMap2D(worldGenSystem.GridMap, (coordinate) =>
+            SceneGUI_DrawGridMap2D(worldGenSystem.regionGrid, (coordinate) =>
             {
                 Debug.Log($"Selected Coordinate: {coordinate.PositionKey}");
             });
         }
 
-        public void SceneGUI_DrawGridMap2D(GridMap2D<Type> gridMap2D, System.Action<GridCoordinate> onCoordinateSelect)
+        public void SceneGUI_DrawGridMap2D(GridMap2D gridMap2D, System.Action<GridMap2D.Coordinate> onCoordinateSelect)
         {
             GUIStyle coordLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
             Color coordinateColor = Color.black;
 
-            foreach (GridMap2D<Type>.Coordinate gridCoordinate in gridMap2D.CoordinateValues)
+            foreach (GridMap2D.Coordinate gridCoordinate in gridMap2D.CoordinateValues)
             {
                 Darklight.CustomGizmos.DrawLabel($"{gridCoordinate.PositionKey}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
-                Darklight.CustomGizmos.DrawButtonHandle(gridCoordinate.GetPositionInScene(), Vector3.up, gridCoordinate.Size * 0.475f, coordinateColor, () =>
+                Darklight.CustomGizmos.DrawButtonHandle(gridCoordinate.GetPositionInScene(), Vector3.up, gridCoordinate.Size * 0.25f, coordinateColor, () =>
                 {
                     onCoordinateSelect?.Invoke(gridCoordinate); // Invoke the action if the button is clicked
-                }, Handles.RectangleHandleCap);
+                }, Handles.CubeHandleCap);
 
                 coordinateColor = Color.white;
             }

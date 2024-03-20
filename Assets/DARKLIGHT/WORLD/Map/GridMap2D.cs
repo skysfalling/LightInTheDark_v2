@@ -3,32 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Darklight.World.Settings;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif  
 
 namespace Darklight.World.Map
 {
-    public class GridMap2D<Type>
+    [System.Serializable]
+    public class GridMap2D
     {
         #region {{ STRUCTS }}
         public struct Coordinate
         {
             public enum Flag { NULL, BORDER, EXIT, PATH, ZONE, CLOSED }
-            [SerializeField] private GridMap2D<Type> _parentMap;
+            [SerializeField] private GridMap2D _parentMap;
             [SerializeField] private UnitSpace _unitSpace;
             [SerializeField] private Vector2Int _key;
             [SerializeField] private int _size;
             [SerializeField] private Flag _flag;
             [SerializeField] private Dictionary<EdgeDirection, Coordinate> _neighborMap;
 
-            public GridMap2D<Type> ParentMap { get { return _parentMap; } }
+            public GridMap2D ParentMap { get { return _parentMap; } }
             public UnitSpace UnitSpace { get { return _unitSpace; } }
             public Vector2Int PositionKey { get { return _key; } }
             public int Size { get { return _size; } }
             public Flag CurrentFlag { get { return _flag; } }
 
             public Coordinate(
-                GridMap2D<Type> parentMap,
+                GridMap2D parentMap,
                 Vector2Int key,
                 int size,
                 UnitSpace unitSpace
@@ -146,40 +149,32 @@ namespace Darklight.World.Map
         #endregion
 
         #region << PRIVATE VARIABLES <<
-        string _prefix = ">> Grid Map << ";
+        string _prefix = "[[ GridMap2D ]] ";
         UnitSpace _unitSpace; // defines sizing
         Transform _transform; // to use as position parent
-        int _mapWidth; // width count of the grid [[ grid will always be a square ]]
-        int _coordinateSize; // size of each GridCoordinate to determine position offsets
+        [SerializeField] int _mapWidth = 10; // width count of the grid [[ grid will always be a square ]]
+        [SerializeField] int _coordinateSize = 10; // size of each GridCoordinate to determine position offsets
 
         #endregion
 
         #region << MAP DATA <<
-        Dictionary<Vector2Int, (Coordinate, Type)> _map = new Dictionary<Vector2Int, (Coordinate, Type)>();
+        Dictionary<Vector2Int, Coordinate> _map = new Dictionary<Vector2Int, Coordinate>();
         Dictionary<EdgeDirection, List<Coordinate>> _mapBorderValues;
         Dictionary<(EdgeDirection, EdgeDirection), Coordinate> _mapCornerValues;
         #endregion
 
-        public Dictionary<Vector2Int, (Coordinate, Type)> FullMap { get { return _map; } }
+        public int MapWidth { get { return _mapWidth; } private set { _mapWidth = value; } }
+        public int CoordinateSize { get { return _coordinateSize; } private set { _coordinateSize = value; } }
+        public Dictionary<Vector2Int, Coordinate> FullMap
+        { get { return _map; } }
         public List<Vector2Int> PositionKeys { get { return _map.Keys.ToList(); } }
-        public List<Coordinate> CoordinateValues { get { return _map.Values.Select(pair => pair.Item1).ToList(); } }
-        public List<Type> TypeValues { get { return _map.Values.Select(pair => pair.Item2).ToList(); } }
-        public Vector3 CenterPosition
+        public List<Coordinate> CoordinateValues { get { return _map.Values.ToList(); } }
+        public Vector3 OriginPosition
         {
             get
             {
                 if (_transform != null) { return _transform.position; }
                 else { return Vector3.zero; }
-            }
-        }
-        public Vector3 OriginPosition
-        {
-            get
-            {
-                Vector3 origin = CenterPosition; // Start at center
-                origin -= _mapWidth * _coordinateSize * new Vector3(0.5f, 0, 0.5f);
-                origin += _coordinateSize * new Vector3(0.5f, 0, 0.5f);
-                return origin;
             }
         }
 
@@ -188,7 +183,9 @@ namespace Darklight.World.Map
         /// </summary>
         public GridMap2D()
         {
-            InitializeGrid(10, 10);
+            this._transform = null;
+            this._unitSpace = UnitSpace.GAME;
+            Initialize(_mapWidth, _coordinateSize);
         }
 
         /// <summary>
@@ -202,14 +199,14 @@ namespace Darklight.World.Map
         {
             this._transform = transform;
             this._unitSpace = unitSpace;
-            this._mapWidth = mapWidth;
-            this._coordinateSize = coordinateSize;
-            InitializeGrid(mapWidth, coordinateSize);
+            Initialize(mapWidth, coordinateSize);
         }
 
-        void InitializeGrid(int width, int size)
+        void Initialize(int width, int size)
         {
-            Debug.Log($"{_prefix} Initializing Grid Map with {width}x{width} grid and {size} unit size.");
+            _mapWidth = width;
+            _coordinateSize = size;
+            //Debug.Log($"{_prefix} Initializing Grid Map with {width}x{width} grid and {size} unit size.");
 
             // Create Coordinate grid
             for (int x = 0; x < width; x++)
@@ -221,11 +218,71 @@ namespace Darklight.World.Map
 
                     // Create Coordinate Tuple
                     Coordinate coordinate = new Coordinate(this, gridKey, size, _unitSpace);
-                    _map[gridKey] = (coordinate, default);
+                    _map[gridKey] = coordinate;
                 }
             }
         }
+
+        public void Reset()
+        {
+            _map.Clear();
+            Initialize(_mapWidth, _coordinateSize);
+        }
     }
+
+#if UNITY_EDITOR
+    [CustomPropertyDrawer(typeof(GridMap2D))]
+    public class GridMap2DDrawer : PropertyDrawer
+    {
+        bool mapSettingsFoldout = true;
+
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            // Get the target object the property belongs to
+            UnityEngine.Object targetObject = property.serializedObject.targetObject;
+
+            // Reflection to call ResetMap
+            GridMap2D gridMap2DField = fieldInfo.GetValue(targetObject) as GridMap2D;
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.BeginProperty(position, label, property);
+
+            // Fetch the objects needed
+            SerializedProperty mapWidthProp = property.FindPropertyRelative("_mapWidth");
+            SerializedProperty coordinateSizeProp = property.FindPropertyRelative("_coordinateSize");
+
+            // << DRAW LABEL >>
+            EditorGUILayout.LabelField($"{label} >> Grid Map 2D", EditorStyles.boldLabel);
+            mapSettingsFoldout = EditorGUILayout.Foldout(mapSettingsFoldout, "Default Map Settings");
+            if (mapSettingsFoldout)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.Space();
+                EditorGUILayout.BeginVertical();
+                mapWidthProp.intValue = EditorGUILayout.IntSlider(new GUIContent("Map Width"), mapWidthProp.intValue, 1, 100);
+                coordinateSizeProp.intValue = EditorGUILayout.IntSlider(new GUIContent("Coordinate Size"), coordinateSizeProp.intValue, 1, 100);
+                EditorGUILayout.EndVertical();
+                EditorGUILayout.Space();
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.Space();
+            }
+            EditorGUI.EndProperty();
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                property.serializedObject.ApplyModifiedProperties();
+                if (gridMap2DField != null)
+                {
+                    gridMap2DField.Reset();
+                }
+            }
+
+        }
+    }
+#endif
+
+
 }
 
 /*
