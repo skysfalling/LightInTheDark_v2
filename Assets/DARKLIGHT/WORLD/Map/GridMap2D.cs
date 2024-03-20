@@ -13,83 +13,120 @@ namespace Darklight.World.Map
     [System.Serializable]
     public class GridMap2D
     {
-        #region IComparer
-        public class Vector2IntComparer : IComparer<Vector2Int>
-        {
-            public int Compare(Vector2Int x, Vector2Int y)
-            {
-                int result = x.x.CompareTo(y.x);
-                if (result == 0)
+        #region ============== STATIC FUNCTIONS ===================== ////
+        static Dictionary<Direction, Vector2Int> DirectionVectorMap =
+                new Dictionary<Direction, Vector2Int>()
                 {
-                    result = x.y.CompareTo(y.y);
-                }
-                return result;
-            }
-        }
-        #endregion
-        #region Coordinate
-        public class Coordinate
+            { Direction.NORTH, new Vector2Int(0, 1) },
+            { Direction.SOUTH, new Vector2Int(0, -1) },
+            { Direction.WEST, new Vector2Int(-1, 0) },
+            { Direction.EAST, new Vector2Int(1, 0) },
+            { Direction.NORTHWEST, new Vector2Int(-1, 1) },
+            { Direction.NORTHEAST, new Vector2Int(1, 1) },
+            { Direction.SOUTHWEST, new Vector2Int(-1, -1) },
+            { Direction.SOUTHEAST, new Vector2Int(1, -1) }
+                };
+        public static Vector2Int GetVectorFromDirection(Direction direction)
         {
-            GridMap2D _parentGrid;
-            UnitSpace _unitSpace;
-            [SerializeField] private Vector2Int _key;
-            [SerializeField] private int _size;
-            [SerializeField] private Dictionary<EdgeDirection, Coordinate> _neighborMap;
-
-
-            public enum Flag { NULL, BORDER, CORNER, EXIT, PATH, ZONE, CLOSED }
-            public Flag flag;
-            public Vector2Int PositionKey { get { return _key; } }
-            public int Size { get { return _size; } }
-
-            public Coordinate(
-                GridMap2D parentMap,
-                Vector2Int key,
-                int size,
-                UnitSpace unitSpace
-            )
-            {
-                this._parentGrid = parentMap;
-                this._unitSpace = unitSpace;
-                this._size = size;
-                this._key = key;
-                this.flag = Flag.NULL;
-                this._neighborMap = new Dictionary<EdgeDirection, Coordinate>();
-            }
-
-            public void SetFlag(Flag newFlag)
-            {
-                this.flag = newFlag;
-            }
-
-            public Vector3 GetPositionInScene()
-            {
-                return _parentGrid.OriginPosition + new Vector3(_key.x, 0, _key.y) * _size;
-            }
+            return DirectionVectorMap[direction];
         }
-        #endregion
-
-        #region << STATIC FUNCTIONS <<
-        public static EdgeDirection? GetEdgeDirection(WorldDirection direction)
+        public static Direction? GetDirectionFromVector(Vector2Int vector)
+        {
+            if (DirectionVectorMap.ContainsValue(vector))
+            {
+                return DirectionVectorMap.FirstOrDefault(x => x.Value == vector).Key;
+            }
+            return null;
+        }
+        public static Vector2Int GetVectorFromEdgeDirection(EdgeDirection edgeDirection)
+        {
+            Direction direction = (Direction)ConvertToDirection(edgeDirection);
+            return DirectionVectorMap[direction];
+        }
+        public static EdgeDirection? ConvertToEdgeDirection(Direction direction)
         {
             switch (direction)
             {
-                case WorldDirection.NORTH:
+                case Direction.NORTH:
                     return EdgeDirection.NORTH;
-                case WorldDirection.SOUTH:
+                case Direction.SOUTH:
                     return EdgeDirection.SOUTH;
-                case WorldDirection.WEST:
+                case Direction.WEST:
                     return EdgeDirection.WEST;
-                case WorldDirection.EAST:
+                case Direction.EAST:
                     return EdgeDirection.EAST;
                 default:
                     return null;
             }
         }
-
-        public static EdgeDirection? GetOppositeEdge(EdgeDirection border)
+        public static Direction? ConvertToDirection(EdgeDirection direction)
         {
-            switch (border)
+            switch (direction)
+            {
+                case EdgeDirection.NORTH:
+                    return Direction.NORTH;
+                case EdgeDirection.SOUTH:
+                    return Direction.SOUTH;
+                case EdgeDirection.WEST:
+                    return Direction.WEST;
+                case EdgeDirection.EAST:
+                    return Direction.EAST;
+                default:
+                    return null;
+            }
+        }
+        public static EdgeDirection? DetermineBorderEdge(Vector2Int positionKey, int mapWidth)
+        {
+            if (positionKey.x == mapWidth - 1)
+                return EdgeDirection.EAST;
+            if (positionKey.x == 0)
+                return EdgeDirection.WEST;
+            if (positionKey.y == mapWidth - 1)
+                return EdgeDirection.NORTH;
+            if (positionKey.y == 0)
+                return EdgeDirection.SOUTH;
+            return null; // Return a default or undefined value
+        }
+
+        /// <summary>
+        /// Determines the corner edges based on the given position key and map width.
+        /// </summary>
+        /// <param name="positionKey">The position key.</param>
+        /// <param name="mapWidth">The width of the map.</param>
+        /// <returns>A tuple containing two nullable EdgeDirection values representing the corner edges.</returns>
+        (EdgeDirection?, EdgeDirection?) DetermineCornerEdgeDirections(Vector2Int positionKey, int mapWidth)
+        {
+            EdgeDirection? edge1 = null;
+            EdgeDirection? edge2 = null;
+
+            // Get X value edge
+            if (positionKey == new Vector2Int(0, 0))
+            {
+                edge1 = EdgeDirection.WEST;
+                edge2 = EdgeDirection.SOUTH;
+            }
+            else if (positionKey == new Vector2Int(mapWidth - 1, mapWidth - 1))
+            {
+                edge1 = EdgeDirection.EAST;
+                edge2 = EdgeDirection.NORTH;
+            }
+            else if (positionKey == new Vector2Int(0, mapWidth - 1))
+            {
+                edge1 = EdgeDirection.WEST;
+                edge2 = EdgeDirection.NORTH;
+            }
+            else if (positionKey == new Vector2Int(mapWidth - 1, 0))
+            {
+                edge1 = EdgeDirection.EAST;
+                edge2 = EdgeDirection.SOUTH;
+            }
+
+            return (edge1, edge2);
+        }
+
+        public static EdgeDirection? DetermineOppositeEdgeDirection(EdgeDirection direction)
+        {
+            switch (direction)
             {
                 case EdgeDirection.NORTH:
                     return EdgeDirection.SOUTH;
@@ -104,64 +141,101 @@ namespace Darklight.World.Map
             }
         }
 
-        public static Dictionary<WorldDirection, Vector2Int> _directionVectorMap =
-            new()
-            {
-                { WorldDirection.NORTH, new Vector2Int(0, 1) },
-                { WorldDirection.SOUTH, new Vector2Int(0, -1) },
-                { WorldDirection.WEST, new Vector2Int(-1, 0) },
-                { WorldDirection.EAST, new Vector2Int(1, 0) },
-                { WorldDirection.NORTHWEST, new Vector2Int(-1, 1) },
-                { WorldDirection.NORTHEAST, new Vector2Int(1, 1) },
-                { WorldDirection.SOUTHWEST, new Vector2Int(-1, -1) },
-                { WorldDirection.SOUTHEAST, new Vector2Int(1, -1) }
-            };
-
-        public static Vector2Int GetDirectionVector(WorldDirection direction)
+        private static readonly System.Random sysRandom = new System.Random();
+        public static void Shuffle<T>(IList<T> list)
         {
-            return _directionVectorMap[direction];
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = sysRandom.Next(0, n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
         }
+        #endregion
 
-        public static WorldDirection? GetDirectionFromVector(Vector2Int direction)
+        #region class IComparer
+        public class Vector2IntComparer : IComparer<Vector2Int>
         {
-            foreach (var pair in _directionVectorMap)
+            public int Compare(Vector2Int x, Vector2Int y)
             {
-                if (pair.Value == direction)
+                int result = x.x.CompareTo(y.x);
+                if (result == 0)
                 {
-                    return pair.Key; // Return the WorldDirection if a match is found
+                    result = x.y.CompareTo(y.y);
+                }
+                return result;
+            }
+        }
+        #endregion
+
+        #region class Coordinate
+        public class Coordinate
+        {
+            public enum Flag { NULL, BORDER, CORNER, EXIT, PATH, ZONE, CLOSED }
+            GridMap2D _parentGrid;
+            UnitSpace _unitSpace;
+            [SerializeField] private Flag _flag = Flag.NULL;
+            [SerializeField] private Vector2Int _key;
+            [SerializeField] private int _size;
+            public GridMap2D ParentGrid { get { return _parentGrid; } }
+            public Flag CurrentFlag { get { return _flag; } set { _flag = value; } }
+            public Color CurrentFlagColor { get { return GetFlagColor(_flag); } }
+            public Vector2Int PositionKey { get { return _key; } }
+            public int Size { get { return _size; } }
+
+            public Coordinate(GridMap2D parentGrid, Vector2Int key, int size, UnitSpace unitSpace)
+            {
+                this._parentGrid = parentGrid;
+                this._unitSpace = unitSpace;
+                this._size = size;
+                this._key = key;
+            }
+
+            public void SetFlag(Flag newFlag)
+            {
+                _parentGrid.SetCoordinateFlag(_key, newFlag);
+            }
+            public Color GetFlagColor(Flag flag)
+            {
+                switch (flag)
+                {
+                    case Flag.CLOSED: return Color.black;
+                    case Flag.EXIT: return Color.red;
+                    case Flag.PATH: return Color.white;
+                    case Flag.ZONE: return Color.green;
+                    default: return Color.grey;
                 }
             }
-            return null;
-        }
-
-        public static Vector2Int CalculateNeighborCoordinateValue(
-            Vector2Int center,
-            WorldDirection direction
-        )
-        {
-            return center + _directionVectorMap[direction];
-        }
-
-        public static List<Vector2Int> CalculateNaturalNeighborCoordinateValues(Vector2Int center)
-        {
-            return new List<Vector2Int>()
+            public Vector3 GetPositionInScene()
             {
-                CalculateNeighborCoordinateValue(center, WorldDirection.NORTH),
-                CalculateNeighborCoordinateValue(center, WorldDirection.SOUTH),
-                CalculateNeighborCoordinateValue(center, WorldDirection.EAST),
-                CalculateNeighborCoordinateValue(center, WorldDirection.WEST)
-            };
-        }
+                return _parentGrid.OriginPosition + new Vector3(_key.x, 0, _key.y) * _size;
+            }
 
-        public static List<Vector2Int> CalculateDiagonalNeighborCoordinateValues(Vector2Int center)
-        {
-            return new List<Vector2Int>()
+            public Dictionary<Direction, Vector2Int> GetAllNeighbors()
             {
-                CalculateNeighborCoordinateValue(center, WorldDirection.NORTHWEST),
-                CalculateNeighborCoordinateValue(center, WorldDirection.NORTHEAST),
-                CalculateNeighborCoordinateValue(center, WorldDirection.SOUTHWEST),
-                CalculateNeighborCoordinateValue(center, WorldDirection.SOUTHEAST)
-            };
+                Dictionary<Direction, Vector2Int> result = new Dictionary<Direction, Vector2Int>();
+                foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+                {
+                    Vector2Int neighborValue = _key + GetVectorFromDirection(direction);
+                    result[direction] = neighborValue;
+                }
+                return result;
+            }
+
+            public Dictionary<EdgeDirection, Vector2Int> GetEdgeNeighbors()
+            {
+                Dictionary<EdgeDirection, Vector2Int> result = new Dictionary<EdgeDirection, Vector2Int>();
+                foreach (EdgeDirection edgeDirection in Enum.GetValues(typeof(EdgeDirection)))
+                {
+                    Direction directionValue = (Direction)ConvertToDirection(edgeDirection);
+                    Vector2Int neighborValue = _key + GetVectorFromDirection(directionValue);
+                    result[edgeDirection] = neighborValue;
+                }
+                return result;
+            }
         }
         #endregion
 
@@ -177,54 +251,9 @@ namespace Darklight.World.Map
 
         #region << MAP DATA <<
         Dictionary<Vector2Int, Coordinate> _map = new Dictionary<Vector2Int, Coordinate>();
-        Dictionary<EdgeDirection, SortedSet<Vector2Int>> _mapBorders = new();
+        Dictionary<Coordinate.Flag, HashSet<Coordinate>> _mapFlags = new();
+        Dictionary<EdgeDirection, (SortedSet<Vector2Int>, bool)> _mapBorders = new();
         Dictionary<(EdgeDirection, EdgeDirection), Vector2Int> _mapCorners = new();
-
-        EdgeDirection? DetermineBorderEdge(Vector2Int positionKey)
-        {
-            if (positionKey.x == _mapWidth - 1)
-                return EdgeDirection.EAST;
-            if (positionKey.x == 0)
-                return EdgeDirection.WEST;
-            if (positionKey.y == _mapWidth - 1)
-                return EdgeDirection.NORTH;
-            if (positionKey.y == 0)
-                return EdgeDirection.SOUTH;
-            return null; // Return a default or undefined value
-        }
-
-        (EdgeDirection?, EdgeDirection?) DetermineCornerEdges(Vector2Int positionKey)
-        {
-            Debug.Log($"Corner Check : {positionKey}");
-
-            // Determine which edges the corner belongs to
-            EdgeDirection? edge1 = null;
-            EdgeDirection? edge2 = null;
-
-            // Get X value edge
-            if (positionKey == new Vector2Int(0, 0))
-            {
-                edge1 = EdgeDirection.WEST;
-                edge2 = EdgeDirection.SOUTH;
-            }
-            else if (positionKey == new Vector2Int(_mapWidth - 1, _mapWidth - 1))
-            {
-                edge1 = EdgeDirection.EAST;
-                edge2 = EdgeDirection.NORTH;
-            }
-            else if (positionKey == new Vector2Int(0, _mapWidth - 1))
-            {
-                edge1 = EdgeDirection.WEST;
-                edge2 = EdgeDirection.NORTH;
-            }
-            else if (positionKey == new Vector2Int(_mapWidth - 1, 0))
-            {
-                edge1 = EdgeDirection.EAST;
-                edge2 = EdgeDirection.SOUTH;
-            }
-
-            return (edge1, edge2);
-        }
         #endregion
 
         #region << PUBLIC ACCESSORS <<
@@ -246,7 +275,6 @@ namespace Darklight.World.Map
 
         #region << INSPECTOR VALUES <<
         public CustomGenerationSettings customGenerationSettings = null;
-
         #endregion
 
         #region [[ CONSTRUCTORS ]]
@@ -297,37 +325,37 @@ namespace Darklight.World.Map
                     _map[gridKey] = coordinate;
 
                     // >> Check if CORNER
-                    (EdgeDirection?, EdgeDirection?) isCorner = DetermineCornerEdges(gridKey);
+                    (EdgeDirection?, EdgeDirection?) isCorner = DetermineCornerEdgeDirections(gridKey, _mapWidth);
                     if (isCorner.Item1 != null && isCorner.Item2 != null)
                     {
                         (EdgeDirection, EdgeDirection) cornerTuple = ((EdgeDirection)isCorner.Item1, (EdgeDirection)isCorner.Item2);
                         _mapCorners.TryAdd(cornerTuple, new Vector2Int()); // Create a new set if it doesn't exist
                         _mapCorners[cornerTuple] = gridKey; // << overwrite corner
                         coordinate.SetFlag(Coordinate.Flag.CORNER);
-                        Debug.Log($"Corner Found : {cornerTuple}");
                         continue; // Skip the rest of the loop
                     }
                     else
                     {
                         // >> Check if BORDER
-                        EdgeDirection? isBorder = DetermineBorderEdge(gridKey);
-                        if (isBorder != null)
+                        EdgeDirection? isOnBorder = DetermineBorderEdge(gridKey, _mapWidth);
+                        if (isOnBorder != null)
                         {
-                            EdgeDirection borderDirection = (EdgeDirection)isBorder;
-                            _mapBorders.TryAdd(borderDirection, new SortedSet<Vector2Int>(new Vector2IntComparer()));
-                            _mapBorders[borderDirection].Add(gridKey); // << add position to set
+                            EdgeDirection borderDirection = (EdgeDirection)isOnBorder;
+                            _mapBorders.TryAdd(borderDirection, (new SortedSet<Vector2Int>(new Vector2IntComparer()), false));
+                            _mapBorders[borderDirection].Item1.Add(gridKey); // << add position to set
                             coordinate.SetFlag(Coordinate.Flag.BORDER);
-                            //Debug.Log($"Border Found : {borderDirection}");
                             continue; // Skip the rest of the loop
                         }
-
-                        // >> Set to NULL
-                        coordinate.SetFlag(Coordinate.Flag.NULL);
+                        else
+                        {
+                            // >> Set to NULL
+                            coordinate.SetFlag(Coordinate.Flag.NULL);
+                        }
                     }
-
-
                 }
             }
+
+            CreateRandomExitOnBorder(EdgeDirection.NORTH, 1);
         }
 
         void Initialize(int width, int size)
@@ -346,6 +374,263 @@ namespace Darklight.World.Map
         }
         #endregion
 
+        #region ( GET COORDINATE ) ============================== ////
+        public Coordinate GetCoordinateAt(Vector2Int valueKey)
+        {
+            return _map.TryGetValue(valueKey, out var coordinate)
+                ? coordinate
+                : null;
+        }
+
+        public Coordinate.Flag? GetCoordinateTypeAt(Vector2Int positionKey)
+        {
+            if (_map.TryGetValue(positionKey, out var coordinate))
+            {
+                return coordinate.CurrentFlag;
+            }
+            return null;
+        }
+
+        public List<Coordinate.Flag?> GetCoordinateTypesAt(List<Vector2Int> positionKey)
+        {
+            List<Coordinate.Flag?> result = new();
+            foreach (Vector2Int value in positionKey)
+            {
+                result.Add(GetCoordinateTypeAt(value));
+            }
+            return result;
+        }
+
+        public HashSet<Vector2Int> GetAllCoordinatesWithFlag(Coordinate.Flag flag)
+        {
+            if (_mapFlags.ContainsKey(flag))
+            {
+                return _mapFlags[flag].Select(coordinate => coordinate.PositionKey).ToHashSet();
+            }
+            return new();
+        }
+
+        public Vector2Int? GetRandomCoordinateWithFlag(Coordinate.Flag flag)
+        {
+            HashSet<Vector2Int> positionsWithFlag = GetAllCoordinatesWithFlag(flag);
+            if (positionsWithFlag.Count > 0)
+            {
+                int randomIndex = UnityEngine.Random.Range(0, positionsWithFlag.Count);
+                return positionsWithFlag.ElementAt(randomIndex);
+            }
+            return null;
+        }
+
+        public Coordinate GetClosestCoordinateTo(Vector3 scenePosition)
+        {
+            float closestDistance = float.MaxValue;
+            Coordinate closestCoordinate = null;
+            foreach (Coordinate coordinate in _map.Values)
+            {
+                float distance = Vector3.Distance(coordinate.GetPositionInScene(), scenePosition);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestCoordinate = coordinate;
+                }
+            }
+            return closestCoordinate;
+        }
+
+        #endregion
+
+        #region ( SET COORDINATE ) ============================== ////
+
+        public void SetCoordinateFlag(Vector2Int positionKey, Coordinate.Flag newFlag)
+        {
+            Coordinate targetCoordinate = GetCoordinateAt(positionKey);
+            if (targetCoordinate == null) { return; }
+
+            Coordinate.Flag oldFlag = targetCoordinate.CurrentFlag;
+            if (_mapFlags.ContainsKey(oldFlag))
+            {
+                _mapFlags[oldFlag].Remove(targetCoordinate);
+            }
+
+            targetCoordinate.CurrentFlag = newFlag;
+
+            _mapFlags.TryAdd(newFlag, new HashSet<Coordinate>());
+            _mapFlags[newFlag].Add(targetCoordinate);
+        }
+        public void SetCoordinateFlag(Coordinate coordinate, Coordinate.Flag newFlag)
+        {
+            SetCoordinateFlag(coordinate.PositionKey, newFlag);
+        }
+        public void SetCoordinatesToFlag(List<Vector2Int> positionKeys, Coordinate.Flag newFlag)
+        {
+            foreach (Vector2Int positionKey in positionKeys)
+            {
+                SetCoordinateFlag(positionKey, newFlag);
+            }
+        }
+        public void ConvertCoordinateFlags(List<Vector2Int> positionKeys, Coordinate.Flag targetType, Coordinate.Flag convertType)
+        {
+            foreach (Vector2Int positionKey in positionKeys)
+            {
+                if (_map.ContainsKey(positionKey))
+                {
+                    Coordinate coordinate = _map[positionKey];
+                    if (coordinate.CurrentFlag == targetType)
+                    {
+                        SetCoordinateFlag(positionKey, convertType);
+                    }
+                }
+            }
+        }
+        public void CloseMapBorder(EdgeDirection mapBorder)
+        {
+            // Destroy that border >:#!!
+
+            // >> set the border as active on the map
+            _mapBorders[mapBorder] = (_mapBorders[mapBorder].Item1, true);
+
+            // >> set all related values on border to flag
+            SetCoordinatesToFlag(_mapBorders[mapBorder].Item1.ToList(), Coordinate.Flag.CLOSED);
+        }
+
+        public bool IsBorderClosed(EdgeDirection mapBorder)
+        {
+            return _mapBorders[mapBorder].Item2;
+        }
+
+        public void SetOpenCornerFlags(Coordinate.Flag flag)
+        {
+            HashSet<Vector2Int> openCorners = new HashSet<Vector2Int>();
+            foreach (Vector2Int position in _mapCorners.Values)
+            {
+                (EdgeDirection?, EdgeDirection?) cornerEdges = DetermineCornerEdgeDirections(position, _mapWidth);
+                bool edge1Closed = cornerEdges.Item1 != null && IsBorderClosed((EdgeDirection)cornerEdges.Item1);
+                bool edge2Closed = cornerEdges.Item2 != null && IsBorderClosed((EdgeDirection)cornerEdges.Item2);
+                if (!edge1Closed && !edge2Closed)
+                {
+                    openCorners.Add(position);
+                }
+            }
+            SetCoordinatesToFlag(openCorners.ToList(), flag);
+        }
+
+        #endregion
+
+        #region == [[ FIND COORDINATE ]] ================================================================= >>>>
+        public Coordinate FindClosestCoordinateTo(Coordinate targetCoordinate, List<Coordinate.Flag> validFlags)
+        {
+            // using BFS algorithm
+            Queue<Vector2Int> queue = new Queue<Vector2Int>();
+            HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
+            queue.Enqueue(targetCoordinate.PositionKey);
+            visited.Add(targetCoordinate.PositionKey);
+
+            while (queue.Count > 0)
+            {
+                Vector2Int currentValue = queue.Dequeue();
+                Coordinate currentCoordinate = GetCoordinateAt(currentValue);
+
+                if (currentCoordinate != null)
+                {
+                    // Check if the current coordinate is the target type
+                    if (validFlags.Contains(currentCoordinate.CurrentFlag))
+                    {
+                        return GetCoordinateAt(currentValue);
+                    }
+
+                    // Get the neighbors of the current coordinate
+                    foreach (Vector2Int neighbor in currentCoordinate.GetAllNeighbors().Values)
+                    {
+                        if (!visited.Contains(neighbor))
+                        {
+                            queue.Enqueue(neighbor);
+                            visited.Add(neighbor);
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+        #endregion
+
+        #region == [[ HANDLE EXITS ]] =================================================================== >>>>
+
+        public void CreateRandomExitOnBorder(EdgeDirection edgeDirection, int count = 1)
+        {
+            System.Random random = new System.Random();
+
+            SortedSet<Vector2Int> borderPositions = _mapBorders[edgeDirection].Item1;
+            if (borderPositions == null || borderPositions.Count == 0)
+            {
+                Debug.Assert(false, "Cannot create exit on empty border.");
+            }
+
+            bool closed = _mapBorders[edgeDirection].Item2;
+            if (closed)
+            {
+                Debug.Assert(false, "Cannot create exit on closed border.");
+                return;
+            }
+
+            // Convert SortedSet to list
+            List<Vector2Int> positionList = borderPositions.ToList();
+
+            // Ensure count does not exceed the number of available border positions
+            count = Mathf.Min(count, positionList.Count);
+
+            // Convert random border coordinates to exit
+            int validExitCount = 0;
+            while (validExitCount < count)
+            {
+                int randomInt = random.Next(0, positionList.Count);
+                Coordinate coordinate = GetCoordinateAt(positionList[randomInt]);
+                if (coordinate != null && coordinate.CurrentFlag == Coordinate.Flag.BORDER)
+                {
+                    coordinate.SetFlag(Coordinate.Flag.EXIT); // Set coordinate flag
+                    validExitCount++;
+                }
+            }
+
+            //Debug.Log($"{numberOfExits} exits have been created on the map borders.");
+        }
+
+        public void CreateMatchingExitOnBorder(EdgeDirection neighborBorder, Vector2Int neighborExitCoordinate)
+        {
+            // Determine the relative position of the exit based on the neighbor border
+            Vector2Int matchingCoordinate;
+            switch (neighborBorder)
+            {
+                // if neighbor border is NORTH, then the matching exit border is SOUTH
+                case EdgeDirection.NORTH:
+                    matchingCoordinate = new Vector2Int(neighborExitCoordinate.x, 0);
+                    break;
+                // if neighbor border is SOUTH then the matching exit border is NORTH
+                case EdgeDirection.SOUTH:
+                    matchingCoordinate = new Vector2Int(neighborExitCoordinate.x, this._mapWidth - 1);
+                    break;
+                // if neighbor border is EAST then the matching exit border is WEST
+                case EdgeDirection.EAST:
+                    matchingCoordinate = new Vector2Int(0, neighborExitCoordinate.y);
+                    break;
+                // if neighbor border is WEST then the matching exit border is EAST
+                case EdgeDirection.WEST:
+                    matchingCoordinate = new Vector2Int(this._mapWidth - 1, neighborExitCoordinate.y);
+                    break;
+                default:
+                    throw new ArgumentException("Invalid MapBorder value.", nameof(neighborBorder));
+            }
+
+            // Set coordinate flag to exit
+            Coordinate coordinate = GetCoordinateAt(matchingCoordinate);
+            if (coordinate != null)
+            {
+                coordinate.SetFlag(Coordinate.Flag.EXIT);
+            }
+            //Debug.Log($"Created Exit {matchingCoordinate} to match {neighborExitCoordinate}");
+        }
+
+        #endregion
 
 
         public void Reset()
@@ -361,6 +646,9 @@ namespace Darklight.World.Map
         }
     }
 
+
+
+    #region ============== [[ CUSTOM PROPERTY DRAWER ]] ============== >>>>
 #if UNITY_EDITOR
     [CustomPropertyDrawer(typeof(GridMap2D))]
     public class GridMap2DDrawer : PropertyDrawer
@@ -438,487 +726,14 @@ namespace Darklight.World.Map
         }
     }
 #endif
-
+    #endregion
 
 }
 
 /*
-namespace Darklight.World.Map
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Builder;
-    using Generation;
-    using UnityEngine;
-    using Random = UnityEngine.Random;
 
-    public class CoordinateMap
-    {
-        
 
-        #region [[ PRIVATE VARIABLES ]]
-        string _prefix = ">> Coordinate Map << ";
 
-        // >> map creation values
-        UnitSpace _mapUnitSpace;
-        Vector3 _mapOriginPosition;
-        int _mapWidthCount;
-        int _coordinateSize;
-
-        // >> quick reference lists
-        Dictionary<Vector2Int, Coordinate> _coordinateMap = new();
-        Dictionary<Coordinate.TYPE, HashSet<Vector2Int>> _typeMap = new();
-
-        // >>>> border References
-        Dictionary<EdgeDirection, HashSet<Vector2Int>> _borderMap = new();
-        Dictionary<EdgeDirection, HashSet<Vector2Int>> _borderExitMap = new();
-        Dictionary<EdgeDirection, Vector2Int[]> _borderIndexMap = new();
-        Dictionary<EdgeDirection, (Vector2Int, Vector2Int)> _borderCornersMap = new();
-        Dictionary<EdgeDirection, bool> _activeBorderMap = new(4);
-
-        // >>>> zone references
-        List<Zone> _zones = new();
-        Dictionary<Zone, HashSet<Vector2Int>> _zoneMap = new();
-
-        #endregion
-
-        #region [[ PUBLIC ACCESSOR VARIABLES ]]
-        public bool Initialized { get; private set; }
-        public int MaxCoordinateValue => _mapWidthCount;
-        public UnitSpace UnitSpace => _mapUnitSpace;
-        public int CoordinateSize => _coordinateSize;
-        public List<Vector2Int> AllCoordinateValues => _coordinateMap.Keys.ToList();
-        public List<Coordinate> AllCoordinates => _coordinateMap.Values.ToList();
-        public Dictionary<EdgeDirection, bool> ActiveBorderMap => _activeBorderMap;
-        public Dictionary<EdgeDirection, HashSet<Vector2Int>> BorderValuesMap => _borderMap;
-        public List<Vector2Int> Exits => _borderExitMap.Values.SelectMany(exit => exit).ToList(); // Collapse all values into list
-        public List<Path> Paths = new();
-        public List<Zone> Zones => _zones;
-        public Dictionary<Zone, HashSet<Vector2Int>> ZoneMap => _zoneMap;
-        #endregion
-
-        #region == [[ CONSTRUCTOR ]] ======================================================================== >>>>
-        public CoordinateMap(Transform transform, Vector3 originPosition, int mapWidthCount, int coordinateSize)
-        {
-            _mapUnitSpace = UnitSpace.WORLD;
-            _mapOriginPosition = originPosition;
-            _mapWidthCount = mapWidthCount;
-            _coordinateSize = coordinateSize;
-        }
-        public CoordinateMap(WorldBuilder parent)
-        {
-            _mapUnitSpace = UnitSpace.WORLD;
-            _mapOriginPosition = parent.OriginPosition;
-            _mapWidthCount = WorldBuilder.Settings.WorldWidth_inRegionUnits;
-            _coordinateSize = WorldBuilder.Settings.RegionFullWidth_inGameUnits;
-        }
-        public CoordinateMap(RegionBuilder parent)
-        {
-            _mapUnitSpace = UnitSpace.REGION;
-            _mapOriginPosition = parent.OriginPosition;
-            _mapWidthCount = WorldBuilder.Settings.RegionFullWidth_inChunkUnits;
-            _coordinateSize = WorldBuilder.Settings.ChunkWidth_inGameUnits;
-        }
-        public CoordinateMap(Chunk parent)
-        {
-            _mapUnitSpace = UnitSpace.CHUNK;
-            _mapOriginPosition = parent.OriginPosition;
-            _mapWidthCount = WorldBuilder.Settings.ChunkWidth_inCellUnits;
-            _coordinateSize = WorldBuilder.Settings.CellSize_inGameUnits;
-        }
-
-        // Other methods and properties..
-        public async Task InitializeDefaultMap()
-        {
-            int coordMax = _mapWidthCount;
-            int borderOffset = WorldBuilder.Settings.RegionBoundaryOffset_inChunkUnits;
-
-            // Create Coordinate grid
-            for (int x = 0; x < _mapWidthCount; x++)
-            {
-                for (int y = 0; y < _mapWidthCount; y++)
-                {
-                    // Calculate Coordinate Value
-                    Vector2Int newCoordinateValue = new Vector2Int(x, y);
-
-                    // Create Coordinate
-                    Coordinate newCoordinate = new Coordinate(
-                        this,
-                        _mapOriginPosition,
-                        newCoordinateValue,
-                        _coordinateSize
-                    );
-
-                    // Add new Coordinate to map
-                    _coordinateMap[newCoordinateValue] = newCoordinate;
-                }
-            }
-
-            // >> initialize _border positions and indexes in a loop
-            foreach (EdgeDirection direction in Enum.GetValues(typeof(EdgeDirection)))
-            {
-                _borderMap[direction] = new HashSet<Vector2Int>();
-                _borderIndexMap[direction] = new Vector2Int[coordMax];
-            }
-
-            // >> store coordinate map range
-            Vector2Int mapRange = new Vector2Int(borderOffset, coordMax - (borderOffset + 1));
-            // >> store border corners
-            List<Vector2Int> corners = new List<Vector2Int>()
-            {
-                new Vector2Int(mapRange.x, mapRange.x), // min min { SOUTH WEST }
-                new Vector2Int(mapRange.y, mapRange.y), // max max { NORTH EAST }
-                new Vector2Int(mapRange.x, mapRange.y), // min max { NORTH WEST }
-                new Vector2Int(mapRange.y, mapRange.x) // max min { SOUTH EAST }
-            };
-            // >> store references to the corners of each border
-            _borderCornersMap[EdgeDirection.NORTH] = (corners[2], corners[1]); // NW, NE
-            _borderCornersMap[EdgeDirection.SOUTH] = (corners[0], corners[3]); // SW, SE
-            _borderCornersMap[EdgeDirection.EAST] = (corners[1], corners[3]); // NE, SE
-            _borderCornersMap[EdgeDirection.WEST] = (corners[0], corners[2]); // SW, NW
-
-            // >> initialize the active border map
-            foreach (EdgeDirection direction in Enum.GetValues(typeof(EdgeDirection)))
-            {
-                _activeBorderMap[direction] = false;
-            }
-
-            // << METHODS >> =================================================================
-            void HandleBorderCoordinate(Vector2Int pos, Vector2Int mapRange)
-            {
-                SetCoordinateToType(pos, Coordinate.TYPE.BORDER);
-                EdgeDirection borderType = DetermineBorderType(pos, mapRange);
-
-                _borderMap[borderType].Add(pos);
-                if (borderType == EdgeDirection.EAST || borderType == EdgeDirection.WEST)
-                {
-                    _borderIndexMap[borderType][pos.y] = pos;
-                }
-                else
-                {
-                    _borderIndexMap[borderType][pos.x] = pos;
-                }
-            }
-
-            EdgeDirection DetermineBorderType(Vector2Int pos, Vector2Int range)
-            {
-                if (pos.x == range.y)
-                    return EdgeDirection.EAST;
-                if (pos.x == range.x)
-                    return EdgeDirection.WEST;
-                if (pos.y == range.y)
-                    return EdgeDirection.NORTH;
-                if (pos.y == range.x)
-                    return EdgeDirection.SOUTH;
-                return default; // Return a default or undefined value
-            }
-
-            bool IsCornerOrOutsideBounds(
-                Vector2Int pos,
-                Vector2Int mapRange,
-                List<Vector2Int> cornerCoordinates
-            )
-            {
-                return cornerCoordinates.Contains(pos)
-                    || pos.x < mapRange.x
-                    || pos.x > mapRange.y
-                    || pos.y < mapRange.x
-                    || pos.y > mapRange.y;
-            }
-
-            bool IsOnBorder(Vector2Int pos, Vector2Int mapRange)
-            {
-                return pos.x == mapRange.x
-                    || pos.x == mapRange.y
-                    || pos.y == mapRange.x
-                    || pos.y == mapRange.y;
-            }
-
-            // << ASSIGN COORDINATE TYPES >> =================================================================
-            // ** Set Coordinate To Type updates the TypeMap accordingly
-            foreach (Vector2Int pos in AllCoordinateValues)
-            {
-                // CLOSED
-                if (IsCornerOrOutsideBounds(pos, mapRange, corners))
-                {
-                    SetCoordinateToType(pos, Coordinate.TYPE.CLOSED);
-                }
-                // BORDER
-                else if (IsOnBorder(pos, mapRange))
-                {
-                    HandleBorderCoordinate(pos, mapRange);
-                }
-                // NULL
-                else
-                {
-                    SetCoordinateToType(pos, Coordinate.TYPE.NULL);
-                }
-            }
-
-            Initialized = true;
-            await Task.CompletedTask;
-        }
-        #endregion
-
-        #region [[ GET COORDINATE ]] ======================================================================== >>>>
-        public Coordinate GetCoordinateAt(Vector2Int valueKey)
-        {
-            return Initialized && _coordinateMap.TryGetValue(valueKey, out var coordinate)
-                ? coordinate
-                : null;
-        }
-
-        public Coordinate GetClosestCoordinateAt(Vector3 scenePosition)
-        {
-            foreach (Coordinate coordinate in _coordinateMap.Values)
-            {
-                if (coordinate.ScenePosition.x == scenePosition.x && coordinate.ScenePosition.z == scenePosition.z)
-                {
-                    return coordinate;
-                }
-            }
-            return null;
-        }
-
-        public Coordinate.TYPE? GetCoordinateTypeAt(Vector2Int valueKey)
-        {
-            if (Initialized && _coordinateMap.TryGetValue(valueKey, out var coordinate))
-            {
-                return coordinate.Type;
-            }
-            return null;
-        }
-
-        public List<Coordinate.TYPE?> GetCoordinateTypesAt(List<Vector2Int> valueKeys)
-        {
-            List<Coordinate.TYPE?> result = new();
-            foreach (Vector2Int value in valueKeys)
-            {
-                result.Add(GetCoordinateTypeAt(value));
-            }
-            return result;
-        }
-
-        public HashSet<Vector2Int> GetAllCoordinatesValuesOfType(Coordinate.TYPE type)
-        {
-            if (!_typeMap.ContainsKey(type))
-            {
-                _typeMap[type] = new();
-            }
-            return _typeMap[type];
-        }
-
-        public HashSet<Vector2Int> GetExitsOnBorder(EdgeDirection border)
-        {
-            if (_borderExitMap.ContainsKey(border))
-            {
-                return _borderExitMap[border];
-            }
-            return null;
-        }
-
-        public Dictionary<Vector2Int, Coordinate> GetCoordinateValueMapFrom(
-            List<Coordinate> coordinates
-        )
-        {
-            Dictionary<Vector2Int, Coordinate> result = new();
-            foreach (Coordinate coordinate in coordinates)
-            {
-                result[coordinate.ValueKey] = GetCoordinateAt(coordinate.ValueKey); // Make sure reference is to the coordinate map
-            }
-            return result;
-        }
-
-        public Vector2Int GetRandomCoordinateValueOfType(Coordinate.TYPE type)
-        {
-            List<Vector2Int> coordinatesOfType = _coordinateMap
-                .Keys.Where(coord => _coordinateMap[coord].Type == type)
-                .ToList();
-            if (coordinatesOfType.Count > 0)
-            {
-                int randomIndex = Random.Range(0, coordinatesOfType.Count);
-                return coordinatesOfType[randomIndex];
-            }
-            else
-            {
-                return Vector2Int.zero; // or any default value you prefer
-            }
-        }
-
-        #endregion
-
-        #region [[ SET COORDINATE ]] ======================================================================== >>>>
-        void SetCoordinateToType(Vector2Int valueKey, Coordinate.TYPE newType)
-        {
-            // Get reference to the target coordinate
-            Coordinate targetCoordinate = _coordinateMap[valueKey];
-            if (targetCoordinate == null)
-                return;
-
-            // Remove Old Type
-            Coordinate.TYPE oldType = targetCoordinate.Type;
-            if (_typeMap.ContainsKey(oldType))
-            {
-                _typeMap[oldType].Remove(valueKey);
-            }
-
-            // Assign New Type
-            targetCoordinate.SetType(newType);
-
-            // If new TYPE key not found, create or add to it
-            _typeMap.TryAdd(newType, new HashSet<Vector2Int>());
-            _typeMap[newType].Add(valueKey);
-        }
-
-        void SetCoordinateToType(Coordinate coordinate, Coordinate.TYPE newType)
-        {
-            SetCoordinateToType(coordinate.ValueKey, newType);
-        }
-
-        void SetCoordinatesToType(List<Vector2Int> valueKeys, Coordinate.TYPE type)
-        {
-            foreach (Vector2Int key in valueKeys)
-            {
-                if (_coordinateMap.ContainsKey(key))
-                {
-                    SetCoordinateToType(key, type);
-                }
-            }
-        }
-
-        public void SetCoordinatesOfTypeTo(
-            List<Vector2Int> positions,
-            Coordinate.TYPE targetType,
-            Coordinate.TYPE convertType
-        )
-        {
-            foreach (Vector2Int pos in positions)
-            {
-                // Check if the position is within the map boundaries
-                if (_coordinateMap.ContainsKey(pos))
-                {
-                    // Retrieve the coordinate at the given position
-                    Coordinate coordinate = _coordinateMap[pos];
-
-                    // Check if the coordinate's current type matches the targetType
-                    if (coordinate.Type == targetType)
-                    {
-                        // If so, set the coordinate to the new convertType
-                        SetCoordinateToType(pos, convertType);
-                    }
-                }
-            }
-        }
-
-        public void CloseMapBorder(EdgeDirection mapBorder)
-        {
-            // Destroy that border >:#!!
-
-            // >> set the border as active on the map
-            _activeBorderMap[mapBorder] = true;
-
-            // >> get all related values on border
-            List<Vector2Int> borderValues = _borderMap[mapBorder].ToList();
-
-            // >> set all related values on border to type
-            SetCoordinatesToType(borderValues, Coordinate.TYPE.CLOSED);
-        }
-
-        public void SetInactiveCornersToType(Coordinate.TYPE type)
-        {
-            List<Vector2Int> inactiveCorners = new List<Vector2Int>();
-
-            // Mapping corners to their adjacent borders
-            Dictionary<Vector2Int, List<EdgeDirection>> cornerBordersMap = new Dictionary<Vector2Int, List<EdgeDirection>>
-            {
-                [_borderCornersMap[EdgeDirection.NORTH].Item1] = new List<EdgeDirection>
-                {
-                    EdgeDirection.NORTH,
-                    EdgeDirection.WEST
-                }, // NW
-                [_borderCornersMap[EdgeDirection.NORTH].Item2] = new List<EdgeDirection>
-                {
-                    EdgeDirection.NORTH,
-                    EdgeDirection.EAST
-                }, // NE
-                [_borderCornersMap[EdgeDirection.SOUTH].Item1] = new List<EdgeDirection>
-                {
-                    EdgeDirection.SOUTH,
-                    EdgeDirection.WEST
-                }, // SW
-                [_borderCornersMap[EdgeDirection.SOUTH].Item2] = new List<EdgeDirection>
-                {
-                    EdgeDirection.SOUTH,
-                    EdgeDirection.EAST
-                }, // SE
-            };
-
-            // Iterate through each corner
-            foreach (var corner in cornerBordersMap)
-            {
-                bool allBordersInactive = true;
-
-                // Check if all adjacent borders of the corner are inactive
-                foreach (var border in corner.Value)
-                {
-                    if (_activeBorderMap[border])
-                    {
-                        allBordersInactive = false;
-                        break;
-                    }
-                }
-
-                // If all adjacent borders are inactive, add the corner to the list
-                if (allBordersInactive)
-                {
-                    inactiveCorners.Add(corner.Key);
-                }
-            }
-
-            // Set inactive corners
-            SetCoordinatesToType(inactiveCorners, type);
-        }
-
-        #endregion
-
-        // == [[ FIND COORDINATE ]] ================================================================= >>>>
-        public Coordinate FindClosestCoordinateOfType(Coordinate targetCoordinate, List<Coordinate.TYPE> typeList)
-        {
-            // using BFS algorithm
-            Queue<Vector2Int> queue = new Queue<Vector2Int>();
-            HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
-            queue.Enqueue(targetCoordinate.ValueKey);
-            visited.Add(targetCoordinate.ValueKey);
-
-            while (queue.Count > 0)
-            {
-                Vector2Int currentValue = queue.Dequeue();
-                Coordinate currentCoordinate = GetCoordinateAt(currentValue);
-
-                if (currentCoordinate != null)
-                {
-                    // Check if the current coordinate is the target type
-                    if (typeList.Contains(currentCoordinate.Type))
-                    {
-                        return GetCoordinateAt(currentValue);
-                    }
-
-                    // Get the neighbors of the current coordinate
-                    foreach (Vector2Int neighbor in currentCoordinate.GetNaturalNeighborValues())
-                    {
-                        if (!visited.Contains(neighbor))
-                        {
-                            queue.Enqueue(neighbor);
-                            visited.Add(neighbor);
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
 
         // == [[ WORLD EXITS ]] ======================================================================== >>>>
         public void ConvertCoordinateToExit(Coordinate coordinate)

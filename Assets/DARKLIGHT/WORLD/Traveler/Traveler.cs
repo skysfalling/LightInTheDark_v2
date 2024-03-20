@@ -34,7 +34,7 @@ namespace Darklight.World.Generation
 		public Vector3 OriginPosition => transform.position;
 		public Vector3 CenterPosition => transform.position + (Vector3Int.up * worldSpawnUnit.dimensions * WorldBuilder.Settings.CellSize_inGameUnits);
 
-		private WorldDirection? _continuousMoveDirection = null;
+		private Direction? _continuousMoveDirection = null;
 		private float _inputHoldDuration = 0f;
 		private bool _isContinuouslyMoving = false;
 		private float _continuousMoveThreshold = 0.1f; // Time in seconds to trigger continuous movement
@@ -109,7 +109,7 @@ namespace Darklight.World.Generation
 			}
 
 			// Convert the Vector2 input to a WorldDirection
-			WorldDirection? direction = CoordinateMap.GetEnumFromDirectionVector(new Vector2Int((int)input.x, (int)input.y));
+			Direction? direction = CoordinateMap.GetEnumFromDirectionVector(new Vector2Int((int)input.x, (int)input.y));
 			if (direction == null) return;
 			if (direction.HasValue && (_continuousMoveDirection != direction || !_isContinuouslyMoving))
 			{
@@ -119,7 +119,7 @@ namespace Darklight.World.Generation
 				MoveToDirection(direction.Value);
 			}
 		}
-		void MoveToDirection(WorldDirection direction)
+		void MoveToDirection(Direction direction)
 		{
 			bool validCellFound = MoveToCellInDirection(direction);
 			if (!validCellFound)
@@ -132,7 +132,7 @@ namespace Darklight.World.Generation
 		/// </summary>
 		/// <param name="worldDirection">The direction in which to move.</param>
 		/// <returns>True if the traveler successfully moved to the neighboring chunk, false otherwise.</returns>
-		public bool MoveToChunkInDirection(WorldDirection worldDirection)
+		public bool MoveToChunkInDirection(Direction worldDirection)
 		{
 			Chunk neighborChunk = CurrentChunk.GetNeighborInDirection(worldDirection);
 			if (neighborChunk == null) return false;
@@ -168,7 +168,7 @@ namespace Darklight.World.Generation
 			return MoveToCell(cell);
 		}
 
-		public bool MoveToCellInDirection(WorldDirection worldDirection)
+		public bool MoveToCellInDirection(Direction worldDirection)
 		{
 			Coordinate coordinateInDirection = CurrentCoordinate.GetNeighborInDirection(worldDirection);
 			if (coordinateInDirection == null)

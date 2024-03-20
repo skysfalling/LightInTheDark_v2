@@ -14,7 +14,7 @@ namespace Darklight.Game.Movement
 	public class Player8DirMovement : MonoBehaviour
 	{
 		private UniversalInputManager _universalInputManager;
-		[SerializeField] public WorldDirection? currentDirection;
+		[SerializeField] public Direction? currentDirection;
 		public Vector3 targetPosition;
 		[SerializeField] private Vector2 _universalMoveInput;
 		public float multiplier = 10;

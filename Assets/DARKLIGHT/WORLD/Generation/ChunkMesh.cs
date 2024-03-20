@@ -404,16 +404,16 @@ namespace Darklight.World.Generation
 				switch (type)
 				{
 					case FaceDirection.FRONT:
-						neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.NORTH];
+						neighborChunk = _chunkParent.GetNaturalNeighborMap()[Direction.NORTH];
 						break;
 					case FaceDirection.BACK:
-						neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.SOUTH];
+						neighborChunk = _chunkParent.GetNaturalNeighborMap()[Direction.SOUTH];
 						break;
 					case FaceDirection.LEFT:
-						neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.WEST];
+						neighborChunk = _chunkParent.GetNaturalNeighborMap()[Direction.WEST];
 						break;
 					case FaceDirection.RIGHT:
-						neighborChunk = _chunkParent.GetNaturalNeighborMap()[WorldDirection.EAST];
+						neighborChunk = _chunkParent.GetNaturalNeighborMap()[Direction.EAST];
 						break;
 				}
 

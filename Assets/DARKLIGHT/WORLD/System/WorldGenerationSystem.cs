@@ -25,7 +25,7 @@ namespace Darklight.World
     /// <summary>
     /// Defines cardinal and intercardinal directions for world layout and neighbor identification.
     /// </summary>
-    public enum WorldDirection { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
+    public enum Direction { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
     /// <summary> Specifies the directions for borders relative to a given region or chunk. </summary>
     public enum EdgeDirection { WEST, NORTH, EAST, SOUTH }
     #endregion
@@ -78,7 +78,7 @@ namespace Darklight.World
             }
         }
 
-        // ================================================================== FUNCTIONS
+        // ================================================================== FUNCTIONS ==================== 
         public override void Awake()
         {
             // >> set singleton instance
@@ -90,23 +90,29 @@ namespace Darklight.World
             // >>  awake base TaskQueen
             base.Awake();
         }
+
+        public override void Reset()
+        {
+            base.Reset();
+        }
     }
 
+
+    // ==================================================== CUSTOM UNITY EDITOR ==================
 #if UNITY_EDITOR
     [CustomEditor(typeof(WorldGenerationSystem))]
     public class WorldGenerationSystemEditor : UnityEditor.Editor
     {
         SerializedObject _serializedObject;
         WorldGenerationSystem _worldGenSystem;
-        public enum GridMap2DView { GRID_ONLY, COORDINATE_VALUE, COORDINATE_TYPE, ZONE_ID }
-        static GridMap2DView gridMap2DView = GridMap2DView.COORDINATE_VALUE;
-        bool showGridMapFoldout = false;
+        public enum GridMap2DView { GRID_ONLY, COORDINATE_VALUE, COORDINATE_TYPE, BORDERS_ONLY, ZONE_ID }
+        static GridMap2DView gridMap2DView;
+        static bool showGridMapFoldout;
 
         public void OnEnable()
         {
             _serializedObject = new SerializedObject(target);
             _worldGenSystem = (WorldGenerationSystem)target;
-
 
             _worldGenSystem.Reset();
         }
@@ -141,26 +147,26 @@ namespace Darklight.World
             GUIStyle coordLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
             Color coordinateColor = Color.white;
 
-            foreach (GridMap2D.Coordinate gridCoordinate in gridMap2D.CoordinateValues)
+            foreach (Vector2Int position in gridMap2D.PositionKeys)
             {
-
+                GridMap2D.Coordinate coordinate = gridMap2D.GetCoordinateAt(position);
                 switch (gridMap2DView)
                 {
                     case GridMap2DView.GRID_ONLY:
                         break;
                     case GridMap2DView.COORDINATE_VALUE:
-                        Darklight.CustomGizmos.DrawLabel($"{gridCoordinate.PositionKey}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
+                        Darklight.CustomGizmos.DrawLabel($"{coordinate.PositionKey}", coordinate.GetPositionInScene(), coordLabelStyle);
                         coordinateColor = Color.white;
                         break;
                     case GridMap2DView.COORDINATE_TYPE:
-                        //coordinateColor = gridCoordinate.TypeColor;
+                        coordinateColor = coordinate.CurrentFlagColor;
                         coordLabelStyle.normal.textColor = coordinateColor;
-                        Darklight.CustomGizmos.DrawLabel($"{gridCoordinate.flag}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
+                        Darklight.CustomGizmos.DrawLabel($"{coordinate.CurrentFlag}", coordinate.GetPositionInScene(), coordLabelStyle);
                         break;
                     case GridMap2DView.ZONE_ID:
-                        //coordinateColor = gridCoordinate.TypeColor;
+                        coordinateColor = coordinate.CurrentFlagColor;
                         coordLabelStyle.normal.textColor = coordinateColor;
-                        if (gridCoordinate.flag == GridMap2D.Coordinate.Flag.ZONE)
+                        if (coordinate.CurrentFlag == GridMap2D.Coordinate.Flag.ZONE)
                         {
                             // TODO : Implement Zone ID
                             /*
@@ -171,13 +177,21 @@ namespace Darklight.World
                             }
                             */
                         }
-
+                        break;
+                    case GridMap2DView.BORDERS_ONLY:
+                        coordinateColor = coordinate.CurrentFlagColor;
+                        coordLabelStyle.normal.textColor = coordinateColor;
+                        if (coordinate.CurrentFlag == GridMap2D.Coordinate.Flag.BORDER)
+                        {
+                            EdgeDirection? edgeDirection = GridMap2D.DetermineBorderEdge(coordinate.PositionKey, coordinate.ParentGrid.MapWidth);
+                            Darklight.CustomGizmos.DrawLabel($"{edgeDirection}", coordinate.GetPositionInScene(), coordLabelStyle);
+                        }
                         break;
                 }
 
-                Darklight.CustomGizmos.DrawButtonHandle(gridCoordinate.GetPositionInScene(), Vector3.up, gridCoordinate.Size * 0.45f, coordinateColor, () =>
+                Darklight.CustomGizmos.DrawButtonHandle(coordinate.GetPositionInScene(), Vector3.up, coordinate.Size * 0.45f, coordinateColor, () =>
                 {
-                    onCoordinateSelect?.Invoke(gridCoordinate); // Invoke the action if the button is clicked
+                    onCoordinateSelect?.Invoke(coordinate); // Invoke the action if the button is clicked
                 }, Handles.RectangleHandleCap);
             }
         }

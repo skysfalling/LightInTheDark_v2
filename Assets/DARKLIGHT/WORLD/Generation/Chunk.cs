@@ -130,8 +130,8 @@ namespace Darklight.World.Generation
 		public void DetermineChunkType()
 		{
 			// [[ ITERATE THROUGH CHUNK NEIGHBORS ]] 
-			Dictionary<WorldDirection, Chunk> naturalNeighborMap = GetNaturalNeighborMap();
-			foreach (WorldDirection direction in naturalNeighborMap.Keys.ToList())
+			Dictionary<Direction, Chunk> naturalNeighborMap = GetNaturalNeighborMap();
+			foreach (Direction direction in naturalNeighborMap.Keys.ToList())
 			{
 				Chunk neighborChunk = naturalNeighborMap[direction];
 				EdgeDirection? neighborBorder = CoordinateMap.GetBorderDirection(direction); // get chunk border
@@ -190,12 +190,12 @@ namespace Darklight.World.Generation
 			}
 		}
 
-		public Dictionary<WorldDirection, Chunk> GetNaturalNeighborMap()
+		public Dictionary<Direction, Chunk> GetNaturalNeighborMap()
 		{
-			Dictionary<WorldDirection, Chunk> neighborMap = new Dictionary<WorldDirection, Chunk>();
+			Dictionary<Direction, Chunk> neighborMap = new Dictionary<Direction, Chunk>();
 
-			List<WorldDirection> naturalNeighborDirections = new List<WorldDirection> { WorldDirection.NORTH, WorldDirection.SOUTH, WorldDirection.EAST, WorldDirection.WEST };
-			foreach (WorldDirection direction in naturalNeighborDirections)
+			List<Direction> naturalNeighborDirections = new List<Direction> { Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST };
+			foreach (Direction direction in naturalNeighborDirections)
 			{
 				Vector2Int neighborCoordinateValue = CoordinateMap.CalculateNeighborCoordinateValue(Coordinate.ValueKey, direction);
 				neighborMap[direction] = ChunkBuilderParent.GetChunkAt(neighborCoordinateValue);
@@ -204,7 +204,7 @@ namespace Darklight.World.Generation
 			return neighborMap;
 		}
 
-		public Chunk GetNeighborInDirection(WorldDirection direction)
+		public Chunk GetNeighborInDirection(Direction direction)
 		{
 			return GetNaturalNeighborMap()[direction];
 		}

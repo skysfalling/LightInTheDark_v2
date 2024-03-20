@@ -54,12 +54,12 @@ namespace Darklight.World.Generation
 					neighborsInZone = _coordinate.GetValidDiagonalNeighbors();
 					break;
 				case Shape.HORIZONTAL:
-					neighborsInZone.Add(_coordinate.GetNeighborInDirection(WorldDirection.WEST));
-					neighborsInZone.Add(_coordinate.GetNeighborInDirection(WorldDirection.EAST));
+					neighborsInZone.Add(_coordinate.GetNeighborInDirection(Direction.WEST));
+					neighborsInZone.Add(_coordinate.GetNeighborInDirection(Direction.EAST));
 					break;
 				case Shape.VERTICAL:
-					neighborsInZone.Add(_coordinate.GetNeighborInDirection(WorldDirection.NORTH));
-					neighborsInZone.Add(_coordinate.GetNeighborInDirection(WorldDirection.SOUTH));
+					neighborsInZone.Add(_coordinate.GetNeighborInDirection(Direction.NORTH));
+					neighborsInZone.Add(_coordinate.GetNeighborInDirection(Direction.SOUTH));
 					break;
 			}
 

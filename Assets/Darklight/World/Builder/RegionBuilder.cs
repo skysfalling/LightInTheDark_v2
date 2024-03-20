@@ -261,10 +261,10 @@ namespace Darklight.World.Builder
 			}
 			else
 			{
-				Dictionary<WorldDirection, Vector2Int> neighborDirectionMap = this.Coordinate.NeighborDirectionMap;
+				Dictionary<Direction, Vector2Int> neighborDirectionMap = this.Coordinate.NeighborDirectionMap;
 
 				// Iterate directly over the keys of the map
-				foreach (WorldDirection neighborDirection in neighborDirectionMap.Keys)
+				foreach (Direction neighborDirection in neighborDirectionMap.Keys)
 				{
 					Vector2Int neighborCoordinateValue = neighborDirectionMap[neighborDirection];
 					EdgeDirection? currentBorderWithNeighbor = CoordinateMap.GetBorderDirection(neighborDirection);

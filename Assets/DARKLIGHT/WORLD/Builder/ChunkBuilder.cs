@@ -183,12 +183,12 @@ namespace Darklight.World.Builder
 					// Determine the direction of the last & next chunk in path
 					Chunk previousChunk = GetChunkAt(path.AllPositions[i - 1]);
 					Chunk nextChunk = GetChunkAt(path.AllPositions[i + 1]);
-					WorldDirection? lastChunkDirection = currentChunk.Coordinate.GetWorldDirectionOfNeighbor(previousChunk.Coordinate);
-					WorldDirection? nextChunkDirection = currentChunk.Coordinate.GetWorldDirectionOfNeighbor(nextChunk.Coordinate);
+					Direction? lastChunkDirection = currentChunk.Coordinate.GetWorldDirectionOfNeighbor(previousChunk.Coordinate);
+					Direction? nextChunkDirection = currentChunk.Coordinate.GetWorldDirectionOfNeighbor(nextChunk.Coordinate);
 					if (lastChunkDirection != null && nextChunkDirection != null)
 					{
 						// if previous chunk is direct opposite of next chunk, allow for change in the current chunk
-						if (currentChunk.Coordinate.GetNeighborInOppositeDirection((WorldDirection)nextChunkDirection) == previousChunk.Coordinate)
+						if (currentChunk.Coordinate.GetNeighborInOppositeDirection((Direction)nextChunkDirection) == previousChunk.Coordinate)
 						{
 							// Valid transition chunk
 							if (heightLeft > 0) { heightOffset = 1; } // if height left is greater

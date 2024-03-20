@@ -12,17 +12,17 @@ namespace Darklight.World.Map
     public class CoordinateMap
     {
         #region << STATIC FUNCTIONS <<
-        public static EdgeDirection? GetBorderDirection(WorldDirection direction)
+        public static EdgeDirection? GetBorderDirection(Direction direction)
         {
             switch (direction)
             {
-                case WorldDirection.NORTH:
+                case Direction.NORTH:
                     return EdgeDirection.NORTH;
-                case WorldDirection.SOUTH:
+                case Direction.SOUTH:
                     return EdgeDirection.SOUTH;
-                case WorldDirection.WEST:
+                case Direction.WEST:
                     return EdgeDirection.WEST;
-                case WorldDirection.EAST:
+                case Direction.EAST:
                     return EdgeDirection.EAST;
                 default:
                     return null;
@@ -46,25 +46,25 @@ namespace Darklight.World.Map
             }
         }
 
-        public static Dictionary<WorldDirection, Vector2Int> _directionVectorMap =
+        public static Dictionary<Direction, Vector2Int> _directionVectorMap =
             new()
             {
-                { WorldDirection.NORTH, new Vector2Int(0, 1) },
-                { WorldDirection.SOUTH, new Vector2Int(0, -1) },
-                { WorldDirection.WEST, new Vector2Int(-1, 0) },
-                { WorldDirection.EAST, new Vector2Int(1, 0) },
-                { WorldDirection.NORTHWEST, new Vector2Int(-1, 1) },
-                { WorldDirection.NORTHEAST, new Vector2Int(1, 1) },
-                { WorldDirection.SOUTHWEST, new Vector2Int(-1, -1) },
-                { WorldDirection.SOUTHEAST, new Vector2Int(1, -1) }
+                { Direction.NORTH, new Vector2Int(0, 1) },
+                { Direction.SOUTH, new Vector2Int(0, -1) },
+                { Direction.WEST, new Vector2Int(-1, 0) },
+                { Direction.EAST, new Vector2Int(1, 0) },
+                { Direction.NORTHWEST, new Vector2Int(-1, 1) },
+                { Direction.NORTHEAST, new Vector2Int(1, 1) },
+                { Direction.SOUTHWEST, new Vector2Int(-1, -1) },
+                { Direction.SOUTHEAST, new Vector2Int(1, -1) }
             };
 
-        public static Vector2Int GetDirectionVector(WorldDirection direction)
+        public static Vector2Int GetDirectionVector(Direction direction)
         {
             return _directionVectorMap[direction];
         }
 
-        public static WorldDirection? GetEnumFromDirectionVector(Vector2Int direction)
+        public static Direction? GetEnumFromDirectionVector(Vector2Int direction)
         {
             foreach (var pair in _directionVectorMap)
             {
@@ -78,7 +78,7 @@ namespace Darklight.World.Map
 
         public static Vector2Int CalculateNeighborCoordinateValue(
             Vector2Int center,
-            WorldDirection direction
+            Direction direction
         )
         {
             return center + _directionVectorMap[direction];
@@ -88,10 +88,10 @@ namespace Darklight.World.Map
         {
             return new List<Vector2Int>()
             {
-                CalculateNeighborCoordinateValue(center, WorldDirection.NORTH),
-                CalculateNeighborCoordinateValue(center, WorldDirection.SOUTH),
-                CalculateNeighborCoordinateValue(center, WorldDirection.EAST),
-                CalculateNeighborCoordinateValue(center, WorldDirection.WEST)
+                CalculateNeighborCoordinateValue(center, Direction.NORTH),
+                CalculateNeighborCoordinateValue(center, Direction.SOUTH),
+                CalculateNeighborCoordinateValue(center, Direction.EAST),
+                CalculateNeighborCoordinateValue(center, Direction.WEST)
             };
         }
 
@@ -99,10 +99,10 @@ namespace Darklight.World.Map
         {
             return new List<Vector2Int>()
             {
-                CalculateNeighborCoordinateValue(center, WorldDirection.NORTHWEST),
-                CalculateNeighborCoordinateValue(center, WorldDirection.NORTHEAST),
-                CalculateNeighborCoordinateValue(center, WorldDirection.SOUTHWEST),
-                CalculateNeighborCoordinateValue(center, WorldDirection.SOUTHEAST)
+                CalculateNeighborCoordinateValue(center, Direction.NORTHWEST),
+                CalculateNeighborCoordinateValue(center, Direction.NORTHEAST),
+                CalculateNeighborCoordinateValue(center, Direction.SOUTHWEST),
+                CalculateNeighborCoordinateValue(center, Direction.SOUTHEAST)
             };
         }
         #endregion

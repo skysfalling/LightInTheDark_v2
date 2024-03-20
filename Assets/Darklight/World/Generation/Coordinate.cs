@@ -15,7 +15,7 @@ namespace Darklight.World.Generation
 		// [[ PRIVATE VARIABLES ]]
 		TYPE _type;
 		Vector2Int _value;
-		Dictionary<WorldDirection, Vector2Int> _neighborDirectionMap = new();
+		Dictionary<Direction, Vector2Int> _neighborDirectionMap = new();
 		HashSet<Vector2Int> _neighborValues { get { return _neighborDirectionMap.Values.ToHashSet(); } }
 
 		// [[ PUBLIC REFERENCE VARIABLES ]]
@@ -26,7 +26,7 @@ namespace Darklight.World.Generation
 		public Vector3 ScenePosition { get; private set; }
 		public bool Initialized { get; private set; }
 		public Color TypeColor { get; private set; } = Color.black;
-		public Dictionary<WorldDirection, Vector2Int> NeighborDirectionMap => _neighborDirectionMap;
+		public Dictionary<Direction, Vector2Int> NeighborDirectionMap => _neighborDirectionMap;
 
 		// [[ CONSTRUCTOR ]]
 
@@ -47,7 +47,7 @@ namespace Darklight.World.Generation
 
 			// Assign Neighbor Values
 			_neighborDirectionMap = new();
-			foreach (WorldDirection direction in Enum.GetValues(typeof(WorldDirection)))
+			foreach (Direction direction in Enum.GetValues(typeof(Direction)))
 			{
 				// Get neighbor value in direction
 				Vector2Int neighborPosition = this.ValueKey + CoordinateMap.GetDirectionVector(direction);
@@ -72,13 +72,13 @@ namespace Darklight.World.Generation
 
 		#region =================== Get Neighbors ====================== >>>> 
 
-		public Coordinate GetNeighborInDirection(WorldDirection direction)
+		public Coordinate GetNeighborInDirection(Direction direction)
 		{
 			Vector2Int neighborValue = _neighborDirectionMap[direction];
 			return ParentMap.GetCoordinateAt(neighborValue);
 		}
 
-		public WorldDirection? GetWorldDirectionOfNeighbor(Coordinate neighbor)
+		public Direction? GetWorldDirectionOfNeighbor(Coordinate neighbor)
 		{
 			if (!Initialized || !_neighborValues.Contains(neighbor.ValueKey)) return null;
 
@@ -90,10 +90,10 @@ namespace Darklight.World.Generation
 		public List<Vector2Int> GetNaturalNeighborValues()
 		{
 			List<Vector2Int> neighbors = new List<Vector2Int> {
-				_neighborDirectionMap[WorldDirection.WEST],
-				_neighborDirectionMap[WorldDirection.EAST],
-				_neighborDirectionMap[WorldDirection.NORTH],
-				_neighborDirectionMap[WorldDirection.SOUTH],
+				_neighborDirectionMap[Direction.WEST],
+				_neighborDirectionMap[Direction.EAST],
+				_neighborDirectionMap[Direction.NORTH],
+				_neighborDirectionMap[Direction.SOUTH],
 			};
 			neighbors.RemoveAll(item => item == null);
 			return neighbors;
@@ -102,10 +102,10 @@ namespace Darklight.World.Generation
 		public List<Vector2Int> GetDiagonalNeighborValues()
 		{
 			List<Vector2Int> neighbors = new List<Vector2Int> {
-				_neighborDirectionMap[WorldDirection.NORTHWEST],
-				_neighborDirectionMap[WorldDirection.NORTHEAST],
-				_neighborDirectionMap[WorldDirection.SOUTHWEST],
-				_neighborDirectionMap[WorldDirection.SOUTHEAST],
+				_neighborDirectionMap[Direction.NORTHWEST],
+				_neighborDirectionMap[Direction.NORTHEAST],
+				_neighborDirectionMap[Direction.SOUTHWEST],
+				_neighborDirectionMap[Direction.SOUTHEAST],
 			};
 			neighbors.RemoveAll(item => item == null);
 			return neighbors;
@@ -116,10 +116,10 @@ namespace Darklight.World.Generation
 			if (!Initialized) return new();
 
 			List<Coordinate> neighbors = new List<Coordinate> {
-				ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.WEST]),
-				ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.EAST]),
-				ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTH]),
-				ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTH])
+				ParentMap.GetCoordinateAt(_neighborDirectionMap[Direction.WEST]),
+				ParentMap.GetCoordinateAt(_neighborDirectionMap[Direction.EAST]),
+				ParentMap.GetCoordinateAt(_neighborDirectionMap[Direction.NORTH]),
+				ParentMap.GetCoordinateAt(_neighborDirectionMap[Direction.SOUTH])
 			};
 			neighbors.RemoveAll(item => item == null);
 			return neighbors;
@@ -130,10 +130,10 @@ namespace Darklight.World.Generation
 			if (!Initialized) return new();
 
 			List<Coordinate> neighbors = new List<Coordinate> {
-				ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTHWEST]),
-				ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.NORTHEAST]),
-				ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTHWEST]),
-				ParentMap.GetCoordinateAt(_neighborDirectionMap[WorldDirection.SOUTHEAST])
+				ParentMap.GetCoordinateAt(_neighborDirectionMap[Direction.NORTHWEST]),
+				ParentMap.GetCoordinateAt(_neighborDirectionMap[Direction.NORTHEAST]),
+				ParentMap.GetCoordinateAt(_neighborDirectionMap[Direction.SOUTHWEST]),
+				ParentMap.GetCoordinateAt(_neighborDirectionMap[Direction.SOUTHEAST])
 			};
 			neighbors.RemoveAll(item => item == null);
 			return neighbors;
@@ -148,28 +148,28 @@ namespace Darklight.World.Generation
 			return neighbors;
 		}
 
-		public Coordinate GetNeighborInOppositeDirection(WorldDirection direction)
+		public Coordinate GetNeighborInOppositeDirection(Direction direction)
 		{
 			if (!Initialized) return null;
 
 			switch (direction)
 			{
-				case WorldDirection.WEST:
-					return GetNeighborInDirection(WorldDirection.EAST);
-				case WorldDirection.EAST:
-					return GetNeighborInDirection(WorldDirection.WEST);
-				case WorldDirection.NORTH:
-					return GetNeighborInDirection(WorldDirection.SOUTH);
-				case WorldDirection.SOUTH:
-					return GetNeighborInDirection(WorldDirection.NORTH);
-				case WorldDirection.NORTHWEST:
-					return GetNeighborInDirection(WorldDirection.SOUTHEAST);
-				case WorldDirection.NORTHEAST:
-					return GetNeighborInDirection(WorldDirection.SOUTHWEST);
-				case WorldDirection.SOUTHWEST:
-					return GetNeighborInDirection(WorldDirection.NORTHEAST);
-				case WorldDirection.SOUTHEAST:
-					return GetNeighborInDirection(WorldDirection.NORTHWEST);
+				case Direction.WEST:
+					return GetNeighborInDirection(Direction.EAST);
+				case Direction.EAST:
+					return GetNeighborInDirection(Direction.WEST);
+				case Direction.NORTH:
+					return GetNeighborInDirection(Direction.SOUTH);
+				case Direction.SOUTH:
+					return GetNeighborInDirection(Direction.NORTH);
+				case Direction.NORTHWEST:
+					return GetNeighborInDirection(Direction.SOUTHEAST);
+				case Direction.NORTHEAST:
+					return GetNeighborInDirection(Direction.SOUTHWEST);
+				case Direction.SOUTHWEST:
+					return GetNeighborInDirection(Direction.NORTHEAST);
+				case Direction.SOUTHEAST:
+					return GetNeighborInDirection(Direction.NORTHWEST);
 			}
 
 			return null;
