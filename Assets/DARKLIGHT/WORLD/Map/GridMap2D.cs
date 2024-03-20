@@ -156,21 +156,6 @@ namespace Darklight.World.Map
         }
         #endregion
 
-        #region class IComparer
-        public class Vector2IntComparer : IComparer<Vector2Int>
-        {
-            public int Compare(Vector2Int x, Vector2Int y)
-            {
-                int result = x.x.CompareTo(y.x);
-                if (result == 0)
-                {
-                    result = x.y.CompareTo(y.y);
-                }
-                return result;
-            }
-        }
-        #endregion
-
         #region class Coordinate
         public class Coordinate
         {
@@ -182,7 +167,6 @@ namespace Darklight.World.Map
             [SerializeField] private int _size;
             public GridMap2D ParentGrid { get { return _parentGrid; } }
             public Flag CurrentFlag { get { return _flag; } set { _flag = value; } }
-            public Color CurrentFlagColor { get { return GetFlagColor(_flag); } }
             public Vector2Int PositionKey { get { return _key; } }
             public int Size { get { return _size; } }
 
@@ -206,8 +190,12 @@ namespace Darklight.World.Map
                     case Flag.EXIT: return Color.red;
                     case Flag.PATH: return Color.white;
                     case Flag.ZONE: return Color.green;
-                    default: return Color.grey;
                 }
+                return Color.grey;
+            }
+            public Color GetCurrentFlagColor()
+            {
+                return GetFlagColor(_flag);
             }
             public Vector3 GetPositionInScene()
             {
@@ -252,17 +240,34 @@ namespace Darklight.World.Map
         #region << MAP DATA <<
         Dictionary<Vector2Int, Coordinate> _map = new Dictionary<Vector2Int, Coordinate>();
         Dictionary<Coordinate.Flag, HashSet<Coordinate>> _mapFlags = new();
-        Dictionary<EdgeDirection, (SortedSet<Vector2Int>, bool)> _mapBorders = new();
+        Dictionary<EdgeDirection, (List<Vector2Int>, bool)> _mapBorders = new();
         Dictionary<(EdgeDirection, EdgeDirection), Vector2Int> _mapCorners = new();
         #endregion
 
         #region << PUBLIC ACCESSORS <<
         public int MapWidth { get { return _mapWidth; } private set { _mapWidth = value; } }
         public int CoordinateSize { get { return _coordinateSize; } private set { _coordinateSize = value; } }
-        public Dictionary<Vector2Int, Coordinate> FullMap
-        { get { return _map; } }
+        public Dictionary<Vector2Int, Coordinate> FullMap { get { return _map; } }
         public List<Vector2Int> PositionKeys { get { return _map.Keys.ToList(); } }
         public List<Coordinate> CoordinateValues { get { return _map.Values.ToList(); } }
+        public Dictionary<EdgeDirection, List<Vector2Int>> OpenBorders
+        {
+            get
+            {
+                Dictionary<EdgeDirection, List<Vector2Int>> result = new Dictionary<EdgeDirection, List<Vector2Int>>();
+                foreach (EdgeDirection direction in _mapBorders.Keys)
+                {
+                    bool closed = _mapBorders[direction].Item2;
+                    if (!closed)
+                    {
+                        result[direction] = _mapBorders[direction].Item1.ToList();
+                    }
+                }
+                return result;
+            }
+        }
+        public List<Vector2Int> MapCornerPositions { get { return _mapCorners.Values.ToList(); } }
+
         public Vector3 OriginPosition
         {
             get
@@ -329,9 +334,12 @@ namespace Darklight.World.Map
                     if (isCorner.Item1 != null && isCorner.Item2 != null)
                     {
                         (EdgeDirection, EdgeDirection) cornerTuple = ((EdgeDirection)isCorner.Item1, (EdgeDirection)isCorner.Item2);
-                        _mapCorners.TryAdd(cornerTuple, new Vector2Int()); // Create a new set if it doesn't exist
-                        _mapCorners[cornerTuple] = gridKey; // << overwrite corner
-                        coordinate.SetFlag(Coordinate.Flag.CORNER);
+                        // Create a new set if it doesn't exist
+                        if (_mapCorners.TryAdd(cornerTuple, new Vector2Int()))
+                        {
+                            _mapCorners[cornerTuple] = gridKey; // << overwrite corner
+                            coordinate.SetFlag(Coordinate.Flag.CORNER);
+                        }
                         continue; // Skip the rest of the loop
                     }
                     else
@@ -341,9 +349,11 @@ namespace Darklight.World.Map
                         if (isOnBorder != null)
                         {
                             EdgeDirection borderDirection = (EdgeDirection)isOnBorder;
-                            _mapBorders.TryAdd(borderDirection, (new SortedSet<Vector2Int>(new Vector2IntComparer()), false));
-                            _mapBorders[borderDirection].Item1.Add(gridKey); // << add position to set
-                            coordinate.SetFlag(Coordinate.Flag.BORDER);
+                            if (_mapBorders.TryAdd(borderDirection, (new List<Vector2Int>(), false)))
+                            {
+                                _mapBorders[borderDirection].Item1.Add(gridKey); // << add position to set
+                                coordinate.SetFlag(Coordinate.Flag.BORDER);
+                            }
                             continue; // Skip the rest of the loop
                         }
                         else
@@ -356,6 +366,7 @@ namespace Darklight.World.Map
             }
 
             CreateRandomExitOnBorder(EdgeDirection.NORTH, 1);
+            //CloseBorder(EdgeDirection.WEST);
         }
 
         void Initialize(int width, int size)
@@ -482,11 +493,11 @@ namespace Darklight.World.Map
                 }
             }
         }
-        public void CloseMapBorder(EdgeDirection mapBorder)
+        public void CloseBorder(EdgeDirection mapBorder)
         {
             // Destroy that border >:#!!
 
-            // >> set the border as active on the map
+            // >> set the border as closed on the map
             _mapBorders[mapBorder] = (_mapBorders[mapBorder].Item1, true);
 
             // >> set all related values on border to flag
@@ -560,7 +571,7 @@ namespace Darklight.World.Map
         {
             System.Random random = new System.Random();
 
-            SortedSet<Vector2Int> borderPositions = _mapBorders[edgeDirection].Item1;
+            List<Vector2Int> borderPositions = _mapBorders[edgeDirection].Item1;
             if (borderPositions == null || borderPositions.Count == 0)
             {
                 Debug.Assert(false, "Cannot create exit on empty border.");
@@ -573,18 +584,15 @@ namespace Darklight.World.Map
                 return;
             }
 
-            // Convert SortedSet to list
-            List<Vector2Int> positionList = borderPositions.ToList();
-
             // Ensure count does not exceed the number of available border positions
-            count = Mathf.Min(count, positionList.Count);
+            count = Mathf.Min(count, borderPositions.Count);
 
             // Convert random border coordinates to exit
             int validExitCount = 0;
             while (validExitCount < count)
             {
-                int randomInt = random.Next(0, positionList.Count);
-                Coordinate coordinate = GetCoordinateAt(positionList[randomInt]);
+                int randomInt = random.Next(0, borderPositions.Count);
+                Coordinate coordinate = GetCoordinateAt(borderPositions[randomInt]);
                 if (coordinate != null && coordinate.CurrentFlag == Coordinate.Flag.BORDER)
                 {
                     coordinate.SetFlag(Coordinate.Flag.EXIT); // Set coordinate flag
@@ -632,6 +640,9 @@ namespace Darklight.World.Map
 
         #endregion
 
+        #region == [[ HANDLE PATHS ]] ================================================================ >>>>
+
+        #endregion
 
         public void Reset()
         {
@@ -733,137 +744,8 @@ namespace Darklight.World.Map
 /*
 
 
-
-
-        // == [[ WORLD EXITS ]] ======================================================================== >>>>
-        public void ConvertCoordinateToExit(Coordinate coordinate)
-        {
-            if (coordinate == null)
-                return;
-            if (coordinate.Type != Coordinate.TYPE.BORDER)
-            {
-                //Debug.Log($"Cannot convert non border coordinate {coordinate.Value} {coordinate.type} to exit");
-                return;
-            }
-
-            // Search borders for exit
-            foreach (EdgeDirection direction in _borderMap.Keys)
-            {
-                if (_borderMap[direction].Contains(coordinate.ValueKey))
-                {
-                    // Once border found, update coordinate maps
-                    _borderExitMap.TryAdd(direction, new HashSet<Vector2Int>());
-                    _borderExitMap[direction].Add(coordinate.ValueKey);
-                }
-            }
-
-            SetCoordinateToType(coordinate, Coordinate.TYPE.EXIT);
-        }
-
-        public void GenerateRandomExits()
-        {
-            // Determine the number of exits to create, with a minimum of 2 and a maximum of 4
-            int numberOfExits = UnityEngine.Random.Range(2, 5); // Unity's Random.Range is inclusive for min and exclusive for max
-
-            // Combine all border positions into a single list for easier access
-            List<Vector2Int> allBorderValues = new(_borderMap.Values.SelectMany(values => values));
-
-            // Ensure not to exceed the number of available border positions
-            numberOfExits = Mathf.Min(numberOfExits, allBorderValues.Count);
-
-            // Convert random border coordinates to exits
-            for (int i = 0; i < numberOfExits; i++)
-            {
-                Vector2Int randomValue = allBorderValues[Random.Range(0, allBorderValues.Count)];
-                Coordinate coordinate = GetCoordinateAt(randomValue);
-                ConvertCoordinateToExit(coordinate);
-            }
-
-            //Debug.Log($"{numberOfExits} exits have been created on the map borders.");
-        }
-
-        public void GenerateRandomExitOnBorder(EdgeDirection borderType)
-        {
-            List<Vector2Int> allBorderPositions = _borderMap[borderType].ToList();
-            Vector2Int randomCoordinate = allBorderPositions[
-                Random.Range(0, allBorderPositions.Count)
-            ];
-            ConvertCoordinateToExit(GetCoordinateAt(randomCoordinate));
-        }
-
-        public void CreateMatchingExit(
-            EdgeDirection neighborBorder,
-            Vector2Int neighborExitCoordinate
-        )
-        {
-            // Determine the relative position of the exit based on the neighbor border
-            Vector2Int matchingCoordinate;
-            switch (neighborBorder)
-            {
-                case EdgeDirection.NORTH:
-                    // if this border is NORTH, then the matching neighbor's border is SOUTH
-                    matchingCoordinate = new Vector2Int(neighborExitCoordinate.x, 0);
-                    break;
-                case EdgeDirection.SOUTH:
-                    // if this border is SOUTH, then the matching neighbor's border is NORTH
-                    matchingCoordinate = new Vector2Int(
-                        neighborExitCoordinate.x,
-                        this.MaxCoordinateValue - 1
-                    );
-                    break;
-                case EdgeDirection.EAST:
-                    // if this border is EAST, then the matching neighbor's border is WEST
-                    matchingCoordinate = new Vector2Int(0, neighborExitCoordinate.y);
-                    break;
-                case EdgeDirection.WEST:
-                    // if this border is EAST, then the matching neighbor's border is WEST
-                    matchingCoordinate = new Vector2Int(
-                        this.MaxCoordinateValue - 1,
-                        neighborExitCoordinate.y
-                    );
-                    break;
-                default:
-                    throw new ArgumentException("Invalid MapBorder value.", nameof(neighborBorder));
-            }
-
-            ConvertCoordinateToExit(GetCoordinateAt(matchingCoordinate));
-            //Debug.Log($"Created Exit {matchingCoordinate} to match {neighborExitCoordinate}");
-        }
-
         // == [[ WORLD PATH ]] ================================================================================ >>>>
-        public Path CreatePathFrom(
-            Vector2Int start,
-            Vector2Int end,
-            List<Coordinate.TYPE> validTypes,
-            bool applyPathTypeToEnd = false
-        )
-        {
-            Path newPath = new Path(
-                this,
-                start,
-                end,
-                validTypes,
-                WorldBuilder.Settings.PathRandomness
-            );
-            Paths.Add(newPath);
-
-            // Remove Ends
-            if (applyPathTypeToEnd)
-            {
-                SetCoordinatesToType(newPath.AllPositions, Coordinate.TYPE.PATH);
-            }
-            else
-            {
-                // Remove Exits from path positions
-                List<Vector2Int> positionsWithoutEnds = newPath.AllPositions;
-                positionsWithoutEnds.Remove(start);
-                positionsWithoutEnds.Remove(end);
-                SetCoordinatesToType(positionsWithoutEnds, Coordinate.TYPE.PATH);
-            }
-
-            // Assign Path Type
-            return newPath;
-        }
+        
 
         public async Task GeneratePathsBetweenExits()
         {
