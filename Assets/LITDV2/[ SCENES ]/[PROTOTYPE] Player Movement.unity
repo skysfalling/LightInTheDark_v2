@@ -631,14 +631,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   editMode: 1
   worldView: 0
-  regionView: 2
-  chunkView: 4
-  cellView: 0
-  coordinateMapView: 1
+  regionView: 1
+  chunkView: 3
+  cellView: 1
+  coordinateMapView: 2
   chunkMapView: 0
   cellMapView: 0
   selectedRegion: {fileID: 543254080984073197}
-  selectedChunk: {fileID: 0}
+  showNeighbors: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

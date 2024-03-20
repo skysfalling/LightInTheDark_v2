@@ -18,33 +18,43 @@ namespace Darklight.World.Generation
 		public enum TYPE { EMPTY, EDGE, CORNER, OBSTACLE, SPAWN_POINT }
 
 		// [[ PRIVATE DATA VARIABLES ]]
-		MeshQuad _meshQuad;
+		Quad _meshQuad;
 		TYPE _type;
 
 		// [[ PUBLIC REFERENCE VARIABLES ]]
-		public ChunkData ChunkParent { get; private set; }
+		public Chunk ChunkParent { get; private set; }
 		public Coordinate Coordinate => ChunkParent.GetCoordinateAtCell(this);
-		public MeshQuad MeshQuad => _meshQuad;
+		public Quad MeshQuad => _meshQuad;
 		public TYPE Type => _type;
 		public Color TypeColor { get; private set; } = Color.white;
 		public Vector3 Position
 		{
 			get
 			{
-				return ChunkParent.GroundPosition + MeshQuad.GetCenterPosition();
+				return ChunkParent.GroundPosition;
 			}
 		}
 
 		public Vector2Int FaceCoord => _meshQuad.faceCoord;
-		public ChunkData.FaceType FaceType => _meshQuad.faceType;
-		public Vector3 Normal => _meshQuad.faceNormal;
+		public Chunk.FaceDirection FaceType => _meshQuad.faceDirection;
+		//public Vector3 Normal => _meshQuad.faceNormal;
 		public int Size = WorldBuilder.Settings.CellSize_inGameUnits;
 
 
-		public Cell(ChunkData chunkParent, MeshQuad meshQuad)
+		public Cell(Chunk chunkParent, Quad meshQuad)
 		{
 			this.ChunkParent = chunkParent;
 			this._meshQuad = meshQuad;
+		}
+
+		public void CreateCellMeshObject()
+		{
+			GameObject cellObject = new GameObject("Cell");
+			//Mesh mesh = _meshQuad.GenerateMesh();
+
+			cellObject.transform.position = Position;
+			//cellObject.AddComponent<MeshFilter>().mesh = mesh;
+			cellObject.AddComponent<MeshRenderer>().material = ChunkParent.ChunkBuilderParent.RegionParent.defaultMaterial;
 		}
 
 		public void SetCellType(TYPE newType)

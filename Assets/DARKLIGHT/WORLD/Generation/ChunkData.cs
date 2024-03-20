@@ -4,11 +4,9 @@ using System.Linq;
 using UnityEngine;
 namespace Darklight.World.Generation
 {
-	using System.Threading.Tasks;
-	using Darklight.Bot;
 	using Darklight.World.Builder;
 	using Darklight.World.Map;
-	public class ChunkData : TaskQueen, ITaskEntity
+	public class Chunk
 	{
 		/// <summary>
 		/// Defines World Chunks based on wall count / location
@@ -32,7 +30,7 @@ namespace Darklight.World.Generation
 			/// <summary>Indicates an exit point, set by WorldExit.</summary>
 			EXIT
 		}
-		public enum FaceType { FRONT, BACK, LEFT, RIGHT, TOP, BOTTOM }
+		public enum FaceDirection { FRONT, BACK, LEFT, RIGHT, TOP, BOTTOM, SPLIT }
 
 		// [[ PRIVATE VARIABLES ]]
 		Coordinate _coordinate;
@@ -46,7 +44,7 @@ namespace Darklight.World.Generation
 		public ChunkBuilder ChunkBuilderParent { get; private set; }
 		public Coordinate Coordinate => _coordinate;
 		public CoordinateMap CoordinateMap => _coordinateMap;
-		public GameObject ChunkObject { get; private set; }
+		public GameObject ChunkObject;
 		public ChunkMesh ChunkMesh { get; private set; }
 		public CellMap CellMap => _cellMap;
 		public int GroundHeight => _groundHeight;
@@ -74,7 +72,7 @@ namespace Darklight.World.Generation
 		}
 		public Vector3 ChunkMeshDimensions => WorldBuilder.Settings.ChunkVec3Dimensions_inCellUnits + new Vector3Int(0, GroundHeight, 0);
 
-		public ChunkData(ChunkBuilder chunkGeneration, Coordinate coordinate)
+		public Chunk(ChunkBuilder chunkGeneration, Coordinate coordinate)
 		{
 			this.ChunkBuilderParent = chunkGeneration;
 			this._coordinate = coordinate;
@@ -91,7 +89,7 @@ namespace Darklight.World.Generation
 			UpdateChunkHeight();
 
 			// Create chunkMesh
-			ChunkMesh = new ChunkMesh(this, GroundHeight, GroundPosition);
+			ChunkMesh = new ChunkMesh(this);
 			_cellMap = new CellMap(this, ChunkMesh);
 
 			DetermineChunkType();
@@ -120,7 +118,7 @@ namespace Darklight.World.Generation
 				if (coordinateZone != null && coordinateZone.CenterCoordinate.ValueKey != _coordinate.ValueKey)
 				{
 					// Try to find center chunk of zone and set height to match
-					ChunkData centerChunk = ChunkBuilderParent.GetChunkAt(coordinateZone.CenterCoordinate);
+					Chunk centerChunk = ChunkBuilderParent.GetChunkAt(coordinateZone.CenterCoordinate);
 					if (centerChunk != null)
 					{
 						this._groundHeight = centerChunk.GroundHeight;
@@ -129,27 +127,28 @@ namespace Darklight.World.Generation
 			}
 		}
 
-		void DetermineChunkType()
+		public void DetermineChunkType()
 		{
 			// [[ ITERATE THROUGH CHUNK NEIGHBORS ]] 
-			Dictionary<WorldDirection, ChunkData> naturalNeighborMap = GetNaturalNeighborMap();
+			Dictionary<WorldDirection, Chunk> naturalNeighborMap = GetNaturalNeighborMap();
 			foreach (WorldDirection direction in naturalNeighborMap.Keys.ToList())
 			{
-				ChunkData neighborChunk = naturalNeighborMap[direction];
-				if (neighborChunk == null)
+				Chunk neighborChunk = naturalNeighborMap[direction];
+				EdgeDirection? neighborBorder = CoordinateMap.GetBorderDirection(direction); // get chunk border
+
+				// << CLOSE BORDER WITH NULL NEIGHBOR OR NEIGHBOR WITH HEIGHT OFFSET >>
+				if (neighborChunk == null || neighborChunk.GroundHeight != GroundHeight)
 				{
-					BorderDirection? neighborBorder = CoordinateMap.GetBorderDirection(direction); // get chunk border
 					if (neighborBorder == null) continue;
 
-					CoordinateMap.CloseMapBorder((BorderDirection)neighborBorder); // close the chunk border
+					CoordinateMap.CloseMapBorder((EdgeDirection)neighborBorder); // close the chunk border
 				}
 			}
 
 			// ========================================================
 
 			// [[ DETERMINE TYPE FROM BORDERS ]]
-			//Dictionary<BorderDirection, bool> activeBorderMap = CoordinateMap.ActiveBorderMap;
-			Dictionary<BorderDirection, bool> activeBorderMap = new();
+			Dictionary<EdgeDirection, bool> activeBorderMap = CoordinateMap.ActiveBorderMap;
 
 			// Count active borders directly from the dictionary
 			int activeBorderCount = activeBorderMap.Count(kv => kv.Value == true);
@@ -163,9 +162,9 @@ namespace Darklight.World.Generation
 					SetType(TYPE.DEADEND); break;
 				case 2:
 					// Check for parallel edges
-					if (activeBorderMap[BorderDirection.NORTH] && activeBorderMap[BorderDirection.SOUTH])
+					if (activeBorderMap[EdgeDirection.NORTH] && activeBorderMap[EdgeDirection.SOUTH])
 					{ SetType(TYPE.HALLWAY); break; }
-					if (activeBorderMap[BorderDirection.EAST] && activeBorderMap[BorderDirection.WEST])
+					if (activeBorderMap[EdgeDirection.EAST] && activeBorderMap[EdgeDirection.WEST])
 					{ SetType(TYPE.HALLWAY); break; }
 
 					// Otherwise chunk is in corner
@@ -191,9 +190,9 @@ namespace Darklight.World.Generation
 			}
 		}
 
-		public Dictionary<WorldDirection, ChunkData> GetNaturalNeighborMap()
+		public Dictionary<WorldDirection, Chunk> GetNaturalNeighborMap()
 		{
-			Dictionary<WorldDirection, ChunkData> neighborMap = new();
+			Dictionary<WorldDirection, Chunk> neighborMap = new Dictionary<WorldDirection, Chunk>();
 
 			List<WorldDirection> naturalNeighborDirections = new List<WorldDirection> { WorldDirection.NORTH, WorldDirection.SOUTH, WorldDirection.EAST, WorldDirection.WEST };
 			foreach (WorldDirection direction in naturalNeighborDirections)
@@ -205,7 +204,7 @@ namespace Darklight.World.Generation
 			return neighborMap;
 		}
 
-		public ChunkData GetNeighborInDirection(WorldDirection direction)
+		public Chunk GetNeighborInDirection(WorldDirection direction)
 		{
 			return GetNaturalNeighborMap()[direction];
 		}
@@ -219,107 +218,5 @@ namespace Darklight.World.Generation
 		{
 			return _cellMap.GetCellAtCoordinate(coordinate);
 		}
-
-		// ================== SPAWN OBJECTS ============= >>
-		public List<Cell> FindSpace(EnvironmentObject envObj)
-		{
-			Dictionary<int, List<Cell>> availableSpace = new Dictionary<int, List<Cell>>();
-			//int spaceIndex = 0;
-
-			/*
-			foreach (Cell startCell in localCells)
-			{
-				if (IsSpaceAvailable(startCell, envObj))
-				{
-					availableSpace[spaceIndex] = GetCellsInArea(startCell, envObj.space);
-					spaceIndex++;
-				}
-			}
-			*/
-
-			// Get Random Available Space
-			if (availableSpace.Count > 0)
-			{
-				return availableSpace[UnityEngine.Random.Range(0, availableSpace.Keys.Count)];
-			}
-
-			// Return Empty
-			return new List<Cell>();
-		}
-
-		public bool IsSpaceAvailable(Cell startCell, EnvironmentObject envObj)
-		{
-			List<Cell> cellsInArea = GetCellsInArea(startCell, envObj.space);
-			List<Cell.TYPE> requiredTypes = envObj.spawnCellTypeRequirements;
-
-			// Check Cell Count ( Also Area Size )
-			int spawnAreaSize = envObj.space.x * envObj.space.y;
-			if (cellsInArea.Count != spawnAreaSize) { return false; }
-
-			// Check Validity of Cell Types
-			foreach (Cell cell in cellsInArea)
-			{
-				if (!requiredTypes.Contains(cell.Type)) { return false; }
-			}
-
-			string cellAreaList = "";
-			foreach (Cell cell in cellsInArea)
-			{
-				cellAreaList += $"{cell.Position} {cell.Type}\n";
-			}
-
-			/*
-			Debug.Log($"{prefix} SpaceAvailableAt {startCell.position}\n" +
-				$"\tEnvObj Prefab : {envObj.prefab.name}\n" +
-				$"\tSpace Needed : {envObj.space} {spawnAreaSize}\n" +
-				$"\tFound Space Count : {cellsInArea.Count}\n" +
-				$"\tRequired Type : {requiredTypes[0]}\n" +
-				$"\tCell Area : {cellAreaList}");
-			*/
-
-			return true;
-		}
-
-		// NOTE :: This is specifically starting with the top left cell.
-		private List<Cell> GetCellsInArea(Cell startCell, Vector2Int space)
-		{
-			List<Cell> areaCells = new List<Cell>();
-			int cellSize = WorldBuilder.Settings.CellSize_inGameUnits;
-
-			for (int x = 0; x < space.x; x++)
-			{
-				for (int z = 0; z < space.y; z++)
-				{
-					Cell cell = GetCellAt(startCell.Position.x + (x * cellSize), startCell.Position.z + (z * cellSize));
-					if (cell != null && !areaCells.Contains(cell))
-					{
-						areaCells.Add(cell);
-					}
-				}
-			}
-
-			return areaCells;
-		}
-
-		private Cell GetCellAt(float x, float z)
-		{
-			//Debug.Log($"{prefix} GetCellAt {x} {z}\n");
-
-			/*
-			foreach (Cell cell in localCells)
-			{
-				if (cell.Position.x == x && cell.Position.z == z) { return cell; }
-			}
-			*/
-
-			return null;
-		}
-
-		public void MarkArea(List<Cell> area, Cell.TYPE markType)
-		{
-			foreach (Cell cell in area) { cell.SetCellType(markType); }
-		}
-
-		// ================= HELPER FUNCTIONS ============================== >>
 	}
 }

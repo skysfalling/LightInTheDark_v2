@@ -17,7 +17,7 @@ MonoBehaviour:
   _chunkWidth: 5
   _chunkDepth: 5
   _chunkMaxHeight: 5
-  _regionWidth: 5
+  _regionWidth: 10
   _regionBoundaryOffset: 0
   _worldWidth: 2
   _pathRandomness: 0.5
