@@ -62,8 +62,6 @@ namespace Darklight.World.Generation
 		int _groundHeight;
 		Vector3 _positionInScene;
 		Mesh _mesh;
-
-
 		List<Vector3> _globalVertices = new(); // global vertices dictionary 
 		Dictionary<FaceDirection, Dictionary<Vector2Int, Quad>> _quadData = new();
 		List<FaceDirection> _visibleFaces = new List<FaceDirection>()
@@ -91,8 +89,6 @@ namespace Darklight.World.Generation
 			this._mesh = CreateMeshFromGeneratedData();
 			return this._mesh;
 		}
-
-
 
 		public List<Vector3> GetGlobalVertices(List<int> verticeIndexes, List<Vector3> globalVertices)
 		{
@@ -341,49 +337,40 @@ namespace Darklight.World.Generation
 			_quadData[splitQuad.faceDirection][splitQuad.faceCoord] = splitQuad;
 		}
 
-		public void CreateBridgeBetweenQuads(FaceDirection quad1Dir, Vector2Int quad1Coord, FaceDirection quad2Dir, Vector2Int quad2Coord)
+		public Quad FindMatchingBorderQuad(FaceDirection faceDir, Vector2Int faceCoord, EdgeDirection edgeDirection, int maxCoordValue)
 		{
-			// Ensure both quads exist
-			if (!_quadData.ContainsKey(quad1Dir) || !_quadData[quad1Dir].ContainsKey(quad1Coord) ||
-				!_quadData.ContainsKey(quad2Dir) || !_quadData[quad2Dir].ContainsKey(quad2Coord))
+			FaceDirection targetFaceDir = faceDir;
+			Vector2Int targetFaceCoord = faceCoord;
+
+			switch (faceDir)
 			{
-				Debug.LogError("One or both quads do not exist.");
-				return;
+				case FaceDirection.TOP:
+					switch (edgeDirection)
+					{
+						case EdgeDirection.NORTH: // Assuming North is the Z-axis increasing direction
+							targetFaceDir = FaceDirection.BACK;
+							targetFaceCoord = new Vector2Int(faceCoord.x, maxCoordValue);
+							break;
+						case EdgeDirection.SOUTH:
+							targetFaceDir = FaceDirection.FRONT;
+							targetFaceCoord = new Vector2Int(faceCoord.x, 0); // Assuming 0 is the starting coord for the front face
+							break;
+							// Add cases for EAST and WEST as needed
+					}
+					break;
+					// Handle other initial face directions (FRONT, BACK, LEFT, RIGHT, BOTTOM) similarly
 			}
 
-			Quad quad1 = _quadData[quad1Dir][quad1Coord];
-			Quad quad2 = _quadData[quad2Dir][quad2Coord];
-
-			// Verify the quads are perpendicular and share an edge
-			// If they are not perpendicular or do not share an edge, log an error and return.
-			Vector3 quad1Normal = GetFaceNormal(quad1.faceDirection);
-			Vector3 quad2Normal = GetFaceNormal(quad2.faceDirection);
-			if (Vector3.Dot(quad1Normal, quad2Normal) != 0)
+			// Now, try to find and return the Quad that matches this targetFaceDir and targetFaceCoord
+			if (_quadData.ContainsKey(targetFaceDir) && _quadData[targetFaceDir].ContainsKey(targetFaceCoord))
 			{
-				Debug.LogError("Quads are not perpendicular.");
-				return;
+				return _quadData[targetFaceDir][targetFaceCoord];
 			}
-
-			// Assuming they share an edge and are perpendicular, calculate the new quad vertices.
-			// This involves determining the farthest points of quad1 and quad2 from their shared edge and creating vertices at those points.
-			Vector3[] quad1VerticeIndexes = quad1.verticeIndexes.Select(index => _globalVertices[index]).ToArray();
-			Vector3[] quad2VerticeIndexes = quad2.verticeIndexes.Select(index => _globalVertices[index]).ToArray();
-			List<Vector3> bridgeVertices = new List<Vector3> { quad1VerticeIndexes[0], quad1VerticeIndexes[1], quad2VerticeIndexes[2], quad2VerticeIndexes[3] };
-			List<int> bridgeVertexIndexes = bridgeVertices.Select(vertex => AddVertexToGlobal(vertex)).ToList();
-
-			// Define the new quad
-			Quad newQuad = new Quad(_chunkParent, bridgeVertexIndexes, quad1.faceDirection, quad1.faceCoord);
-
-			// Remove original quads from data structure
-			_quadData[quad1Dir].Remove(quad1Coord);
-			_quadData[quad2Dir].Remove(quad2Coord);
-
-			// Add the new quad to the quad data structure
-			// Determine the appropriate FaceDirection and faceCoord for the new quad.
-			// This depends on your specific requirements and data structure.
-			FaceDirection newQuadDir = FaceDirection.SPLIT;
-			Vector2Int newQuadCoord = quad1Coord;
-			_quadData[newQuadDir][newQuadCoord] = newQuad;
+			else
+			{
+				Debug.LogError("Matching border quad does not exist.");
+				return null; // Or handle this scenario appropriately
+			}
 		}
 
 		private int AddVertexToGlobal(Vector3 vertex)

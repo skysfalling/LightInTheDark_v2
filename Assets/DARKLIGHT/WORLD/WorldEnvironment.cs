@@ -172,7 +172,7 @@ namespace Darklight.World.Generation
 			*/
 
 			// Mark Cell Area
-			startCell.ChunkParent.MarkArea(spawnArea, envObj.cellTypeConversion);
+			//startCell.ChunkParent.MarkArea(spawnArea, envObj.cellTypeConversion);
 
 			return newObject;
 		}
