@@ -62,9 +62,11 @@ namespace Darklight.World
         #endregion
 
         string _prefix = "< WORLD GENERATION SYSTEM > ";
+        public CustomGenerationSettings customWorldGenSettings; // Settings Scriptable Object
+        public Material defaultMaterial;
         public GridMap2D regionGrid = new GridMap2D();
 
-        // [[ PUBLIC REFERENCE VARIABLES ]]
+
         public Vector3 CenterPosition { get { return transform.position; } }
         public Vector3 OriginPosition
         {
@@ -76,11 +78,6 @@ namespace Darklight.World
                 return origin;
             }
         }
-
-        // [[ PUBLIC INSPECTOR VARIABLES ]] 
-        public CustomGenerationSettings customWorldGenSettings; // Settings Scriptable Object
-        public Material defaultMaterial;
-
 
         // ================================================================== FUNCTIONS
         public override void Awake()

@@ -4,7 +4,11 @@ namespace Darklight.World.Settings
 	using System.Collections;
 	using System.Collections.Generic;
 	using UnityEngine;
-	using System.Linq;
+#if UNITY_EDITOR
+	using UnityEditor;
+#endif
+
+	[System.Serializable]
 	public class GenerationSettings
 	{
 		// [[ STORED SETTINGS DATA ]] 
@@ -71,4 +75,54 @@ namespace Darklight.World.Settings
 			_perlinMultiplier = worldGenSettings.PerlinMultiplier;
 		}
 	}
+
+#if UNITY_EDITOR
+	[CustomPropertyDrawer(typeof(GenerationSettings), true)]
+	public class GenerationSettingsDrawer : PropertyDrawer
+	{
+		bool showGenerationSettingsFoldout = true;
+		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+		{
+			EditorGUI.BeginProperty(position, label, property);
+
+			SerializedProperty seedProp = property.FindPropertyRelative("_seed");
+			SerializedProperty cellSizeProp = property.FindPropertyRelative("_cellSize");
+			SerializedProperty chunkWidthProp = property.FindPropertyRelative("_chunkWidth");
+			SerializedProperty chunkDepthProp = property.FindPropertyRelative("_chunkDepth");
+			SerializedProperty chunkMaxHeightProp = property.FindPropertyRelative("_chunkMaxHeight");
+			SerializedProperty regionWidthProp = property.FindPropertyRelative("_regionWidth");
+			SerializedProperty regionBoundaryOffsetProp = property.FindPropertyRelative("_regionBoundaryOffset");
+			SerializedProperty worldWidthProp = property.FindPropertyRelative("_worldWidth");
+			SerializedProperty pathRandomnessProp = property.FindPropertyRelative("_pathRandomness");
+			SerializedProperty perlinMultiplierProp = property.FindPropertyRelative("_perlinMultiplier");
+
+			// >> Foldout
+			showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "CustomGenerationSettings", true);
+			if (showGenerationSettingsFoldout)
+			{
+				EditorGUILayout.BeginHorizontal();
+				EditorGUILayout.Space();
+				EditorGUILayout.BeginVertical();
+
+				EditorGUILayout.PropertyField(seedProp);
+				EditorGUILayout.PropertyField(cellSizeProp);
+				EditorGUILayout.PropertyField(chunkWidthProp);
+				EditorGUILayout.PropertyField(chunkDepthProp);
+				EditorGUILayout.PropertyField(chunkMaxHeightProp);
+				EditorGUILayout.PropertyField(regionWidthProp);
+				EditorGUILayout.PropertyField(regionBoundaryOffsetProp);
+				EditorGUILayout.PropertyField(worldWidthProp);
+				EditorGUILayout.PropertyField(pathRandomnessProp);
+				EditorGUILayout.PropertyField(perlinMultiplierProp);
+
+				EditorGUILayout.EndVertical();
+				EditorGUILayout.EndHorizontal();
+			}
+			EditorGUILayout.Space();
+			EditorGUI.EndProperty();
+		}
+
+
+	}
+#endif
 }
