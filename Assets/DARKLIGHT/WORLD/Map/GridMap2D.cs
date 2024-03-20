@@ -1,18 +1,52 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Darklight.World.Settings;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine;
+
 namespace Darklight.World.Map
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Builder;
-    using Generation;
-    using UnityEngine;
-    using Random = UnityEngine.Random;
 
-    public class CoordinateMap
+
+
+    public class GridMap2D<Type>
     {
+        #region {{ STRUCTS }}
+        public struct Coordinate
+        {
+            public enum Flag { NULL, BORDER, EXIT, PATH, ZONE, CLOSED }
+            [SerializeField] private GridMap2D<Type> _parentMap;
+            [SerializeField] private UnitSpace _unitSpace;
+            [SerializeField] private Vector2Int _key;
+            [SerializeField] private int _size;
+            [SerializeField] private Flag _flag;
+            [SerializeField] private Dictionary<EdgeDirection, Coordinate> _neighborMap;
+            public Coordinate(
+                GridMap2D<Type> parentMap,
+                Vector2Int key,
+                int size,
+                UnitSpace unitSpace
+            )
+            {
+                this._parentMap = parentMap;
+                this._unitSpace = unitSpace;
+                this._size = size;
+                this._key = key;
+                this._flag = Flag.NULL;
+                this._neighborMap = new Dictionary<EdgeDirection, Coordinate>();
+            }
+
+            public Vector3 GetPositionInScene()
+            {
+                return _parentMap.OriginPosition + new Vector3(_key.x, 0, _key.y) * _size;
+            }
+        }
+        #endregion
+
         #region << STATIC FUNCTIONS <<
-        public static EdgeDirection? GetBorderDirection(WorldDirection direction)
+        public static EdgeDirection? GetEdgeDirection(WorldDirection direction)
         {
             switch (direction)
             {
@@ -29,7 +63,7 @@ namespace Darklight.World.Map
             }
         }
 
-        public static EdgeDirection? GetOppositeBorder(EdgeDirection border)
+        public static EdgeDirection? GetOppositeEdge(EdgeDirection border)
         {
             switch (border)
             {
@@ -64,7 +98,7 @@ namespace Darklight.World.Map
             return _directionVectorMap[direction];
         }
 
-        public static WorldDirection? GetEnumFromDirectionVector(Vector2Int direction)
+        public static WorldDirection? GetDirectionFromVector(Vector2Int direction)
         {
             foreach (var pair in _directionVectorMap)
             {
@@ -106,6 +140,80 @@ namespace Darklight.World.Map
             };
         }
         #endregion
+
+        #region << PRIVATE VARIABLES <<
+        string _prefix = ">> Grid Map << ";
+        UnitSpace _unitSpace; // defines sizing
+        Transform _transform; // to use as position parent
+        int _mapWidth; // width count of the grid [[ grid will always be a square ]]
+        int _coordinateSize; // size of each GridCoordinate to determine position offsets
+
+        #endregion
+
+        #region << MAP DATA <<
+        Dictionary<Vector2Int, (Coordinate, Type)> _map = new Dictionary<Vector2Int, (Coordinate, Type)>();
+        Dictionary<EdgeDirection, List<Coordinate>> _mapBorderValues;
+        Dictionary<(EdgeDirection, EdgeDirection), Coordinate> _mapCornerValues;
+        #endregion
+
+        public Dictionary<Vector2Int, (Coordinate, Type)> FullMap { get { return _map; } }
+        public List<Vector2Int> PositionKeys { get { return _map.Keys.ToList(); } }
+        public List<Coordinate> CoordinateValues { get { return _map.Values.Select(pair => pair.Item1).ToList(); } }
+        public List<Type> TypeValues { get { return _map.Values.Select(pair => pair.Item2).ToList(); } }
+        public Vector3 CenterPosition { get { return _transform.position; } }
+        public Vector3 OriginPosition
+        {
+            get
+            {
+                Vector3 origin = CenterPosition; // Start at center
+                origin -= _mapWidth * _coordinateSize * new Vector3(0.5f, 0, 0.5f);
+                origin += _coordinateSize * new Vector3(0.5f, 0, 0.5f);
+                return origin;
+            }
+        }
+        public GridMap2D() { }
+        public GridMap2D(Transform transform, UnitSpace unitSpace = UnitSpace.GAME, int mapWidth = 10, int coordinateSize = 10)
+        {
+            this._transform = transform;
+            this._unitSpace = unitSpace;
+            this._mapWidth = mapWidth;
+            this._coordinateSize = coordinateSize;
+        }
+
+        void InitializeGrid(int width, int size)
+        {
+            // Create Coordinate grid
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < width; y++)
+                {
+                    // Calculate Grid Key
+                    Vector2Int gridKey = new Vector2Int(x, y);
+
+                    // Create Coordinate Tuple
+                    Coordinate coordinate = new Coordinate(this, gridKey, size, _unitSpace);
+                    _map[gridKey] = (coordinate, default);
+                }
+            }
+        }
+    }
+}
+
+/*
+namespace Darklight.World.Map
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Builder;
+    using Generation;
+    using UnityEngine;
+    using Random = UnityEngine.Random;
+
+    public class CoordinateMap
+    {
+        
 
         #region [[ PRIVATE VARIABLES ]]
         string _prefix = ">> Coordinate Map << ";
@@ -858,3 +966,5 @@ namespace Darklight.World.Map
         }
     }
 }
+
+*/

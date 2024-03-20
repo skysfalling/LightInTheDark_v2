@@ -16,7 +16,7 @@ namespace Darklight.Bot
 		public Console TaskBotConsole = new Console();
 		public int ExecutionQueueCount => _executionQueue.Count;
 
-		public void Awake()
+		public virtual void Awake()
 		{
 			TaskBotConsole.Log(this, "Awake");
 		}
