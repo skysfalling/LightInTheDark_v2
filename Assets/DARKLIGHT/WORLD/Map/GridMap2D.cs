@@ -151,9 +151,9 @@ namespace Darklight.World.Map
         #region << PRIVATE VARIABLES <<
         string _prefix = "[[ GridMap2D ]] ";
         Transform _transform; // to use as position parent
-        [SerializeField] CustomGenerationSettings _customSettings = null;
-        [SerializeField] GenerationSettings _settings = null;
-        [SerializeField] UnitSpace _unitSpace; // defines sizing
+        [SerializeField] GenerationSettings _settings;
+        [SerializeField] UnitSpace _mapUnitSpace; // defines GridMap sizing
+        [SerializeField] UnitSpace _coordinateUnitSpace; // defines Coordinate sizing
         [SerializeField] int _mapWidth = 11; // width count of the grid [[ grid will always be a square ]]
         [SerializeField] int _coordinateSize = 1; // size of each GridCoordinate to determine position offsets
         #endregion
@@ -163,6 +163,8 @@ namespace Darklight.World.Map
         Dictionary<EdgeDirection, List<Coordinate>> _mapBorderValues;
         Dictionary<(EdgeDirection, EdgeDirection), Coordinate> _mapCornerValues;
         #endregion
+
+        public CustomGenerationSettings customGenerationSettings = null;
 
         public int MapWidth { get { return _mapWidth; } private set { _mapWidth = value; } }
         public int CoordinateSize { get { return _coordinateSize; } private set { _coordinateSize = value; } }
@@ -185,7 +187,8 @@ namespace Darklight.World.Map
         public GridMap2D()
         {
             this._transform = null;
-            this._unitSpace = UnitSpace.GAME;
+            this._mapUnitSpace = UnitSpace.GAME;
+            this._coordinateUnitSpace = UnitSpace.GAME;
             Initialize(_mapWidth, _coordinateSize);
         }
 
@@ -199,26 +202,37 @@ namespace Darklight.World.Map
         public GridMap2D(Transform transform, UnitSpace unitSpace = UnitSpace.GAME)
         {
             this._transform = transform;
-            this._unitSpace = unitSpace;
+            this._mapUnitSpace = unitSpace;
             Initialize(_mapWidth, _coordinateSize);
+        }
+
+        void Initialize(CustomGenerationSettings customSettings)
+        {
+            _settings = new GenerationSettings(customSettings);
+            _mapWidth = _settings.WorldWidth_inRegionUnits;
+            _coordinateSize = _settings.RegionFullWidth_inGameUnits;
+            Initialize();
         }
 
         void Initialize(int width, int size)
         {
             _mapWidth = width;
             _coordinateSize = size;
-            //Debug.Log($"{_prefix} Initializing Grid Map with {width}x{width} grid and {size} unit size.");
+            Initialize();
+        }
 
+        void Initialize()
+        {
             // Create Coordinate grid
-            for (int x = 0; x < width; x++)
+            for (int x = 0; x < _mapWidth; x++)
             {
-                for (int y = 0; y < width; y++)
+                for (int y = 0; y < _mapWidth; y++)
                 {
                     // Calculate Grid Key
                     Vector2Int gridKey = new Vector2Int(x, y);
 
                     // Create Coordinate Tuple
-                    Coordinate coordinate = new Coordinate(this, gridKey, size, _unitSpace);
+                    Coordinate coordinate = new Coordinate(this, gridKey, _coordinateSize, _mapUnitSpace);
                     _map[gridKey] = coordinate;
                 }
             }
@@ -226,16 +240,12 @@ namespace Darklight.World.Map
 
         public void Reset()
         {
-            if (_customSettings != null)
-            {
-                _settings = new GenerationSettings(_customSettings);
-            }
-            else
-            {
-                _settings = null;
-            }
-
             _map.Clear();
+            if (customGenerationSettings)
+            {
+                Initialize(customGenerationSettings);
+                return;
+            }
             Initialize(_mapWidth, _coordinateSize);
         }
     }
@@ -245,6 +255,7 @@ namespace Darklight.World.Map
     public class GridMap2DDrawer : PropertyDrawer
     {
         bool initialized = false;
+        bool setCustomSettings = false;
         bool mapSettingsFoldout = true;
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -255,50 +266,46 @@ namespace Darklight.World.Map
             // Reflection to call ResetMap
             GridMap2D gridMap2DField = fieldInfo.GetValue(targetObject) as GridMap2D;
 
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.BeginProperty(position, label, property);
-
             // Fetch the objects needed
             SerializedProperty generationSettingsProp = property.FindPropertyRelative("_settings");
-            SerializedProperty customGenerationSettingsProp = property.FindPropertyRelative("_customSettings");
+            SerializedProperty customGenerationSettingsProp = property.FindPropertyRelative("customGenerationSettings");
             SerializedProperty mapWidthProp = property.FindPropertyRelative("_mapWidth");
             SerializedProperty coordinateSizeProp = property.FindPropertyRelative("_coordinateSize");
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.BeginProperty(position, label, property);
 
             // << DRAW LABEL >>
             EditorGUILayout.LabelField($"{label} >> Grid Map 2D", EditorStyles.boldLabel);
 
-            if (customGenerationSettingsProp.objectReferenceValue == null)
+            EditorGUILayout.PropertyField(customGenerationSettingsProp);
+            if (gridMap2DField.customGenerationSettings == null)
             {
-                EditorGUILayout.PropertyField(customGenerationSettingsProp);
+                setCustomSettings = false;
                 DrawDefaultSettingsFoldout(mapWidthProp, coordinateSizeProp);
             }
             else
             {
-                EditorGUILayout.PropertyField(generationSettingsProp);
+                if (setCustomSettings == false)
+                {
+                    initialized = false;
+                }
 
-                //UnityEditor.Editor editor = UnityEditor.Editor.CreateEditor(customGenerationSettingsProp.objectReferenceValue);
-                //editor.OnInspectorGUI();
-                //EditorGUILayout.PropertyField(customGenerationSettingsProp);
-
+                EditorGUILayout.LabelField($"{mapWidthProp.name} override -> WorldWidth : {gridMap2DField.customGenerationSettings.WorldWidth}");
+                EditorGUILayout.LabelField($"{coordinateSizeProp.name} override -> RegionWidth : {gridMap2DField.customGenerationSettings.RegionWidth}");
             }
-
-
-
-            EditorGUILayout.Space();
-            EditorGUILayout.Space();
-
             EditorGUI.EndProperty();
 
             if (EditorGUI.EndChangeCheck() || initialized == false)
             {
                 initialized = true;
+                setCustomSettings = true;
                 property.serializedObject.ApplyModifiedProperties();
                 if (gridMap2DField != null)
                 {
                     gridMap2DField.Reset();
                 }
             }
-
         }
 
         void DrawDefaultSettingsFoldout(SerializedProperty mapWidthProp, SerializedProperty coordinateSizeProp)
@@ -317,11 +324,6 @@ namespace Darklight.World.Map
 
                 EditorGUILayout.Space();
             }
-        }
-
-        void DrawCustomGenerationSettings()
-        {
-
         }
     }
 #endif

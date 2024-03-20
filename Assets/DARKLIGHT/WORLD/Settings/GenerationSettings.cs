@@ -83,8 +83,6 @@ namespace Darklight.World.Settings
 		bool showGenerationSettingsFoldout = true;
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 		{
-			EditorGUI.BeginProperty(position, label, property);
-
 			SerializedProperty seedProp = property.FindPropertyRelative("_seed");
 			SerializedProperty cellSizeProp = property.FindPropertyRelative("_cellSize");
 			SerializedProperty chunkWidthProp = property.FindPropertyRelative("_chunkWidth");
@@ -96,8 +94,10 @@ namespace Darklight.World.Settings
 			SerializedProperty pathRandomnessProp = property.FindPropertyRelative("_pathRandomness");
 			SerializedProperty perlinMultiplierProp = property.FindPropertyRelative("_perlinMultiplier");
 
+			EditorGUI.BeginProperty(position, label, property);
+
 			// >> Foldout
-			showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "CustomGenerationSettings", true);
+			showGenerationSettingsFoldout = EditorGUILayout.Foldout(showGenerationSettingsFoldout, "CustomGenerationSettings");
 			if (showGenerationSettingsFoldout)
 			{
 				EditorGUILayout.BeginHorizontal();
@@ -117,8 +117,9 @@ namespace Darklight.World.Settings
 
 				EditorGUILayout.EndVertical();
 				EditorGUILayout.EndHorizontal();
+				EditorGUILayout.Space();
 			}
-			EditorGUILayout.Space();
+
 			EditorGUI.EndProperty();
 		}
 
