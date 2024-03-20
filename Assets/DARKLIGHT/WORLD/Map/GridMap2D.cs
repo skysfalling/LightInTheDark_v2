@@ -8,9 +8,6 @@ using UnityEngine;
 
 namespace Darklight.World.Map
 {
-
-
-
     public class GridMap2D<Type>
     {
         #region {{ STRUCTS }}
@@ -23,6 +20,13 @@ namespace Darklight.World.Map
             [SerializeField] private int _size;
             [SerializeField] private Flag _flag;
             [SerializeField] private Dictionary<EdgeDirection, Coordinate> _neighborMap;
+
+            public GridMap2D<Type> ParentMap { get { return _parentMap; } }
+            public UnitSpace UnitSpace { get { return _unitSpace; } }
+            public Vector2Int PositionKey { get { return _key; } }
+            public int Size { get { return _size; } }
+            public Flag CurrentFlag { get { return _flag; } }
+
             public Coordinate(
                 GridMap2D<Type> parentMap,
                 Vector2Int key,
@@ -160,7 +164,14 @@ namespace Darklight.World.Map
         public List<Vector2Int> PositionKeys { get { return _map.Keys.ToList(); } }
         public List<Coordinate> CoordinateValues { get { return _map.Values.Select(pair => pair.Item1).ToList(); } }
         public List<Type> TypeValues { get { return _map.Values.Select(pair => pair.Item2).ToList(); } }
-        public Vector3 CenterPosition { get { return _transform.position; } }
+        public Vector3 CenterPosition
+        {
+            get
+            {
+                if (_transform != null) { return _transform.position; }
+                else { return Vector3.zero; }
+            }
+        }
         public Vector3 OriginPosition
         {
             get
@@ -171,17 +182,35 @@ namespace Darklight.World.Map
                 return origin;
             }
         }
-        public GridMap2D() { }
+
+        /// <summary>
+        /// damn, no parameters? go off queen
+        /// </summary>
+        public GridMap2D()
+        {
+            InitializeGrid(10, 10);
+        }
+
+        /// <summary>
+        /// Main GridMap2D constructor
+        /// </summary>
+        /// <param name="transform"></param>
+        /// <param name="unitSpace"></param>
+        /// <param name="mapWidth"></param>
+        /// <param name="coordinateSize"></param>
         public GridMap2D(Transform transform, UnitSpace unitSpace = UnitSpace.GAME, int mapWidth = 10, int coordinateSize = 10)
         {
             this._transform = transform;
             this._unitSpace = unitSpace;
             this._mapWidth = mapWidth;
             this._coordinateSize = coordinateSize;
+            InitializeGrid(mapWidth, coordinateSize);
         }
 
         void InitializeGrid(int width, int size)
         {
+            Debug.Log($"{_prefix} Initializing Grid Map with {width}x{width} grid and {size} unit size.");
+
             // Create Coordinate grid
             for (int x = 0; x < width; x++)
             {
