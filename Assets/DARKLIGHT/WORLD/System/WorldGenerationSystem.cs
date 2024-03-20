@@ -96,9 +96,20 @@ namespace Darklight.World
     [CustomEditor(typeof(WorldGenerationSystem))]
     public class WorldGenerationSystemEditor : UnityEditor.Editor
     {
+        SerializedObject _serializedObject;
+        WorldGenerationSystem _worldGenSystem;
         public enum GridMap2DView { GRID_ONLY, COORDINATE_VALUE, COORDINATE_TYPE, ZONE_ID }
+        static GridMap2DView gridMap2DView = GridMap2DView.COORDINATE_VALUE;
         bool showGridMapFoldout = false;
-        GridMap2DView gridMap2DView = GridMap2DView.COORDINATE_VALUE;
+
+        public void OnEnable()
+        {
+            _serializedObject = new SerializedObject(target);
+            _worldGenSystem = (WorldGenerationSystem)target;
+
+
+            _worldGenSystem.Reset();
+        }
 
         public override void OnInspectorGUI()
         {
@@ -144,12 +155,12 @@ namespace Darklight.World
                     case GridMap2DView.COORDINATE_TYPE:
                         //coordinateColor = gridCoordinate.TypeColor;
                         coordLabelStyle.normal.textColor = coordinateColor;
-                        Darklight.CustomGizmos.DrawLabel($"{gridCoordinate.CurrentFlag.ToString()[0]}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
+                        Darklight.CustomGizmos.DrawLabel($"{gridCoordinate.flag}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
                         break;
                     case GridMap2DView.ZONE_ID:
                         //coordinateColor = gridCoordinate.TypeColor;
                         coordLabelStyle.normal.textColor = coordinateColor;
-                        if (gridCoordinate.CurrentFlag == GridMap2D.Coordinate.Flag.ZONE)
+                        if (gridCoordinate.flag == GridMap2D.Coordinate.Flag.ZONE)
                         {
                             // TODO : Implement Zone ID
                             /*

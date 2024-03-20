@@ -13,22 +13,34 @@ namespace Darklight.World.Map
     [System.Serializable]
     public class GridMap2D
     {
-        #region {{ STRUCTS }}
-        public struct Coordinate
+        #region IComparer
+        public class Vector2IntComparer : IComparer<Vector2Int>
         {
-            public enum Flag { NULL, BORDER, EXIT, PATH, ZONE, CLOSED }
-            [SerializeField] private GridMap2D _parentMap;
-            [SerializeField] private UnitSpace _unitSpace;
+            public int Compare(Vector2Int x, Vector2Int y)
+            {
+                int result = x.x.CompareTo(y.x);
+                if (result == 0)
+                {
+                    result = x.y.CompareTo(y.y);
+                }
+                return result;
+            }
+        }
+        #endregion
+        #region Coordinate
+        public class Coordinate
+        {
+            GridMap2D _parentGrid;
+            UnitSpace _unitSpace;
             [SerializeField] private Vector2Int _key;
             [SerializeField] private int _size;
-            [SerializeField] private Flag _flag;
             [SerializeField] private Dictionary<EdgeDirection, Coordinate> _neighborMap;
 
-            public GridMap2D ParentMap { get { return _parentMap; } }
-            public UnitSpace UnitSpace { get { return _unitSpace; } }
+
+            public enum Flag { NULL, BORDER, CORNER, EXIT, PATH, ZONE, CLOSED }
+            public Flag flag;
             public Vector2Int PositionKey { get { return _key; } }
             public int Size { get { return _size; } }
-            public Flag CurrentFlag { get { return _flag; } }
 
             public Coordinate(
                 GridMap2D parentMap,
@@ -37,17 +49,22 @@ namespace Darklight.World.Map
                 UnitSpace unitSpace
             )
             {
-                this._parentMap = parentMap;
+                this._parentGrid = parentMap;
                 this._unitSpace = unitSpace;
                 this._size = size;
                 this._key = key;
-                this._flag = Flag.NULL;
+                this.flag = Flag.NULL;
                 this._neighborMap = new Dictionary<EdgeDirection, Coordinate>();
+            }
+
+            public void SetFlag(Flag newFlag)
+            {
+                this.flag = newFlag;
             }
 
             public Vector3 GetPositionInScene()
             {
-                return _parentMap.OriginPosition + new Vector3(_key.x, 0, _key.y) * _size;
+                return _parentGrid.OriginPosition + new Vector3(_key.x, 0, _key.y) * _size;
             }
         }
         #endregion
@@ -160,12 +177,57 @@ namespace Darklight.World.Map
 
         #region << MAP DATA <<
         Dictionary<Vector2Int, Coordinate> _map = new Dictionary<Vector2Int, Coordinate>();
-        Dictionary<EdgeDirection, List<Coordinate>> _mapBorderValues;
-        Dictionary<(EdgeDirection, EdgeDirection), Coordinate> _mapCornerValues;
+        Dictionary<EdgeDirection, SortedSet<Vector2Int>> _mapBorders = new();
+        Dictionary<(EdgeDirection, EdgeDirection), Vector2Int> _mapCorners = new();
+
+        EdgeDirection? DetermineBorderEdge(Vector2Int positionKey)
+        {
+            if (positionKey.x == _mapWidth - 1)
+                return EdgeDirection.EAST;
+            if (positionKey.x == 0)
+                return EdgeDirection.WEST;
+            if (positionKey.y == _mapWidth - 1)
+                return EdgeDirection.NORTH;
+            if (positionKey.y == 0)
+                return EdgeDirection.SOUTH;
+            return null; // Return a default or undefined value
+        }
+
+        (EdgeDirection?, EdgeDirection?) DetermineCornerEdges(Vector2Int positionKey)
+        {
+            Debug.Log($"Corner Check : {positionKey}");
+
+            // Determine which edges the corner belongs to
+            EdgeDirection? edge1 = null;
+            EdgeDirection? edge2 = null;
+
+            // Get X value edge
+            if (positionKey == new Vector2Int(0, 0))
+            {
+                edge1 = EdgeDirection.WEST;
+                edge2 = EdgeDirection.SOUTH;
+            }
+            else if (positionKey == new Vector2Int(_mapWidth - 1, _mapWidth - 1))
+            {
+                edge1 = EdgeDirection.EAST;
+                edge2 = EdgeDirection.NORTH;
+            }
+            else if (positionKey == new Vector2Int(0, _mapWidth - 1))
+            {
+                edge1 = EdgeDirection.WEST;
+                edge2 = EdgeDirection.NORTH;
+            }
+            else if (positionKey == new Vector2Int(_mapWidth - 1, 0))
+            {
+                edge1 = EdgeDirection.EAST;
+                edge2 = EdgeDirection.SOUTH;
+            }
+
+            return (edge1, edge2);
+        }
         #endregion
 
-        public CustomGenerationSettings customGenerationSettings = null;
-
+        #region << PUBLIC ACCESSORS <<
         public int MapWidth { get { return _mapWidth; } private set { _mapWidth = value; } }
         public int CoordinateSize { get { return _coordinateSize; } private set { _coordinateSize = value; } }
         public Dictionary<Vector2Int, Coordinate> FullMap
@@ -180,6 +242,14 @@ namespace Darklight.World.Map
                 else { return Vector3.zero; }
             }
         }
+        #endregion
+
+        #region << INSPECTOR VALUES <<
+        public CustomGenerationSettings customGenerationSettings = null;
+
+        #endregion
+
+        #region [[ CONSTRUCTORS ]]
 
         /// <summary>
         /// damn, no parameters? go off queen
@@ -205,22 +275,13 @@ namespace Darklight.World.Map
             this._mapUnitSpace = unitSpace;
             Initialize(_mapWidth, _coordinateSize);
         }
+        #endregion
 
-        void Initialize(CustomGenerationSettings customSettings)
-        {
-            _settings = new GenerationSettings(customSettings);
-            _mapWidth = _settings.WorldWidth_inRegionUnits;
-            _coordinateSize = _settings.RegionFullWidth_inGameUnits;
-            Initialize();
-        }
+        #region [[ INITIALIZATION ]]
 
-        void Initialize(int width, int size)
-        {
-            _mapWidth = width;
-            _coordinateSize = size;
-            Initialize();
-        }
-
+        /// <summary>
+        /// Initializes the grid map by creating coordinate objects for each position in the map.
+        /// </summary>
         void Initialize()
         {
             // Create Coordinate grid
@@ -234,12 +295,62 @@ namespace Darklight.World.Map
                     // Create Coordinate Tuple
                     Coordinate coordinate = new Coordinate(this, gridKey, _coordinateSize, _mapUnitSpace);
                     _map[gridKey] = coordinate;
+
+                    // >> Check if CORNER
+                    (EdgeDirection?, EdgeDirection?) isCorner = DetermineCornerEdges(gridKey);
+                    if (isCorner.Item1 != null && isCorner.Item2 != null)
+                    {
+                        (EdgeDirection, EdgeDirection) cornerTuple = ((EdgeDirection)isCorner.Item1, (EdgeDirection)isCorner.Item2);
+                        _mapCorners.TryAdd(cornerTuple, new Vector2Int()); // Create a new set if it doesn't exist
+                        _mapCorners[cornerTuple] = gridKey; // << overwrite corner
+                        coordinate.SetFlag(Coordinate.Flag.CORNER);
+                        Debug.Log($"Corner Found : {cornerTuple}");
+                        continue; // Skip the rest of the loop
+                    }
+                    else
+                    {
+                        // >> Check if BORDER
+                        EdgeDirection? isBorder = DetermineBorderEdge(gridKey);
+                        if (isBorder != null)
+                        {
+                            EdgeDirection borderDirection = (EdgeDirection)isBorder;
+                            _mapBorders.TryAdd(borderDirection, new SortedSet<Vector2Int>(new Vector2IntComparer()));
+                            _mapBorders[borderDirection].Add(gridKey); // << add position to set
+                            coordinate.SetFlag(Coordinate.Flag.BORDER);
+                            //Debug.Log($"Border Found : {borderDirection}");
+                            continue; // Skip the rest of the loop
+                        }
+
+                        // >> Set to NULL
+                        coordinate.SetFlag(Coordinate.Flag.NULL);
+                    }
+
+
                 }
             }
         }
 
+        void Initialize(int width, int size)
+        {
+            _mapWidth = width;
+            _coordinateSize = size;
+            Initialize();
+        }
+
+        void Initialize(CustomGenerationSettings customSettings)
+        {
+            _settings = new GenerationSettings(customSettings);
+            _mapWidth = _settings.WorldWidth_inRegionUnits;
+            _coordinateSize = _settings.RegionFullWidth_inGameUnits;
+            Initialize();
+        }
+        #endregion
+
+
+
         public void Reset()
         {
+            Debug.Log($"{_prefix} Resetting GridMap2D");
             _map.Clear();
             if (customGenerationSettings)
             {
