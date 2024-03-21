@@ -903,8 +903,9 @@ namespace Darklight.World.Map
     public interface IGridMapData
     {
         GridMap2D gridMapParent { get; set; }
+        GridMap2D.Coordinate coordinateValue { get; set; }
         Vector2Int positionKey { get; set; }
-        void Initialize(GridMap2D parent, Vector2Int positionKey);
+        Task Initialize(GridMap2D parent, Vector2Int positionKey);
     }
 
     /// <summary>
@@ -915,21 +916,17 @@ namespace Darklight.World.Map
     public class GridMap2D<T> : GridMap2D where T : IGridMapData, new()
     {
         public Dictionary<Vector2Int, T> DataMap { get; private set; }
-
-        public GridMap2D() : base()
+        public List<T> DataValues { get { return DataMap.Values.ToList(); } }
+        public GridMap2D() : base() { }
+        public virtual async Task InitializeDataMap()
         {
             DataMap = new Dictionary<Vector2Int, T>();
-            InitializeDataMap();
-        }
-
-        public virtual void InitializeDataMap()
-        {
             foreach (Vector2Int position in PositionKeys)
             {
                 // Create a new instance of T
                 T newData = new T();
                 // Initialize the new instance with the parent grid (this) and the position key
-                newData.Initialize(this, position);
+                await newData.Initialize(this, position);
                 // Add the instance to the DataMap
                 DataMap[position] = newData;
             }

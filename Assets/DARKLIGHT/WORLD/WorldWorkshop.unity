@@ -164,25 +164,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   defaultMaterial: {fileID: 0}
-  regionGrid:
-    _settings:
-      _seed: 31456143614364
-      _cellSize: 2
-      _chunkWidth: 10
-      _chunkDepth: 10
-      _chunkMaxHeight: 25
-      _regionWidth: 7
-      _regionBoundaryOffset: 0
-      _worldWidth: 5
-      _pathRandomness: 0.5
-      _perlinMultiplier: 1
-    _mapUnitSpace: 4
-    _coordinateUnitSpace: 4
-    _mapWidth: 5
-    _coordinateSize: 140
-    customGenerationSettings: {fileID: 11400000, guid: 4702d670f1778e942af8a3a18db5484d,
-      type: 2}
-    taskBotQueen: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

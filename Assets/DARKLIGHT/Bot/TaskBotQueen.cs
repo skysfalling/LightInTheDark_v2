@@ -53,6 +53,7 @@ namespace Darklight.Bot
 		/// </summary>
 		public virtual async Task Initialize()
 		{
+			TaskBotConsole = new Console();
 			TaskBotConsole.Log(this, $"Initialize");
 			TaskBotConsole.Log(this, $"Good Morning, {name}");
 			await Task.CompletedTask;
@@ -194,6 +195,8 @@ namespace Darklight.Bot
 
 		void DrawConsole()
 		{
+			if (console == null) { return; }
+
 			// Dark gray background
 			GUIStyle backgroundStyle = new GUIStyle();
 			backgroundStyle.normal.background = Darklight.CustomInspectorGUI.MakeTex(600, 1, new Color(0.1f, 0.1f, 0.1f, 1.0f));

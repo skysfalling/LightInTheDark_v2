@@ -14,6 +14,7 @@ namespace Darklight.World
     using Map;
     using System.Threading.Tasks;
     using Darklight.World.Generation;
+    using Darklight.World.Builder;
 
     #region (( GLOBAL SPATIAL ENUMS ))
     /// <summary>
@@ -32,18 +33,7 @@ namespace Darklight.World
     {
         #region [[ STATIC METHODS ]] ---- >> 
         /// <summary> A singleton instance of the WorldGenerationSystem class. </summary>
-        public static WorldGenerationSystem Instance
-        {
-            get
-            {
-                if (Instance == null)
-                {
-                    Instance = FindFirstObjectByType<WorldGenerationSystem>();
-                }
-                return Instance;
-            }
-            private set { Instance = value; }
-        }
+        public static WorldGenerationSystem Instance;
         #endregion
 
         #region [[ GENERATION SETTINGS ]] ---- >> 
@@ -60,7 +50,7 @@ namespace Darklight.World
         }
         #endregion
 
-        #region [[ GENERATION DATA ]] ---- >>
+        #region [[ GENERATION DATA ]] 
 
         #endregion
 
@@ -77,27 +67,32 @@ namespace Darklight.World
 
         public string prefix => "< WORLD GENERATION SYSTEM >";
         public Material defaultMaterial;
-        public GridMap2D<Region> RegionGrid { get; private set; } = new GridMap2D<Region>();
+        public GridMap2D<Region> RegionGridMap { get; private set; } = new GridMap2D<Region>();
 
         public override void Awake()
         {
-            // >> set singleton instance
-            if (Instance == null) Instance = this;
-            else { Destroy(this); }
-
-            // >>  awaken base TaskQueen
             base.Awake();
+            _ = Initialize();
         }
         #endregion
 
         #region --------------- TASKS --))
-
-        async Task CreateRegions()
+        public Task<GameObject> CreatePrimitiveObject(string name, PrimitiveType primitiveType)
         {
-            RegionGrid.InitializeDataMap();
-            await Task.CompletedTask;
+            GameObject newObject = GameObject.CreatePrimitive(primitiveType);
+            newObject.name = name;
+            newObject.transform.position = Vector3.zero;
+            newObject.transform.parent = this.transform;
+            return Task.FromResult(newObject);
         }
 
+        public Task<GameObject> CreateRegionBuilderObject(Region region)
+        {
+            GameObject newObject = new GameObject($"{region.prefix} :: {region.positionKey}");
+            newObject.transform.parent = this.transform;
+            newObject.transform.position = region.coordinateValue.GetPositionInScene();
+            return Task.FromResult(newObject);
+        }
         #endregion
 
         #region --------------- TASK BOT QUEEN --))
@@ -106,15 +101,22 @@ namespace Darklight.World
             this.Name = "WorldGenerationSystem";
             WorldGenerationSystem.InitializeRandomSeed();
             await base.Initialize();
+
             Debug.Log($"{prefix} Initialized");
 
-            // [[ INSTANTIATE REGIONS ]]
-            await CreateRegions();
+            await RegionGridMap.InitializeDataMap(); // Initialize Data
+
+            // [[ ADD BOTS TO EXECUTION QUEUE ]]
+            GridMap2D<Region> regionGridMap = RegionGridMap;
+            List<Vector2Int> regionPositions = regionGridMap.PositionKeys;
+            foreach (Vector2Int position in regionPositions)
+            {
+                Region region = regionGridMap.DataMap[position];
+                TaskBot newBot = new TaskBot(this, $"{prefix} :: CreateRegionBuilderObject", CreateRegionBuilderObject(region));
+                await this.Enqueue(newBot);
+            }
         }
         #endregion
-
-
-
 
         public override void Reset()
         {
@@ -159,7 +161,7 @@ namespace Darklight.World
         private void OnSceneGUI()
         {
             WorldGenerationSystem worldGenSystem = (WorldGenerationSystem)target;
-            SceneGUI_DrawGridMap2D(worldGenSystem.RegionGrid, gridMap2DView, (coordinate) =>
+            SceneGUI_DrawGridMap2D(worldGenSystem.RegionGridMap, gridMap2DView, (coordinate) =>
             {
 
                 Debug.Log($"Selected Coordinate: {coordinate.PositionKey}");
@@ -257,15 +259,6 @@ namespace Darklight.World
                         break;
                 }
             }
-
-        }
-
-        void SceneGUI_DrawGridCoordinate(GridMap2D.Coordinate coordinate)
-        {
-            GUIStyle coordLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
-            Color coordinateColor = Color.white;
-
-
 
         }
     }
