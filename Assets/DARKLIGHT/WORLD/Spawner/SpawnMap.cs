@@ -62,12 +62,12 @@ namespace Darklight.World.Generation
             await Awaitable.WaitForSecondsAsync(3f);
 
             await base.Initialize();
-            await InitializationSequence();
+            await ExecutionSequence();
         }
 
-        public override async Awaitable InitializationSequence()
+        public override async Awaitable ExecutionSequence()
         {
-            await base.InitializationSequence();
+            await base.ExecutionSequence();
             TaskBotConsole.Log(this, "SpawnMap Initialization Started");
             List<Chunk> allChunks = _regionBuilder.ChunkBuilder.AllChunks.ToList();
             TaskBotConsole.Log(this, "Detected Region Generation");

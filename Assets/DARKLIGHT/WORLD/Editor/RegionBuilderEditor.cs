@@ -6,7 +6,7 @@ namespace Darklight.World.Editor
 	using Builder;
 	using Map;
 	using Settings;
-	using Darklight.Bot.Editor;
+	using Darklight.Bot;
 
 #if UNITY_EDITOR
 	[CustomEditor(typeof(RegionBuilder))]

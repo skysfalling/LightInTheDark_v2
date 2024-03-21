@@ -4,6 +4,7 @@ namespace Darklight.Bot
 	using System.Diagnostics;
 	using System.Threading.Tasks;
 	using UnityEngine;
+	using static Darklight.Bot.Console;
 	using Debug = UnityEngine.Debug;
 	public interface ITaskEntity
 	{

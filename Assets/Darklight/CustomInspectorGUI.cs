@@ -149,6 +149,26 @@ namespace Darklight
 			GUI.backgroundColor = Color.white;
 		}
 
+		/// <summary>
+		/// Creates a foldout in the Unity Editor and executes the given Action if the foldout is expanded.
+		/// </summary>
+		/// <param name="foldoutLabel">Label for the foldout.</param>
+		/// <param name="isFoldoutExpanded">Reference to the variable tracking the foldout's expanded state.</param>
+		/// <param name="innerAction">Action to execute when the foldout is expanded. This action contains the UI elements to be drawn inside the foldout.</param>
+		public static void CreateFoldout(ref bool isFoldoutExpanded, string foldoutLabel, Action innerAction)
+		{
+			// Draw the foldout
+			isFoldoutExpanded = EditorGUILayout.Foldout(isFoldoutExpanded, foldoutLabel, true);
+
+			// If the foldout is expanded, execute the action
+			if (isFoldoutExpanded && innerAction != null)
+			{
+				EditorGUI.indentLevel++; // Indent the contents of the foldout for better readability
+				innerAction.Invoke(); // Execute the provided Action
+				EditorGUI.indentLevel--; // Reset indentation
+			}
+		}
+
 		public static void CreateSettingsLabel(string label, string value)
 		{
 			EditorGUILayout.BeginHorizontal();

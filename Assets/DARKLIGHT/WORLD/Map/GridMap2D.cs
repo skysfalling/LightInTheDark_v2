@@ -13,6 +13,7 @@ using UnityEditor;
 
 namespace Darklight.World.Map
 {
+
     [System.Serializable]
     public class GridMap2D
     {
@@ -163,33 +164,70 @@ namespace Darklight.World.Map
         private static readonly System.Random sysRandom = new System.Random();
         #endregion
 
-
         #region class Coordinate
         public class Coordinate
         {
+            /// <summary>
+            /// Represents the possible flags for a coordinate.
+            /// </summary>
             public enum Flag { NULL, BORDER, CORNER, EXIT, PATH, ZONE, CLOSED }
+
             GridMap2D _parentGrid;
             UnitSpace _unitSpace;
             [SerializeField] private Flag _flag = Flag.NULL;
             [SerializeField] private Vector2Int _key;
             [SerializeField] private int _size;
+
+            /// <summary>
+            /// Gets the parent grid of the coordinate.
+            /// </summary>
             public GridMap2D ParentGrid { get { return _parentGrid; } }
+
+            /// <summary>
+            /// Gets or sets the current flag of the coordinate.
+            /// </summary>
             public Flag CurrentFlag { get { return _flag; } set { _flag = value; } }
+
+            /// <summary>
+            /// Gets the position key of the coordinate.
+            /// </summary>
             public Vector2Int PositionKey { get { return _key; } }
+
+            /// <summary>
+            /// Gets the size of the coordinate.
+            /// </summary>
             public int Size { get { return _size; } }
 
-            public Coordinate(GridMap2D parentGrid, Vector2Int key, int size, UnitSpace unitSpace)
+            /// <summary>
+            /// Initializes a new instance of the <see cref="Coordinate"/> class.
+            /// </summary>
+            /// <param name="parentGridMap">The parent grid map.</param>
+            /// <param name="positionKey">The position key of the coordinate.</param>
+            public Coordinate(GridMap2D parentGridMap, Vector2Int positionKey)
             {
-                this._parentGrid = parentGrid;
-                this._unitSpace = unitSpace;
-                this._size = size;
-                this._key = key;
+                this._parentGrid = parentGridMap;
+                this._unitSpace = ParentGrid._coordinateUnitSpace;
+                this._size = ParentGrid.CoordinateSize;
+                this._key = positionKey;
             }
 
+            #region [[ PUBLIC METHODS ]]
+
+            #region >> Handle Flags 
+
+            /// <summary>
+            /// Sets the flag of the coordinate.
+            /// </summary>
+            /// <param name="newFlag">The new flag to set.</param>
             public void SetFlag(Flag newFlag)
             {
                 _parentGrid.SetCoordinateFlag(_key, newFlag);
             }
+
+            /// <summary>
+            /// Gets the color associated with a specific flag.
+            /// </summary>
+            /// <param name="flag">The flag to get the color for.</param>
             public Color GetFlagColor(Flag flag)
             {
                 switch (flag)
@@ -201,15 +239,28 @@ namespace Darklight.World.Map
                 }
                 return Color.grey;
             }
+
+            /// <summary>
+            /// Gets the color associated with the current flag of the coordinate.
+            /// </summary>
             public Color GetCurrentFlagColor()
             {
                 return GetFlagColor(_flag);
             }
+
+            #endregion
+
+            /// <summary>
+            /// Gets the position of the coordinate in the scene.
+            /// </summary>
             public Vector3 GetPositionInScene()
             {
                 return _parentGrid.OriginPosition + new Vector3(_key.x, 0, _key.y) * _size;
             }
 
+            /// <summary>
+            /// Gets all the neighboring coordinates of the current coordinate.
+            /// </summary>
             public Dictionary<Direction, Vector2Int> GetAllNeighbors()
             {
                 Dictionary<Direction, Vector2Int> result = new Dictionary<Direction, Vector2Int>();
@@ -221,6 +272,9 @@ namespace Darklight.World.Map
                 return result;
             }
 
+            /// <summary>
+            /// Gets the edge neighboring coordinates of the current coordinate.
+            /// </summary>
             public Dictionary<EdgeDirection, Vector2Int> GetEdgeNeighbors()
             {
                 Dictionary<EdgeDirection, Vector2Int> result = new Dictionary<EdgeDirection, Vector2Int>();
@@ -232,6 +286,7 @@ namespace Darklight.World.Map
                 }
                 return result;
             }
+            #endregion
         }
         #endregion
 
@@ -291,6 +346,14 @@ namespace Darklight.World.Map
 
         #endregion
 
+        #region << MAP DATA <<
+        Dictionary<Vector2Int, Coordinate> _map = new Dictionary<Vector2Int, Coordinate>();
+        Dictionary<Coordinate.Flag, HashSet<Vector2Int>> _mapFlags = new();
+        Dictionary<EdgeDirection, Border> _mapBorders = new();
+        Dictionary<(EdgeDirection, EdgeDirection), Vector2Int> _mapCorners = new();
+        Dictionary<(Vector2Int, Vector2Int), Path> _paths = new();
+        #endregion
+
         #region << PRIVATE VARIABLES <<
         string _prefix = "[[ GridMap2D ]] ";
         Transform _transform; // to use as position parent
@@ -299,14 +362,6 @@ namespace Darklight.World.Map
         [SerializeField] UnitSpace _coordinateUnitSpace; // defines Coordinate sizing
         [SerializeField] int _mapWidth = 11; // width count of the grid [[ grid will always be a square ]]
         [SerializeField] int _coordinateSize = 1; // size of each GridCoordinate to determine position offsets
-        #endregion
-
-        #region << MAP DATA <<
-        Dictionary<Vector2Int, Coordinate> _map = new Dictionary<Vector2Int, Coordinate>();
-        Dictionary<Coordinate.Flag, HashSet<Vector2Int>> _mapFlags = new();
-        Dictionary<EdgeDirection, Border> _mapBorders = new();
-        Dictionary<(EdgeDirection, EdgeDirection), Vector2Int> _mapCorners = new();
-        Dictionary<(Vector2Int, Vector2Int), Path> _paths = new();
         #endregion
 
         #region << PUBLIC ACCESSORS <<
@@ -340,10 +395,6 @@ namespace Darklight.World.Map
         #endregion
 
         #region [[ CONSTRUCTORS ]]
-
-        /// <summary>
-        /// damn, no parameters? go off queen
-        /// </summary>
         public GridMap2D()
         {
             this._transform = null;
@@ -372,7 +423,7 @@ namespace Darklight.World.Map
         /// <summary>
         /// Initializes the grid map by creating coordinate objects for each position in the map.
         /// </summary>
-        void Initialize()
+        public virtual void Initialize()
         {
             Debug.Log($"{_prefix} Initializing GridMap2D. [ _mapWidth : {_mapWidth} , _coordinateSize : {_coordinateSize} ]");
 
@@ -385,7 +436,7 @@ namespace Darklight.World.Map
                     Vector2Int gridKey = new Vector2Int(x, y);
 
                     // Create Coordinate Tuple
-                    Coordinate coordinate = new Coordinate(this, gridKey, _coordinateSize, _mapUnitSpace);
+                    Coordinate coordinate = new Coordinate(this, gridKey);
                     _map[gridKey] = coordinate;
 
                     // >> Check if BORDER
@@ -849,9 +900,43 @@ namespace Darklight.World.Map
         }
     }
 
+    public interface IGridMapData
+    {
+        GridMap2D gridMapParent { get; set; }
+        Vector2Int positionKey { get; set; }
+        void Initialize(GridMap2D parent, Vector2Int positionKey);
+    }
 
+    /// <summary>
+    /// An enhanced version of GridMap2D that stores a DataMap of <<typeparamref name="T"/>>
+    /// </summary>
+    /// <typeparam name="IGridMapData"></typeparam>
+    [System.Serializable]
+    public class GridMap2D<T> : GridMap2D where T : IGridMapData, new()
+    {
+        public Dictionary<Vector2Int, T> DataMap { get; private set; }
 
-    #region ============== [[ CUSTOM PROPERTY DRAWER ]] ============== >>>>
+        public GridMap2D() : base()
+        {
+            DataMap = new Dictionary<Vector2Int, T>();
+            InitializeDataMap();
+        }
+
+        public virtual void InitializeDataMap()
+        {
+            foreach (Vector2Int position in PositionKeys)
+            {
+                // Create a new instance of T
+                T newData = new T();
+                // Initialize the new instance with the parent grid (this) and the position key
+                newData.Initialize(this, position);
+                // Add the instance to the DataMap
+                DataMap[position] = newData;
+            }
+        }
+    }
+
+    #region ============== [[ CUSTOM PROPERTY DRAWER ]] ====== >>>>
 #if UNITY_EDITOR
     [CustomPropertyDrawer(typeof(GridMap2D))]
     public class GridMap2DDrawer : PropertyDrawer

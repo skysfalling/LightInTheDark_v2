@@ -6,6 +6,13 @@ namespace Darklight.Bot
 	using Darklight.Bot;
 	public class Console
 	{
+		public enum LogSeverity
+		{
+			Info,
+			Warning,
+			Error
+		}
+
 		private class LogEntry
 		{
 			public DateTime Timestamp { get; }
@@ -19,10 +26,8 @@ namespace Darklight.Bot
 				Severity = severity;
 			}
 		}
-
 		private List<LogEntry> allLogEntries = new List<LogEntry>();
 		private Dictionary<Guid, List<LogEntry>> consoleDictionary = new Dictionary<Guid, List<LogEntry>>();
-
 
 		public void Log<T>(T entity, string message, LogSeverity severity = LogSeverity.Info) where T : ITaskEntity
 		{
@@ -82,11 +87,6 @@ namespace Darklight.Bot
 		}
 	}
 
-	public enum LogSeverity
-	{
-		Info,
-		Warning,
-		Error
-	}
+
 
 }

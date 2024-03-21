@@ -3,7 +3,6 @@ namespace Darklight.World.Editor
     using Darklight.World.Generation;
     using Bot;
     using Builder;
-    using Bot.Editor;
     using UnityEngine;
 
 #if UNITY_EDITOR

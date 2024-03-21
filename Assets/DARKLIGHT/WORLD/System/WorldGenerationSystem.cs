@@ -14,9 +14,8 @@ namespace Darklight.World
     using Map;
     using System.Threading.Tasks;
     using Darklight.World.Generation;
-    using Darklight.Bot.Editor;
 
-    #region (( SPATIAL ENUMS))
+    #region (( GLOBAL SPATIAL ENUMS ))
     /// <summary>
     /// Represents the spatial scope for operations or elements within the world generation context.
     /// </summary>
@@ -31,10 +30,20 @@ namespace Darklight.World
 
     public class WorldGenerationSystem : TaskBotQueen, ITaskEntity
     {
-        #region [[ STATIC INSTANCE ]] ---- >> 
+        #region [[ STATIC METHODS ]] ---- >> 
         /// <summary> A singleton instance of the WorldGenerationSystem class. </summary>
-        public static WorldGenerationSystem Instance;
-
+        public static WorldGenerationSystem Instance
+        {
+            get
+            {
+                if (Instance == null)
+                {
+                    Instance = FindFirstObjectByType<WorldGenerationSystem>();
+                }
+                return Instance;
+            }
+            private set { Instance = value; }
+        }
         #endregion
 
         #region [[ GENERATION SETTINGS ]] ---- >> 
@@ -51,6 +60,10 @@ namespace Darklight.World
         }
         #endregion
 
+        #region [[ GENERATION DATA ]] ---- >>
+
+        #endregion
+
         #region [[ RANDOM SEED ]] ---- >> 
         public static string Seed { get { return Settings.Seed; } }
         public static int EncodedSeed { get { return Settings.Seed.GetHashCode(); } }
@@ -62,9 +75,9 @@ namespace Darklight.World
 
         #region --------------- UNITY MAIN --))
 
-        string _prefix = "< WORLD GENERATION SYSTEM > ";
+        public string prefix => "< WORLD GENERATION SYSTEM >";
         public Material defaultMaterial;
-        public GridMap2D regionGrid;
+        public GridMap2D<Region> RegionGrid { get; private set; } = new GridMap2D<Region>();
 
         public override void Awake()
         {
@@ -72,11 +85,8 @@ namespace Darklight.World
             if (Instance == null) Instance = this;
             else { Destroy(this); }
 
-            InitializeRandomSeed();
-
-            // >>  awake base TaskQueen
+            // >>  awaken base TaskQueen
             base.Awake();
-
         }
         #endregion
 
@@ -84,13 +94,7 @@ namespace Darklight.World
 
         async Task CreateRegions()
         {
-            // Create all Regions on GridMap
-            foreach (Vector2Int position in regionGrid.PositionKeys)
-            {
-                GameObject regionObject = new GameObject($"New Region ({position})");
-                Region region = regionObject.AddComponent<Region>();
-                region.transform.parent = this.transform;
-            }
+            RegionGrid.InitializeDataMap();
             await Task.CompletedTask;
         }
 
@@ -101,8 +105,8 @@ namespace Darklight.World
         {
             this.Name = "WorldGenerationSystem";
             WorldGenerationSystem.InitializeRandomSeed();
-            Debug.Log($"{_prefix} Initialized");
-
+            await base.Initialize();
+            Debug.Log($"{prefix} Initialized");
 
             // [[ INSTANTIATE REGIONS ]]
             await CreateRegions();
@@ -118,7 +122,7 @@ namespace Darklight.World
         }
     }
 
-    // ==================================================== CUSTOM UNITY EDITOR ==================
+    #region==== CUSTOM UNITY EDITOR ================== )) 
 #if UNITY_EDITOR
     [CustomEditor(typeof(WorldGenerationSystem))]
     public class WorldGenerationSystemEditor : TaskBotQueenEditor
@@ -155,7 +159,7 @@ namespace Darklight.World
         private void OnSceneGUI()
         {
             WorldGenerationSystem worldGenSystem = (WorldGenerationSystem)target;
-            SceneGUI_DrawGridMap2D(worldGenSystem.regionGrid, gridMap2DView, (coordinate) =>
+            SceneGUI_DrawGridMap2D(worldGenSystem.RegionGrid, gridMap2DView, (coordinate) =>
             {
 
                 Debug.Log($"Selected Coordinate: {coordinate.PositionKey}");
@@ -267,4 +271,5 @@ namespace Darklight.World
     }
 
 #endif
+    #endregion
 }

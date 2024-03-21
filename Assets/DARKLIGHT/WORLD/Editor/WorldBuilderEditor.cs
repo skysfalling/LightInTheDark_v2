@@ -5,7 +5,7 @@ namespace Darklight.World.Editor
 	using Builder;
 	using Map;
 	using Settings;
-	using Darklight.Bot.Editor;
+	using Darklight.Bot;
 
 	[CustomEditor(typeof(WorldBuilder))]
 	public class WorldBuilderEditor : TaskBotQueenEditor
