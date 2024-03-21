@@ -106,14 +106,11 @@ namespace Darklight.World
     {
         SerializedObject _serializedObject;
         WorldGenerationSystem _worldGenSystem;
-        public enum GridMap2DView
-        {
-            EMPTY_GRID, COORD_POSITION,
-            ALL_FLAGS, BORDER_FLAGS, CORNER_FLAGS,
-            ZONE_ID
-        }
-        static GridMap2DView gridMap2DView;
-        static bool showGridMapFoldout;
+        public enum GridMap2DView { GRID_ONLY, COORDINATE_VALUE, COORDINATE_TYPE, BORDERS_ONLY, ZONE_ID }
+        public static GridMap2DView gridMap2DView = GridMap2DView.BORDERS_ONLY;
+
+        public static EdgeDirection selectedEdgeDirection = EdgeDirection.WEST;
+        public static bool showGridMapFoldout = true;
 
         public void OnEnable()
         {
@@ -124,15 +121,18 @@ namespace Darklight.World
 
         public override void OnInspectorGUI()
         {
-            /*
             DrawDefaultInspector();
             EditorGUILayout.Space();
             showGridMapFoldout = EditorGUILayout.Foldout(showGridMapFoldout, "Region Grid Map");
             if (showGridMapFoldout)
             {
                 Darklight.CustomInspectorGUI.DrawLabeledEnumPopup(ref gridMap2DView, "Grid View");
+
+                if (gridMap2DView == GridMap2DView.BORDERS_ONLY)
+                {
+                    Darklight.CustomInspectorGUI.DrawLabeledEnumPopup(ref selectedEdgeDirection, "Selected Edge");
+                }
             }
-            */
         }
 
         /// <summary>
@@ -140,13 +140,11 @@ namespace Darklight.World
         /// </summary>
         private void OnSceneGUI()
         {
-            /*
             WorldGenerationSystem worldGenSystem = (WorldGenerationSystem)target;
             SceneGUI_DrawGridMap2D(worldGenSystem.regionGrid, gridMap2DView, (coordinate) =>
             {
                 Debug.Log($"Selected Coordinate: {coordinate.PositionKey}");
             });
-            */
         }
 
         public void SceneGUI_DrawGridMap2D(GridMap2D gridMap2D, GridMap2DView gridMap2DView, System.Action<GridMap2D.Coordinate> onCoordinateSelect)
@@ -154,6 +152,48 @@ namespace Darklight.World
             GUIStyle coordLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
             Color coordinateColor = Color.white;
 
+
+
+            // << BORDERS ONLY >>
+            if (gridMap2DView == GridMap2DView.BORDERS_ONLY)
+            {
+                // << DRAW BORDERS ONLY >>
+                Dictionary<EdgeDirection, GridMap2D.Border> borders = gridMap2D.MapBorders;
+                if (borders == null || borders.Count == 0) return;
+
+                GridMap2D.Border selectedBorder = borders[selectedEdgeDirection];
+                foreach (Vector2Int position in selectedBorder.Positions)
+                {
+                    GridMap2D.Coordinate coordinate = gridMap2D.GetCoordinateAt(position);
+                    if (coordinate == null) continue;
+                    coordinateColor = coordinate.GetFlagColor(coordinate.CurrentFlag);
+                    Darklight.CustomGizmos.DrawLabel($"{selectedBorder.Direction}", coordinate.GetPositionInScene(), coordLabelStyle);
+                    Darklight.CustomGizmos.DrawButtonHandle(coordinate.GetPositionInScene(), Vector3.up, coordinate.Size * 0.45f, coordinateColor, () =>
+                    {
+                        onCoordinateSelect?.Invoke(coordinate); // Invoke the action if the button is clicked
+                    }, Handles.RectangleHandleCap);
+                }
+                /*
+                foreach (EdgeDirection edgeDirection in borders.Keys)
+                {
+                    GridMap2D.Border curBorder = borders[edgeDirection];
+                    foreach (Vector2Int position in curBorder.Positions)
+                    {
+                        GridMap2D.Coordinate coordinate = gridMap2D.GetCoordinateAt(position);
+                        if (coordinate == null) continue;
+                        coordinateColor = coordinate.GetFlagColor(coordinate.CurrentFlag);
+                        Darklight.CustomGizmos.DrawLabel($"{edgeDirection}", coordinate.GetPositionInScene(), coordLabelStyle);
+                        Darklight.CustomGizmos.DrawButtonHandle(coordinate.GetPositionInScene(), Vector3.up, coordinate.Size * 0.45f, coordinateColor, () =>
+                        {
+                            onCoordinateSelect?.Invoke(coordinate); // Invoke the action if the button is clicked
+                        }, Handles.RectangleHandleCap);
+                    }
+                }
+                */
+                return;
+            }
+
+            // << DRAW ALL COORDINATES >>
             foreach (Vector2Int position in gridMap2D.PositionKeys)
             {
                 GridMap2D.Coordinate gridCoordinate = gridMap2D.GetCoordinateAt(position);
@@ -161,19 +201,19 @@ namespace Darklight.World
 
                 switch (gridMap2DView)
                 {
-                    case GridMap2DView.EMPTY_GRID:
+                    case GridMap2DView.GRID_ONLY:
                         break;
-                    case GridMap2DView.COORD_POSITION:
-                        Darklight.CustomGizmos.DrawLabel($"{gridCoordinate.PositionKey}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
+                    case GridMap2DView.COORDINATE_VALUE:
                         coordinateColor = Color.white;
+                        Darklight.CustomGizmos.DrawLabel($"{gridCoordinate.PositionKey}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
                         break;
-                    case GridMap2DView.ALL_FLAGS:
-                        coordinateColor = gridCoordinate.GetCurrentFlagColor();
+                    case GridMap2DView.COORDINATE_TYPE:
+                        coordinateColor = gridCoordinate.GetFlagColor(gridCoordinate.CurrentFlag); // Get the color for the current flag (type of coordinate)
                         coordLabelStyle.normal.textColor = coordinateColor;
                         Darklight.CustomGizmos.DrawLabel($"{gridCoordinate.CurrentFlag}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
                         break;
                     case GridMap2DView.ZONE_ID:
-                        coordinateColor = gridCoordinate.GetCurrentFlagColor();
+                        coordinateColor = gridCoordinate.GetFlagColor(gridCoordinate.CurrentFlag); ;
                         coordLabelStyle.normal.textColor = coordinateColor;
                         if (gridCoordinate.CurrentFlag == GridMap2D.Coordinate.Flag.ZONE)
                         {
@@ -186,24 +226,6 @@ namespace Darklight.World
                             }
                             */
                         }
-                        break;
-                    case GridMap2DView.BORDER_FLAGS:
-                        coordinateColor = gridCoordinate.GetCurrentFlagColor();
-                        coordLabelStyle.normal.textColor = coordinateColor;
-                        if (gridCoordinate.CurrentFlag == GridMap2D.Coordinate.Flag.BORDER)
-                        {
-                            EdgeDirection? edgeDirection = GridMap2D.DetermineBorderEdge(gridCoordinate.PositionKey, gridCoordinate.ParentGrid.MapWidth);
-                            Darklight.CustomGizmos.DrawLabel($"{edgeDirection}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
-                        }
-                        break;
-                    case GridMap2DView.CORNER_FLAGS:
-                        coordinateColor = gridCoordinate.GetCurrentFlagColor();
-                        coordLabelStyle.normal.textColor = coordinateColor;
-                        Darklight.CustomGizmos.DrawLabel($"{gridCoordinate.CurrentFlag}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
-                        Darklight.CustomGizmos.DrawButtonHandle(gridCoordinate.GetPositionInScene(), Vector3.up, gridCoordinate.Size * 0.45f, coordinateColor, () =>
-                        {
-                            onCoordinateSelect?.Invoke(gridCoordinate); // Invoke the action if the button is clicked
-                        }, Handles.RectangleHandleCap);
                         break;
                 }
             }
