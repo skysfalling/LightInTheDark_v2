@@ -29,7 +29,6 @@ namespace Darklight.Bot
 			this.task = task;
 			Name = name;
 			this.executeOnBackgroundThread = executeOnBackgroundThread;
-			queenParent.TaskBotConsole.Log(this, $"\t\t >> Hello {Name}! execute onBkgThread?= {executeOnBackgroundThread}");
 		}
 
 		public TaskBot(TaskBotQueen queenParent, string name, Task task, bool executeOnBackgroundThread = false)
@@ -39,7 +38,6 @@ namespace Darklight.Bot
 			this.task = () => task;
 			Name = name;
 			this.executeOnBackgroundThread = executeOnBackgroundThread;
-			queenParent.TaskBotConsole.Log(this, $"\t\t >> Hello {Name}! execute onBkgThread?= {executeOnBackgroundThread}");
 		}
 
 		public virtual async Task ExecuteTask()

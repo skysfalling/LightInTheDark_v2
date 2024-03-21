@@ -115,13 +115,15 @@ namespace Darklight.World.Builder
 				_regionMap[regionCoordinate.ValueKey] = region;
 			}
 			await base.Initialize();
-			await ExecutionSequence();
+			//await ExecutionSequence();
 		}
 
 
 		/// <summary>
 		/// Orchestrates the entire initialization sequence asynchronously, divided into stages.
 		/// </summary>
+
+		/*
 		public override async Awaitable ExecutionSequence()
 		{
 			Debug.Log($"{_prefix} Begin Initialization");
@@ -156,6 +158,7 @@ namespace Darklight.World.Builder
 			// Mark initialization as complete
 			Initialized = true;
 		}
+		*/
 
 		#endregion
 

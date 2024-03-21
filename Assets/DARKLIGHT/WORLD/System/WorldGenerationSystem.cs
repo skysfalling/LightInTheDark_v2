@@ -31,22 +31,22 @@ namespace Darklight.World
 
     public class WorldGenerationSystem : TaskBotQueen, ITaskEntity
     {
-        #region [[ STATIC METHODS ]] ---- >> 
+        #region [[ STATIC INSTANCE ]] ---- >> 
         /// <summary> A singleton instance of the WorldGenerationSystem class. </summary>
         public static WorldGenerationSystem Instance;
+        public static string Prefix => "< WORLD GENERATION SYSTEM >";
         #endregion
 
         #region [[ GENERATION SETTINGS ]] ---- >> 
-        static GenerationSettings _settings = new GenerationSettings();
-
         /// <summary> Contains settings used during the world generation process. </summary>
-        public static GenerationSettings Settings => _settings;
+        [SerializeField] private GenerationSettings _settings = new GenerationSettings();
+        public static GenerationSettings Settings;
 
         /// <summary> Override the default generation settings. </summary>
         public static void OverrideSettings(CustomGenerationSettings customSettings)
         {
-            if (customSettings == null) { _settings = new GenerationSettings(); return; }
-            _settings = new GenerationSettings(customSettings);
+            if (customSettings == null) { return; }
+            Settings = new GenerationSettings(customSettings);
         }
         #endregion
 
@@ -60,19 +60,6 @@ namespace Darklight.World
         public static void InitializeRandomSeed()
         {
             UnityEngine.Random.InitState(EncodedSeed);
-        }
-        #endregion
-
-        #region --------------- UNITY MAIN --))
-
-        public string prefix => "< WORLD GENERATION SYSTEM >";
-        public Material defaultMaterial;
-        public GridMap2D<Region> RegionGridMap { get; private set; } = new GridMap2D<Region>();
-
-        public override void Awake()
-        {
-            base.Awake();
-            _ = Initialize();
         }
         #endregion
 
@@ -95,18 +82,34 @@ namespace Darklight.World
         }
         #endregion
 
+        #region --------------- UNITY MAIN --))
+
+        //public CustomGenerationSettings customGenerationSettings;
+        public Material defaultMaterial;
+        public GridMap2D<Region> RegionGridMap { get; private set; } = new GridMap2D<Region>();
+
+        public override void Awake()
+        {
+            base.Awake();
+            _ = Initialize();
+        }
+        #endregion
+
         #region --------------- TASK BOT QUEEN --))
         public override async Task Initialize()
         {
             this.Name = "WorldGenerationSystem";
+
+            //if (customGenerationSettings != null) OverrideSettings(customGenerationSettings);
             WorldGenerationSystem.InitializeRandomSeed();
             await base.Initialize();
 
-            Debug.Log($"{prefix} Initialized");
+            Debug.Log($"{Prefix} Initialized");
 
             await RegionGridMap.InitializeDataMap(); // Initialize Data
 
             // [[ ADD BOTS TO EXECUTION QUEUE ]]
+            /*
             GridMap2D<Region> regionGridMap = RegionGridMap;
             List<Vector2Int> regionPositions = regionGridMap.PositionKeys;
             foreach (Vector2Int position in regionPositions)
@@ -115,6 +118,7 @@ namespace Darklight.World
                 TaskBot newBot = new TaskBot(this, $"{prefix} :: CreateRegionBuilderObject", CreateRegionBuilderObject(region));
                 await this.Enqueue(newBot);
             }
+            */
         }
         #endregion
 
@@ -138,16 +142,15 @@ namespace Darklight.World
 
         public override void OnEnable()
         {
-            base.OnEnable();
             _serializedObject = new SerializedObject(target);
             _worldGenSystem = (WorldGenerationSystem)target;
-
         }
 
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
             EditorGUILayout.Space();
+
             showGridMapFoldout = EditorGUILayout.Foldout(showGridMapFoldout, "Region Grid Map");
             if (showGridMapFoldout)
             {

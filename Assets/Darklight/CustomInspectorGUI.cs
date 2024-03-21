@@ -158,7 +158,7 @@ namespace Darklight
 		public static void CreateFoldout(ref bool isFoldoutExpanded, string foldoutLabel, Action innerAction)
 		{
 			// Draw the foldout
-			isFoldoutExpanded = EditorGUILayout.Foldout(isFoldoutExpanded, foldoutLabel, true);
+			isFoldoutExpanded = EditorGUILayout.Foldout(isFoldoutExpanded, foldoutLabel, true, EditorStyles.foldoutHeader);
 
 			// If the foldout is expanded, execute the action
 			if (isFoldoutExpanded && innerAction != null)
