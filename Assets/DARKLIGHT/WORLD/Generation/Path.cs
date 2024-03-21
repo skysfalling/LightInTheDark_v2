@@ -7,7 +7,6 @@ namespace Darklight.World.Generation
 	public class Path
 	{
 		List<Vector2Int> _positions = new();
-
 		public Vector2Int StartPosition { get; private set; }
 		public Vector2Int EndPosition { get; private set; }
 		public List<Vector2Int> AllPositions => _positions;

@@ -8,7 +8,7 @@ namespace Darklight.World.Generation
     using System.Threading.Tasks;
     using System.Linq;
 
-    public class SpawnMap : TaskQueen, ITaskEntity
+    public class SpawnMap : TaskBotQueen, ITaskEntity
     {
         RegionBuilder _regionBuilder;
         WorldBuilder _worldBuilder;

@@ -59,6 +59,7 @@
     },
     "dotnet.defaultSolution": "LightInTheDark_v2.sln",
     "cSpell.words": [
+        "intercardinal",
         "Newtonsoft"
     ]
 }

@@ -8,7 +8,7 @@ namespace Darklight.Bot
 	using UnityEngine.PlayerLoop;
 	using Debug = UnityEngine.Debug;
 
-	public class TaskQueen : MonoBehaviour, ITaskEntity
+	public class TaskBotQueen : MonoBehaviour, ITaskEntity
 	{
 		private Queue<TaskBot> _executionQueue = new();
 		public string Name { get; set; } = "TaskQueen";

@@ -15,7 +15,7 @@ namespace Darklight.World.Builder
 
 
 	[RequireComponent(typeof(ChunkBuilder))]
-	public class RegionBuilder : TaskQueen, ITaskEntity
+	public class RegionBuilder : TaskBotQueen, ITaskEntity
 	{
 		#region [[ PRIVATE VARIABLES ]] 
 		string _prefix = "[[ REGION BUILDER ]]";
@@ -27,39 +27,12 @@ namespace Darklight.World.Builder
 		HashSet<GameObject> _regionObjects = new();
 		#endregion
 		#region [[ GETTERS ]]
-		/// <summary>
-		/// Gets a value indicating whether the region builder has been initialized.
-		/// </summary>
 		public bool Initialized { get; private set; }
-
-		/// <summary>
-		/// Indicated if the generation of the region has finished.
-		/// </summary>
 		public bool GenerationFinished { get; private set; }
-
-		/// <summary>
-		/// Gets the parent WorldBuilder.
-		/// </summary>
 		public WorldBuilder GenerationParent => _generationParent;
-
-		/// <summary>
-		/// Gets the coordinate of the region.
-		/// </summary>
 		public Coordinate Coordinate => _coordinate;
-
-		/// <summary>
-		/// Gets the coordinate map for the region.
-		/// </summary>
 		public CoordinateMap CoordinateMap => _coordinateMap;
-
-		/// <summary>
-		/// Gets the chunk generation component.
-		/// </summary>
 		public ChunkBuilder ChunkBuilder => GetComponent<ChunkBuilder>();
-
-		/// <summary>
-		/// Gets the center position of the region.
-		/// </summary>
 		public Vector3 CenterPosition
 		{
 			get
@@ -68,10 +41,6 @@ namespace Darklight.World.Builder
 				else { return Coordinate.ScenePosition; }
 			}
 		}
-
-		/// <summary>
-		/// Gets the origin position of the region.
-		/// </summary>
 		public Vector3 OriginPosition
 		{
 			get

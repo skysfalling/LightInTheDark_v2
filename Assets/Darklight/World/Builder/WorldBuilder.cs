@@ -17,7 +17,7 @@ namespace Darklight.World.Builder
 #endif
 
 	/// <summary> Initializes and handles the procedural world generation. </summary>
-	public class WorldBuilder : TaskQueen, ITaskEntity
+	public class WorldBuilder : TaskBotQueen, ITaskEntity
 	{
 		#region [[ STATIC INSTANCE ]] ------------------- // 
 		/// <summary> A singleton instance of the WorldGeneration class. </summary>

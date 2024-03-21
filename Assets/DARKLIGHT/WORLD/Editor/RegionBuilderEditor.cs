@@ -10,7 +10,7 @@ namespace Darklight.World.Editor
 
 #if UNITY_EDITOR
 	[CustomEditor(typeof(RegionBuilder))]
-	public class RegionBuilderEditor : TaskQueenEditor
+	public class RegionBuilderEditor : TaskBotQueenEditor
 	{
 		private SerializedObject _serializedRegionBuilderObject;
 		private RegionBuilder _regionBuilderScript;

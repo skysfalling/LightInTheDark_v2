@@ -9,14 +9,12 @@ using UnityEditor;
 namespace Darklight.World
 {
     using Debug = UnityEngine.Debug;
-
-    using Darklight.Bot;
+    using Bot;
     using Settings;
-    using Generation;
     using Map;
-    using Builder;
-    using UnityEditor.SearchService;
-    using System.Linq;
+    using System.Threading.Tasks;
+    using Darklight.World.Generation;
+    using Darklight.Bot.Editor;
 
     #region (( SPATIAL ENUMS))
     /// <summary>
@@ -31,7 +29,7 @@ namespace Darklight.World
     public enum EdgeDirection { WEST, NORTH, EAST, SOUTH }
     #endregion
 
-    public class WorldGenerationSystem : TaskQueen, ITaskEntity
+    public class WorldGenerationSystem : TaskBotQueen, ITaskEntity
     {
         #region [[ STATIC INSTANCE ]] ---- >> 
         /// <summary> A singleton instance of the WorldGenerationSystem class. </summary>
@@ -62,24 +60,12 @@ namespace Darklight.World
         }
         #endregion
 
+        #region --------------- UNITY MAIN --))
+
         string _prefix = "< WORLD GENERATION SYSTEM > ";
         public Material defaultMaterial;
-        public GridMap2D regionGrid = new GridMap2D();
+        public GridMap2D regionGrid;
 
-
-        public Vector3 CenterPosition { get { return transform.position; } }
-        public Vector3 OriginPosition
-        {
-            get
-            {
-                Vector3 origin = CenterPosition; // Start at center
-                origin -= Settings.WorldWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
-                origin += Settings.RegionFullWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
-                return origin;
-            }
-        }
-
-        // ================================================================== FUNCTIONS ==================== 
         public override void Awake()
         {
             // >> set singleton instance
@@ -90,7 +76,41 @@ namespace Darklight.World
 
             // >>  awake base TaskQueen
             base.Awake();
+
         }
+        #endregion
+
+        #region --------------- TASKS --))
+
+        async Task CreateRegions()
+        {
+            // Create all Regions on GridMap
+            foreach (Vector2Int position in regionGrid.PositionKeys)
+            {
+                GameObject regionObject = new GameObject($"New Region ({position})");
+                Region region = regionObject.AddComponent<Region>();
+                region.transform.parent = this.transform;
+            }
+            await Task.CompletedTask;
+        }
+
+        #endregion
+
+        #region --------------- TASK BOT QUEEN --))
+        public override async Task Initialize()
+        {
+            this.Name = "WorldGenerationSystem";
+            WorldGenerationSystem.InitializeRandomSeed();
+            Debug.Log($"{_prefix} Initialized");
+
+
+            // [[ INSTANTIATE REGIONS ]]
+            await CreateRegions();
+        }
+        #endregion
+
+
+
 
         public override void Reset()
         {
@@ -98,11 +118,10 @@ namespace Darklight.World
         }
     }
 
-
     // ==================================================== CUSTOM UNITY EDITOR ==================
 #if UNITY_EDITOR
     [CustomEditor(typeof(WorldGenerationSystem))]
-    public class WorldGenerationSystemEditor : UnityEditor.Editor
+    public class WorldGenerationSystemEditor : TaskBotQueenEditor
     {
         SerializedObject _serializedObject;
         WorldGenerationSystem _worldGenSystem;
@@ -111,8 +130,9 @@ namespace Darklight.World
 
         public static bool showGridMapFoldout = true;
 
-        public void OnEnable()
+        public override void OnEnable()
         {
+            base.OnEnable();
             _serializedObject = new SerializedObject(target);
             _worldGenSystem = (WorldGenerationSystem)target;
 
@@ -120,7 +140,7 @@ namespace Darklight.World
 
         public override void OnInspectorGUI()
         {
-            DrawDefaultInspector();
+            base.OnInspectorGUI();
             EditorGUILayout.Space();
             showGridMapFoldout = EditorGUILayout.Foldout(showGridMapFoldout, "Region Grid Map");
             if (showGridMapFoldout)
@@ -137,6 +157,7 @@ namespace Darklight.World
             WorldGenerationSystem worldGenSystem = (WorldGenerationSystem)target;
             SceneGUI_DrawGridMap2D(worldGenSystem.regionGrid, gridMap2DView, (coordinate) =>
             {
+
                 Debug.Log($"Selected Coordinate: {coordinate.PositionKey}");
             });
         }
@@ -146,6 +167,7 @@ namespace Darklight.World
             GUIStyle coordLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
             Color coordinateColor = Color.white;
 
+            Darklight.CustomGizmos.DrawWireSquare(gridMap2D.CenterPosition, gridMap2D.MapWidth * gridMap2D.CoordinateSize, coordinateColor, Vector3.up);
 
 
             // << BORDER DIRECTIONS >>

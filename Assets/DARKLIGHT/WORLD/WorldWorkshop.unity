@@ -163,12 +163,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 669ec2ca9ea20be4c8b1544db0d426ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  customWorldGenSettings: {fileID: 0}
   defaultMaterial: {fileID: 0}
   regionGrid:
-    _customSettings: {fileID: 0}
     _settings:
-      _seed: Default Game Seed
+      _seed: 31456143614364
       _cellSize: 2
       _chunkWidth: 10
       _chunkDepth: 10
@@ -178,9 +176,12 @@ MonoBehaviour:
       _worldWidth: 5
       _pathRandomness: 0.5
       _perlinMultiplier: 1
-    _unitSpace: 4
-    _mapWidth: 11
-    _coordinateSize: 10
+    _mapUnitSpace: 4
+    _coordinateUnitSpace: 4
+    _mapWidth: 5
+    _coordinateSize: 140
+    customGenerationSettings: {fileID: 11400000, guid: 4702d670f1778e942af8a3a18db5484d,
+      type: 2}
 --- !u!1 &2089831364
 GameObject:
   m_ObjectHideFlags: 0

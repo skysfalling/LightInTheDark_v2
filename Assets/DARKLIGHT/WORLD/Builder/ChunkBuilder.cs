@@ -14,7 +14,7 @@ namespace Darklight.World.Builder
 	using Darklight.World.Map;
 	using System;
 
-	public class ChunkBuilder : TaskQueen, ITaskEntity
+	public class ChunkBuilder : TaskBotQueen, ITaskEntity
 	{
 		HashSet<Chunk> _chunks = new();
 		Dictionary<Vector2Int, Chunk> _chunkMap = new();

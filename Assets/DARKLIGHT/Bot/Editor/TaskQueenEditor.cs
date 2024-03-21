@@ -6,31 +6,28 @@ namespace Darklight.Bot.Editor
 	using UnityEditor;
 	using UnityEngine;
 
-	[CustomEditor(typeof(TaskQueen), true)]
-	public class TaskQueenEditor : Editor
+	[CustomEditor(typeof(TaskBotQueen), true)]
+	public class TaskBotQueenEditor : Editor
 	{
 		private Vector2 scrollPosition;
-		public TaskQueen queenScript;
+		public TaskBotQueen queenScript;
 		public Console console;
 
 		public virtual void OnEnable()
 		{
-			queenScript = (TaskQueen)target;
+			queenScript = (TaskBotQueen)target;
 			console = queenScript.TaskBotConsole;
 		}
 
 		public override void OnInspectorGUI()
 		{
-			DrawDefaultInspector();
-
 			GUILayout.Space(10);
+			queenScript = (TaskBotQueen)target;
+			console = queenScript.TaskBotConsole;
 
-			TaskQueen queen = (TaskQueen)target;
-			Console console = queen.TaskBotConsole;
-
-			// Custom style for the background
+			// Dark gray background
 			GUIStyle backgroundStyle = new GUIStyle();
-			backgroundStyle.normal.background = MakeTex(600, 1, new Color(0.1f, 0.1f, 0.1f, 1.0f)); // Dark gray background
+			backgroundStyle.normal.background = MakeTex(600, 1, new Color(0.1f, 0.1f, 0.1f, 1.0f));
 			backgroundStyle.padding = new RectOffset(10, 10, 10, 10); // Padding for inner content
 
 			// Creating a scroll view with a custom background
@@ -44,6 +41,7 @@ namespace Darklight.Bot.Editor
 			EditorGUILayout.EndScrollView();
 			EditorUtility.SetDirty(target);
 
+			base.OnInspectorGUI();
 		}
 
 		// Utility function to create a texture

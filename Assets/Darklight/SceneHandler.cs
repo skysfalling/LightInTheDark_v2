@@ -10,7 +10,7 @@ using Debug = UnityEngine.Debug;
 
 namespace Darklight.Bot
 {
-    public class UnitySceneHandler : TaskQueen
+    public class UnitySceneHandler : TaskBotQueen
     {
         public static UnitySceneHandler Instance { get; private set; }
         private void Awake()

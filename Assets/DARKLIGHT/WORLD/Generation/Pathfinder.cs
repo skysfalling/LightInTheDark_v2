@@ -124,9 +124,5 @@ namespace Darklight.World.Generation
 
 			return path;
 		}
-
-
-
-
 	}
 }

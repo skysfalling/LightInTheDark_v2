@@ -9,13 +9,13 @@ namespace Darklight.Bot.Tester
 {
 	public class TestTaskQueen : MonoBehaviour
 	{
-		static TaskQueen taskQueen;
-		static TaskQueen asyncTaskQueen;
+		static TaskBotQueen taskQueen;
+		static TaskBotQueen asyncTaskQueen;
 
 		public void Awake()
 		{
-			taskQueen = new GameObject("TaskQueen").AddComponent<TaskQueen>();
-			asyncTaskQueen = new GameObject("AsyncTaskQueen").AddComponent<TaskQueen>();
+			taskQueen = new GameObject("TaskQueen").AddComponent<TaskBotQueen>();
+			asyncTaskQueen = new GameObject("AsyncTaskQueen").AddComponent<TaskBotQueen>();
 		}
 
 		public void Start()

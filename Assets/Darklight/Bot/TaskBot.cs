@@ -14,14 +14,14 @@ namespace Darklight.Bot
 	public class TaskBot : IDisposable, ITaskEntity
 	{
 		private Stopwatch stopwatch;
-		private TaskQueen queenParent;
+		private TaskBotQueen queenParent;
 		public Func<Task> task;
 		public bool executeOnBackgroundThread = false;
 
 		public string Name { get; set; } = "TaskBot";
 		public Guid GuidId { get; } = Guid.NewGuid();
 		public long ExecutionTime = 0;
-		public TaskBot(TaskQueen queenParent, string name, Func<Task> task, bool executeOnBackgroundThread = false)
+		public TaskBot(TaskBotQueen queenParent, string name, Func<Task> task, bool executeOnBackgroundThread = false)
 		{
 			stopwatch = Stopwatch.StartNew();
 			this.queenParent = queenParent;
@@ -31,7 +31,7 @@ namespace Darklight.Bot
 			queenParent.TaskBotConsole.Log(this, $"\t\t >> Hello {Name}! execute onBkgThread?= {executeOnBackgroundThread}");
 		}
 
-		public TaskBot(TaskQueen queenParent, string name, Task task, bool executeOnBackgroundThread = false)
+		public TaskBot(TaskBotQueen queenParent, string name, Task task, bool executeOnBackgroundThread = false)
 		{
 			stopwatch = Stopwatch.StartNew();
 			this.queenParent = queenParent;

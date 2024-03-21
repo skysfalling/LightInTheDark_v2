@@ -50,10 +50,10 @@ namespace Darklight
             Vector2 halfArea = area * 0.5f;
             Vector3[] vertices = new Vector3[4]
             {
-        new Vector3(-halfArea.x, 0, -halfArea.y),
-        new Vector3(halfArea.x, 0, -halfArea.y),
-        new Vector3(halfArea.x, 0, halfArea.y),
-        new Vector3(-halfArea.x, 0, halfArea.y)
+                new Vector3(-halfArea.x, 0, -halfArea.y),
+                new Vector3(halfArea.x, 0, -halfArea.y),
+                new Vector3(halfArea.x, 0, halfArea.y),
+                new Vector3(-halfArea.x, 0, halfArea.y)
             };
 
             // Calculate the rotation from the up direction to the normal direction

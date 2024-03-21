@@ -15,7 +15,7 @@ using UnityEditor;
 
 namespace Darklight.World.Map
 {
-    public class CoordinateMapMonoBehaviour : TaskQueen
+    public class CoordinateMapMonoBehaviour : TaskBotQueen
     {
         [SerializeField]
         public CustomGenerationSettings customSettings;
