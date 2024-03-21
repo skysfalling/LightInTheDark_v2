@@ -12,7 +12,7 @@ namespace Darklight.World.Settings
 	public class GenerationSettings
 	{
 		// [[ STORED SETTINGS DATA ]] 
-		[SerializeField] private CustomGenerationSettings _customGenerationSettings;
+		[SerializeField] private CustomGenerationSettings _customSettings;
 		[SerializeField] private string _seed = "Default Game Seed";
 		[SerializeField] private int _cellSize = 2; // in Units
 		[SerializeField] private int _chunkWidth = 10; // in Cells
@@ -60,21 +60,37 @@ namespace Darklight.World.Settings
 		public float PathRandomness => _pathRandomness;
 		public float PerlinMultiplier => _perlinMultiplier;
 
-		public GenerationSettings() { }
-		public GenerationSettings(CustomGenerationSettings customGenSettings)
-		{
-			this._customGenerationSettings = customGenSettings;
-			_seed = customGenSettings.Seed;
-			_cellSize = customGenSettings.CellSize;
-			_chunkWidth = customGenSettings.ChunkWidth;
-			_chunkDepth = customGenSettings.ChunkDepth;
-			_chunkMaxHeight = customGenSettings.ChunkMaxHeight;
-			_regionWidth = customGenSettings.RegionWidth;
-			_regionBoundaryOffset = customGenSettings.RegionBoundaryOffset;
-			_worldWidth = customGenSettings.WorldWidth;
 
-			_pathRandomness = customGenSettings.PathRandomness;
-			_perlinMultiplier = customGenSettings.PerlinMultiplier;
+		// >>>> CUSTOM SETTINGS
+		public GenerationSettings() { }
+
+		void SetCustomValues(CustomGenerationSettings customSettings)
+		{
+			_customSettings = customSettings;
+			_seed = customSettings.Seed;
+			_cellSize = customSettings.CellSize;
+			_chunkWidth = customSettings.ChunkWidth;
+			_chunkDepth = customSettings.ChunkDepth;
+			_chunkMaxHeight = customSettings.ChunkMaxHeight;
+			_regionWidth = customSettings.RegionWidth;
+			_regionBoundaryOffset = customSettings.RegionBoundaryOffset;
+			_worldWidth = customSettings.WorldWidth;
+			_pathRandomness = customSettings.PathRandomness;
+			_perlinMultiplier = customSettings.PerlinMultiplier;
+		}
+
+		public void Initialize(CustomGenerationSettings customSettings = null)
+		{
+			// Set custom settings from parameter
+			if (customSettings != null && _customSettings != customSettings)
+				SetCustomValues(customSettings);
+			// Set custom settings from class instance
+			else if (customSettings == null && _customSettings != null)
+				SetCustomValues(_customSettings);
+
+			// Initialize Random
+			int encodedSeed = Seed.GetHashCode();
+			UnityEngine.Random.InitState(encodedSeed);
 		}
 	}
 
@@ -85,7 +101,7 @@ namespace Darklight.World.Settings
 		bool showSettingsFoldout = true;
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 		{
-			SerializedProperty customGenProp = property.FindPropertyRelative("_customGenerationSettings");
+			SerializedProperty customSettingsProp = property.FindPropertyRelative("_customSettings");
 			SerializedProperty seedProp = property.FindPropertyRelative("_seed");
 			SerializedProperty cellSizeProp = property.FindPropertyRelative("_cellSize");
 			SerializedProperty chunkWidthProp = property.FindPropertyRelative("_chunkWidth");
@@ -97,20 +113,23 @@ namespace Darklight.World.Settings
 			SerializedProperty pathRandomnessProp = property.FindPropertyRelative("_pathRandomness");
 			SerializedProperty perlinMultiplierProp = property.FindPropertyRelative("_perlinMultiplier");
 
+			// Initialize generation settings with CustomSettings
+			GenerationSettings generationSettings = fieldInfo.GetValue(property.serializedObject.targetObject) as GenerationSettings;
+			generationSettings.Initialize();
+
 			EditorGUI.BeginProperty(position, label, property);
 
-			// >> Foldout
+			// << HEADER >>
 			string foldoutHeader = "Default Generation Settings";
-			if (customGenProp.objectReferenceValue != null)
-				foldoutHeader = $"Custom Generation Settings < {customGenProp.objectReferenceValue.name} >";
+			if (customSettingsProp != null && customSettingsProp.objectReferenceValue != null)
+				foldoutHeader = $"Custom Generation Settings < {customSettingsProp.objectReferenceValue.name} >";
 
+			// << FOLDOUT >>
 			Darklight.CustomInspectorGUI.CreateFoldout(ref showSettingsFoldout, foldoutHeader, () =>
 			{
-				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.Space();
-				EditorGUILayout.BeginVertical();
+				EditorGUI.indentLevel++;
 
-				EditorGUILayout.PropertyField(customGenProp);
+				EditorGUILayout.PropertyField(customSettingsProp);
 				EditorGUILayout.PropertyField(seedProp);
 				EditorGUILayout.PropertyField(cellSizeProp);
 				EditorGUILayout.PropertyField(chunkWidthProp);
@@ -122,15 +141,15 @@ namespace Darklight.World.Settings
 				EditorGUILayout.PropertyField(pathRandomnessProp);
 				EditorGUILayout.PropertyField(perlinMultiplierProp);
 
-				EditorGUILayout.EndVertical();
-				EditorGUILayout.EndHorizontal();
+				EditorGUI.indentLevel--;
 				EditorGUILayout.Space();
 			});
 
+			// Apply changes to the serialized properties
+			property.serializedObject.ApplyModifiedProperties();
+
 			EditorGUI.EndProperty();
 		}
-
-
 	}
 #endif
 }

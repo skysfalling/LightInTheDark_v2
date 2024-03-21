@@ -65,8 +65,7 @@ namespace Darklight.World.Builder
 		public void OverrideSettings(CustomGenerationSettings customSettings)
 		{
 			if (customSettings == null) { _regionSettings = new GenerationSettings(); return; }
-			_regionSettings = new GenerationSettings(customSettings);
-			customRegionSettings = customSettings;
+			_regionSettings.Initialize(customSettings);
 		}
 		#endregion
 		#region [[ RANDOM SEED ]] 

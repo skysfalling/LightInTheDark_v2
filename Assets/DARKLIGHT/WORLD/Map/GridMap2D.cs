@@ -489,7 +489,7 @@ namespace Darklight.World.Map
 
         void Initialize(CustomGenerationSettings customSettings)
         {
-            _settings = new GenerationSettings(customSettings);
+            _settings.Initialize(customSettings);
             _mapWidth = _settings.WorldWidth_inRegionUnits;
             _coordinateSize = _settings.RegionFullWidth_inGameUnits;
             Initialize();
@@ -769,9 +769,6 @@ namespace Darklight.World.Map
                 return false;
             }
 
-            // Initialize Random Seed :: IMPORTANT To keep the same results per seed
-            WorldGenerationSystem.InitializeRandomSeed();
-
             // Store all possible positions from the coordinate map
             List<Vector2Int> positions = gridMap2D.PositionKeys;
             // Initialize the open set with the start coordinate
@@ -863,7 +860,7 @@ namespace Darklight.World.Map
 
         public Path CreatePathFrom(Vector2Int start, Vector2Int end, List<Coordinate.Flag> validFlags, bool applyPathFlagToEnd = false)
         {
-            Path newPath = new Path(this, start, end, validFlags, WorldGenerationSystem.Settings.PathRandomness);
+            Path newPath = new Path(this, start, end, validFlags, _settings.PathRandomness);
             _paths[(start, end)] = newPath;
 
             // Remove Ends

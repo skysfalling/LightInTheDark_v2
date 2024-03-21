@@ -45,7 +45,7 @@ namespace Darklight.World.Builder
 		public static void OverrideSettings(CustomGenerationSettings customSettings)
 		{
 			if (customSettings == null) { _settings = new GenerationSettings(); return; }
-			_settings = new GenerationSettings(customSettings);
+			_settings.Initialize();
 		}
 		#endregion
 

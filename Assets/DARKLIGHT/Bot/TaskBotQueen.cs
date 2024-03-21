@@ -159,12 +159,14 @@ namespace Darklight.Bot
 	public class TaskBotQueenEditor : Editor
 	{
 		private Vector2 scrollPosition;
+		private SerializedObject _serializedObject;
 		public TaskBotQueen queenScript;
 		public Console console;
 		public bool showConsole = true;
 
 		public virtual void OnEnable()
 		{
+			_serializedObject = new SerializedObject(target);
 			queenScript = (TaskBotQueen)target;
 			console = queenScript.TaskBotConsole;
 			_ = queenScript.Initialize();
@@ -190,7 +192,9 @@ namespace Darklight.Bot
 				}
 
 			});
-			base.OnInspectorGUI();
+
+			_serializedObject = new SerializedObject(target);
+			Darklight.CustomInspectorGUI.DrawDefaultInspectorWithoutSelfReference(_serializedObject);
 		}
 
 		void DrawConsole()
@@ -207,7 +211,7 @@ namespace Darklight.Bot
 			List<string> activeConsole = console.GetActiveConsole();
 			foreach (string message in activeConsole)
 			{
-				EditorGUILayout.LabelField(message, Darklight.CustomInspectorGUI.LeftAlignedStyle);
+				EditorGUILayout.LabelField(message, Darklight.CustomGUIStyles.LeftAlignedStyle);
 			}
 			EditorGUILayout.EndScrollView();
 			EditorUtility.SetDirty(target);

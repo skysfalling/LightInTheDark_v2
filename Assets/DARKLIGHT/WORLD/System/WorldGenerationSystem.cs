@@ -40,14 +40,7 @@ namespace Darklight.World
         #region [[ GENERATION SETTINGS ]] ---- >> 
         /// <summary> Contains settings used during the world generation process. </summary>
         [SerializeField] private GenerationSettings _settings = new GenerationSettings();
-        public static GenerationSettings Settings;
-
-        /// <summary> Override the default generation settings. </summary>
-        public static void OverrideSettings(CustomGenerationSettings customSettings)
-        {
-            if (customSettings == null) { return; }
-            Settings = new GenerationSettings(customSettings);
-        }
+        public GenerationSettings Settings => _settings;
         #endregion
 
         #region [[ GENERATION DATA ]] 
@@ -55,12 +48,7 @@ namespace Darklight.World
         #endregion
 
         #region [[ RANDOM SEED ]] ---- >> 
-        public static string Seed { get { return Settings.Seed; } }
-        public static int EncodedSeed { get { return Settings.Seed.GetHashCode(); } }
-        public static void InitializeRandomSeed()
-        {
-            UnityEngine.Random.InitState(EncodedSeed);
-        }
+
         #endregion
 
         #region --------------- TASKS --))
@@ -83,8 +71,6 @@ namespace Darklight.World
         #endregion
 
         #region --------------- UNITY MAIN --))
-
-        //public CustomGenerationSettings customGenerationSettings;
         public Material defaultMaterial;
         public GridMap2D<Region> RegionGridMap { get; private set; } = new GridMap2D<Region>();
 
@@ -100,8 +86,7 @@ namespace Darklight.World
         {
             this.Name = "WorldGenerationSystem";
 
-            //if (customGenerationSettings != null) OverrideSettings(customGenerationSettings);
-            WorldGenerationSystem.InitializeRandomSeed();
+            _settings.Initialize();
             await base.Initialize();
 
             Debug.Log($"{Prefix} Initialized");
@@ -154,7 +139,7 @@ namespace Darklight.World
             showGridMapFoldout = EditorGUILayout.Foldout(showGridMapFoldout, "Region Grid Map");
             if (showGridMapFoldout)
             {
-                Darklight.CustomInspectorGUI.DrawLabeledEnumPopup(ref gridMap2DView, "Grid View");
+                Darklight.CustomInspectorGUI.CreateEnumLabel(ref gridMap2DView, "Grid View");
             }
         }
 
@@ -173,7 +158,7 @@ namespace Darklight.World
 
         public void SceneGUI_DrawGridMap2D(GridMap2D gridMap2D, GridMap2DView gridMap2DView, System.Action<GridMap2D.Coordinate> onCoordinateSelect)
         {
-            GUIStyle coordLabelStyle = Darklight.CustomInspectorGUI.CenteredStyle;
+            GUIStyle coordLabelStyle = CustomGUIStyles.CenteredStyle;
             Color coordinateColor = Color.white;
 
             Darklight.CustomGizmos.DrawWireSquare(gridMap2D.CenterPosition, gridMap2D.MapWidth * gridMap2D.CoordinateSize, coordinateColor, Vector3.up);

@@ -8,102 +8,25 @@ namespace Darklight
 
 	public static class CustomInspectorGUI
 	{
-		public static GUIStyle TitleHeaderStyle
+		public static bool DrawDefaultInspectorWithoutSelfReference(SerializedObject obj)
 		{
-			get
+			EditorGUI.BeginChangeCheck();
+			obj.UpdateIfRequiredOrScript();
+			SerializedProperty iterator = obj.GetIterator();
+			iterator.NextVisible(true); // skip first property
+			bool enterChildren = true;
+			while (iterator.NextVisible(enterChildren))
 			{
-				return new GUIStyle(GUI.skin.label)
+				using (new EditorGUI.DisabledScope("m_Script" == iterator.propertyPath))
 				{
-					alignment = TextAnchor.MiddleCenter,
-					fontSize = 24,
-					fontStyle = FontStyle.Bold,
-					fixedHeight = 40
-				};
-			}
-		}
+					EditorGUILayout.PropertyField(iterator, true);
+				}
 
-		public static GUIStyle Header1Style
-		{
-			get
-			{
-				return new GUIStyle(GUI.skin.label)
-				{
-					fontSize = 20,
-					fontStyle = FontStyle.Bold,
-					fixedHeight = 40
-				};
+				enterChildren = false;
 			}
-		}
 
-		public static GUIStyle Header2Style
-		{
-			get
-			{
-				return new GUIStyle(GUI.skin.label)
-				{
-					fontSize = 16,
-					fontStyle = FontStyle.Bold,
-					fixedHeight = 40
-				};
-			}
-		}
-
-		public static GUIStyle LeftAlignedStyle
-		{
-			get
-			{
-				return new GUIStyle(GUI.skin.label)
-				{
-					alignment = TextAnchor.MiddleLeft
-				};
-			}
-		}
-
-		public static GUIStyle CenteredStyle
-		{
-			get
-			{
-				return new GUIStyle(GUI.skin.label)
-				{
-					alignment = TextAnchor.MiddleCenter
-				};
-			}
-		}
-
-		public static GUIStyle RightAlignedStyle
-		{
-			get
-			{
-				return new GUIStyle(GUI.skin.label)
-				{
-					alignment = TextAnchor.MiddleRight
-				};
-			}
-		}
-
-		public static GUIStyle BoldStyle
-		{
-			get
-			{
-				return new GUIStyle(GUI.skin.label)
-				{
-					fontSize = 12,
-					fontStyle = FontStyle.Bold
-				};
-			}
-		}
-
-		public static GUIStyle BoldCenteredStyle
-		{
-			get
-			{
-				return new GUIStyle(GUI.skin.label)
-				{
-					fontSize = 12,
-					fontStyle = FontStyle.Bold,
-					alignment = TextAnchor.MiddleCenter
-				};
-			}
+			obj.ApplyModifiedProperties();
+			return EditorGUI.EndChangeCheck();
 		}
 
 		public static void FocusSceneView(Vector3 focusPoint)
@@ -137,7 +60,7 @@ namespace Darklight
 			{
 				setValue(Mathf.Max(minValue, currentValue - 1));
 			}
-			EditorGUILayout.LabelField($"{currentValue}", CenteredStyle, GUILayout.MaxWidth(50));
+			EditorGUILayout.LabelField($"{currentValue}", CustomGUIStyles.CenteredStyle, GUILayout.MaxWidth(50));
 			if (GUILayout.Button("+", GUILayout.MaxWidth(20)))
 			{
 				setValue(Mathf.Min(maxValue, currentValue + 1));
@@ -176,6 +99,19 @@ namespace Darklight
 			EditorGUILayout.LabelField(value);
 			EditorGUILayout.EndHorizontal();
 		}
+		// Helper function to create a labeled enum dropdown in the editor
+		public static void CreateEnumLabel<TEnum>(ref TEnum currentValue, string label) where TEnum : System.Enum
+		{
+			EditorGUILayout.BeginVertical();
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(label); // Adjust the width as needed
+
+			GUILayout.FlexibleSpace();
+
+			currentValue = (TEnum)EditorGUILayout.EnumPopup(currentValue);
+			EditorGUILayout.EndHorizontal();
+			EditorGUILayout.EndVertical();
+		}
 
 		public static Texture2D MakeTex(int width, int height, Color col)
 		{
@@ -191,19 +127,7 @@ namespace Darklight
 			return result;
 		}
 
-		// Helper function to create a labeled enum dropdown in the editor
-		public static void DrawLabeledEnumPopup<TEnum>(ref TEnum currentValue, string label) where TEnum : System.Enum
-		{
-			EditorGUILayout.BeginVertical();
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField(label); // Adjust the width as needed
 
-			GUILayout.FlexibleSpace();
-
-			currentValue = (TEnum)EditorGUILayout.EnumPopup(currentValue);
-			EditorGUILayout.EndHorizontal();
-			EditorGUILayout.EndVertical();
-		}
 
 		public static bool IsObjectOrChildSelected(GameObject obj)
 		{

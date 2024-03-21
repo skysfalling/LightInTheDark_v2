@@ -229,7 +229,7 @@ namespace Darklight.World.Generation
 					Handles.color = Color.black;
 					Cell cellAtNeighbor = CurrentChunk.GetCellAtCoordinate(neighbor);
 					Handles.DrawWireCube(cellAtNeighbor.Position, Vector3.one * 0.5f);
-					CustomGizmos.DrawLabel(CurrentCoordinate.GetWorldDirectionOfNeighbor(neighbor).ToString(), neighbor.ScenePosition, CustomInspectorGUI.CenteredStyle);
+					CustomGizmos.DrawLabel(CurrentCoordinate.GetWorldDirectionOfNeighbor(neighbor).ToString(), neighbor.ScenePosition, CustomGUIStyles.CenteredStyle);
 				}
 
 				foreach (Coordinate coordinate in CurrentChunk.CoordinateMap.AllCoordinates)
