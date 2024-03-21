@@ -291,6 +291,7 @@ namespace Darklight.World.Map
         public List<Vector2Int> PositionKeys { get { return _map.Keys.ToList(); } }
         public List<Coordinate> CoordinateValues { get { return _map.Values.ToList(); } }
         public Dictionary<EdgeDirection, Border> MapBorders { get { return _mapBorders; } }
+        public Dictionary<(EdgeDirection, EdgeDirection), Vector2Int> MapCorners { get { return _mapCorners; } }
         public Vector3 OriginPosition
         {
             get
@@ -373,10 +374,13 @@ namespace Darklight.World.Map
                     (EdgeDirection?, EdgeDirection?) CornerEdgeDirections = DetermineCornerEdgeDirections(gridKey, _mapWidth);
                     if (CornerEdgeDirections.Item1 != null && CornerEdgeDirections.Item2 != null)
                     {
+
+                        // store corner in map
                         (EdgeDirection, EdgeDirection) cornerTuple = ((EdgeDirection)CornerEdgeDirections.Item1, (EdgeDirection)CornerEdgeDirections.Item2);
                         _mapCorners[cornerTuple] = gridKey; // << overwrite corner
                         coordinate.SetFlag(Coordinate.Flag.CORNER);
 
+                        // remove from the border map
                         if (_mapBorders.ContainsKey(cornerTuple.Item1))
                             _mapBorders[cornerTuple.Item1].RemovePosition(gridKey);
                         if (_mapBorders.ContainsKey(cornerTuple.Item2))
