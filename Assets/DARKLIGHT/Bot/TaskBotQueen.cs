@@ -6,6 +6,8 @@ namespace Darklight.Bot
 	using System.Threading.Tasks;
 	using UnityEngine;
 	using Debug = UnityEngine.Debug;
+	using Darklight;
+
 #if UNITY_EDITOR
 	using UnityEditor;
 	using Editor = UnityEditor.Editor;
@@ -14,7 +16,7 @@ namespace Darklight.Bot
 
 	public class TaskBotQueen : MonoBehaviour, ITaskEntity
 	{
-		private Console _console = new Console();
+		private Darklight.Console _console = new Darklight.Console();
 		private Queue<TaskBot> _executionQueue = new();
 
 		#region -- ( StateMachine ) ------------------------------- >>  
@@ -31,7 +33,7 @@ namespace Darklight.Bot
 		}
 		private void OnStateChanged(State newState)
 		{
-			TaskBotConsole.Log(this, $"StateChange => [ {newState} ]");
+			TaskBotConsole.Log($"StateChange => [ {newState} ]");
 			switch (newState)
 			{
 				case State.NULL:
@@ -45,7 +47,7 @@ namespace Darklight.Bot
 
 		public string Name { get; set; } = "TaskQueen";
 		public Guid GuidId { get; } = Guid.NewGuid();
-		public Console TaskBotConsole => _console;
+		public Darklight.Console TaskBotConsole => _console;
 		public int ExecutionQueueCount => _executionQueue.Count;
 
 		public virtual void Awake()
@@ -57,7 +59,7 @@ namespace Darklight.Bot
 		{
 			CurrentState = State.INIT;
 
-			TaskBotConsole.Log(this, $"Good Morning, {name}");
+			TaskBotConsole.Log($"Good Morning, {name}");
 			await Task.CompletedTask;
 		}
 
@@ -70,7 +72,7 @@ namespace Darklight.Bot
 			CurrentState = State.LOAD;
 
 			_executionQueue.Enqueue(taskBot);
-			TaskBotConsole.Log(this, $"Enqueue {taskBot.Name}");
+			TaskBotConsole.Log($"Enqueue {taskBot.Name}");
 			return Task.CompletedTask;
 		}
 
@@ -96,23 +98,23 @@ namespace Darklight.Bot
 
 			try
 			{
-				TaskBotConsole.Log(this, $"Try to Execute {taskBot.Name}");
+				TaskBotConsole.Log($"Try to Execute {taskBot.Name}");
 				await taskBot.ExecuteTask();
 				await Awaitable.MainThreadAsync(); // default back to main thread
 			}
 			catch (OperationCanceledException e)
 			{
-				TaskBotConsole.Log(this, $"\t ERROR: TaskBot {taskBot.Name} was cancelled: {e.Message}");
+				TaskBotConsole.Log($"\t ERROR: TaskBot {taskBot.Name} was cancelled: {e.Message}");
 				Debug.Log($"\t ERROR: TaskBot {taskBot.Name} was cancelled: {e.StackTrace}");
 			}
 			catch (Exception e)
 			{
-				TaskBotConsole.Log(this, $"ERROR: Executing {taskBot.Name}: {e.Message}");
+				TaskBotConsole.Log($"ERROR: Executing {taskBot.Name}: {e.Message}");
 				UnityEngine.Debug.Log($"ERROR: Executing {taskBot.Name}");
 			}
 			finally
 			{
-				TaskBotConsole.Log(this, $"\t COMPLETE: Finished Executing {taskBot.Name}");
+				TaskBotConsole.Log($"\t COMPLETE: Finished Executing {taskBot.Name}");
 			}
 		}
 
@@ -123,7 +125,7 @@ namespace Darklight.Bot
 		{
 			CurrentState = State.EXECUTE;
 
-			TaskBotConsole.Log(this, $"Preparing to execute all TaskBots [{_executionQueue.Count}] on the main thread.");
+			TaskBotConsole.Log($"Preparing to execute all TaskBots [{_executionQueue.Count}] on the main thread.");
 
 			while (_executionQueue.Count > 0)
 			{
@@ -141,7 +143,7 @@ namespace Darklight.Bot
 				await ExecuteBot(taskBot);
 			}
 
-			TaskBotConsole.Log(this, $"Finished Executing [{_executionQueue.Count}] TaskBots");
+			TaskBotConsole.Log($"Finished Executing [{_executionQueue.Count}] TaskBots");
 			CurrentState = State.CLEAN;
 		}
 
@@ -150,7 +152,7 @@ namespace Darklight.Bot
 		/// </summary>
 		public virtual void Reset()
 		{
-			TaskBotConsole.Log(this, "Reset");
+			TaskBotConsole.Log("Reset");
 			_executionQueue.Clear();
 		}
 	}
@@ -161,7 +163,7 @@ namespace Darklight.Bot
 		private Vector2 scrollPosition;
 		private SerializedObject _serializedObject;
 		public TaskBotQueen queenScript;
-		public Console console;
+		public Darklight.Console console;
 		public bool showConsole = true;
 
 		public virtual void OnEnable()
@@ -194,7 +196,7 @@ namespace Darklight.Bot
 			});
 
 			_serializedObject = new SerializedObject(target);
-			Darklight.CustomInspectorGUI.DrawDefaultInspectorWithoutSelfReference(_serializedObject);
+			CustomInspectorGUI.DrawDefaultInspectorWithoutSelfReference(_serializedObject);
 		}
 
 		void DrawConsole()
@@ -203,7 +205,7 @@ namespace Darklight.Bot
 
 			// Dark gray background
 			GUIStyle backgroundStyle = new GUIStyle();
-			backgroundStyle.normal.background = Darklight.CustomInspectorGUI.MakeTex(600, 1, new Color(0.1f, 0.1f, 0.1f, 1.0f));
+			backgroundStyle.normal.background = CustomInspectorGUI.MakeTex(600, 1, new Color(0.1f, 0.1f, 0.1f, 1.0f));
 			backgroundStyle.padding = new RectOffset(0, 0, 0, 0); // Padding for inner content
 
 			// Creating a scroll view with a custom background
@@ -211,7 +213,7 @@ namespace Darklight.Bot
 			List<string> activeConsole = console.GetActiveConsole();
 			foreach (string message in activeConsole)
 			{
-				EditorGUILayout.LabelField(message, Darklight.CustomGUIStyles.LeftAlignedStyle);
+				EditorGUILayout.LabelField(message, CustomGUIStyles.LeftAlignedStyle);
 			}
 			EditorGUILayout.EndScrollView();
 			EditorUtility.SetDirty(target);

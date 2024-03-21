@@ -4,7 +4,6 @@ namespace Darklight.Bot
 	using System.Diagnostics;
 	using System.Threading.Tasks;
 	using UnityEngine;
-	using static Darklight.Bot.Console;
 	using Debug = UnityEngine.Debug;
 	public interface ITaskEntity
 	{
@@ -42,7 +41,6 @@ namespace Darklight.Bot
 
 		public virtual async Task ExecuteTask()
 		{
-			queenParent.TaskBotConsole.Log(this, $"\t\t >> Execute bot! {Name}");
 			stopwatch.Reset();
 			try
 			{
@@ -50,20 +48,20 @@ namespace Darklight.Bot
 			}
 			catch (OperationCanceledException operation)
 			{
-				queenParent.TaskBotConsole.Log(this, $"\t\t OperationCanceled: See Unity Console", LogSeverity.Error);
+				queenParent.TaskBotConsole.Log($"OperationCanceled: See Unity Console");
 				Debug.LogError(operation, queenParent);
 			}
 			catch (Exception ex)
 			{
-				queenParent.TaskBotConsole.Log(this, $"\t\t Error: See Unity Console", LogSeverity.Error);
-				queenParent.TaskBotConsole.Log(this, $"\t\t\t {this.Name} || {this.GuidId}", LogSeverity.Error);
+				queenParent.TaskBotConsole.Log($"\t\t Error: See Unity Console");
+				queenParent.TaskBotConsole.Log($"\t\t\t {this.Name} || {this.GuidId}");
 				Debug.LogError($"{this.Name} || {this.GuidId} => {ex}" + ex.StackTrace, queenParent);
 			}
 			finally
 			{
 				stopwatch.Stop();
 				ExecutionTime = stopwatch.ElapsedMilliseconds;
-				queenParent.TaskBotConsole.Log(this, $"\t\t >> SUCCESS! Execution Time : {ExecutionTime}");
+				queenParent.TaskBotConsole.Log($"\t\t >> SUCCESS! Execution Time : {ExecutionTime}");
 			}
 		}
 

@@ -105,7 +105,7 @@ namespace Darklight.World.Builder
 			{
 				OverrideSettings(parent.customWorldGenSettings);
 			}
-			this.GenerationParent.TaskBotConsole.Log(this, $"\t Child Region Assigned to World Coordinate {coordinate}");
+			//this.GenerationParent.TaskBotConsole.Log(this, $"\t Child Region Assigned to World Coordinate {coordinate}");
 		}
 
 		public async void Start()
@@ -174,7 +174,7 @@ namespace Darklight.World.Builder
 				await CoordinateMap.GeneratePathsBetweenExits();
 				await CoordinateMap.GenerateRandomZones(3, 5, new List<Zone.Shape> { Zone.Shape.SINGLE });
 
-				TaskBotConsole.Log(this, $"Region Generation Complete with {CoordinateMap.Exits.Count} Exits and {CoordinateMap.Zones.Count} Zones");
+				//TaskBotConsole.Log(this, $"Region Generation Complete with {CoordinateMap.Exits.Count} Exits and {CoordinateMap.Zones.Count} Zones");
 				Debug.Log($"Region Generation Complete [[ {CoordinateMap.Exits.Count} Exits ,, {CoordinateMap.Zones.Count} Zones ]");
 
 				await Task.CompletedTask;
@@ -197,7 +197,7 @@ namespace Darklight.World.Builder
 			{
 				TaskBot CombineMesh = new TaskBot(this, "Mesh Generation", async () =>
 				{
-					TaskBotConsole.Log(this, "Starting mesh generation...");
+					//TaskBotConsole.Log(this, "Starting mesh generation...");
 
 					while (_chunkBuilder == null || _chunkBuilder.Initialized == false)
 					{
@@ -206,7 +206,7 @@ namespace Darklight.World.Builder
 
 					// Asynchronously create and initialize combined chunk mesh
 					await CombineChunkMesh();
-					TaskBotConsole.Log(this, "Mesh generation complete.");
+					//TaskBotConsole.Log(this, "Mesh generation complete.");
 				});
 				await Enqueue(CombineMesh);
 			}

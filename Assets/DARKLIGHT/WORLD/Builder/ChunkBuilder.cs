@@ -36,38 +36,38 @@ namespace Darklight.World.Builder
 		async Task CreateAllChunkData()
 		{
 			ChunkBuilder self = this; // Capture the instance of ChunkGeneration
-			TaskBotConsole.Log(self, $"Creating {_coordinateMap.AllCoordinateValues.Count} Chunks");
+									  //TaskBotConsole.Log(self, $"Creating {_coordinateMap.AllCoordinateValues.Count} Chunks");
 
 			foreach (Vector2Int position in _coordinateMap.AllCoordinateValues)
 			{
-				TaskBotConsole.Log(self, $"\t>> Creating Chunk {position}");
+				//TaskBotConsole.Log(self, $"\t>> Creating Chunk {position}");
 				Coordinate coordinate = _coordinateMap.GetCoordinateAt(position);
 				Chunk newChunk = new Chunk(self, coordinate); // Use the captured instance
 				_chunks.Add(newChunk);
 				_chunkMap[coordinate.ValueKey] = newChunk;
 			}
-			TaskBotConsole.Log(self, $">> Here they are! {_chunkMap.ToString()}");
+			//TaskBotConsole.Log(self, $">> Here they are! {_chunkMap.ToString()}");
 			await Task.CompletedTask;
 		}
 		async Task CreateAllChunkMesh()
 		{
-			TaskBotConsole.Log(this, $"Creating {_chunks.Count} Meshes");
+			//TaskBotConsole.Log(this, $"Creating {_chunks.Count} Meshes");
 			foreach (Chunk chunk in _chunks)
 			{
 				ChunkMesh newMesh = chunk.CreateChunkMesh();
-				TaskBotConsole.Log(this, $"\tNewChunkMesh : {newMesh}");
+				//TaskBotConsole.Log(this, $"\tNewChunkMesh : {newMesh}");
 			}
 			await Task.CompletedTask;
 		}
 
 		async Task CreateAllsChunkObjs()
 		{
-			TaskBotConsole.Log(this, $"Creating {_chunks.Count} Meshes");
+			//TaskBotConsole.Log(this, $"Creating {_chunks.Count} Meshes");
 			foreach (Chunk chunk in _chunks)
 			{
 				if (WorldBuilder.Instance != null) { continue; }
 				chunk.ChunkObject = RegionParent.CreateMeshObject($"Chunk {chunk.Coordinate.ValueKey}", chunk.ChunkMesh.Mesh);
-				TaskBotConsole.Log(this, $"\tNewChunkMeshObject : {chunk.ChunkObject}");
+				//TaskBotConsole.Log(this, $"\tNewChunkMeshObject : {chunk.ChunkObject}");
 			}
 			await Task.CompletedTask;
 		}
@@ -100,7 +100,7 @@ namespace Darklight.World.Builder
 			//await Enqueue(createChunkObject);
 
 			await ExecuteAllTasks();
-			TaskBotConsole.Log(this, "Initialization Sequence Completed");
+			//TaskBotConsole.Log(this, "Initialization Sequence Completed");
 			GenerationFinished = true;
 		}
 
