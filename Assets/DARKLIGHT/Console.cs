@@ -85,21 +85,27 @@ namespace Darklight
 
 			// Creating a scroll view with a custom background
 			scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, backgroundStyle, GUILayout.Height(200));
+
+			int logCount = 0;
 			foreach (LogEntry log in AllLogEntries)
 			{
 				EditorGUILayout.BeginHorizontal(); // Start a horizontal group for inline elements
 
-				// Timestamp
-				EditorGUILayout.LabelField(log.Timestamp + " || ", CustomGUIStyles.SmallTextStyle, GUILayout.Width(70));
+				// Log Prefix
+				EditorGUILayout.LabelField($"[{log.Timestamp}] || {logCount}", CustomGUIStyles.SmallTextStyle, GUILayout.Width(100));
 
 				// Main Message
-				EditorGUILayout.LabelField(log.Message, CustomGUIStyles.NormalTextStyle);
-
+				EditorGUILayout.LabelField(log.Message, CustomGUIStyles.NormalTextStyle, GUILayout.ExpandWidth(true));
 				EditorGUILayout.EndHorizontal();
 
+				/*
+				// Divider Line
 				EditorGUILayout.BeginHorizontal();
 				GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(2));
 				EditorGUILayout.EndHorizontal();
+				*/
+
+				logCount++;
 			}
 			EditorGUILayout.EndScrollView();
 		}

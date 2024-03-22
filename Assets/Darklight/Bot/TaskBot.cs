@@ -13,17 +13,16 @@ namespace Darklight.Bot
 	public class TaskBot : IDisposable, ITaskEntity
 	{
 		private Stopwatch stopwatch;
-		private TaskBotQueen queenParent;
+		private TaskBotQueen taskQueen;
 		public Func<Task> task;
 		public bool executeOnBackgroundThread = false;
-
 		public string Name { get; set; } = "TaskBot";
 		public Guid GuidId { get; } = Guid.NewGuid();
 		public long ExecutionTime = 0;
 		public TaskBot(TaskBotQueen queenParent, string name, Func<Task> task, bool executeOnBackgroundThread = false)
 		{
 			stopwatch = Stopwatch.StartNew();
-			this.queenParent = queenParent;
+			this.taskQueen = queenParent;
 			this.task = task;
 			Name = name;
 			this.executeOnBackgroundThread = executeOnBackgroundThread;
@@ -32,42 +31,41 @@ namespace Darklight.Bot
 		public TaskBot(TaskBotQueen queenParent, string name, Task task, bool executeOnBackgroundThread = false)
 		{
 			stopwatch = Stopwatch.StartNew();
-			this.queenParent = queenParent;
+			this.taskQueen = queenParent;
 			this.task = () => task;
 			Name = name;
 			this.executeOnBackgroundThread = executeOnBackgroundThread;
 		}
 
-		public virtual async Task ExecuteTask()
+		public async Task ExecuteTask()
 		{
-			stopwatch.Reset();
+			stopwatch.Restart();
 			try
 			{
 				await task();
+				taskQueen.TaskBotConsole.Log($"{Name}: Execution successful. Time: {stopwatch.ElapsedMilliseconds}ms");
 			}
 			catch (OperationCanceledException operation)
 			{
-				queenParent.TaskBotConsole.Log($"OperationCanceled: See Unity Console");
-				Debug.LogError(operation, queenParent);
+				taskQueen.TaskBotConsole.Log($"{Name}: Operation canceled.", 0, Darklight.Console.LogEntry.Severity.Warning);
+				Debug.LogWarning($"{Name} || {GuidId} => Operation Canceled: {operation.Message}", taskQueen);
 			}
 			catch (Exception ex)
 			{
-				queenParent.TaskBotConsole.Log($"Error: See Unity Console");
-				queenParent.TaskBotConsole.Log($"{this.Name} || {this.GuidId}");
-				Debug.LogError($"{this.Name} || {this.GuidId} => {ex}" + ex.StackTrace, queenParent);
+				taskQueen.TaskBotConsole.Log($"{Name}: Error encountered. See Unity Console for details.", 0, Darklight.Console.LogEntry.Severity.Error);
+				Debug.LogError($"{Name} || {GuidId} => Exception: {ex.Message}\n{ex.StackTrace}", taskQueen);
 			}
 			finally
 			{
 				stopwatch.Stop();
 				ExecutionTime = stopwatch.ElapsedMilliseconds;
-				queenParent.TaskBotConsole.Log($"\t\t >> SUCCESS! Execution Time : {ExecutionTime}");
+				taskQueen.TaskBotConsole.Log($"{Name}: Execution successful. Time: {stopwatch.ElapsedMilliseconds}ms");
 			}
 		}
 
-		public virtual void Dispose()
+		public void Dispose()
 		{
-			stopwatch.Stop();
-			stopwatch.Reset();
+			stopwatch?.Stop();
 			stopwatch = null;
 		}
 	}

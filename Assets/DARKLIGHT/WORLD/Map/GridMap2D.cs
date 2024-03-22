@@ -400,7 +400,6 @@ namespace Darklight.World.Map
             this._transform = null;
             this._mapUnitSpace = UnitSpace.GAME;
             this._coordinateUnitSpace = UnitSpace.GAME;
-            Initialize(_mapWidth, _coordinateSize);
         }
 
         /// <summary>
@@ -414,7 +413,6 @@ namespace Darklight.World.Map
         {
             this._transform = transform;
             this._mapUnitSpace = unitSpace;
-            Initialize(_mapWidth, _coordinateSize);
         }
         #endregion
 
@@ -480,14 +478,20 @@ namespace Darklight.World.Map
             }
         }
 
-        void Initialize(int width, int size)
+        public void Initialize(int width, int size)
         {
             _mapWidth = width;
             _coordinateSize = size;
             Initialize();
         }
-
-        void Initialize(CustomGenerationSettings customSettings)
+        public void Initialize(GenerationSettings settings)
+        {
+            _settings = settings;
+            _mapWidth = _settings.WorldWidth_inRegionUnits;
+            _coordinateSize = _settings.RegionFullWidth_inGameUnits;
+            Initialize();
+        }
+        public void Initialize(CustomGenerationSettings customSettings)
         {
             _settings.Initialize(customSettings);
             _mapWidth = _settings.WorldWidth_inRegionUnits;
@@ -884,7 +888,7 @@ namespace Darklight.World.Map
 
         #endregion
 
-        public void Reset()
+        public virtual void Reset()
         {
             Debug.Log($"{_prefix} Resetting GridMap2D");
             _map.Clear();
@@ -912,9 +916,11 @@ namespace Darklight.World.Map
     [System.Serializable]
     public class GridMap2D<T> : GridMap2D where T : IGridMapData, new()
     {
-        public Dictionary<Vector2Int, T> DataMap { get; private set; }
+        public bool DataInitialized { get { return DataMap != null; } }
+        public Dictionary<Vector2Int, T> DataMap { get; private set; } = null;
         public List<T> DataValues { get { return DataMap.Values.ToList(); } }
         public GridMap2D() : base() { }
+        public GridMap2D(Transform transform, UnitSpace unitSpace) : base(transform, unitSpace) { }
         public virtual async Task InitializeDataMap()
         {
             DataMap = new Dictionary<Vector2Int, T>();
@@ -926,6 +932,32 @@ namespace Darklight.World.Map
                 await newData.Initialize(this, position);
                 // Add the instance to the DataMap
                 DataMap[position] = newData;
+            }
+        }
+
+        public virtual T GetDataAt(Vector2Int positionKey)
+        {
+            return DataMap.TryGetValue(positionKey, out var data)
+                ? data
+                : default;
+        }
+
+        public virtual List<T> GetDataAt(List<Vector2Int> positionKeys)
+        {
+            List<T> result = new();
+            foreach (Vector2Int value in positionKeys)
+            {
+                result.Add(GetDataAt(value));
+            }
+            return result;
+        }
+
+        public override void Reset()
+        {
+            base.Reset();
+            if (DataMap != null)
+            {
+                DataMap.Clear();
             }
         }
     }

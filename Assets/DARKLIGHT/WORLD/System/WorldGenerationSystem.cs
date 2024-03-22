@@ -14,6 +14,7 @@ namespace Darklight.World
     using Map;
     using System.Threading.Tasks;
     using Darklight.World.Generation;
+    using Darklight.World.Builder;
 
     #region (( GLOBAL SPATIAL ENUMS ))
     /// <summary>
@@ -45,33 +46,24 @@ namespace Darklight.World
         #region ---- (( INSTANTIATE OBJECTS ))
         public HashSet<GameObject> InstantiatedObjects { get; private set; } = new HashSet<GameObject>();
 
-        public Task<GameObject> CreatePrimitiveObject(string name, PrimitiveType primitiveType)
+        public Task<GameObject> CreateGameObjectAt(string name, GridMap2D.Coordinate coordinate)
         {
-            GameObject newObject = GameObject.CreatePrimitive(primitiveType);
-            newObject.name = name;
-            newObject.transform.position = Vector3.zero;
+            GameObject newObject = new GameObject($"{name} :: {coordinate.PositionKey}");
             newObject.transform.parent = this.transform;
+            newObject.transform.position = coordinate.GetPositionInScene();
 
             InstantiatedObjects.Add(newObject);
-
-            return Task.FromResult(newObject);
-        }
-
-        public Task<GameObject> CreateRegionBuilderObject(Region region)
-        {
-            GameObject newObject = new GameObject($"{region.prefix} :: {region.positionKey}");
-            newObject.transform.parent = this.transform;
-            newObject.transform.position = region.coordinateValue.GetPositionInScene();
-
-            InstantiatedObjects.Add(newObject);
-
             return Task.FromResult(newObject);
         }
         #endregion
 
+        #region ---- (( DATA HANDLING ))
+        public GridMap2D<Region> RegionGridMap { get; private set; } = null;
+        #endregion
+
         #region --------------- UNITY MAIN ----))
         public Material defaultMaterial;
-        public GridMap2D<Region> RegionGridMap { get; private set; } = new GridMap2D<Region>();
+
 
         public override void Awake()
         {
@@ -83,30 +75,45 @@ namespace Darklight.World
         #region --------------- TASK BOT QUEEN --))
         public override async Task Initialize()
         {
-            this.Name = "WorldGenerationSystem";
+            // << Singelton Instance >> 
+            if (Instance != null && Instance != this)
+            {
+                Destroy(this.gameObject);
+            }
+            else
+            {
+                Instance = this;
+            }
 
+            // << INIT >> -------------------------- //
+            this.Name = "WorldGenerationSystem";
             _settings.Initialize();
             await base.Initialize();
-
+            RegionGridMap = new GridMap2D<Region>(transform, UnitSpace.REGION); // Assign GridMap to this Transform
+            RegionGridMap.Initialize(_settings);
             Debug.Log($"{Prefix} Initialized");
-
             await RegionGridMap.InitializeDataMap(); // Initialize Data
 
             // [[ ADD BOTS TO EXECUTION QUEUE ]]
-            GridMap2D<Region> regionGridMap = RegionGridMap;
-            List<Vector2Int> regionPositions = regionGridMap.PositionKeys;
-            foreach (Vector2Int position in regionPositions)
+            // Enqueue a TaskBot clone for each position
+            await EnqueueClones("CreateRegionBuilders", RegionGridMap.PositionKeys, position =>
             {
-                Region region = regionGridMap.DataMap[position];
-                TaskBot newBot = new TaskBot(this, $"CreateRegion {position}", CreateRegionBuilderObject(region));
-                await Enqueue(newBot);
-            }
+                Region region = RegionGridMap.DataMap[position];
+                return new TaskBot(this, $"CreateRegion {position}", async () =>
+                {
+                    GameObject newObject = await CreateGameObjectAt("RegionBuilder", region.coordinateValue);
+                    newObject.AddComponent<RegionBuilder>();
+                });
+                // i love my little bots <3 
+            });
         }
         #endregion
 
         public override void Reset()
         {
             base.Reset();
+            TaskBotConsole.Reset();
+            RegionGridMap.Reset();
 
             foreach (GameObject obj in InstantiatedObjects)
             {
@@ -123,6 +130,20 @@ namespace Darklight.World
 
     #region==== CUSTOM UNITY EDITOR ================== )) 
 #if UNITY_EDITOR
+    [InitializeOnLoad]
+    public class PlayModeStateLogger
+    {
+        static PlayModeStateLogger()
+        {
+            EditorApplication.playModeStateChanged += LogPlayModeState;
+        }
+
+        private static void LogPlayModeState(PlayModeStateChange state)
+        {
+            Debug.Log("Play Mode State Changed: " + state);
+        }
+    }
+
     [CustomEditor(typeof(WorldGenerationSystem))]
     public class WorldGenerationSystemEditor : TaskBotQueenEditor
     {
@@ -138,10 +159,6 @@ namespace Darklight.World
             _serializedObject = new SerializedObject(target);
             _worldGenSystem = (WorldGenerationSystem)target;
         }
-        public void OnDisable()
-        {
-            _worldGenSystem.Reset();
-        }
 
         public override void OnInspectorGUI()
         {
@@ -151,7 +168,7 @@ namespace Darklight.World
             showGridMapFoldout = EditorGUILayout.Foldout(showGridMapFoldout, "Region Grid Map");
             if (showGridMapFoldout)
             {
-                Darklight.CustomInspectorGUI.CreateEnumLabel(ref gridMap2DView, "Grid View");
+                CustomInspectorGUI.CreateEnumLabel(ref gridMap2DView, "Grid View");
             }
         }
 

@@ -12,6 +12,7 @@ namespace Darklight.Bot
 	using UnityEditor;
 	using Editor = UnityEditor.Editor;
 	using CustomEditor = UnityEditor.CustomEditor;
+	using System.Linq;
 #endif
 
 	public class TaskBotQueen : MonoBehaviour, ITaskEntity
@@ -20,7 +21,7 @@ namespace Darklight.Bot
 		private Queue<TaskBot> _executionQueue = new Queue<TaskBot>();
 
 		#region -- ( StateMachine ) ------------------------------- >>  
-		public enum State { NULL, AWAKE, INIT, WAIT, LOAD, EXECUTE, CLEAN, ERROR }
+		public enum State { NULL, AWAKE, INITIALIZE, WAIT, LOAD_DATA, EXECUTE_TASK, CLEAN, ERROR }
 		State _currentState = State.NULL;
 		public State CurrentState
 		{
@@ -34,31 +35,35 @@ namespace Darklight.Bot
 		private void OnStateChanged(State newState)
 		{
 			if (newState == CurrentState) { return; }
-			TaskBotConsole.Log($"< {newState} >");
 			switch (newState)
 			{
 				case State.NULL:
 				case State.AWAKE:
 					break;
-				case State.INIT:
+				case State.INITIALIZE:
 					break;
 			}
 		}
 		#endregion
 
+		public bool Initialized { get; private set; } = false;
 		public string Name { get; set; } = "TaskQueen";
 		public Guid GuidId { get; } = Guid.NewGuid();
 		public Darklight.Console TaskBotConsole => _console;
+		public string LogPrefix => $"<{CurrentState}>";
 		public int ExecutionQueueCount => _executionQueue.Count;
 
 		public virtual void Awake()
 		{
-			CurrentState = State.AWAKE;
+			CurrentState = State.AWAKE; // show state change
+			TaskBotConsole.Log($"{LogPrefix}");
 		}
 
 		public virtual async Task Initialize()
 		{
-			CurrentState = State.INIT;
+			CurrentState = State.INITIALIZE;
+			TaskBotConsole.Log($"{LogPrefix}"); // show state change
+			Initialized = true;
 			await Task.CompletedTask;
 		}
 
@@ -66,14 +71,25 @@ namespace Darklight.Bot
 		/// Enqueues a task bot to the execution queue.
 		/// </summary>
 		/// <param name="taskBot">The task bot to enqueue.</param>
-		public Task Enqueue(TaskBot taskBot)
+		public Task Enqueue(TaskBot taskBot, bool log = false)
 		{
-			CurrentState = State.LOAD;
+			if (log)
+				TaskBotConsole.Log($"{LogPrefix} TaskBot {taskBot.Name}", 1);
 
-			TaskBotConsole.Log($"ENQUEUE TASKBOT :: {taskBot.Name}", 1);
-
+			CurrentState = State.LOAD_DATA;
 			_executionQueue.Enqueue(taskBot);
 			return Task.CompletedTask;
+		}
+
+		public async Task EnqueueClones<T>(string cloneName, IEnumerable<T> items, Func<T, TaskBot> botCreator)
+		{
+			foreach (var item in items)
+			{
+				TaskBot newBot = botCreator(item);
+				await Enqueue(newBot);
+			}
+
+			TaskBotConsole.Log($"{LogPrefix} Enqueue TaskBot {cloneName} x {items.ToList().Count} Clones", 1);
 		}
 
 		/// <summary>
@@ -83,7 +99,7 @@ namespace Darklight.Bot
 		/// <returns></returns>
 		public async Awaitable ExecuteBot(TaskBot taskBot)
 		{
-			CurrentState = State.EXECUTE;
+			CurrentState = State.EXECUTE_TASK;
 
 			// Assign the TaskBot to Execute on the background thread
 			if (taskBot.executeOnBackgroundThread)
@@ -120,9 +136,9 @@ namespace Darklight.Bot
 		/// </summary>
 		public virtual async Awaitable ExecuteAllTasks()
 		{
-			CurrentState = State.EXECUTE;
+			CurrentState = State.EXECUTE_TASK;
 
-			TaskBotConsole.Log($"Preparing to execute all TaskBots [{_executionQueue.Count}] on the main thread.");
+			TaskBotConsole.Log($"{LogPrefix} START TaskBots [{ExecutionQueueCount}]");
 
 			while (_executionQueue.Count > 0)
 			{
@@ -151,6 +167,7 @@ namespace Darklight.Bot
 		{
 			TaskBotConsole.Log("Reset");
 			_executionQueue.Clear();
+			Initialized = false;
 		}
 	}
 #if UNITY_EDITOR
@@ -180,13 +197,20 @@ namespace Darklight.Bot
 			CustomInspectorGUI.CreateFoldout(ref showConsole, "Task Bot Console", async () =>
 			{
 				console.DrawInEditor();
-				if (GUILayout.Button("Initialize"))
+				if (!taskBotQueen.Initialized && GUILayout.Button("Initialize"))
 				{
 					await taskBotQueen.Initialize();
 				}
-				else if (GUILayout.Button("Reset"))
+				else if (taskBotQueen.Initialized)
 				{
-					taskBotQueen.Reset();
+					if (GUILayout.Button("Execute All"))
+					{
+						await taskBotQueen.ExecuteAllTasks();
+					}
+					else if (GUILayout.Button("Reset"))
+					{
+						taskBotQueen.Reset();
+					}
 				}
 			});
 

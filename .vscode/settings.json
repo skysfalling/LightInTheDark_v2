@@ -62,5 +62,6 @@
         "Behaviours",
         "intercardinal",
         "Newtonsoft"
-    ]
+    ],
+    "editor.defaultFormatter": "ms-dotnettools.csdevkit"
 }
