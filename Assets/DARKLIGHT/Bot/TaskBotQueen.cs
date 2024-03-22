@@ -17,7 +17,7 @@ namespace Darklight.Bot
 	public class TaskBotQueen : MonoBehaviour, ITaskEntity
 	{
 		private Darklight.Console _console = new Darklight.Console();
-		private Queue<TaskBot> _executionQueue = new();
+		private Queue<TaskBot> _executionQueue = new Queue<TaskBot>();
 
 		#region -- ( StateMachine ) ------------------------------- >>  
 		public enum State { NULL, AWAKE, INIT, WAIT, LOAD, EXECUTE, CLEAN, ERROR }
@@ -27,13 +27,14 @@ namespace Darklight.Bot
 			get { return _currentState; }
 			set
 			{
-				_currentState = value;
 				OnStateChanged(value);
+				_currentState = value;
 			}
 		}
 		private void OnStateChanged(State newState)
 		{
-			TaskBotConsole.Log($"StateChange => [ {newState} ]");
+			if (newState == CurrentState) { return; }
+			TaskBotConsole.Log($"< {newState} >");
 			switch (newState)
 			{
 				case State.NULL:
@@ -58,8 +59,6 @@ namespace Darklight.Bot
 		public virtual async Task Initialize()
 		{
 			CurrentState = State.INIT;
-
-			TaskBotConsole.Log($"Good Morning, {name}");
 			await Task.CompletedTask;
 		}
 
@@ -71,8 +70,9 @@ namespace Darklight.Bot
 		{
 			CurrentState = State.LOAD;
 
+			TaskBotConsole.Log($"ENQUEUE TASKBOT :: {taskBot.Name}", 1);
+
 			_executionQueue.Enqueue(taskBot);
-			TaskBotConsole.Log($"Enqueue {taskBot.Name}");
 			return Task.CompletedTask;
 		}
 
@@ -91,10 +91,7 @@ namespace Darklight.Bot
 				await Awaitable.BackgroundThreadAsync();
 			}
 			// Default to Main Thread
-			else
-			{
-				await Awaitable.MainThreadAsync();
-			}
+			else { await Awaitable.MainThreadAsync(); }
 
 			try
 			{
@@ -104,13 +101,13 @@ namespace Darklight.Bot
 			}
 			catch (OperationCanceledException e)
 			{
-				TaskBotConsole.Log($"\t ERROR: TaskBot {taskBot.Name} was cancelled: {e.Message}");
-				Debug.Log($"\t ERROR: TaskBot {taskBot.Name} was cancelled: {e.StackTrace}");
+				TaskBotConsole.Log($"TaskBot {taskBot.Name} was cancelled: {e.Message}");
+				Debug.Log($"TaskBot {taskBot.Name} was cancelled: {e.StackTrace}");
 			}
 			catch (Exception e)
 			{
 				TaskBotConsole.Log($"ERROR: Executing {taskBot.Name}: {e.Message}");
-				UnityEngine.Debug.Log($"ERROR: Executing {taskBot.Name}");
+				Debug.Log($"ERROR: Executing {taskBot.Name}");
 			}
 			finally
 			{
@@ -162,61 +159,39 @@ namespace Darklight.Bot
 	{
 		private Vector2 scrollPosition;
 		private SerializedObject _serializedObject;
-		public TaskBotQueen queenScript;
+		public TaskBotQueen taskBotQueen;
 		public Darklight.Console console;
 		public bool showConsole = true;
 
 		public virtual void OnEnable()
 		{
 			_serializedObject = new SerializedObject(target);
-			queenScript = (TaskBotQueen)target;
-			console = queenScript.TaskBotConsole;
-			_ = queenScript.Initialize();
+			taskBotQueen = (TaskBotQueen)target;
+			console = taskBotQueen.TaskBotConsole;
+			_ = taskBotQueen.Initialize();
 		}
 
 		public override void OnInspectorGUI()
 		{
 			GUILayout.Space(10);
-			queenScript = (TaskBotQueen)target;
-			console = queenScript.TaskBotConsole;
+			taskBotQueen = (TaskBotQueen)target;
+			console = taskBotQueen.TaskBotConsole;
 
-			Darklight.CustomInspectorGUI.CreateFoldout(ref showConsole, "Task Bot Console", async () =>
+			CustomInspectorGUI.CreateFoldout(ref showConsole, "Task Bot Console", async () =>
 			{
-				DrawConsole();
-
+				console.DrawInEditor();
 				if (GUILayout.Button("Initialize"))
 				{
-					await queenScript.Initialize();
+					await taskBotQueen.Initialize();
 				}
 				else if (GUILayout.Button("Reset"))
 				{
-					queenScript.Reset();
+					taskBotQueen.Reset();
 				}
-
 			});
 
 			_serializedObject = new SerializedObject(target);
 			CustomInspectorGUI.DrawDefaultInspectorWithoutSelfReference(_serializedObject);
-		}
-
-		void DrawConsole()
-		{
-			if (console == null) { return; }
-
-			// Dark gray background
-			GUIStyle backgroundStyle = new GUIStyle();
-			backgroundStyle.normal.background = CustomInspectorGUI.MakeTex(600, 1, new Color(0.1f, 0.1f, 0.1f, 1.0f));
-			backgroundStyle.padding = new RectOffset(0, 0, 0, 0); // Padding for inner content
-
-			// Creating a scroll view with a custom background
-			scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, backgroundStyle, GUILayout.Height(100));
-			List<string> activeConsole = console.GetActiveConsole();
-			foreach (string message in activeConsole)
-			{
-				EditorGUILayout.LabelField(message, CustomGUIStyles.LeftAlignedStyle);
-			}
-			EditorGUILayout.EndScrollView();
-			EditorUtility.SetDirty(target);
 		}
 	}
 #endif

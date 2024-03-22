@@ -14,7 +14,6 @@ namespace Darklight.World
     using Map;
     using System.Threading.Tasks;
     using Darklight.World.Generation;
-    using Darklight.World.Builder;
 
     #region (( GLOBAL SPATIAL ENUMS ))
     /// <summary>
@@ -43,21 +42,18 @@ namespace Darklight.World
         public GenerationSettings Settings => _settings;
         #endregion
 
-        #region [[ GENERATION DATA ]] 
+        #region ---- (( INSTANTIATE OBJECTS ))
+        public HashSet<GameObject> InstantiatedObjects { get; private set; } = new HashSet<GameObject>();
 
-        #endregion
-
-        #region [[ RANDOM SEED ]] ---- >> 
-
-        #endregion
-
-        #region --------------- TASKS --))
         public Task<GameObject> CreatePrimitiveObject(string name, PrimitiveType primitiveType)
         {
             GameObject newObject = GameObject.CreatePrimitive(primitiveType);
             newObject.name = name;
             newObject.transform.position = Vector3.zero;
             newObject.transform.parent = this.transform;
+
+            InstantiatedObjects.Add(newObject);
+
             return Task.FromResult(newObject);
         }
 
@@ -66,11 +62,14 @@ namespace Darklight.World
             GameObject newObject = new GameObject($"{region.prefix} :: {region.positionKey}");
             newObject.transform.parent = this.transform;
             newObject.transform.position = region.coordinateValue.GetPositionInScene();
+
+            InstantiatedObjects.Add(newObject);
+
             return Task.FromResult(newObject);
         }
         #endregion
 
-        #region --------------- UNITY MAIN --))
+        #region --------------- UNITY MAIN ----))
         public Material defaultMaterial;
         public GridMap2D<Region> RegionGridMap { get; private set; } = new GridMap2D<Region>();
 
@@ -94,22 +93,31 @@ namespace Darklight.World
             await RegionGridMap.InitializeDataMap(); // Initialize Data
 
             // [[ ADD BOTS TO EXECUTION QUEUE ]]
-            /*
             GridMap2D<Region> regionGridMap = RegionGridMap;
             List<Vector2Int> regionPositions = regionGridMap.PositionKeys;
             foreach (Vector2Int position in regionPositions)
             {
                 Region region = regionGridMap.DataMap[position];
-                TaskBot newBot = new TaskBot(this, $"{prefix} :: CreateRegionBuilderObject", CreateRegionBuilderObject(region));
-                await this.Enqueue(newBot);
+                TaskBot newBot = new TaskBot(this, $"CreateRegion {position}", CreateRegionBuilderObject(region));
+                await Enqueue(newBot);
             }
-            */
         }
         #endregion
 
         public override void Reset()
         {
             base.Reset();
+
+            foreach (GameObject obj in InstantiatedObjects)
+            {
+#if UNITY_EDITOR
+                DestroyImmediate(obj);
+#endif
+                if (Application.isPlaying)
+                {
+                    Destroy(obj);
+                }
+            }
         }
     }
 
@@ -129,6 +137,10 @@ namespace Darklight.World
         {
             _serializedObject = new SerializedObject(target);
             _worldGenSystem = (WorldGenerationSystem)target;
+        }
+        public void OnDisable()
+        {
+            _worldGenSystem.Reset();
         }
 
         public override void OnInspectorGUI()

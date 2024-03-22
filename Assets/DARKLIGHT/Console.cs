@@ -3,46 +3,105 @@ namespace Darklight
 	using System;
 	using System.Collections;
 	using System.Collections.Generic;
+	using UnityEditor;
+	using UnityEngine;
+
 	public class Console
 	{
-		public enum LogSeverity { Info, Warning, Error }
+		private Vector2 scrollPosition;
+		private bool autoScroll = true; // Default to true to enable auto-scrolling.
 		public class LogEntry
 		{
-			public DateTime Timestamp { get; }
-			public string Message { get; }
-			public LogSeverity Severity { get; }
-			public LogEntry(string message, LogSeverity severity = LogSeverity.Info)
+			public enum Severity { Info, Warning, Error }
+
+			DateTime _timeStamp = DateTime.Now;
+			Severity _severity = Severity.Info;
+			string _message = string.Empty;
+			int _indentLevel = 0;
+
+			public string Timestamp => _timeStamp.ToString("mm:ss:ff");
+			public string Message => new string(' ', _indentLevel * 4) + $"{_message}";
+			public GUIStyle Style
 			{
-				Timestamp = DateTime.Now;
-				Message = message;
-				Severity = severity;
+				get
+				{
+					Color textColor = Color.white; // Default to white
+					switch (_severity)
+					{
+						case Severity.Warning:
+							textColor = Color.yellow;
+							break;
+						case Severity.Error:
+							textColor = Color.red;
+							break;
+					}
+
+					return new GUIStyle(GUI.skin.label)
+					{
+						normal = { textColor = textColor },
+						alignment = TextAnchor.MiddleLeft
+					};
+				}
+			}
+			public LogEntry(int indentLevel, string message, Severity severity = Severity.Info)
+			{
+				_indentLevel = indentLevel;
+				_message = message;
+				_severity = severity;
+				_timeStamp = DateTime.Now;
 			}
 		}
-		private List<LogEntry> allLogEntries = new List<LogEntry>();
-		public void Log(string message)
-		{
 
-		}
+		public List<LogEntry> AllLogEntries { get; private set; } = new List<LogEntry>();
 
-		public List<string> GetActiveConsole()
+		public void Log(string message, int indent = 0, LogEntry.Severity severity = LogEntry.Severity.Info)
 		{
-			List<string> entryList = new List<string>();
-			foreach (LogEntry log in allLogEntries)
+			LogEntry newLog = new LogEntry(indent, message, severity);
+			AllLogEntries.Add(newLog);
+
+			// If autoScroll is enabled, adjust the scroll position to the bottom.
+			if (autoScroll)
 			{
-				string newMessage = $"[{GetTimestamp(log)}] {log.Message}";
-				entryList.Add(newMessage);
+				// Assuming each log entry is roughly the same height, this will scroll to the bottom.
+				scrollPosition.y = float.MaxValue;
 			}
-			return entryList;
-		}
-
-		public string GetTimestamp(LogEntry logEntry)
-		{
-			return logEntry.Timestamp.ToString("hh:mm:ss:ff");
 		}
 
 		public void Reset()
 		{
-			allLogEntries.Clear();
+			AllLogEntries.Clear();
+		}
+
+		public void DrawInEditor()
+		{
+			// Toggle for enabling/disabling auto-scroll
+			autoScroll = EditorGUILayout.Toggle("Auto-scroll", autoScroll);
+
+			// Dark gray background
+			GUIStyle backgroundStyle = new GUIStyle
+			{
+				normal = { background = CustomInspectorGUI.MakeTex(600, 1, new Color(0.1f, 0.1f, 0.1f, 1.0f)) }
+			};
+
+			// Creating a scroll view with a custom background
+			scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, backgroundStyle, GUILayout.Height(200));
+			foreach (LogEntry log in AllLogEntries)
+			{
+				EditorGUILayout.BeginHorizontal(); // Start a horizontal group for inline elements
+
+				// Timestamp
+				EditorGUILayout.LabelField(log.Timestamp + " || ", CustomGUIStyles.SmallTextStyle, GUILayout.Width(70));
+
+				// Main Message
+				EditorGUILayout.LabelField(log.Message, CustomGUIStyles.NormalTextStyle);
+
+				EditorGUILayout.EndHorizontal();
+
+				EditorGUILayout.BeginHorizontal();
+				GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(2));
+				EditorGUILayout.EndHorizontal();
+			}
+			EditorGUILayout.EndScrollView();
 		}
 	}
 }

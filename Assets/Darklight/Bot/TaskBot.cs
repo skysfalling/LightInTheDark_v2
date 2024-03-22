@@ -3,7 +3,6 @@ namespace Darklight.Bot
 	using System;
 	using System.Diagnostics;
 	using System.Threading.Tasks;
-	using UnityEngine;
 	using Debug = UnityEngine.Debug;
 	public interface ITaskEntity
 	{
@@ -53,8 +52,8 @@ namespace Darklight.Bot
 			}
 			catch (Exception ex)
 			{
-				queenParent.TaskBotConsole.Log($"\t\t Error: See Unity Console");
-				queenParent.TaskBotConsole.Log($"\t\t\t {this.Name} || {this.GuidId}");
+				queenParent.TaskBotConsole.Log($"Error: See Unity Console");
+				queenParent.TaskBotConsole.Log($"{this.Name} || {this.GuidId}");
 				Debug.LogError($"{this.Name} || {this.GuidId} => {ex}" + ex.StackTrace, queenParent);
 			}
 			finally

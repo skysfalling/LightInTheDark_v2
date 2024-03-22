@@ -163,6 +163,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 669ec2ca9ea20be4c8b1544db0d426ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _settings:
+    _customSettings: {fileID: 11400000, guid: dbb543a9a63c30f4cbcafcb226da6e09, type: 2}
+    _seed: 6928347658279
+    _cellSize: 2
+    _chunkWidth: 7
+    _chunkDepth: 10
+    _chunkMaxHeight: 25
+    _regionWidth: 7
+    _regionBoundaryOffset: 0
+    _worldWidth: 2
+    _pathRandomness: 0.5
+    _perlinMultiplier: 1
   defaultMaterial: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

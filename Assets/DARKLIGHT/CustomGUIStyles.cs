@@ -36,10 +36,12 @@ namespace Darklight
         {
             alignment = TextAnchor.MiddleLeft
         };
+
         public static GUIStyle CenteredStyle => new GUIStyle(GUI.skin.label)
         {
             alignment = TextAnchor.MiddleCenter
         };
+
         public static GUIStyle RightAlignedStyle => new GUIStyle(GUI.skin.label)
         {
             alignment = TextAnchor.MiddleRight
@@ -49,6 +51,16 @@ namespace Darklight
         {
             fontSize = 12,
             fontStyle = FontStyle.Bold
+        };
+
+        public static GUIStyle SmallTextStyle => new GUIStyle(GUI.skin.label)
+        {
+            fontSize = 10
+        };
+
+        public static GUIStyle NormalTextStyle => new GUIStyle(GUI.skin.label)
+        {
+            fontSize = 12
         };
     }
 }
