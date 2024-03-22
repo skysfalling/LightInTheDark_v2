@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Darklight.World.Settings;
 using UnityEngine;
 using Darklight.Bot;
+using Darklight.World.Generation;
+
 
 
 #if UNITY_EDITOR
@@ -143,7 +145,7 @@ namespace Darklight.World.Map
             return (edge1, edge2);
         }
 
-        public static EdgeDirection? DetermineOppositeEdgeDirection(EdgeDirection direction)
+        public static EdgeDirection? GetOppositeEdge(EdgeDirection direction)
         {
             switch (direction)
             {
@@ -208,36 +210,17 @@ namespace Darklight.World.Map
             [SerializeField] private Flag _flag = Flag.NULL;
             [SerializeField] private Vector2Int _key;
             [SerializeField] private int _size;
-
-            /// <summary>
-            /// Gets the parent grid of the coordinate.
-            /// </summary>
             public GridMap2D ParentGrid { get { return _parentGrid; } }
-
-            /// <summary>
-            /// Gets or sets the current flag of the coordinate.
-            /// </summary>
             public Flag CurrentFlag { get { return _flag; } set { _flag = value; } }
-
-            /// <summary>
-            /// Gets the position key of the coordinate.
-            /// </summary>
             public Vector2Int PositionKey { get { return _key; } }
-
-            /// <summary>
-            /// Gets the size of the coordinate.
-            /// </summary>
             public int Size { get { return _size; } }
-            /// <summary>
-            /// Gets the position of the coordinate in the scene.
-            /// </summary>
             public Vector3 GetPositionInScene()
             {
                 return _parentGrid.OriginPosition + new Vector3(_key.x, 0, _key.y) * _size;
             }
-
             public Dictionary<Direction, Vector2Int> DirectionMap => GetDirectionMap(_key);
             public Dictionary<EdgeDirection, Vector2Int> EdgeDirectionMap => GetEdgeDirectionMap(_key);
+
             /// <summary>
             /// Initializes a new instance of the <see cref="Coordinate"/> class.
             /// </summary>
@@ -291,8 +274,24 @@ namespace Darklight.World.Map
 
         public class Border
         {
+            public GridMap2D ParentGrid { get; private set; }
             public EdgeDirection Direction { get; private set; }
             public List<Vector2Int> Positions { get; private set; }
+            public List<Vector2Int> Exits
+            {
+                get
+                {
+                    List<Vector2Int> exits = new List<Vector2Int>();
+                    foreach (Vector2Int position in Positions)
+                    {
+                        if (ParentGrid.GetCoordinateTypeAt(position) == Coordinate.Flag.EXIT)
+                        {
+                            exits.Add(position);
+                        }
+                    }
+                    return exits;
+                }
+            }
             public bool isClosed;
 
             public Border(EdgeDirection direction, List<Vector2Int> positions, bool isClosed)
@@ -318,6 +317,11 @@ namespace Darklight.World.Map
                 {
                     Positions.Remove(position);
                 }
+            }
+
+            public void GetExits()
+            {
+
             }
         }
 
@@ -386,7 +390,7 @@ namespace Darklight.World.Map
         }
         #endregion
 
-        #region << INSPECTOR VALUES <<
+        #region << PUBLIC INSPECTOR VALUES <<
         public CustomGenerationSettings customGenerationSettings = null;
         public TaskBotQueen taskBotQueen = new TaskBotQueen();
         #endregion
@@ -897,13 +901,17 @@ namespace Darklight.World.Map
             Initialize(_mapWidth, _coordinateSize);
         }
     }
+    // =============================== >>>>
+    // ============================== >>>> ur mom gay
+    // =============================== >>>>
 
-    public interface IGridMapData
+    #region========= >>>> INHERITED DEFINITIONS
+    public interface IGridMapData<T> where T : IGridMapData<T>, new()
     {
-        GridMap2D gridMapParent { get; set; }
-        GridMap2D.Coordinate coordinateValue { get; set; }
-        Vector2Int positionKey { get; set; }
-        Task Initialize(GridMap2D parent, Vector2Int positionKey);
+        GridMap2D<T> ParentGrid { get; set; }
+        GridMap2D.Coordinate CoordinateValue { get; set; }
+        Vector2Int PositionKey { get; set; }
+        Task Initialize(GridMap2D<T> parent, Vector2Int positionKey);
     }
 
     /// <summary>
@@ -911,7 +919,7 @@ namespace Darklight.World.Map
     /// </summary>
     /// <typeparam name="IGridMapData"></typeparam>
     [System.Serializable]
-    public class GridMap2D<T> : GridMap2D where T : IGridMapData, new()
+    public class GridMap2D<T> : GridMap2D where T : IGridMapData<T>, new()
     {
         public bool DataInitialized { get { return DataMap != null; } }
         public Dictionary<Vector2Int, T> DataMap { get; private set; } = null;
@@ -958,9 +966,10 @@ namespace Darklight.World.Map
             }
         }
     }
+    #endregion
 
-    #region ============== [[ CUSTOM PROPERTY DRAWER ]] ====== >>>>
 #if UNITY_EDITOR
+    #region ============== [[ CUSTOM PROPERTY DRAWER ]] ====== >>>>
     [CustomPropertyDrawer(typeof(GridMap2D))]
     public class GridMap2DDrawer : PropertyDrawer
     {
@@ -1036,9 +1045,126 @@ namespace Darklight.World.Map
             }
         }
     }
-#endif
     #endregion
 
+    #region ============== [[ CUSTOM EDITOR ]] ====== >>>>
+
+    [CustomEditor(typeof(GridMap2D), true)]
+    public class GridMap2DEditor : Editor
+    {
+        public enum View { SIZE_GRID, COORD_POSITION, COORD_FLAG, BORDER_DIRECTIONS, CORNER_DIRECTIONS, ZONE_ID }
+        public static View gridMap2DView = View.BORDER_DIRECTIONS;
+        public static bool showGridMapFoldout = true;
+
+        public override void OnInspectorGUI()
+        {
+            serializedObject.Update();
+            DrawDefaultInspector();
+            showGridMapFoldout = EditorGUILayout.Foldout(showGridMapFoldout, "Region Grid Map");
+            if (showGridMapFoldout)
+            {
+                CustomInspectorGUI.CreateEnumLabel(ref gridMap2DView, "Grid View");
+            }
+            serializedObject.ApplyModifiedProperties();
+        }
+
+        public static void DrawGridMap2D_SceneGUI(GridMap2D gridMap2D, View gridMap2DView, System.Action<GridMap2D.Coordinate> onCoordinateSelect)
+        {
+            if (gridMap2D == null) return;
+
+            GUIStyle coordLabelStyle = CustomGUIStyles.CenteredStyle;
+            Color coordinateColor = Color.white;
+
+            Darklight.CustomGizmos.DrawWireSquare(gridMap2D.CenterPosition, gridMap2D.MapWidth * gridMap2D.CoordinateSize, coordinateColor, Vector3.up);
+
+            // << BORDER DIRECTIONS >>
+            if (gridMap2DView == View.BORDER_DIRECTIONS)
+            {
+                // << DRAW BORDERS ONLY >>
+                Dictionary<EdgeDirection, GridMap2D.Border> borders = gridMap2D.MapBorders;
+                if (borders == null || borders.Count == 0) return;
+
+                foreach (EdgeDirection edgeDirection in borders.Keys)
+                {
+                    GridMap2D.Border selectedBorder = borders[edgeDirection];
+                    foreach (Vector2Int position in selectedBorder.Positions)
+                    {
+                        GridMap2D.Coordinate coordinate = gridMap2D.GetCoordinateAt(position);
+                        if (coordinate == null) continue;
+                        coordinateColor = coordinate.GetFlagColor(coordinate.CurrentFlag);
+                        Darklight.CustomGizmos.DrawLabel($"{selectedBorder.Direction}", coordinate.GetPositionInScene(), coordLabelStyle);
+                        Darklight.CustomGizmos.DrawButtonHandle(coordinate.GetPositionInScene(), Vector3.up, coordinate.Size * 0.45f, coordinateColor, () =>
+                        {
+                            onCoordinateSelect?.Invoke(coordinate); // Invoke the action if the button is clicked
+                        }, Handles.RectangleHandleCap);
+                    }
+                }
+                return;
+            }
+
+            // << CORNER DIRECTIONS >>
+            if (gridMap2DView == View.CORNER_DIRECTIONS)
+            {
+                Dictionary<(EdgeDirection, EdgeDirection), Vector2Int> corners = gridMap2D.MapCorners;
+                if (corners == null || corners.Count == 0) return;
+
+                foreach ((EdgeDirection, EdgeDirection) directionTuple in corners.Keys)
+                {
+                    Vector2Int position = corners[directionTuple];
+                    GridMap2D.Coordinate coordinate = gridMap2D.GetCoordinateAt(position);
+                    if (coordinate == null) continue;
+                    coordinateColor = coordinate.GetFlagColor(coordinate.CurrentFlag);
+                    Darklight.CustomGizmos.DrawLabel($"{directionTuple.Item1} - {directionTuple.Item2}", coordinate.GetPositionInScene(), coordLabelStyle);
+                    Darklight.CustomGizmos.DrawButtonHandle(coordinate.GetPositionInScene(), Vector3.up, coordinate.Size * 0.45f, coordinateColor, () =>
+                    {
+                        onCoordinateSelect?.Invoke(coordinate); // Invoke the action if the button is clicked
+                    }, Handles.RectangleHandleCap);
+                }
+            }
+
+            // << DRAW ALL COORDINATES >>
+            foreach (Vector2Int position in gridMap2D.PositionKeys)
+            {
+                GridMap2D.Coordinate gridCoordinate = gridMap2D.GetCoordinateAt(position);
+                if (gridCoordinate == null) continue;
+
+                switch (gridMap2DView)
+                {
+                    case View.SIZE_GRID:
+                        break;
+                    case View.COORD_POSITION:
+                        coordinateColor = Color.white;
+                        Darklight.CustomGizmos.DrawLabel($"{gridCoordinate.PositionKey}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
+                        break;
+                    case View.COORD_FLAG:
+                        coordinateColor = gridCoordinate.GetFlagColor(gridCoordinate.CurrentFlag); // Get the color for the current flag (type of coordinate)
+                        coordLabelStyle.normal.textColor = coordinateColor;
+                        Darklight.CustomGizmos.DrawLabel($"{gridCoordinate.CurrentFlag}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
+                        break;
+                    case View.ZONE_ID:
+                        coordinateColor = gridCoordinate.GetFlagColor(gridCoordinate.CurrentFlag); ;
+                        coordLabelStyle.normal.textColor = coordinateColor;
+                        if (gridCoordinate.CurrentFlag == GridMap2D.Coordinate.Flag.ZONE)
+                        {
+                            // TODO : Implement Zone ID
+                            /*
+                            Zone zone = coordinateMap.GetZoneFromCoordinate(gridCoordinate);
+                            if (zone != null)
+                            {
+                                Darklight.CustomGizmos.DrawLabel($"{zone.ID}", gridCoordinate.ScenePosition, coordLabelStyle);
+                            }
+                            */
+                        }
+                        break;
+                }
+            }
+        }
+        #endregion
+#endif
+
+
+
+    }
 }
 
 /*

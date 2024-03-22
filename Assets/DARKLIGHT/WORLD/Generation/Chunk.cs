@@ -4,12 +4,13 @@ using System.Linq;
 using UnityEngine;
 namespace Darklight.World.Generation
 {
+	using System.Threading.Tasks;
 	using Darklight.World.Builder;
 	using Darklight.World.Map;
 	using Darklight.World.Settings;
 	using static Darklight.World.Map.GridMap2D;
 
-	public class Chunk
+	public class Chunk : IGridMapData<Chunk>
 	{
 		/// <summary>
 		/// Defines World Chunks based on wall count / location
@@ -25,7 +26,7 @@ namespace Darklight.World.Generation
 			/// <summary>Two perpendicular walls present, forming a corner.</summary>
 			CORNER,
 			/// <summary>Three walls present, forming a dead end.</summary>
-			DEADEND,
+			DEAD_END,
 			/// <summary>Enclosed by walls on all four sides.</summary>
 			CLOSED,
 			/// <summary>Indicates a boundary limit, set by WorldCoordinateMap.</summary>
@@ -51,28 +52,32 @@ namespace Darklight.World.Generation
 		public int GroundHeight => _groundHeight;
 		public TYPE Type => _type;
 		public Color TypeColor { get; private set; } = Color.white;
+		public Vector2Int PositionKey { get; set; }
+		public Coordinate CoordinateValue { get; set; }
+		public GridMap2D<Chunk> ParentGrid { get; set; }
+
 		/*
-		public Vector3 CenterPosition => Coordinate.ScenePosition;
-		public Vector3 OriginPosition
-		{
-			get
-			{
-				Vector3 origin = CenterPosition;
-				origin -= WorldBuilder.Settings.ChunkWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
-				origin += WorldBuilder.Settings.CellSize_inGameUnits * new Vector3(0.5f, 0, 0.5f);
-				return origin;
-			}
-		}
-		public Vector3 GroundPosition
-		{
-			get
-			{
-				Vector3 groundPosition = CenterPosition;
-				groundPosition += GroundHeight * WorldBuilder.Settings.CellSize_inGameUnits * Vector3Int.up;
-				return groundPosition;
-			}
-		}
-		*/
+public Vector3 CenterPosition => Coordinate.ScenePosition;
+public Vector3 OriginPosition
+{
+get
+{
+Vector3 origin = CenterPosition;
+origin -= WorldBuilder.Settings.ChunkWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
+origin += WorldBuilder.Settings.CellSize_inGameUnits * new Vector3(0.5f, 0, 0.5f);
+return origin;
+}
+}
+public Vector3 GroundPosition
+{
+get
+{
+Vector3 groundPosition = CenterPosition;
+groundPosition += GroundHeight * WorldBuilder.Settings.CellSize_inGameUnits * Vector3Int.up;
+return groundPosition;
+}
+}
+*/
 
 		//public Vector3 ChunkMeshDimensions => WorldBuilder.Settings.ChunkVec3Dimensions_inCellUnits + new Vector3Int(0, GroundHeight, 0);
 
@@ -106,6 +111,16 @@ namespace Darklight.World.Generation
 		public void SetGroundHeight(int height)
 		{
 			this._groundHeight = height;
+		}
+
+		public Task Initialize(GridMap2D parent, Vector2Int positionKey)
+		{
+			throw new System.NotImplementedException();
+		}
+
+		public Task Initialize(GridMap2D<Chunk> parent, Vector2Int positionKey)
+		{
+			throw new System.NotImplementedException();
 		}
 
 		/*
@@ -166,7 +181,7 @@ namespace Darklight.World.Generation
 				case 4:
 					SetType(TYPE.CLOSED); break;
 				case 3:
-					SetType(TYPE.DEADEND); break;
+					SetType(TYPE.DEAD_END); break;
 				case 2:
 					// Check for parallel edges
 					if (activeBorderMap[EdgeDirection.NORTH] && activeBorderMap[EdgeDirection.SOUTH])
@@ -189,7 +204,7 @@ namespace Darklight.World.Generation
 			switch (newType)
 			{
 				case TYPE.CLOSED: TypeColor = Color.black; break;
-				case TYPE.DEADEND: TypeColor = Color.red; break;
+				case TYPE.DEAD_END: TypeColor = Color.red; break;
 				case TYPE.HALLWAY: TypeColor = Color.yellow; break;
 				case TYPE.CORNER: TypeColor = Color.blue; break;
 				case TYPE.WALL: TypeColor = Color.green; break;

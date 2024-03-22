@@ -45,12 +45,12 @@ namespace Darklight.World
 		public void SelectRegion(Region region)
 		{
 			selectedRegion = region;
-			if (selectedRegion.coordinateValue != null)
+			if (selectedRegion.CoordinateValue != null)
 			{
-				Debug.Log("Selected Region: " + selectedRegion.coordinateValue);
-				Darklight.CustomInspectorGUI.FocusSceneView(region.coordinateValue.GetPositionInScene());
+				Debug.Log("Selected Region: " + selectedRegion.CoordinateValue);
+				Darklight.CustomInspectorGUI.FocusSceneView(region.CoordinateValue.GetPositionInScene());
 			}
-			else { Debug.Log("Selected Region: " + region.positionKey); }
+			else { Debug.Log("Selected Region: " + region.PositionKey); }
 
 			editMode = EditMode.REGION;
 			regionView = RegionView.COORDINATE_MAP;

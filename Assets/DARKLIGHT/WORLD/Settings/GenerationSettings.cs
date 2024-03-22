@@ -114,7 +114,8 @@ namespace Darklight.World.Settings
 			SerializedProperty perlinMultiplierProp = property.FindPropertyRelative("_perlinMultiplier");
 
 			// Initialize generation settings with CustomSettings
-			GenerationSettings generationSettings = fieldInfo.GetValue(property.serializedObject.targetObject) as GenerationSettings;
+			if (WorldGenerationSystem.Instance == null) return;
+			GenerationSettings generationSettings = WorldGenerationSystem.Instance.Settings;
 			generationSettings.Initialize();
 
 			EditorGUI.BeginProperty(position, label, property);

@@ -172,7 +172,7 @@ MonoBehaviour:
     _chunkMaxHeight: 25
     _regionWidth: 7
     _regionBoundaryOffset: 0
-    _worldWidth: 2
+    _worldWidth: 5
     _pathRandomness: 0.5
     _perlinMultiplier: 1
   defaultMaterial: {fileID: 0}
