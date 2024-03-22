@@ -43,7 +43,6 @@ namespace Darklight.Bot
 			try
 			{
 				await task();
-				taskQueen.TaskBotConsole.Log($"{Name}: Execution successful. Time: {stopwatch.ElapsedMilliseconds}ms");
 			}
 			catch (OperationCanceledException operation)
 			{

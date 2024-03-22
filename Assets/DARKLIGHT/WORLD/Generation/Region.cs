@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Darklight.Bot;
 using Darklight.World.Map;
 using UnityEngine;
+using Darklight.World.Settings;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -22,6 +24,16 @@ namespace Darklight.World.Generation
 		public Vector2Int PositionKey { get; set; }
 		public GridMap2D.Coordinate CoordinateValue { get; set; }
 		public GridMap2D<Chunk> ChunkMap { get; set; }
+		public Vector3 CenterPosition => CoordinateValue.GetPositionInScene();
+		public Vector3 OriginPosition
+		{
+			get
+			{
+				GenerationSettings generationSettings = WorldGenSystem.Instance.Settings;
+				return CenterPosition - (new Vector3(0.5f, 0, 0.5f) * generationSettings.RegionWidth_inGameUnits) + (new Vector3(0.5f, 0, 0.5f) * generationSettings.ChunkWidth_inGameUnits);
+			}
+		}
+
 
 		public Region() { }
 		public Region(GridMap2D<Region> parent, Vector2Int positionKey)
@@ -34,7 +46,6 @@ namespace Darklight.World.Generation
 			this.ParentGrid = gridParent;
 			this.PositionKey = positionKey;
 			this.CoordinateValue = ParentGrid.GetCoordinateAt(positionKey);
-			this.ChunkMap = new GridMap2D<Chunk>(null, UnitSpace.CHUNK);
 			Initialized = true;
 			return Task.CompletedTask;
 		}
@@ -44,14 +55,14 @@ namespace Darklight.World.Generation
 	{
 		public Region Region { get; private set; }
 		public WorldGenSystem WorldGen => WorldGenSystem.Instance;
-		[SerializeField] private GridMap2D<Chunk> _chunkMap = new GridMap2D<Chunk>();
 
-		public Task Initialize(Region region)
+		public Task Initialize(Region region, GenerationSettings generationSettings)
 		{
 			Region = region;
-			_chunkMap = region.ChunkMap;
 
-			_chunkMap.Initialize(WorldGenSystem.Instance.Settings);
+			// Construct Grid2D Chunk Map
+			Region.ChunkMap = new GridMap2D<Chunk>(transform, region.OriginPosition, generationSettings, UnitSpace.REGION, UnitSpace.CHUNK);
+			Region.ChunkMap.Initialize();
 
 			return Task.CompletedTask;
 		}

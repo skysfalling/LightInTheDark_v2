@@ -266,9 +266,8 @@ namespace Darklight.World.Map
             {
                 return GetFlagColor(_flag);
             }
-
-            #endregion
         }
+        #endregion
 
         #region class Border
 
@@ -348,6 +347,13 @@ namespace Darklight.World.Map
         #endregion
 
         #region << MAP DATA <<
+        string _prefix = "[[ GridMap2D ]] ";
+        Transform _transform; // to use as position parent
+        [SerializeField] GenerationSettings _settings;
+        [SerializeField] UnitSpace _mapUnitSpace; // defines GridMap sizing
+        [SerializeField] UnitSpace _coordinateUnitSpace; // defines Coordinate sizing
+        [SerializeField] int _mapWidth = 11; // width count of the grid [[ grid will always be a square ]]
+        [SerializeField] int _coordinateSize = 1; // size of each GridCoordinate to determine position offsets
         Dictionary<Vector2Int, Coordinate> _map = new Dictionary<Vector2Int, Coordinate>();
         Dictionary<Coordinate.Flag, HashSet<Vector2Int>> _mapFlags = new();
         Dictionary<EdgeDirection, Border> _mapBorders = new();
@@ -356,13 +362,7 @@ namespace Darklight.World.Map
         #endregion
 
         #region << PRIVATE VARIABLES <<
-        string _prefix = "[[ GridMap2D ]] ";
-        Transform _transform; // to use as position parent
-        [SerializeField] GenerationSettings _settings;
-        [SerializeField] UnitSpace _mapUnitSpace; // defines GridMap sizing
-        [SerializeField] UnitSpace _coordinateUnitSpace; // defines Coordinate sizing
-        [SerializeField] int _mapWidth = 11; // width count of the grid [[ grid will always be a square ]]
-        [SerializeField] int _coordinateSize = 1; // size of each GridCoordinate to determine position offsets
+
         #endregion
 
         #region << PUBLIC ACCESSORS <<
@@ -373,19 +373,12 @@ namespace Darklight.World.Map
         public List<Coordinate> CoordinateValues { get { return _map.Values.ToList(); } }
         public Dictionary<EdgeDirection, Border> MapBorders { get { return _mapBorders; } }
         public Dictionary<(EdgeDirection, EdgeDirection), Vector2Int> MapCorners { get { return _mapCorners; } }
-        public Vector3 OriginPosition
-        {
-            get
-            {
-                if (_transform != null) { return _transform.position; }
-                else { return Vector3.zero; }
-            }
-        }
+        public Vector3 OriginPosition { get; private set; } = Vector3.zero;
         public Vector3 CenterPosition
         {
             get
             {
-                return OriginPosition + new Vector3(_mapWidth / 2, 0, _mapWidth / 2) * _coordinateSize;
+                return OriginPosition + (new Vector3(0.5f, 0, 0.5f) * _coordinateSize * _mapWidth) - (new Vector3(0.5f, 0, 0.5f) * _coordinateSize);
             }
         }
         #endregion
@@ -403,17 +396,16 @@ namespace Darklight.World.Map
             this._coordinateUnitSpace = UnitSpace.GAME;
         }
 
-        /// <summary>
-        /// Main GridMap2D constructor
-        /// </summary>
-        /// <param name="transform"></param>
-        /// <param name="unitSpace"></param>
-        /// <param name="mapWidth"></param>
-        /// <param name="coordinateSize"></param>
-        public GridMap2D(Transform transform, UnitSpace unitSpace)
+        public GridMap2D(Transform transform, Vector3 originPosition, GenerationSettings generationSettings, UnitSpace mapUnit, UnitSpace coordUnit)
         {
             this._transform = transform;
-            this._mapUnitSpace = unitSpace;
+            this._settings = generationSettings;
+            this.OriginPosition = originPosition;
+            this._mapUnitSpace = mapUnit;
+            this._coordinateUnitSpace = coordUnit;
+
+            this._mapWidth = _settings.GetUnitSize(mapUnit);
+            this._coordinateSize = _settings.GetUnitSizeInGameUnits(coordUnit);
         }
         #endregion
 
@@ -477,27 +469,6 @@ namespace Darklight.World.Map
                     coordinate.SetFlag(Coordinate.Flag.NULL);
                 }
             }
-        }
-
-        public void Initialize(int width, int size)
-        {
-            _mapWidth = width;
-            _coordinateSize = size;
-            Initialize();
-        }
-        public void Initialize(GenerationSettings settings)
-        {
-            _settings = settings;
-            _mapWidth = _settings.WorldWidth_inRegionUnits;
-            _coordinateSize = _settings.RegionFullWidth_inGameUnits;
-            Initialize();
-        }
-        public void Initialize(CustomGenerationSettings customSettings)
-        {
-            _settings.Initialize(customSettings);
-            _mapWidth = _settings.WorldWidth_inRegionUnits;
-            _coordinateSize = _settings.RegionFullWidth_inGameUnits;
-            Initialize();
         }
         #endregion
 
@@ -893,12 +864,6 @@ namespace Darklight.World.Map
         {
             Debug.Log($"{_prefix} Resetting GridMap2D");
             _map.Clear();
-            if (customGenerationSettings)
-            {
-                Initialize(customGenerationSettings);
-                return;
-            }
-            Initialize(_mapWidth, _coordinateSize);
         }
     }
     // =============================== >>>>
@@ -925,7 +890,7 @@ namespace Darklight.World.Map
         public Dictionary<Vector2Int, T> DataMap { get; private set; } = null;
         public List<T> DataValues { get { return DataMap.Values.ToList(); } }
         public GridMap2D() : base() { }
-        public GridMap2D(Transform transform, UnitSpace unitSpace) : base(transform, unitSpace) { }
+        public GridMap2D(Transform transform, Vector3 originPosition, GenerationSettings generationSettings, UnitSpace mapUnit, UnitSpace coordUnit) : base(transform, originPosition, generationSettings, mapUnit, coordUnit) { }
         public virtual async Task InitializeDataMap()
         {
             DataMap = new Dictionary<Vector2Int, T>();
@@ -1075,6 +1040,7 @@ namespace Darklight.World.Map
             GUIStyle coordLabelStyle = CustomGUIStyles.CenteredStyle;
             Color coordinateColor = Color.white;
 
+            Darklight.CustomGizmos.DrawWireSquare(gridMap2D.OriginPosition, gridMap2D.CoordinateSize * 0.75f, Color.red, Vector3.up);
             Darklight.CustomGizmos.DrawWireSquare(gridMap2D.CenterPosition, gridMap2D.MapWidth * gridMap2D.CoordinateSize, coordinateColor, Vector3.up);
 
             // << BORDER DIRECTIONS >>

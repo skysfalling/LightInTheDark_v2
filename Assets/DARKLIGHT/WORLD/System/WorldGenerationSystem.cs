@@ -102,17 +102,26 @@ namespace Darklight.World
             else
             {
                 Instance = this;
+                TaskBotConsole.Log($"Set Singleton");
             }
 
             // << INIT >> -------------------------- //
             this.Name = "WorldGenerationSystem";
             _settings.Initialize();
             await base.Initialize();
-            RegionGridMap = new GridMap2D<Generation.Region>(transform, UnitSpace.REGION); // Assign GridMap to this Transform
-            RegionGridMap.Initialize(_settings);
-            Debug.Log($"{Prefix} Initialized");
-            await RegionGridMap.InitializeDataMap(); // Initialize Data
+            RegionGridMap = new GridMap2D<Region>(transform, transform.position, _settings, UnitSpace.WORLD, UnitSpace.REGION); // Assign GridMap to this Transform
+            RegionGridMap.Initialize();
 
+            TaskBotConsole.Log($"Initialized Region Grid Map");
+            TaskBotConsole.Log($"Region Count: {RegionGridMap.PositionKeys.Count}", 1);
+            if (RegionGridMap.PositionKeys.Count > 200)
+            {
+                TaskBotConsole.Log($"Region Count is too high. Consider reducing the region width.", 0, Darklight.Console.LogEntry.Severity.Error);
+                return;
+            }
+
+
+            await RegionGridMap.InitializeDataMap(); // Initialize Data
 
 
             // [[ ADD BOT CLONES TO EXECUTION QUEUE ]]
@@ -124,7 +133,7 @@ namespace Darklight.World
                 {
                     GameObject newObject = await CreateGameObjectAt("RegionOperator", region.CoordinateValue);
                     RegionMonoOperator regionMonoOperator = newObject.AddComponent<RegionMonoOperator>();
-                    await regionMonoOperator.Initialize(region);
+                    await regionMonoOperator.Initialize(region, _settings);
                 });
                 // i love my little bots <3 
 

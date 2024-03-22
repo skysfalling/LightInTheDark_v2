@@ -166,13 +166,13 @@ MonoBehaviour:
   _settings:
     _customSettings: {fileID: 11400000, guid: dbb543a9a63c30f4cbcafcb226da6e09, type: 2}
     _seed: 6928347658279
-    _cellSize: 2
-    _chunkWidth: 7
-    _chunkDepth: 10
-    _chunkMaxHeight: 25
-    _regionWidth: 7
+    _cellSize: 1
+    _chunkWidth: 5
+    _chunkDepth: 2
+    _chunkMaxHeight: 2
+    _regionWidth: 2
     _regionBoundaryOffset: 0
-    _worldWidth: 5
+    _worldWidth: 3
     _pathRandomness: 0.5
     _perlinMultiplier: 1
   defaultMaterial: {fileID: 0}

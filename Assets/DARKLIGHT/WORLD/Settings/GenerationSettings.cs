@@ -6,6 +6,7 @@ namespace Darklight.World.Settings
 	using UnityEngine;
 #if UNITY_EDITOR
 	using UnityEditor;
+	using System.Threading.Tasks;
 #endif
 
 	[System.Serializable]
@@ -63,6 +64,19 @@ namespace Darklight.World.Settings
 
 		// >>>> CUSTOM SETTINGS
 		public GenerationSettings() { }
+		public void Initialize(CustomGenerationSettings customSettings = null)
+		{
+			// Set custom settings from parameter
+			if (customSettings != null && _customSettings != customSettings)
+				SetCustomValues(customSettings);
+			// Set custom settings from class instance
+			else if (customSettings == null && _customSettings != null)
+				SetCustomValues(_customSettings);
+
+			// Initialize Random
+			int encodedSeed = Seed.GetHashCode();
+			UnityEngine.Random.InitState(encodedSeed);
+		}
 
 		void SetCustomValues(CustomGenerationSettings customSettings)
 		{
@@ -79,18 +93,42 @@ namespace Darklight.World.Settings
 			_perlinMultiplier = customSettings.PerlinMultiplier;
 		}
 
-		public void Initialize(CustomGenerationSettings customSettings = null)
+		public int GetUnitSize(UnitSpace unitSpace)
 		{
-			// Set custom settings from parameter
-			if (customSettings != null && _customSettings != customSettings)
-				SetCustomValues(customSettings);
-			// Set custom settings from class instance
-			else if (customSettings == null && _customSettings != null)
-				SetCustomValues(_customSettings);
+			switch (unitSpace)
+			{
+				case UnitSpace.GAME:
+					break;
+				case UnitSpace.CELL:
+					return _cellSize;
+				case UnitSpace.CHUNK:
+					return _chunkWidth;
+				case UnitSpace.REGION:
+					return _regionWidth;
+				case UnitSpace.WORLD:
+					return _worldWidth;
+			}
 
-			// Initialize Random
-			int encodedSeed = Seed.GetHashCode();
-			UnityEngine.Random.InitState(encodedSeed);
+			return 1;
+		}
+
+		public int GetUnitSizeInGameUnits(UnitSpace unitSpace)
+		{
+			switch (unitSpace)
+			{
+				case UnitSpace.GAME:
+					break;
+				case UnitSpace.CELL:
+					return _cellSize;
+				case UnitSpace.CHUNK:
+					return ChunkWidth_inGameUnits;
+				case UnitSpace.REGION:
+					return RegionWidth_inGameUnits;
+				case UnitSpace.WORLD:
+					return WorldWidth_inGameUnits;
+			}
+
+			return 1;
 		}
 	}
 
@@ -114,9 +152,11 @@ namespace Darklight.World.Settings
 			SerializedProperty perlinMultiplierProp = property.FindPropertyRelative("_perlinMultiplier");
 
 			// Initialize generation settings with CustomSettings
-			if (WorldGenerationSystem.Instance == null) return;
-			GenerationSettings generationSettings = WorldGenerationSystem.Instance.Settings;
-			generationSettings.Initialize();
+			if (WorldGenerationSystem.Instance != null)
+			{
+				GenerationSettings generationSettings = WorldGenerationSystem.Instance.Settings;
+				generationSettings.Initialize();
+			}
 
 			EditorGUI.BeginProperty(position, label, property);
 
@@ -130,7 +170,9 @@ namespace Darklight.World.Settings
 			{
 				EditorGUI.indentLevel++;
 
-				EditorGUILayout.PropertyField(customSettingsProp);
+
+				if (customSettingsProp != null)
+					EditorGUILayout.PropertyField(customSettingsProp);
 				EditorGUILayout.PropertyField(seedProp);
 				EditorGUILayout.PropertyField(cellSizeProp);
 				EditorGUILayout.PropertyField(chunkWidthProp);
