@@ -160,6 +160,37 @@ namespace Darklight.World.Map
             }
         }
 
+        /// <summary>
+        /// Returns a Dictionary of all positions in Direction
+        ///     { NORTH, SOUTH, EAST, WEST, NORTHWEST, NORTHEAST, SOUTHWEST, SOUTHEAST }
+        /// </summary>
+        public static Dictionary<Direction, Vector2Int> GetDirectionMap(Vector2Int positionKey)
+        {
+            Dictionary<Direction, Vector2Int> result = new Dictionary<Direction, Vector2Int>();
+            foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+            {
+                Vector2Int neighborValue = positionKey + GetVectorFromDirection(direction);
+                result[direction] = neighborValue;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Returns a Dictionary of all positions in EdgeDirection
+        ///     {NORTH, SOUTH, EAST, WEST }
+        /// </summary>
+        public static Dictionary<EdgeDirection, Vector2Int> GetEdgeDirectionMap(Vector2Int positionKey)
+        {
+            Dictionary<EdgeDirection, Vector2Int> result = new Dictionary<EdgeDirection, Vector2Int>();
+            foreach (EdgeDirection edgeDirection in Enum.GetValues(typeof(EdgeDirection)))
+            {
+                Direction directionValue = (Direction)ConvertToDirection(edgeDirection);
+                Vector2Int neighborValue = positionKey + GetVectorFromDirection(directionValue);
+                result[edgeDirection] = neighborValue;
+            }
+            return result;
+        }
+
         // system random to get random values inside a Serializable class
         private static readonly System.Random sysRandom = new System.Random();
         #endregion
@@ -197,7 +228,16 @@ namespace Darklight.World.Map
             /// Gets the size of the coordinate.
             /// </summary>
             public int Size { get { return _size; } }
+            /// <summary>
+            /// Gets the position of the coordinate in the scene.
+            /// </summary>
+            public Vector3 GetPositionInScene()
+            {
+                return _parentGrid.OriginPosition + new Vector3(_key.x, 0, _key.y) * _size;
+            }
 
+            public Dictionary<Direction, Vector2Int> DirectionMap => GetDirectionMap(_key);
+            public Dictionary<EdgeDirection, Vector2Int> EdgeDirectionMap => GetEdgeDirectionMap(_key);
             /// <summary>
             /// Initializes a new instance of the <see cref="Coordinate"/> class.
             /// </summary>
@@ -210,10 +250,6 @@ namespace Darklight.World.Map
                 this._size = ParentGrid.CoordinateSize;
                 this._key = positionKey;
             }
-
-            #region [[ PUBLIC METHODS ]]
-
-            #region >> Handle Flags 
 
             /// <summary>
             /// Sets the flag of the coordinate.
@@ -249,46 +285,7 @@ namespace Darklight.World.Map
             }
 
             #endregion
-
-            /// <summary>
-            /// Gets the position of the coordinate in the scene.
-            /// </summary>
-            public Vector3 GetPositionInScene()
-            {
-                return _parentGrid.OriginPosition + new Vector3(_key.x, 0, _key.y) * _size;
-            }
-
-            /// <summary>
-            /// Gets all the neighboring coordinates of the current coordinate.
-            /// </summary>
-            public Dictionary<Direction, Vector2Int> GetAllNeighbors()
-            {
-                Dictionary<Direction, Vector2Int> result = new Dictionary<Direction, Vector2Int>();
-                foreach (Direction direction in Enum.GetValues(typeof(Direction)))
-                {
-                    Vector2Int neighborValue = _key + GetVectorFromDirection(direction);
-                    result[direction] = neighborValue;
-                }
-                return result;
-            }
-
-            /// <summary>
-            /// Gets the edge neighboring coordinates of the current coordinate.
-            /// </summary>
-            public Dictionary<EdgeDirection, Vector2Int> GetEdgeNeighbors()
-            {
-                Dictionary<EdgeDirection, Vector2Int> result = new Dictionary<EdgeDirection, Vector2Int>();
-                foreach (EdgeDirection edgeDirection in Enum.GetValues(typeof(EdgeDirection)))
-                {
-                    Direction directionValue = (Direction)ConvertToDirection(edgeDirection);
-                    Vector2Int neighborValue = _key + GetVectorFromDirection(directionValue);
-                    result[edgeDirection] = neighborValue;
-                }
-                return result;
-            }
-            #endregion
         }
-        #endregion
 
         #region class Border
 
@@ -635,7 +632,7 @@ namespace Darklight.World.Map
                     }
 
                     // Get the neighbors of the current coordinate
-                    foreach (Vector2Int neighbor in currentCoordinate.GetAllNeighbors().Values)
+                    foreach (Vector2Int neighbor in currentCoordinate.EdgeDirectionMap.Values)
                     {
                         if (!visited.Contains(neighbor))
                         {
@@ -757,7 +754,7 @@ namespace Darklight.World.Map
         #endregion
 
         #region == [[ HANDLE PATHFINDING ]] ================================================================ >>>>
-        public static List<Vector2Int> FindPath(GridMap2D gridMap2D, Vector2Int startCoord, Vector2Int endCoord, List<Coordinate.Flag> validFlags, float pathRandomness = 0)
+        public static List<Vector2Int> FindPath(GridMap2D gridMap2D, Vector2Int startPosition, Vector2Int endCoord, List<Coordinate.Flag> validFlags, float pathRandomness = 0)
         {
             // A* Pathfinding implementation
             // gCost is the known cost from the starting node
@@ -776,7 +773,7 @@ namespace Darklight.World.Map
             // Store all possible positions from the coordinate map
             List<Vector2Int> positions = gridMap2D.PositionKeys;
             // Initialize the open set with the start coordinate
-            List<Vector2Int> openSet = new List<Vector2Int> { startCoord };
+            List<Vector2Int> openSet = new List<Vector2Int> { startPosition };
             // Initialize the closed set as an empty collection of Vector2Int
             HashSet<Vector2Int> closedSet = new HashSet<Vector2Int>();
 
@@ -787,7 +784,7 @@ namespace Darklight.World.Map
             {
                 gCost[pos] = float.MaxValue;
             }
-            gCost[startCoord] = 0;
+            gCost[startPosition] = 0;
 
             // Initialize the heuristic costs
             Dictionary<Vector2Int, float> fCost = new Dictionary<Vector2Int, float>();
@@ -795,7 +792,7 @@ namespace Darklight.World.Map
             {
                 fCost[pos] = float.MaxValue;
             }
-            fCost[startCoord] = Vector2Int.Distance(startCoord, endCoord);
+            fCost[startPosition] = Vector2Int.Distance(startPosition, endCoord);
 
             while (openSet.Count > 0)
             {
@@ -813,7 +810,7 @@ namespace Darklight.World.Map
                 if (current == endCoord)
                 {
                     // Path has been found
-                    return RetracePath(startCoord, endCoord, parents);
+                    return RetracePath(startPosition, endCoord, parents);
                 }
 
                 openSet.Remove(current);
@@ -821,7 +818,7 @@ namespace Darklight.World.Map
 
 
                 // [[ ITERATE THROUGH NATURAL NEIGHBORS ]]
-                foreach (Vector2Int pos in CoordinateMap.CalculateNaturalNeighborCoordinateValues(current))
+                foreach (Vector2Int pos in GetEdgeDirectionMap(current).Values)
                 {
                     if (closedSet.Contains(pos) || IsCoordinateValidForPathfinding(pos) == false)
                         continue; // Skip non-traversable neighbors and those already evaluated

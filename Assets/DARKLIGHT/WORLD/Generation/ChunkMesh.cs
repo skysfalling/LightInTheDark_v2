@@ -9,6 +9,9 @@ namespace Darklight.World.Generation
 	using FaceDirection = Chunk.FaceDirection;
 	using Builder;
 	using System.Linq;
+	using Darklight.World.Settings;
+	using Darklight.World.Map;
+
 	/// <summary>
 	/// This Quad manipulates and stores the chunk mesh values
 	/// </summary> 
@@ -77,15 +80,16 @@ namespace Darklight.World.Generation
 		{
 			this._chunkParent = chunkParent;
 			this._groundHeight = chunkParent.GroundHeight;
-			this._positionInScene = chunkParent.GroundPosition;
+			//this._positionInScene = chunkParent.GroundPosition;
 			GenerateMeshData();
 			this._mesh = CreateMeshFromGeneratedData();
 		}
 
 		public Mesh Recalculate()
 		{
-			this._chunkParent.UpdateChunkHeight();
-			this._chunkParent.DetermineChunkType();
+			// #TODO
+			//this._chunkParent.UpdateChunkHeight();
+			//this._chunkParent.DetermineChunkType();
 			this._mesh = CreateMeshFromGeneratedData();
 			return this._mesh;
 		}
@@ -172,25 +176,17 @@ namespace Darklight.World.Generation
 
 		void GenerateMeshData()
 		{
+			GenerationSettings settings = WorldGenerationSystem.Instance.Settings;
 			int groundHeight = _groundHeight;
 			List<FaceDirection> facesToGenerate = _visibleFaces;
-			int cellSize = WorldBuilder.Settings.CellSize_inGameUnits;
+			int cellSize = settings.CellSize_inGameUnits;
 			int currentVertexIndex = 0;
 
 			// << GET SETTINGS >>
-			if (WorldBuilder.Settings != null)
+			if (settings != null)
 			{
-				cellSize = WorldBuilder.Settings.CellSize_inGameUnits;
-				_defaultDimensions = WorldBuilder.Settings.ChunkVec3Dimensions_inCellUnits;
-			}
-			else if (RegionBuilder.Settings != null)
-			{
-				cellSize = RegionBuilder.Settings.CellSize_inGameUnits;
-				_defaultDimensions = RegionBuilder.Settings.ChunkVec3Dimensions_inCellUnits;
-			}
-			else
-			{
-				Debug.LogError("Settings not found");
+				cellSize = settings.CellSize_inGameUnits;
+				_defaultDimensions = settings.ChunkVec3Dimensions_inCellUnits;
 			}
 
 			// << UPDATE DIMENSIONS >>
@@ -401,10 +397,14 @@ namespace Darklight.World.Generation
 				int faceHeight = _currentDimensions.y; // Get current height
 				Chunk neighborChunk = null;
 
+
+
+				Debug.LogError("it broke :(");
 				switch (type)
 				{
+					/*
 					case FaceDirection.FRONT:
-						neighborChunk = _chunkParent.GetNaturalNeighborMap()[Direction.NORTH];
+						neighborChunk = GridMap2D.GetDirectionMap()[Direction.NORTH];
 						break;
 					case FaceDirection.BACK:
 						neighborChunk = _chunkParent.GetNaturalNeighborMap()[Direction.SOUTH];
@@ -415,6 +415,7 @@ namespace Darklight.World.Generation
 					case FaceDirection.RIGHT:
 						neighborChunk = _chunkParent.GetNaturalNeighborMap()[Direction.EAST];
 						break;
+						*/
 				}
 
 				if (neighborChunk != null)
@@ -464,7 +465,7 @@ namespace Darklight.World.Generation
 				return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
 			}
 
-			int cellSize = WorldBuilder.Settings.CellSize_inGameUnits;
+			int cellSize = WorldGenerationSystem.Instance.Settings.CellSize_inGameUnits;
 
 			// Get starting vertex of visible vDivisions
 			Vector3 visibleSideFaceStartVertex = new Vector3(_currentDimensions.x, -vDivisions, _currentDimensions.z) * cellSize;

@@ -19,20 +19,19 @@ namespace Darklight.World.Builder
 		HashSet<Chunk> _chunks = new();
 		Dictionary<Vector2Int, Chunk> _chunkMap = new();
 
-		public bool Initialized { get; private set; }
 		public bool GenerationFinished { get; private set; }
 		public bool CreateObjects { get; private set; } = false;
 		public RegionBuilder RegionParent { get; private set; }
-		CoordinateMap _coordinateMap;
 		public HashSet<Chunk> AllChunks { get { return _chunks; } private set { } }
 
-		public async void Initialize(RegionBuilder worldRegion, CoordinateMap coordinateMap)
+		public async void Initialize()
 		{
 			await base.Initialize();
-			RegionParent = worldRegion;
-			_coordinateMap = coordinateMap;
-			Initialized = true;
+			//RegionParent = worldRegion;
+			//_coordinateMap = coordinateMap;
+			//Initialized = true;
 		}
+		/*
 		async Task CreateAllChunkData()
 		{
 			ChunkBuilder self = this; // Capture the instance of ChunkGeneration
@@ -216,5 +215,6 @@ namespace Darklight.World.Builder
 			_chunkMap.Clear();
 			TaskBotConsole.Reset();
 		}
+		*/
 	}
 }

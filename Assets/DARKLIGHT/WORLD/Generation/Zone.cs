@@ -5,6 +5,8 @@ using UnityEngine;
 namespace Darklight.World.Generation
 {
 	using Map;
+	using static Darklight.World.Map.GridMap2D;
+
 	public class Zone
 	{
 		public enum Shape { SINGLE, FULL, NATURAL_CROSS, DIAGONAL_CROSS, HORIZONTAL, VERTICAL }
@@ -20,8 +22,8 @@ namespace Darklight.World.Generation
 		// [[ PRIVATE VARIABLES ]]
 		bool _valid;
 		int _id;
-		CoordinateMap _coordinateMapParent;
-		Coordinate _coordinate;
+		GridMap2D _gridMapParent;
+		GridMap2D.Coordinate _coordinate;
 		Shape _type;
 		int _height;
 		Dictionary<Vector2Int, Coordinate> _zoneCoordinateValueMap = new();
@@ -31,10 +33,11 @@ namespace Darklight.World.Generation
 		public List<Vector2Int> Positions => _zoneCoordinateValueMap.Keys.ToList();
 		public List<Coordinate> Coordinates => _zoneCoordinateValueMap.Values.ToList();
 		public Coordinate CenterCoordinate => _coordinate;
-		public Zone(Coordinate coordinate, Shape zoneShape, int zoneID)
+		public Zone(Vector2Int originPositionKey, Shape zoneShape, int zoneID)
 		{
-			this._coordinateMapParent = coordinate.ParentMap;
+			/*
 			this._coordinate = coordinate;
+			this._gridMapParent = coordinate.ParentGrid;
 			this._type = zoneShape;
 			this._id = zoneID;
 
@@ -45,7 +48,7 @@ namespace Darklight.World.Generation
 				case Shape.SINGLE:
 					break;
 				case Shape.FULL:
-					neighborsInZone = _coordinate.GetAllValidNeighbors();
+					neighborsInZone = GridMap2D.GetEdgeDirectionMap();
 					break;
 				case Shape.NATURAL_CROSS:
 					neighborsInZone = _coordinate.GetValidNaturalNeighbors();
@@ -68,10 +71,10 @@ namespace Darklight.World.Generation
 			zoneCoordinates.AddRange(neighborsInZone);
 
 			// Extract coordinates into values map
-			_zoneCoordinateValueMap = _coordinateMapParent.GetCoordinateValueMapFrom(zoneCoordinates);
+			_zoneCoordinateValueMap = _gridMapParent.GetCoordinateValueMapFrom(zoneCoordinates);
 
 			// Extract  & check coordinate types
-			List<Coordinate.TYPE?> _zoneCoordinateTypes = _coordinateMapParent.GetCoordinateTypesAt(_zoneCoordinateValueMap.Keys.ToList());
+			List<Coordinate.TYPE?> _zoneCoordinateTypes = _gridMapParent.GetCoordinateTypesAt(_zoneCoordinateValueMap.Keys.ToList());
 			if (_zoneCoordinateTypes.Any(type => type != Coordinate.TYPE.NULL))
 			{
 				_valid = false;
@@ -79,6 +82,7 @@ namespace Darklight.World.Generation
 			}
 
 			_valid = true;
+			*/
 		}
 
 		// Helper function to find the closest coordinate to a given coordinate
@@ -100,25 +104,28 @@ namespace Darklight.World.Generation
 			}
 
 			// >> get coordinate reference
-			Coordinate closestZoneCoordinate = _coordinateMapParent.GetCoordinateAt(closestZoneValue);
+			Coordinate closestZoneCoordinate = _gridMapParent.GetCoordinateAt(closestZoneValue);
 			if (closestZoneCoordinate == null) return null;
-
-			// >> get coordinate neighbors
 			Vector2Int closestExternalValue = closestZoneValue;
-			List<Coordinate> neighbors = closestZoneCoordinate.GetValidNaturalNeighbors();
-			foreach (Coordinate neighbor in neighbors)
-			{
-				if (neighbor.Type == Coordinate.TYPE.ZONE) continue;
 
-				float currentDistance = Vector2Int.Distance(neighbor.ValueKey, mapValue);
-				if (currentDistance < closestDistance)
-				{
-					closestDistance = currentDistance;
-					closestExternalValue = neighbor.ValueKey;
-				}
-			}
+			/*
+						// >> get coordinate neighbors
+						List<Coordinate> neighbors = closestZoneCoordinate.GetValidNaturalNeighbors();
+						foreach (Coordinate neighbor in neighbors)
+						{
+							if (neighbor.Type == Coordinate.TYPE.ZONE) continue;
 
-			return _coordinateMapParent.GetCoordinateAt(closestExternalValue);
+							float currentDistance = Vector2Int.Distance(neighbor.ValueKey, mapValue);
+							if (currentDistance < closestDistance)
+							{
+								closestDistance = currentDistance;
+								closestExternalValue = neighbor.ValueKey;
+							}
+						}
+
+			*/
+			return _gridMapParent.GetCoordinateAt(closestExternalValue);
+
 
 		}
 	}

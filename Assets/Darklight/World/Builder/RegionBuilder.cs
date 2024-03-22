@@ -19,114 +19,28 @@ namespace Darklight.World.Builder
 	{
 		#region [[ PRIVATE VARIABLES ]] 
 		string _prefix = "[[ REGION BUILDER ]]";
-		WorldBuilder _generationParent;
-		Coordinate _coordinate;
-		CoordinateMap _coordinateMap;
 		ChunkBuilder _chunkBuilder;
 		GameObject _combinedMeshObject;
 		HashSet<GameObject> _regionObjects = new();
 		#endregion
 		#region [[ GETTERS ]]
-		public bool Initialized { get; private set; }
-		public bool GenerationFinished { get; private set; }
-		public WorldBuilder GenerationParent => _generationParent;
-		public Coordinate Coordinate => _coordinate;
-		public CoordinateMap CoordinateMap => _coordinateMap;
+		public WorldGenerationSystem WorldGenerationSystem => WorldGenerationSystem.Instance;
+		public GenerationSettings WorldSettings => WorldGenerationSystem.Instance.Settings;
+		public bool GenerationFinished { get; private set; } = false;
 		public ChunkBuilder ChunkBuilder => GetComponent<ChunkBuilder>();
-		public Vector3 CenterPosition
-		{
-			get
-			{
-				if (Coordinate == null) { return Vector3.zero; }
-				else { return Coordinate.ScenePosition; }
-			}
-		}
-		public Vector3 OriginPosition
-		{
-			get
-			{
-				Vector3 origin = CenterPosition;
-				origin -= RegionBuilder.Settings.RegionFullWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
-				origin += RegionBuilder.Settings.ChunkWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
-				return origin;
-			}
-		}
-		#endregion
-		#region [[ INSPECTOR SETTINGS ]]	
-		public Material defaultMaterial;
-		static GenerationSettings _regionSettings = new();
-		public CustomGenerationSettings customRegionSettings; // ScriptableObject
-		public static GenerationSettings Settings => _regionSettings;
-
-		/// <summary>
-		/// Override the default generation settings.
-		/// </summary>
-		/// <param name="customSettings">The custom generation settings.</param>
-		public void OverrideSettings(CustomGenerationSettings customSettings)
-		{
-			if (customSettings == null) { _regionSettings = new GenerationSettings(); return; }
-			_regionSettings.Initialize(customSettings);
-		}
-		#endregion
-		#region [[ RANDOM SEED ]] 
-
-		/// <summary>
-		/// Gets the seed used for random generation.
-		/// </summary>
-		public static string Seed { get { return Settings.Seed; } }
-
-		/// <summary>
-		/// Initializes the random seed.
-		/// </summary>
-		public static void InitializeSeedRandom()
-		{
-			UnityEngine.Random.InitState(Settings.Seed.GetHashCode());
-		}
-
+		public Vector3 CenterPosition;
+		public Vector3 OriginPosition;
 		#endregion
 
-		/// <summary>
-		/// Indicates whether the region should be initialized on start.
-		/// </summary>
-		public bool initializeOnStart;
-		/// <summary>
-		/// Assigns the region to a parent <see cref="WorldBuilder"/>.
-		/// This method should be called by the world builder to assign the region to itself.
-		/// </summary>
-		/// <param name="parent">The parent WorldBuilder.</param>
-		/// <param name="coordinate">The coordinate of the region.</param>
-		/// <param name="taskQueenName">The name of the task queen.</param>
-		public void AssignToWorldParent(WorldBuilder parent, Coordinate coordinate, string taskQueenName = "Region Task Queen")
-		{
-			this._generationParent = parent;
-			this._coordinate = coordinate;
-
-			if (parent.customWorldGenSettings != null)
-			{
-				OverrideSettings(parent.customWorldGenSettings);
-			}
-			//this.GenerationParent.TaskBotConsole.Log(this, $"\t Child Region Assigned to World Coordinate {coordinate}");
-		}
-
-		public async void Start()
-		{
-			if (initializeOnStart == true)
-			{
-				Debug.Log($"{_prefix} Initialize On Start");
-				await this.Initialize();
-			}
-		}
 		public override void Reset()
 		{
 			base.Reset();
 
-			Initialized = false;
-			_coordinateMap = null;
 			//_chunkBuilder.Reset();
 
 			foreach (GameObject gameObject in _regionObjects)
 			{
-				DestroyGameObject(gameObject);
+				WorldGenerationSystem.DestroyGameObject(gameObject);
 			}
 
 			TaskBotConsole.Reset();
@@ -137,15 +51,8 @@ namespace Darklight.World.Builder
 		{
 			this.Name = "RegionAsyncTaskQueen";
 			if (Initialized) return;
-			if (WorldBuilder.Instance == null)
-			{
-				WorldBuilder.OverrideSettings(customRegionSettings);
-				this._coordinate = new Coordinate(Vector2Int.zero, UnitSpace.REGION);
-			}
-			this._coordinateMap = new CoordinateMap(this);
-			await _coordinateMap.InitializeDefaultMap();
+
 			await base.Initialize();
-			Initialized = true;
 
 			if (selfGenerate)
 			{
@@ -161,6 +68,7 @@ namespace Darklight.World.Builder
 		public async Task GenerationSequence()
 		{
 			this._chunkBuilder = GetComponent<ChunkBuilder>();
+			/*
 
 			// Generate Exits, Paths and Zones based on neighboring regions
 			TaskBot RegionGenerationTask = new TaskBot(this, "RegionGenerationTask", async () =>
@@ -209,13 +117,15 @@ namespace Darklight.World.Builder
 					//TaskBotConsole.Log(this, "Mesh generation complete.");
 				});
 				await Enqueue(CombineMesh);
-			}
+			}*/
 
 			// Execute all tasks queued in AsyncTaskQueen
-			await ExecuteAllTasks();
+			//await ExecuteAllTasks();
+			await Task.CompletedTask;
 			GenerationFinished = true;
 		}
 
+		/*
 		/// <summary>
 		/// Generates necessary exits for the region.
 		/// </summary>
@@ -432,24 +342,8 @@ namespace Darklight.World.Builder
 
 			return combinedMesh;
 		}
+		*/
 
-		/// <summary> Destroy GameObject in Play andEdit mode </summary>
-		public static void DestroyGameObject(GameObject gameObject)
-		{
-			// Check if we are running in the Unity Editor
-#if UNITY_EDITOR
-			if (!EditorApplication.isPlaying)
-			{
-				// Use DestroyImmediate if in edit mode and not playing
-				DestroyImmediate(gameObject);
-				return;
-			}
-			else
-#endif
-			{
-				// Use Destroy in play mode or in a build
-				Destroy(gameObject);
-			}
-		}
+
 	}
 }

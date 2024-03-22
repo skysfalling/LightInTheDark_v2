@@ -20,19 +20,19 @@ namespace Darklight.World.Generation
 	public class Traveler : MonoBehaviour
 	{
 		private GameObject _modelObject;
-		public CoordinateMap coordinateMap;
+		//public CoordinateMap coordinateMap;
 		public Player8DirMovement playerMovement;
 		public bool Active = false;
-		public RegionBuilder CurrentRegion { get; private set; }
+		public Builder.RegionBuilder CurrentRegion { get; private set; }
 		public Chunk CurrentChunk { get; private set; }
-		public CoordinateMap CurrentCoordinateMap { get; private set; }
-		public Coordinate CurrentCoordinate { get; private set; }
+		//public CoordinateMap CurrentCoordinateMap { get; private set; }
+		//public Coordinate CurrentCoordinate { get; private set; }
 		public Cell CurrentCell { get; private set; }
-		[SerializeField] public CoordinateMap coordinateMapParent;
+		//[SerializeField] public CoordinateMap coordinateMapParent;
 		[SerializeField] public WorldSpawnUnit worldSpawnUnit;
 
 		public Vector3 OriginPosition => transform.position;
-		public Vector3 CenterPosition => transform.position + (Vector3Int.up * worldSpawnUnit.dimensions * WorldBuilder.Settings.CellSize_inGameUnits);
+		public Vector3 CenterPosition => transform.position + (Vector3Int.up * worldSpawnUnit.dimensions * WorldGenerationSystem.Instance.Settings.CellSize_inGameUnits);
 
 		private Direction? _continuousMoveDirection = null;
 		private float _inputHoldDuration = 0f;
@@ -41,6 +41,7 @@ namespace Darklight.World.Generation
 		private float _continuousMoveInterval = 0.1f; // Time interval between continuous moves
 		private float _timeSinceLastMove = 0f;
 
+		/*
 
 		private void Awake()
 		{
@@ -64,12 +65,12 @@ namespace Darklight.World.Generation
 		{
 			CurrentChunk = cell.ChunkParent;
 			CurrentRegion = CurrentChunk.ChunkBuilderParent.RegionParent;
-			CurrentCoordinate = CurrentChunk.GetCoordinateAtCell(cell);
-			CurrentCoordinateMap = CurrentChunk.CoordinateMap;
+			//CurrentCoordinate = CurrentChunk.GetCoordinateAtCell(cell);
+			//CurrentCoordinateMap = CurrentChunk.CoordinateMap;
 			CurrentCell = cell;
 
 			Debug.Log($"Traveler Initialized at Cell: {cell.Position} {cell.FaceType}");
-			Debug.Log($"Traveler Initialized at Coordinate: {CurrentCoordinate.ValueKey}");
+			//Debug.Log($"Traveler Initialized at Coordinate: {CurrentCoordinate.ValueKey}");
 
 			Active = true;
 
@@ -97,151 +98,152 @@ namespace Darklight.World.Generation
 			}
 		}
 
-		private void HandleMoveInput(Vector2 input)
-		{
-			if (!Active || CurrentCoordinate == null) return;
-			if (input == Vector2.zero)
-			{
-				_continuousMoveDirection = null;
-				_isContinuouslyMoving = false;
-				_inputHoldDuration = 0f;
-				return;
-			}
-
-			// Convert the Vector2 input to a WorldDirection
-			Direction? direction = CoordinateMap.GetEnumFromDirectionVector(new Vector2Int((int)input.x, (int)input.y));
-			if (direction == null) return;
-			if (direction.HasValue && (_continuousMoveDirection != direction || !_isContinuouslyMoving))
-			{
-				_continuousMoveDirection = direction;
-				_isContinuouslyMoving = false;
-				_inputHoldDuration = 0f;
-				MoveToDirection(direction.Value);
-			}
-		}
-		void MoveToDirection(Direction direction)
-		{
-			bool validCellFound = MoveToCellInDirection(direction);
-			if (!validCellFound)
-			{
-				MoveToChunkInDirection(direction);
-			}
-		}
-		/// <summary>
-		/// Moves the traveler to the neighboring chunk in the specified direction.
-		/// </summary>
-		/// <param name="worldDirection">The direction in which to move.</param>
-		/// <returns>True if the traveler successfully moved to the neighboring chunk, false otherwise.</returns>
-		public bool MoveToChunkInDirection(Direction worldDirection)
-		{
-			Chunk neighborChunk = CurrentChunk.GetNeighborInDirection(worldDirection);
-			if (neighborChunk == null) return false;
-
-			EdgeDirection? borderDirection = CoordinateMap.GetBorderDirection(worldDirection);
-			if (borderDirection == null) return false;
-
-			EdgeDirection? neighborBorderDirection = CoordinateMap.GetOppositeBorder(borderDirection.Value);
-			if (neighborBorderDirection == null) return false;
-
-			Coordinate neighborBorderCoordinate = null;
-			switch (neighborBorderDirection)
-			{
-				case EdgeDirection.SOUTH:
-					neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(CurrentCoordinate.ValueKey.x, 0));
-					break;
-				case EdgeDirection.NORTH:
-					neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(CurrentCoordinate.ValueKey.x, neighborChunk.CoordinateMap.MaxCoordinateValue - 1));
-					break;
-				case EdgeDirection.WEST:
-					neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(0, CurrentCoordinate.ValueKey.y));
-					break;
-				case EdgeDirection.EAST:
-					neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(neighborChunk.CoordinateMap.MaxCoordinateValue - 1, CurrentCoordinate.ValueKey.y));
-					break;
-			}
-			if (neighborBorderCoordinate == null) return false;
-			Cell cell = neighborChunk.GetCellAtCoordinate(neighborBorderCoordinate);
-
-			if (cell == null) return false;
-			Debug.Log("Move to Chunk in Direction: " + worldDirection + " Neighbor Border: " + neighborBorderDirection.Value);
-
-			return MoveToCell(cell);
-		}
-
-		public bool MoveToCellInDirection(Direction worldDirection)
-		{
-			Coordinate coordinateInDirection = CurrentCoordinate.GetNeighborInDirection(worldDirection);
-			if (coordinateInDirection == null)
-			{
-				//Debug.LogError("Traveler has no current coordinate");
-				return false;
-			}
-
-			Cell cellInDirection = CurrentChunk.GetCellAtCoordinate(coordinateInDirection);
-			return MoveToCell(cellInDirection);
-		}
-
-		public bool MoveToCell(Cell cell)
-		{
-			if (cell == null)
-			{
-				Debug.LogError("Traveler has no current cell");
-				return false;
-			}
-
-			CurrentCell = cell;
-			CurrentCoordinate = cell.Coordinate;
-			CurrentCoordinateMap = cell.Coordinate.ParentMap;
-			CurrentChunk = cell.ChunkParent;
-			CurrentRegion = CurrentChunk.ChunkBuilderParent.RegionParent;
-
-			//Debug.Log("Traveler Moved to Coordinate: " + CurrentCoordinate.ValueKey);
-
-			playerMovement.targetPosition = cell.Position;
-			return true;
-		}
-
-		public void InitializeAtCoordinate(CoordinateMap map, Vector2Int value)
-		{
-			Debug.Log("Traveler Initialized at Coordinate: " + value);
-			CurrentCoordinateMap = map;
-			CurrentCoordinate = map.GetCoordinateAt(value);
-		}
-
-		public void SpawnModelAtPosition()
-		{
-			_modelObject = Instantiate(worldSpawnUnit.modelPrefab, transform);
-			_modelObject.transform.position = CenterPosition;
-			_modelObject.transform.localScale = Vector3.one * worldSpawnUnit.modelScale * WorldBuilder.Settings.CellSize_inGameUnits;
-		}
-
-		public void OnDrawGizmos()
-		{
-			Gizmos.color = Color.red;
-			Gizmos.DrawWireCube(CenterPosition, worldSpawnUnit.dimensions * WorldBuilder.Settings.CellSize_inGameUnits);
-
-			if (CurrentCell != null)
-			{
-				CustomGizmos.DrawFilledSquareAt(CurrentCell.Position, WorldBuilder.Settings.CellSize_inGameUnits, Vector3.up, Color.red);
-
-				foreach (Coordinate neighbor in CurrentCoordinate.GetValidNaturalNeighbors())
+				private void HandleMoveInput(Vector2 input)
 				{
-					Handles.color = Color.black;
-					Cell cellAtNeighbor = CurrentChunk.GetCellAtCoordinate(neighbor);
-					Handles.DrawWireCube(cellAtNeighbor.Position, Vector3.one * 0.5f);
-					CustomGizmos.DrawLabel(CurrentCoordinate.GetWorldDirectionOfNeighbor(neighbor).ToString(), neighbor.ScenePosition, CustomGUIStyles.CenteredStyle);
+					if (!Active || CurrentCoordinate == null) return;
+					if (input == Vector2.zero)
+					{
+						_continuousMoveDirection = null;
+						_isContinuouslyMoving = false;
+						_inputHoldDuration = 0f;
+						return;
+					}
+
+					// Convert the Vector2 input to a WorldDirection
+					Direction? direction = CoordinateMap.GetEnumFromDirectionVector(new Vector2Int((int)input.x, (int)input.y));
+					if (direction == null) return;
+					if (direction.HasValue && (_continuousMoveDirection != direction || !_isContinuouslyMoving))
+					{
+						_continuousMoveDirection = direction;
+						_isContinuouslyMoving = false;
+						_inputHoldDuration = 0f;
+						MoveToDirection(direction.Value);
+					}
+				}
+				void MoveToDirection(Direction direction)
+				{
+					bool validCellFound = MoveToCellInDirection(direction);
+					if (!validCellFound)
+					{
+						MoveToChunkInDirection(direction);
+					}
+				}
+				/// <summary>
+				/// Moves the traveler to the neighboring chunk in the specified direction.
+				/// </summary>
+				/// <param name="worldDirection">The direction in which to move.</param>
+				/// <returns>True if the traveler successfully moved to the neighboring chunk, false otherwise.</returns>
+				public bool MoveToChunkInDirection(Direction worldDirection)
+				{
+					Chunk neighborChunk = CurrentChunk.GetNeighborInDirection(worldDirection);
+					if (neighborChunk == null) return false;
+
+					EdgeDirection? borderDirection = CoordinateMap.GetBorderDirection(worldDirection);
+					if (borderDirection == null) return false;
+
+					EdgeDirection? neighborBorderDirection = CoordinateMap.GetOppositeBorder(borderDirection.Value);
+					if (neighborBorderDirection == null) return false;
+
+					Coordinate neighborBorderCoordinate = null;
+					switch (neighborBorderDirection)
+					{
+						case EdgeDirection.SOUTH:
+							neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(CurrentCoordinate.ValueKey.x, 0));
+							break;
+						case EdgeDirection.NORTH:
+							neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(CurrentCoordinate.ValueKey.x, neighborChunk.CoordinateMap.MaxCoordinateValue - 1));
+							break;
+						case EdgeDirection.WEST:
+							neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(0, CurrentCoordinate.ValueKey.y));
+							break;
+						case EdgeDirection.EAST:
+							neighborBorderCoordinate = neighborChunk.CoordinateMap.GetCoordinateAt(new Vector2Int(neighborChunk.CoordinateMap.MaxCoordinateValue - 1, CurrentCoordinate.ValueKey.y));
+							break;
+					}
+					if (neighborBorderCoordinate == null) return false;
+					Cell cell = neighborChunk.GetCellAtCoordinate(neighborBorderCoordinate);
+
+					if (cell == null) return false;
+					Debug.Log("Move to Chunk in Direction: " + worldDirection + " Neighbor Border: " + neighborBorderDirection.Value);
+
+					return MoveToCell(cell);
 				}
 
-				foreach (Coordinate coordinate in CurrentChunk.CoordinateMap.AllCoordinates)
+				public bool MoveToCellInDirection(Direction worldDirection)
 				{
-					if (coordinate == null) continue;
-					Cell cell = CurrentChunk.GetCellAtCoordinate(coordinate);
-					if (cell == null) continue;
-					if (coordinate == CurrentCoordinate) continue;
-					CustomGizmos.DrawWireSquare(cell.Position, WorldBuilder.Settings.CellSize_inGameUnits, Color.black, Vector3.up);
+					Coordinate coordinateInDirection = CurrentCoordinate.GetNeighborInDirection(worldDirection);
+					if (coordinateInDirection == null)
+					{
+						//Debug.LogError("Traveler has no current coordinate");
+						return false;
+					}
+
+					Cell cellInDirection = CurrentChunk.GetCellAtCoordinate(coordinateInDirection);
+					return MoveToCell(cellInDirection);
 				}
-			}
-		}
+
+				public bool MoveToCell(Cell cell)
+				{
+					if (cell == null)
+					{
+						Debug.LogError("Traveler has no current cell");
+						return false;
+					}
+
+					CurrentCell = cell;
+					CurrentCoordinate = cell.Coordinate;
+					CurrentCoordinateMap = cell.Coordinate.ParentMap;
+					CurrentChunk = cell.ChunkParent;
+					CurrentRegion = CurrentChunk.ChunkBuilderParent.RegionParent;
+
+					//Debug.Log("Traveler Moved to Coordinate: " + CurrentCoordinate.ValueKey);
+
+					playerMovement.targetPosition = cell.Position;
+					return true;
+				}
+
+				public void InitializeAtCoordinate(CoordinateMap map, Vector2Int value)
+				{
+					Debug.Log("Traveler Initialized at Coordinate: " + value);
+					CurrentCoordinateMap = map;
+					CurrentCoordinate = map.GetCoordinateAt(value);
+				}
+
+				public void SpawnModelAtPosition()
+				{
+					_modelObject = Instantiate(worldSpawnUnit.modelPrefab, transform);
+					_modelObject.transform.position = CenterPosition;
+					_modelObject.transform.localScale = Vector3.one * worldSpawnUnit.modelScale * WorldBuilder.Settings.CellSize_inGameUnits;
+				}
+
+				public void OnDrawGizmos()
+				{
+					Gizmos.color = Color.red;
+					Gizmos.DrawWireCube(CenterPosition, worldSpawnUnit.dimensions * WorldBuilder.Settings.CellSize_inGameUnits);
+
+					if (CurrentCell != null)
+					{
+						CustomGizmos.DrawFilledSquareAt(CurrentCell.Position, WorldBuilder.Settings.CellSize_inGameUnits, Vector3.up, Color.red);
+
+						foreach (Coordinate neighbor in CurrentCoordinate.GetValidNaturalNeighbors())
+						{
+							Handles.color = Color.black;
+							Cell cellAtNeighbor = CurrentChunk.GetCellAtCoordinate(neighbor);
+							Handles.DrawWireCube(cellAtNeighbor.Position, Vector3.one * 0.5f);
+							CustomGizmos.DrawLabel(CurrentCoordinate.GetWorldDirectionOfNeighbor(neighbor).ToString(), neighbor.ScenePosition, CustomGUIStyles.CenteredStyle);
+						}
+
+						foreach (Coordinate coordinate in CurrentChunk.CoordinateMap.AllCoordinates)
+						{
+							if (coordinate == null) continue;
+							Cell cell = CurrentChunk.GetCellAtCoordinate(coordinate);
+							if (cell == null) continue;
+							if (coordinate == CurrentCoordinate) continue;
+							CustomGizmos.DrawWireSquare(cell.Position, WorldBuilder.Settings.CellSize_inGameUnits, Color.black, Vector3.up);
+						}
+					}
+				}
+				*/
 	}
 
 #if UNITY_EDITOR
@@ -268,7 +270,7 @@ namespace Darklight.World.Generation
 
 			if (GUILayout.Button("Spawn Model"))
 			{
-				((Traveler)target).SpawnModelAtPosition();
+				//((Traveler)target).SpawnModelAtPosition();
 			}
 
 			serializedObject.ApplyModifiedProperties();

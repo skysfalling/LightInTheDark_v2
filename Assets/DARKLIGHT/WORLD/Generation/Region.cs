@@ -16,7 +16,7 @@ namespace Darklight.World.Generation
 		public Vector2Int positionKey { get; set; }
 		public GridMap2D.Coordinate coordinateValue { get; set; }
 		public bool isInitialized { get; private set; }
-		public RegionBuilder builder { get; private set; }
+		public Builder.RegionBuilder builder { get; private set; }
 		public string prefix => "[ REGION ]";
 		public Region() { }
 		public Region(GridMap2D<Region> parent, Vector2Int positionKey)

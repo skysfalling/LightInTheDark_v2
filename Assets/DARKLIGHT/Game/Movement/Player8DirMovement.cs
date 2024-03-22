@@ -47,7 +47,7 @@ namespace Darklight.Game.Movement
 		{
 			// store input
 			this._universalMoveInput = moveInput.normalized;
-			currentDirection = CoordinateMap.GetEnumFromDirectionVector(new Vector2Int((int)_universalMoveInput.x, (int)_universalMoveInput.y));// get private world direction
+			currentDirection = GridMap2D.GetDirectionFromVector(new Vector2Int((int)_universalMoveInput.x, (int)_universalMoveInput.y));// get private world direction
 		}
 
 

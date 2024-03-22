@@ -10,46 +10,11 @@ namespace Darklight.World.Generation
 
     public class SpawnMap : TaskBotQueen, ITaskEntity
     {
-        RegionBuilder _regionBuilder;
-        WorldBuilder _worldBuilder;
-        CoordinateMap _coordinateMap;
+        Builder.RegionBuilder _regionBuilder;
         public GameObject playerTravelerObject;
 
         public async void Start()
         {
-            _worldBuilder = WorldBuilder.Instance;
-            if (_worldBuilder == null)
-            {
-                //TaskBotConsole.Log(this, "WorldBuilder not found");
-                _regionBuilder = FindFirstObjectByType<RegionBuilder>();
-                if (_regionBuilder == null)
-                {
-                    //TaskBotConsole.Log(this, "RegionBuilder not found");
-                    //TaskBotConsole.Log(this, "SpawnMap Initialization Failed");
-                    return;
-                }
-                else
-                {
-                    //TaskBotConsole.Log(this, "RegionBuilder found");
-                    while (_regionBuilder.GenerationFinished == false)
-                    {
-                        await Awaitable.WaitForSecondsAsync(1f);
-                    }
-                    _coordinateMap = _regionBuilder.CoordinateMap;
-                }
-            }
-            else
-            {
-                //TaskBotConsole.Log(this, "WorldBuilder found");
-                _regionBuilder = null;
-                while (_worldBuilder.Initialized == false)
-                {
-                    await Awaitable.WaitForSecondsAsync(1f);
-                }
-
-                _coordinateMap = _worldBuilder.CoordinateMap;
-                _regionBuilder = _worldBuilder.AllRegions.First();
-            }
 
             await Awaitable.WaitForSecondsAsync(3f);
 

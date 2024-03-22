@@ -19,7 +19,7 @@ namespace Darklight.World.Data
 
 		public void SaveWorldSettings()
 		{
-			WorldBuilder worldGeneration = GetComponent<WorldBuilder>();
+			WorldGenerationSystem worldGeneration = WorldGenerationSystem.Instance;
 
 			WorldData saveData = new WorldData(worldGeneration);
 

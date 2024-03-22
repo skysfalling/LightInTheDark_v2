@@ -23,7 +23,7 @@ namespace Darklight.World.Generation
 
 		// [[ PUBLIC REFERENCE VARIABLES ]]
 		public Chunk ChunkParent { get; private set; }
-		public Coordinate Coordinate => ChunkParent.GetCoordinateAtCell(this);
+		//public Coordinate Coordinate => ChunkParent.GetCoordinateAtCell(this);
 		public Quad MeshQuad => _meshQuad;
 		public TYPE Type => _type;
 		public Color TypeColor { get; private set; } = Color.white;
@@ -31,14 +31,15 @@ namespace Darklight.World.Generation
 		{
 			get
 			{
-				return ChunkParent.GroundPosition;
+				return Vector3.zero;
+				//return ChunkParent.GroundPosition;
 			}
 		}
 
 		public Vector2Int FaceCoord => _meshQuad.faceCoord;
 		public Chunk.FaceDirection FaceType => _meshQuad.faceDirection;
 		//public Vector3 Normal => _meshQuad.faceNormal;
-		public int Size = WorldBuilder.Settings.CellSize_inGameUnits;
+		public int Size = WorldGenerationSystem.Instance.Settings.CellSize_inGameUnits;
 
 
 		public Cell(Chunk chunkParent, Quad meshQuad)
@@ -54,7 +55,7 @@ namespace Darklight.World.Generation
 
 			cellObject.transform.position = Position;
 			//cellObject.AddComponent<MeshFilter>().mesh = mesh;
-			cellObject.AddComponent<MeshRenderer>().material = ChunkParent.ChunkBuilderParent.RegionParent.defaultMaterial;
+			cellObject.AddComponent<MeshRenderer>().material = WorldGenerationSystem.Instance.defaultMaterial;
 		}
 
 		public void SetCellType(TYPE newType)

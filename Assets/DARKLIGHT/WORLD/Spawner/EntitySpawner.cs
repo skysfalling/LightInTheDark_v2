@@ -14,9 +14,9 @@ namespace Darklight.World.Spawner
     public class EntitySpawner
     {
         public static EntitySpawner Instance { get; private set; }
-        WorldBuilder _worldBuilder => WorldBuilder.Instance;
-        Dictionary<Vector2Int, RegionBuilder> _regionMap => _worldBuilder.RegionMap;
-        Dictionary<Vector2Int, List<Zone>> _regionZoneMap = new();
+        WorldGenerationSystem WorldGenerationSystem => WorldGenerationSystem.Instance;
+        //Dictionary<Vector2Int, RegionBuilder> _regionMap => ;
+        //Dictionary<Vector2Int, List<Zone>> _regionZoneMap = new();
 
         public GameObject travelerPrefab;
 

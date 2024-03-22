@@ -35,6 +35,26 @@ namespace Darklight.World
         /// <summary> A singleton instance of the WorldGenerationSystem class. </summary>
         public static WorldGenerationSystem Instance;
         public static string Prefix => "< WORLD GENERATION SYSTEM >";
+
+        /// <summary> Destroy GameObject in Play and Edit mode </summary>
+        public static void DestroyGameObject(GameObject gameObject)
+        {
+            // Check if we are running in the Unity Editor
+#if UNITY_EDITOR
+            if (!EditorApplication.isPlaying)
+            {
+                // Use DestroyImmediate if in edit mode and not playing
+                DestroyImmediate(gameObject);
+                return;
+            }
+            else
+#endif
+            {
+                // Use Destroy in play mode or in a build
+                Destroy(gameObject);
+            }
+        }
+
         #endregion
 
         #region [[ GENERATION SETTINGS ]] ---- >> 
@@ -58,12 +78,11 @@ namespace Darklight.World
         #endregion
 
         #region ---- (( DATA HANDLING ))
-        public GridMap2D<Region> RegionGridMap { get; private set; } = null;
+        public GridMap2D<Generation.Region> RegionGridMap { get; private set; } = null;
         #endregion
 
         #region --------------- UNITY MAIN ----))
         public Material defaultMaterial;
-
 
         public override void Awake()
         {
@@ -89,20 +108,23 @@ namespace Darklight.World
             this.Name = "WorldGenerationSystem";
             _settings.Initialize();
             await base.Initialize();
-            RegionGridMap = new GridMap2D<Region>(transform, UnitSpace.REGION); // Assign GridMap to this Transform
+            RegionGridMap = new GridMap2D<Generation.Region>(transform, UnitSpace.REGION); // Assign GridMap to this Transform
             RegionGridMap.Initialize(_settings);
             Debug.Log($"{Prefix} Initialized");
             await RegionGridMap.InitializeDataMap(); // Initialize Data
 
-            // [[ ADD BOTS TO EXECUTION QUEUE ]]
+
+
+            // [[ ADD BOT CLONES TO EXECUTION QUEUE ]]
             // Enqueue a TaskBot clone for each position
             await EnqueueClones("CreateRegionBuilders", RegionGridMap.PositionKeys, position =>
             {
-                Region region = RegionGridMap.DataMap[position];
+                Generation.Region region = RegionGridMap.DataMap[position];
                 return new TaskBot(this, $"CreateRegion {position}", async () =>
                 {
                     GameObject newObject = await CreateGameObjectAt("RegionBuilder", region.coordinateValue);
-                    newObject.AddComponent<RegionBuilder>();
+                    Builder.RegionBuilder regionBuilder = newObject.AddComponent<Builder.RegionBuilder>();
+                    await regionBuilder.Initialize();
                 });
                 // i love my little bots <3 
             });
@@ -117,33 +139,13 @@ namespace Darklight.World
 
             foreach (GameObject obj in InstantiatedObjects)
             {
-#if UNITY_EDITOR
-                DestroyImmediate(obj);
-#endif
-                if (Application.isPlaying)
-                {
-                    Destroy(obj);
-                }
+                DestroyGameObject(obj);
             }
         }
     }
 
     #region==== CUSTOM UNITY EDITOR ================== )) 
 #if UNITY_EDITOR
-    [InitializeOnLoad]
-    public class PlayModeStateLogger
-    {
-        static PlayModeStateLogger()
-        {
-            EditorApplication.playModeStateChanged += LogPlayModeState;
-        }
-
-        private static void LogPlayModeState(PlayModeStateChange state)
-        {
-            Debug.Log("Play Mode State Changed: " + state);
-        }
-    }
-
     [CustomEditor(typeof(WorldGenerationSystem))]
     public class WorldGenerationSystemEditor : TaskBotQueenEditor
     {

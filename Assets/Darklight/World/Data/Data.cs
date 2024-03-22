@@ -16,9 +16,9 @@ namespace Darklight.World.Data
 		public WorldData() { }
 
 		// Constructor used when creating new WorldData
-		public WorldData(WorldBuilder worldGeneration)
+		public WorldData(WorldGenerationSystem worldGeneration)
 		{
-			settings = WorldBuilder.Settings;
+			settings = WorldGenerationSystem.Instance.Settings;
 		}
 	}
 }

@@ -34,8 +34,6 @@ namespace Darklight.World.Generation
 		}
 		string prefix = "{ WORLD ENVIRONMENT } ";
 		public bool generation_finished = false;
-		WorldBuilder _worldGeneration;
-		ChunkBuilder _worldChunkMap;
 
 		string parentObjectPrefix = "env_parent :: ";
 		Dictionary<Chunk, Transform> _worldChunkEnvParentMap = new Dictionary<Chunk, Transform>();
@@ -57,7 +55,6 @@ namespace Darklight.World.Generation
 		{
 			generation_finished = false;
 
-			_worldGeneration = WorldBuilder.Instance;
 
 			Destroy(instantiatedPlayer);
 			instantiatedPlayer = null;
