@@ -64,7 +64,7 @@ namespace Darklight.World.Generation
 	{
 		Vector3Int _defaultDimensions;
 		Vector3Int _currentDimensions;
-		Chunk _chunkParent;
+		Chunk _chunk;
 		int _groundHeight;
 		Vector3 _positionInScene;
 		Mesh _mesh;
@@ -81,7 +81,7 @@ namespace Darklight.World.Generation
 
 		public ChunkMesh(Chunk chunkParent)
 		{
-			this._chunkParent = chunkParent;
+			this._chunk = chunkParent;
 			this._groundHeight = chunkParent.GroundHeight;
 			//this._positionInScene = chunkParent.GroundPosition;
 			GenerateMeshData();
@@ -240,7 +240,7 @@ namespace Darklight.World.Generation
 						// Create and store the MeshQuad
 						Vector2Int faceCoordinate = new Vector2Int(i, j);
 
-						Quad quad = new Quad(_chunkParent, verticeIndexes, faceDir, faceCoordinate);
+						Quad quad = new Quad(_chunk, verticeIndexes, faceDir, faceCoordinate);
 						_quadData[faceDir][faceCoordinate] = quad; // Store in the nested dictionary
 					}
 				}
@@ -278,7 +278,7 @@ namespace Darklight.World.Generation
 			// Generate the new top quad and side quads
 			List<int> newBottomVerticeIndexes = bottomVertices.Select(vertex => _globalVertices.IndexOf(vertex)).ToList();
 			List<int> newTopVerticeIndexes = topVertices.Select(vertex => _globalVertices.IndexOf(vertex)).ToList();
-			Quad newTopQuad = new Quad(_chunkParent, newTopVerticeIndexes, FaceDirection.TOP, faceCoord); // Adjust faceCoord for top quad
+			Quad newTopQuad = new Quad(_chunk, newTopVerticeIndexes, FaceDirection.TOP, faceCoord); // Adjust faceCoord for top quad
 			extrudedQuads.Add(newTopQuad);
 
 			// Generate side quads for each side
@@ -296,7 +296,7 @@ namespace Darklight.World.Generation
 				FaceDirection sideFaceDirection = DetermineSideFaceDirection(i, faceDir);
 
 				// Create and store the side quad
-				Quad sideQuad = new Quad(_chunkParent, sideVerticeIndexes, sideFaceDirection, faceCoord);
+				Quad sideQuad = new Quad(_chunk, sideVerticeIndexes, sideFaceDirection, faceCoord);
 				extrudedQuads.Add(sideQuad);
 			}
 
@@ -398,29 +398,34 @@ namespace Darklight.World.Generation
 			int GetVisibleVDivisions(FaceDirection type)
 			{
 				int faceHeight = _currentDimensions.y; // Get current height
+
+				Vector2Int currentPositionKey = _chunk.PositionKey;
+				Vector2Int? neighborPositionKey = null;
 				Chunk neighborChunk = null;
 
 
-
-				Debug.LogError("it broke :(");
+				// Get position of neighbor
 				switch (type)
 				{
-					/*
 					case FaceDirection.FRONT:
-						neighborChunk = GridMap2D.GetDirectionMap()[Direction.NORTH];
+						neighborPositionKey = _chunk.CoordinateValue.EdgeDirectionMap[EdgeDirection.NORTH];
 						break;
 					case FaceDirection.BACK:
-						neighborChunk = _chunkParent.GetNaturalNeighborMap()[Direction.SOUTH];
+						neighborPositionKey = _chunk.CoordinateValue.EdgeDirectionMap[EdgeDirection.SOUTH];
 						break;
 					case FaceDirection.LEFT:
-						neighborChunk = _chunkParent.GetNaturalNeighborMap()[Direction.WEST];
+						neighborPositionKey = _chunk.CoordinateValue.EdgeDirectionMap[EdgeDirection.WEST];
 						break;
 					case FaceDirection.RIGHT:
-						neighborChunk = _chunkParent.GetNaturalNeighborMap()[Direction.EAST];
+						neighborPositionKey = _chunk.CoordinateValue.EdgeDirectionMap[EdgeDirection.EAST];
 						break;
-						*/
 				}
 
+				// >> Get Chunk
+				if (neighborPositionKey != null)
+					neighborChunk = _chunk.GridMapParent.GetDataAt((Vector2Int)neighborPositionKey);
+
+				// >> Offset Face Height
 				if (neighborChunk != null)
 				{
 					faceHeight -= neighborChunk.GroundHeight; // subtract based on neighbor height

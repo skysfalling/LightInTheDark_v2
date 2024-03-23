@@ -32,14 +32,14 @@ namespace Darklight.World.Generation.System
 
         #region ---- (( INSTANTIATE OBJECTS ))
         public static HashSet<GameObject> InstantiatedObjects { get; private set; } = new HashSet<GameObject>();
-        public Task<GameObject> CreateGameObjectAt(string name, GridMap2D.Coordinate coordinate)
+        public static GameObject CreateGameObjectOnGrid(string name, GridMap2D.Coordinate coordinate, Transform parent = null)
         {
             GameObject newObject = new GameObject($"{name} :: {coordinate.PositionKey}");
-            newObject.transform.parent = this.transform;
+            newObject.transform.parent = parent;
             newObject.transform.position = coordinate.GetPositionInScene();
 
             InstantiatedObjects.Add(newObject);
-            return Task.FromResult(newObject);
+            return newObject;
         }
 
         public static void DestroyAllGeneration()
@@ -49,12 +49,12 @@ namespace Darklight.World.Generation.System
             // Destroy all instantiated objects
             foreach (GameObject gameObject in InstantiatedObjects)
             {
-                DestroyInEditorContext(gameObject);
+                DestroyWithEditorContext(gameObject);
             }
         }
 
         /// <summary> Destroy GameObject in Play and Edit mode </summary>
-        public static void DestroyInEditorContext(GameObject gameObject)
+        public static void DestroyWithEditorContext(GameObject gameObject)
         {
             // Check if we are running in the Unity Editor
 #if UNITY_EDITOR
@@ -126,7 +126,7 @@ namespace Darklight.World.Generation.System
                 Region region = RegionGridMap.DataMap[position];
                 return new TaskBot(this, $"CreateRegionOperator {position}", async () =>
                 {
-                    GameObject newObject = await CreateGameObjectAt("RegionOperator", region.CoordinateValue);
+                    GameObject newObject = CreateGameObjectOnGrid("RegionOperator", region.CoordinateValue, this.transform);
                     RegionMonoOperator regionMonoOperator = newObject.AddComponent<RegionMonoOperator>();
                     await regionMonoOperator.Initialize(region, _settings);
                 });

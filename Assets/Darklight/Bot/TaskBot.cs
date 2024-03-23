@@ -52,7 +52,7 @@ namespace Darklight.Bot
 			catch (Exception ex)
 			{
 				taskQueen.TaskBotConsole.Log($"{Name}: Error encountered. See Unity Console for details.", 0, Darklight.Console.LogEntry.Severity.Error);
-				Debug.LogError($"{Name} || {GuidId} => Exception: {ex.Message}\n{ex.StackTrace}", taskQueen);
+				Debug.LogError($"{Name} || {GuidId} => Exception: {ex.Message}\n" + ex.StackTrace, taskQueen);
 			}
 			finally
 			{

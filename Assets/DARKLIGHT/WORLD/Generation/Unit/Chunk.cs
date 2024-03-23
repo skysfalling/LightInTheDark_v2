@@ -15,6 +15,7 @@ using static Darklight.World.Map.GridMap2D;
 
 using UnityEngine;
 using UnityEngine.UIElements;
+using Darklight.UnityExt;
 namespace Darklight.World.Generation.Unit
 {
 	public class Chunk : IGridMapData<Chunk>
@@ -53,7 +54,7 @@ namespace Darklight.World.Generation.Unit
 		public WorldGenerationSystem WorldGenSys => WorldGenerationSystem.Instance;
 		public GenerationSettings Settings => WorldGenSys.Settings;
 		public int Width => WorldGenSys.Settings.ChunkWidth_inGameUnits;
-		public ChunkGenerationSystem ChunkBuilderParent { get; private set; }
+		public ChunkGenerationSystem GenerationSys { get; private set; }
 		public GameObject ChunkObject;
 		public ChunkMesh ChunkMesh { get; private set; }
 		public CellMap CellMap => _cellMap;
@@ -62,7 +63,7 @@ namespace Darklight.World.Generation.Unit
 		public Color TypeColor { get; private set; } = Color.white;
 		public Vector2Int PositionKey { get; set; }
 		public Coordinate CoordinateValue { get; set; }
-		public GridMap2D<Chunk> ParentGridMap2D { get; set; }
+		public GridMap2D<Chunk> GridMapParent { get; set; }
 		public Vector3 CenterPosition => CoordinateValue.GetPositionInScene();
 		public Vector3 OriginPosition
 		{
@@ -87,20 +88,20 @@ namespace Darklight.World.Generation.Unit
 
 		public Task Initialize(GridMap2D<Chunk> parent, Vector2Int positionKey)
 		{
-			this.ParentGridMap2D = parent;
+			this.GridMapParent = parent;
 			this.PositionKey = positionKey;
-			this.CoordinateValue = ParentGridMap2D.GetCoordinateAt(positionKey);
+			this.CoordinateValue = GridMapParent.GetCoordinateAt(positionKey);
 			Initialized = true;
 			return Task.CompletedTask;
 		}
 
 		public ChunkMesh CreateChunkMesh()
 		{
-			//UpdateChunkHeight();
+			UpdateChunkHeight();
 
 			// Create chunkMesh
-			//ChunkMesh = new ChunkMesh(this);
-			//_cellMap = new CellMap(this, ChunkMesh);
+			ChunkMesh = new ChunkMesh(this);
+			_cellMap = new CellMap(this, ChunkMesh);
 
 			//DetermineChunkType();
 
@@ -141,6 +142,18 @@ namespace Darklight.World.Generation.Unit
 	}
 }
 
+
+public class ChunkMonoOperator : MonoBehaviour, IUnityEditorListener
+{
+	public WorldGenerationSystem WorldGen => WorldGenerationSystem.Instance;
+	public Chunk Chunk { get; private set; }
+	public GridMap2D<Chunk> ParentGridMap { get; private set; }
+
+	public void OnEditorReloaded()
+	{
+		Destroy(this.gameObject);
+	}
+}
 
 
 //
