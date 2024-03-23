@@ -29,7 +29,7 @@ namespace Darklight.World
     public enum EdgeDirection { WEST, NORTH, EAST, SOUTH }
     #endregion
 
-    public class WorldGenerationSystem : TaskBotQueen, ITaskEntity
+    public class WorldGenerationSystem : TaskBotQueen, ITaskEntity, IUnityEditorListener
     {
         #region [[ STATIC INSTANCE ]] ---- >> 
         /// <summary> A singleton instance of the WorldGenerationSystem class. </summary>
@@ -87,7 +87,7 @@ namespace Darklight.World
         #endregion
 
         #region ---- (( DATA HANDLING ))
-        public GridMap2D<Generation.Region> RegionGridMap { get; private set; } = null;
+        public GridMap2D<Region> RegionGridMap { get; private set; } = null;
         #endregion
 
         #region --------------- UNITY MAIN ----))
@@ -150,11 +150,14 @@ namespace Darklight.World
         public override void Reset()
         {
             base.Reset();
-            TaskBotConsole.Reset();
-            RegionGridMap.Reset();
+            TaskBotConsole.Reset(); // reset console
+            RegionGridMap.Reset(); // reset data
         }
 
-
+        public void OnEditorReloaded()
+        {
+            Reset();
+        }
     }
 
     #region==== CUSTOM UNITY EDITOR ================== )) 
@@ -164,14 +167,6 @@ namespace Darklight.World
     {
         SerializedObject _serializedObject;
         WorldGenerationSystem _worldGenSystem;
-
-
-        public override void OnEnable()
-        {
-            _serializedObject = new SerializedObject(target);
-            _worldGenSystem = (WorldGenerationSystem)target;
-        }
-
         private void OnSceneGUI()
         {
             WorldGenerationSystem worldGenSystem = (WorldGenerationSystem)target;

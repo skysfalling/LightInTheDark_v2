@@ -165,11 +165,13 @@ namespace Darklight.Bot
 		/// </summary>
 		public virtual void Reset()
 		{
-			TaskBotConsole.Log("Reset");
 			_executionQueue.Clear();
 			Initialized = false;
+
+			TaskBotConsole.Log("Reset");
 		}
 	}
+
 #if UNITY_EDITOR
 	[CustomEditor(typeof(TaskBotQueen), true)]
 	public class TaskBotQueenEditor : Editor
@@ -179,15 +181,6 @@ namespace Darklight.Bot
 		public TaskBotQueen taskBotQueen;
 		public Darklight.Console console;
 		public bool showConsole = true;
-
-		public virtual void OnEnable()
-		{
-			_serializedObject = new SerializedObject(target);
-			taskBotQueen = (TaskBotQueen)target;
-			console = taskBotQueen.TaskBotConsole;
-			_ = taskBotQueen.Initialize();
-		}
-
 		public override void OnInspectorGUI()
 		{
 			GUILayout.Space(10);
