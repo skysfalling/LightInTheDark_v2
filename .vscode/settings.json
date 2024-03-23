@@ -63,5 +63,7 @@
         "intercardinal",
         "Newtonsoft"
     ],
-    "editor.defaultFormatter": "ms-dotnettools.csdevkit"
+    "editor.defaultFormatter": "ms-dotnettools.csdevkit",
+    "workbench.iconTheme": "mc-dp-icons",
+    "docwriter.style": "XML"
 }

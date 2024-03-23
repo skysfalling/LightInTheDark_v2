@@ -34,7 +34,7 @@ namespace Darklight.World.Builder
 
 			foreach (GameObject gameObject in _regionObjects)
 			{
-				WorldGenerationSystem.DestroyGameObject(gameObject);
+				WorldGenerationSystem.DestroyInEditorContext(gameObject);
 			}
 
 			TaskBotConsole.Reset();

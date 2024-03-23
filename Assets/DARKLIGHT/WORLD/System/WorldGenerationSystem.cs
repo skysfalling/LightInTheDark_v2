@@ -14,7 +14,7 @@ namespace Darklight.World
     using Map;
     using System.Threading.Tasks;
     using Darklight.World.Generation;
-    using Darklight.World.Builder;
+    using Darklight.UnityExt;
 
     #region (( GLOBAL SPATIAL ENUMS ))
     /// <summary>
@@ -35,9 +35,39 @@ namespace Darklight.World
         /// <summary> A singleton instance of the WorldGenerationSystem class. </summary>
         public static WorldGenerationSystem Instance;
         public static string Prefix => "< WORLD GENERATION SYSTEM >";
+        #endregion
+
+        #region [[ GENERATION SETTINGS ]] ---- >> 
+        /// <summary> Contains settings used during the world generation process. </summary>
+        [SerializeField] private GenerationSettings _settings = new GenerationSettings();
+        public GenerationSettings Settings => _settings;
+        #endregion
+
+        #region ---- (( INSTANTIATE OBJECTS ))
+        public static HashSet<GameObject> InstantiatedObjects { get; private set; } = new HashSet<GameObject>();
+        public Task<GameObject> CreateGameObjectAt(string name, GridMap2D.Coordinate coordinate)
+        {
+            GameObject newObject = new GameObject($"{name} :: {coordinate.PositionKey}");
+            newObject.transform.parent = this.transform;
+            newObject.transform.position = coordinate.GetPositionInScene();
+
+            InstantiatedObjects.Add(newObject);
+            return Task.FromResult(newObject);
+        }
+
+        public static void DestroyAllGeneration()
+        {
+            Debug.Log($"{Prefix} DestroyAllGeneration() -> Count {InstantiatedObjects.Count}");
+
+            // Destroy all instantiated objects
+            foreach (GameObject gameObject in InstantiatedObjects)
+            {
+                DestroyInEditorContext(gameObject);
+            }
+        }
 
         /// <summary> Destroy GameObject in Play and Edit mode </summary>
-        public static void DestroyGameObject(GameObject gameObject)
+        public static void DestroyInEditorContext(GameObject gameObject)
         {
             // Check if we are running in the Unity Editor
 #if UNITY_EDITOR
@@ -53,27 +83,6 @@ namespace Darklight.World
                 // Use Destroy in play mode or in a build
                 Destroy(gameObject);
             }
-        }
-
-        #endregion
-
-        #region [[ GENERATION SETTINGS ]] ---- >> 
-        /// <summary> Contains settings used during the world generation process. </summary>
-        [SerializeField] private GenerationSettings _settings = new GenerationSettings();
-        public GenerationSettings Settings => _settings;
-        #endregion
-
-        #region ---- (( INSTANTIATE OBJECTS ))
-        public HashSet<GameObject> InstantiatedObjects { get; private set; } = new HashSet<GameObject>();
-
-        public Task<GameObject> CreateGameObjectAt(string name, GridMap2D.Coordinate coordinate)
-        {
-            GameObject newObject = new GameObject($"{name} :: {coordinate.PositionKey}");
-            newObject.transform.parent = this.transform;
-            newObject.transform.position = coordinate.GetPositionInScene();
-
-            InstantiatedObjects.Add(newObject);
-            return Task.FromResult(newObject);
         }
         #endregion
 
@@ -119,10 +128,7 @@ namespace Darklight.World
                 TaskBotConsole.Log($"Region Count is too high. Consider reducing the region width.", 0, Darklight.Console.LogEntry.Severity.Error);
                 return;
             }
-
-
             await RegionGridMap.InitializeDataMap(); // Initialize Data
-
 
             // [[ ADD BOT CLONES TO EXECUTION QUEUE ]]
             // Enqueue a TaskBot clone for each position
@@ -146,12 +152,9 @@ namespace Darklight.World
             base.Reset();
             TaskBotConsole.Reset();
             RegionGridMap.Reset();
-
-            foreach (GameObject obj in InstantiatedObjects)
-            {
-                DestroyGameObject(obj);
-            }
         }
+
+
     }
 
     #region==== CUSTOM UNITY EDITOR ================== )) 

@@ -7,7 +7,6 @@ namespace Darklight.World.Settings
 	using UnityEditor;
 	using UnityEngine.UIElements;
 	using UnityEditor.UIElements;
-	using Unity.Android.Gradle;
 #endif
 
 	[CreateAssetMenu(fileName = "New Generation Settings", menuName = "World/New Generation Settings", order = 1)]

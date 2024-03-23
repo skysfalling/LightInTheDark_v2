@@ -21,15 +21,13 @@ namespace Darklight.World.Builder
 
 		public bool GenerationFinished { get; private set; }
 		public bool CreateObjects { get; private set; } = false;
-		public RegionBuilder RegionParent { get; private set; }
+		public Region RegionParent { get; private set; }
 		public HashSet<Chunk> AllChunks { get { return _chunks; } private set { } }
 
-		public async void Initialize()
+		public async void Initialize(Region parentRegion)
 		{
 			await base.Initialize();
-			//RegionParent = worldRegion;
-			//_coordinateMap = coordinateMap;
-			//Initialized = true;
+			RegionParent = parentRegion;
 		}
 		/*
 		async Task CreateAllChunkData()

@@ -7,6 +7,10 @@ using Darklight.Bot;
 using Darklight.World.Map;
 using UnityEngine;
 using Darklight.World.Settings;
+using Darklight.World.Builder;
+using Darklight.UnityExt;
+
+
 
 
 #if UNITY_EDITOR
@@ -16,14 +20,15 @@ using UnityEditor;
 namespace Darklight.World.Generation
 {
 	using WorldGenSystem = WorldGenerationSystem;
+
 	public class Region : IGridMapData<Region>
 	{
 		public bool Initialized { get; private set; }
 		public static string Prefix => "[ REGION ]";
-		public GridMap2D<Region> ParentGrid { get; set; }
+		public GridMap2D<Region> ParentGridMap { get; set; }
 		public Vector2Int PositionKey { get; set; }
 		public GridMap2D.Coordinate CoordinateValue { get; set; }
-		public GridMap2D<Chunk> ChunkMap { get; set; }
+		public GridMap2D<Chunk> ChunkGridMap { get; set; }
 		public Vector3 CenterPosition => CoordinateValue.GetPositionInScene();
 		public Vector3 OriginPosition
 		{
@@ -33,38 +38,70 @@ namespace Darklight.World.Generation
 				return CenterPosition - (new Vector3(0.5f, 0, 0.5f) * generationSettings.RegionWidth_inGameUnits) + (new Vector3(0.5f, 0, 0.5f) * generationSettings.ChunkWidth_inGameUnits);
 			}
 		}
-
-
 		public Region() { }
 		public Region(GridMap2D<Region> parent, Vector2Int positionKey)
 		{
 			Initialize(parent, positionKey);
 		}
-
 		public Task Initialize(GridMap2D<Region> gridParent, Vector2Int positionKey)
 		{
-			this.ParentGrid = gridParent;
+			this.ParentGridMap = gridParent;
 			this.PositionKey = positionKey;
-			this.CoordinateValue = ParentGrid.GetCoordinateAt(positionKey);
+			this.CoordinateValue = ParentGridMap.GetCoordinateAt(positionKey);
 			Initialized = true;
 			return Task.CompletedTask;
 		}
+
+
 	}
 
-	public class RegionMonoOperator : MonoBehaviour
-	{
-		public Region Region { get; private set; }
-		public WorldGenSystem WorldGen => WorldGenSystem.Instance;
 
-		public Task Initialize(Region region, GenerationSettings generationSettings)
+	// ======= MonoBehaviour Operator ======================================== //
+	public class RegionMonoOperator : MonoBehaviour, IUnityEditorListener
+	{
+		public WorldGenSystem WorldGen => WorldGenSystem.Instance;
+		public Region Region { get; private set; }
+		public ChunkBuilder ChunkBuilder { get; set; }
+
+		public void OnEditorReloaded()
+		{
+			WorldGenSystem.DestroyInEditorContext(this.gameObject);
+		}
+
+		public async Task Initialize(Region region, GenerationSettings generationSettings)
 		{
 			Region = region;
 
-			// Construct Grid2D Chunk Map
-			Region.ChunkMap = new GridMap2D<Chunk>(transform, region.OriginPosition, generationSettings, UnitSpace.REGION, UnitSpace.CHUNK);
-			Region.ChunkMap.Initialize();
+			// Construct CHUNK GridMap2D  
+			Region.ChunkGridMap = new GridMap2D<Chunk>(transform, region.OriginPosition, generationSettings, UnitSpace.REGION, UnitSpace.CHUNK);
+			Region.ChunkGridMap.Initialize();
 
-			return Task.CompletedTask;
+			// Create Chunk Builder Object as child 
+			GameObject chunkBuilderObject = await WorldGenSystem.Instance.CreateGameObjectAt($"ChunkBuilder_{region.PositionKey}", Region.CoordinateValue);
+			chunkBuilderObject.transform.parent = transform;
+
+			ChunkBuilder = chunkBuilderObject.AddComponent<ChunkBuilder>();
+			ChunkBuilder.Initialize(region);
+
+			// Create Temp Mesh
+			CreateTempMesh();
+			await Task.CompletedTask;
+		}
+
+		public void CreateTempMesh()
+		{
+			if (Region != null)
+			{
+				int regionWidth = WorldGen.Settings.RegionWidth_inGameUnits;
+				int chunkWidth = WorldGen.Settings.ChunkWidth_inGameUnits;
+				int chunkDepth = WorldGen.Settings.ChunkDepth_inGameUnits;
+
+				GameObject tempMesh = GameObject.CreatePrimitive(PrimitiveType.Cube);
+				tempMesh.name = $"TempRegionMesh";
+				tempMesh.transform.parent = this.transform;
+				tempMesh.transform.position = Region.CenterPosition;
+				tempMesh.transform.localScale = new Vector3(1, 0, 1) * regionWidth + (Vector3.up * chunkDepth);
+			}
 		}
 	}
 
@@ -74,15 +111,22 @@ namespace Darklight.World.Generation
 	{
 		private GridMap2DEditor.View view = GridMap2DEditor.View.COORD_FLAG;
 
+		public override void OnInspectorGUI()
+		{
+			DrawDefaultInspector();
+			RegionMonoOperator regionOperator = (RegionMonoOperator)target;
+			Region region = regionOperator.Region;
+		}
+
 		public void OnSceneGUI()
 		{
 			RegionMonoOperator regionOperator = (RegionMonoOperator)target;
 			Region region = regionOperator.Region;
-			GridMap2D<Chunk> chunkMap = region.ChunkMap;
-			GridMap2DEditor.DrawGridMap2D_SceneGUI(chunkMap, view, (GridMap2D.Coordinate coordinate) =>
-			{
-				Debug.Log("bruh" + region.PositionKey);
-			});
+			GridMap2D<Chunk> chunkMap = region.ChunkGridMap;
+			GridMap2DEditor.DrawGridMap2D_SceneGUI(chunkMap, view, (GridMap2D.Coordinate coordinate) => { });
+
+			// Draw World Outline
+			CustomGizmos.DrawWireSquare(region.ParentGridMap.CenterPosition, WorldGenSystem.Instance.Settings.WorldWidth_inGameUnits, Color.grey, Vector3.up);
 		}
 	}
 

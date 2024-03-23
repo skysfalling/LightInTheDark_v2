@@ -873,7 +873,7 @@ namespace Darklight.World.Map
     #region========= >>>> INHERITED DEFINITIONS
     public interface IGridMapData<T> where T : IGridMapData<T>, new()
     {
-        GridMap2D<T> ParentGrid { get; set; }
+        GridMap2D<T> ParentGridMap { get; set; }
         GridMap2D.Coordinate CoordinateValue { get; set; }
         Vector2Int PositionKey { get; set; }
         Task Initialize(GridMap2D<T> parent, Vector2Int positionKey);
@@ -1040,7 +1040,10 @@ namespace Darklight.World.Map
             GUIStyle coordLabelStyle = CustomGUIStyles.CenteredStyle;
             Color coordinateColor = Color.white;
 
-            Darklight.CustomGizmos.DrawWireSquare(gridMap2D.OriginPosition, gridMap2D.CoordinateSize * 0.75f, Color.red, Vector3.up);
+            // Draw Map Outline
+            Darklight.CustomGizmos.DrawWireSquare(gridMap2D.OriginPosition, gridMap2D.CoordinateSize, Color.red, Vector3.up);
+
+            // Draw Origin Coordinate
             Darklight.CustomGizmos.DrawWireSquare(gridMap2D.CenterPosition, gridMap2D.MapWidth * gridMap2D.CoordinateSize, coordinateColor, Vector3.up);
 
             // << BORDER DIRECTIONS >>
