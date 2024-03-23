@@ -83,16 +83,15 @@ namespace Darklight.World.Generation
 		{
 			this._chunk = chunkParent;
 			this._groundHeight = chunkParent.GroundHeight;
-			//this._positionInScene = chunkParent.GroundPosition;
+			this._positionInScene = chunkParent.GroundPosition;
 			GenerateMeshData();
 			this._mesh = CreateMeshFromGeneratedData();
 		}
 
 		public Mesh Recalculate()
 		{
-			// #TODO
-			//this._chunkParent.UpdateChunkHeight();
-			//this._chunkParent.DetermineChunkType();
+			this._chunk.UpdateChunkHeight();
+			this._chunk.DetermineChunkType();
 			this._mesh = CreateMeshFromGeneratedData();
 			return this._mesh;
 		}
@@ -173,8 +172,6 @@ namespace Darklight.World.Generation
 			// Finally, assign this newly created mesh to the _mesh field
 			_mesh = fullChunkMesh;
 			return _mesh;
-			// If you have a MeshFilter component attached to your chunk GameObject, you can update it like this:
-			// this.GetComponent<MeshFilter>().mesh = _mesh;
 		}
 
 		void GenerateMeshData()

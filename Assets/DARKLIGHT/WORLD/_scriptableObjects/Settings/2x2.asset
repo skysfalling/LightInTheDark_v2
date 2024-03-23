@@ -16,7 +16,7 @@ MonoBehaviour:
   _cellSize: 1
   _chunkWidth: 5
   _chunkDepth: 2
-  _chunkMaxHeight: 2
+  _chunkMaxHeight: 4
   _regionWidth: 2
   _regionBoundaryOffset: 0
   _worldWidth: 3

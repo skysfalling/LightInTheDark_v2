@@ -925,6 +925,17 @@ namespace Darklight.World.Map
             return result;
         }
 
+        public virtual Dictionary<EdgeDirection, T> GetEdgeData(Vector2Int positionKey)
+        {
+            Dictionary<EdgeDirection, T> result = new();
+            Dictionary<EdgeDirection, Vector2Int> directionMap = GetEdgeDirectionMap(positionKey);
+            foreach (EdgeDirection direction in directionMap.Keys)
+            {
+                result[direction] = GetDataAt(positionKey);
+            }
+            return result;
+        }
+
         public override void Reset()
         {
             base.Reset();

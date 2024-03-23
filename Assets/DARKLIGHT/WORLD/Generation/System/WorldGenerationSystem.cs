@@ -35,8 +35,8 @@ namespace Darklight.World.Generation.System
         public static GameObject CreateGameObjectOnGrid(string name, GridMap2D.Coordinate coordinate, Transform parent = null)
         {
             GameObject newObject = new GameObject($"{name} :: {coordinate.PositionKey}");
-            newObject.transform.parent = parent;
             newObject.transform.position = coordinate.GetPositionInScene();
+            newObject.transform.parent = parent;
 
             InstantiatedObjects.Add(newObject);
             return newObject;

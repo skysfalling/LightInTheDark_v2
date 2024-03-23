@@ -54,7 +54,9 @@ namespace Darklight.World.Generation.System
 			foreach (Chunk chunk in GridMap.DataValues)
 			{
 
-				chunk.ChunkObject = WorldGenerationSystem.CreateGameObjectOnGrid($"Chunk {chunk.PositionKey}", chunk.CoordinateValue, transform);
+				chunk.ChunkObject = new GameObject($"Chunk {chunk.PositionKey}");
+				chunk.ChunkObject.transform.position = Vector3.zero;
+				chunk.ChunkObject.transform.parent = transform;
 				chunk.ChunkObject.AddComponent<MeshRenderer>().material = WorldGenerationSystem.Instance.defaultMaterial;
 				chunk.ChunkObject.AddComponent<MeshFilter>().sharedMesh = chunk.ChunkMesh.Mesh;
 

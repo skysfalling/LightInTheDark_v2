@@ -69,12 +69,14 @@ namespace Darklight.World.Generation.Unit
 		{
 			get
 			{
-				Vector3 origin = CenterPosition;
-				origin -= WorldGenSys.Settings.ChunkWidth_inGameUnits * new Vector3(0.5f, 0, 0.5f);
-				origin += WorldGenSys.Settings.CellSize_inGameUnits * new Vector3(0.5f, 0, 0.5f);
-				return origin;
+				GenerationSettings generationSettings = WorldGenerationSystem.Instance.Settings;
+				Vector3 result = CenterPosition;
+				result -= (new Vector3(0.5f, 0, 0.5f) * generationSettings.ChunkWidth_inGameUnits);
+				result += (new Vector3(0.5f, 0, 0.5f) * generationSettings.CellSize_inGameUnits);
+				return result;
 			}
 		}
+
 		public Vector3 GroundPosition
 		{
 			get
@@ -85,6 +87,8 @@ namespace Darklight.World.Generation.Unit
 			}
 		}
 		public Vector3 ChunkMeshDimensions => WorldGenSys.Settings.ChunkVec3Dimensions_inCellUnits + new Vector3Int(0, GroundHeight, 0);
+
+		public Chunk() { }
 
 		public Task Initialize(GridMap2D<Chunk> parent, Vector2Int positionKey)
 		{
@@ -103,7 +107,7 @@ namespace Darklight.World.Generation.Unit
 			ChunkMesh = new ChunkMesh(this);
 			_cellMap = new CellMap(this, ChunkMesh);
 
-			//DetermineChunkType();
+			DetermineChunkType();
 
 			return ChunkMesh;
 		}
@@ -116,7 +120,7 @@ namespace Darklight.World.Generation.Unit
 		public void UpdateChunkHeight()
 		{
 			Coordinate.Flag type = CoordinateValue.CurrentFlag;
-			Vector2Int perlinOffset = new Vector2Int((int)CenterPosition.x, (int)CenterPosition.z);
+			Vector2Int perlinOffset = new Vector2Int((int)PositionKey.x, (int)PositionKey.y);
 			this._groundHeight = Mathf.RoundToInt(PerlinNoise.CalculateHeightFromNoise(perlinOffset) * WorldGenSys.Settings.PerlinMultiplier);
 			this._groundHeight = Mathf.Clamp(this._groundHeight, 0, WorldGenSys.Settings.ChunkMaxHeight_inCellUnits);
 			this._groundHeight *= WorldGenSys.Settings.CellSize_inGameUnits; // Convert to game units
@@ -139,9 +143,69 @@ namespace Darklight.World.Generation.Unit
 			}
 			*/
 		}
-	}
-}
 
+
+		public void DetermineChunkType()
+		{
+			Dictionary<EdgeDirection, Chunk> edgeDataMap = GridMapParent.GetEdgeData(PositionKey);
+			foreach (EdgeDirection edge in edgeDataMap.Keys)
+			{
+				Chunk neighborChunk = edgeDataMap[edge];
+
+				// << CLOSE BORDER WITH NULL NEIGHBOR OR NEIGHBOR WITH HEIGHT OFFSET >>
+				if (neighborChunk == null || neighborChunk.GroundHeight != GroundHeight)
+				{
+					GridMapParent.CloseMapBorder((EdgeDirection)edge); // close the chunk border
+				}
+			}
+
+			// ========================================================
+
+			// [[ DETERMINE TYPE FROM BORDERS ]]
+			Dictionary<EdgeDirection, GridMap2D.Border> activeBorderMap = GridMapParent.MapBorders;
+
+			// Count active borders directly from the dictionary
+			int numOfClosedBorders = activeBorderMap.Count(kv => kv.Value.isClosed == true);
+
+			// Determine type based on active edge count and their positions
+			switch (numOfClosedBorders)
+			{
+				case 4:
+					SetType(TYPE.CLOSED); break;
+				case 3:
+					SetType(TYPE.DEAD_END); break;
+				case 2:
+					// Check for parallel edges
+					if (activeBorderMap[EdgeDirection.NORTH].isClosed && activeBorderMap[EdgeDirection.SOUTH].isClosed)
+					{ SetType(TYPE.HALLWAY); break; }
+					if (activeBorderMap[EdgeDirection.EAST].isClosed && activeBorderMap[EdgeDirection.WEST].isClosed)
+					{ SetType(TYPE.HALLWAY); break; }
+
+					// Otherwise chunk is in corner
+					SetType(TYPE.CORNER); break;
+				case 1:
+					SetType(TYPE.WALL); break;
+				case 0:
+					SetType(TYPE.EMPTY); break;
+			}
+		}
+
+		public void SetType(TYPE newType)
+		{
+			_type = newType;
+			switch (newType)
+			{
+				case TYPE.CLOSED: TypeColor = Color.black; break;
+				case TYPE.DEAD_END: TypeColor = Color.red; break;
+				case TYPE.HALLWAY: TypeColor = Color.yellow; break;
+				case TYPE.CORNER: TypeColor = Color.blue; break;
+				case TYPE.WALL: TypeColor = Color.green; break;
+				case TYPE.EMPTY: TypeColor = Color.white; break;
+			}
+		}
+	}
+
+}
 
 public class ChunkMonoOperator : MonoBehaviour, IUnityEditorListener
 {
@@ -155,114 +219,3 @@ public class ChunkMonoOperator : MonoBehaviour, IUnityEditorListener
 	}
 }
 
-
-//
-
-/*
-		public Chunk(ChunkBuilder chunkGeneration, Coordinate coordinate)
-		{
-			this.ChunkBuilderParent = chunkGeneration;
-			this._coordinate = coordinate;
-
-			// Create coordinate map
-			this._coordinateMap = new CoordinateMap(this);
-			_ = this._coordinateMap.InitializeDefaultMap();
-
-			UpdateChunkHeight();
-		}
-		*/
-/*
-		
-
-public void DetermineChunkType()
-{
-	// [[ ITERATE THROUGH CHUNK NEIGHBORS ]] 
-	Dictionary<Direction, Chunk> naturalNeighborMap = GetNaturalNeighborMap();
-	foreach (Direction direction in naturalNeighborMap.Keys.ToList())
-	{
-		Chunk neighborChunk = naturalNeighborMap[direction];
-		EdgeDirection? neighborBorder = CoordinateMap.GetBorderDirection(direction); // get chunk border
-
-		// << CLOSE BORDER WITH NULL NEIGHBOR OR NEIGHBOR WITH HEIGHT OFFSET >>
-		if (neighborChunk == null || neighborChunk.GroundHeight != GroundHeight)
-		{
-			if (neighborBorder == null) continue;
-
-			CoordinateMap.CloseMapBorder((EdgeDirection)neighborBorder); // close the chunk border
-		}
-	}
-
-	// ========================================================
-
-	// [[ DETERMINE TYPE FROM BORDERS ]]
-	Dictionary<EdgeDirection, bool> activeBorderMap = CoordinateMap.ActiveBorderMap;
-
-	// Count active borders directly from the dictionary
-	int activeBorderCount = activeBorderMap.Count(kv => kv.Value == true);
-
-	// Determine type based on active edge count and their positions
-	switch (activeBorderCount)
-	{
-		case 4:
-			SetType(TYPE.CLOSED); break;
-		case 3:
-			SetType(TYPE.DEAD_END); break;
-		case 2:
-			// Check for parallel edges
-			if (activeBorderMap[EdgeDirection.NORTH] && activeBorderMap[EdgeDirection.SOUTH])
-			{ SetType(TYPE.HALLWAY); break; }
-			if (activeBorderMap[EdgeDirection.EAST] && activeBorderMap[EdgeDirection.WEST])
-			{ SetType(TYPE.HALLWAY); break; }
-
-			// Otherwise chunk is in corner
-			SetType(TYPE.CORNER); break;
-		case 1:
-			SetType(TYPE.WALL); break;
-		case 0:
-			SetType(TYPE.EMPTY); break;
-	}
-}
-
-public void SetType(TYPE newType)
-{
-	_type = newType;
-	switch (newType)
-	{
-		case TYPE.CLOSED: TypeColor = Color.black; break;
-		case TYPE.DEAD_END: TypeColor = Color.red; break;
-		case TYPE.HALLWAY: TypeColor = Color.yellow; break;
-		case TYPE.CORNER: TypeColor = Color.blue; break;
-		case TYPE.WALL: TypeColor = Color.green; break;
-		case TYPE.EMPTY: TypeColor = Color.white; break;
-	}
-}
-
-public Dictionary<Direction, Chunk> GetNaturalNeighborMap()
-{
-	Dictionary<Direction, Chunk> neighborMap = new Dictionary<Direction, Chunk>();
-
-	List<Direction> naturalNeighborDirections = new List<Direction> { Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST };
-	foreach (Direction direction in naturalNeighborDirections)
-	{
-		Vector2Int neighborCoordinateValue = CoordinateMap.CalculateNeighborCoordinateValue(Coordinate.ValueKey, direction);
-		neighborMap[direction] = ChunkBuilderParent.GetChunkAt(neighborCoordinateValue);
-	}
-
-	return neighborMap;
-}
-
-public Chunk GetNeighborInDirection(Direction direction)
-{
-	return GetNaturalNeighborMap()[direction];
-}
-
-public Coordinate GetCoordinateAtCell(Cell cell)
-{
-	return _coordinateMap.GetClosestCoordinateAt(cell.Position);
-}
-
-public Cell GetCellAtCoordinate(Coordinate coordinate)
-{
-	return _cellMap.GetCellAtCoordinate(coordinate);
-}
-				*/

@@ -31,7 +31,10 @@ namespace Darklight.World.Generation.Unit
 			get
 			{
 				GenerationSettings generationSettings = WorldGenerationSystem.Instance.Settings;
-				return CenterPosition - (new Vector3(0.5f, 0, 0.5f) * generationSettings.RegionWidth_inGameUnits) + (new Vector3(0.5f, 0, 0.5f) * generationSettings.ChunkWidth_inGameUnits);
+				Vector3 result = CenterPosition;
+				result -= (new Vector3(0.5f, 0, 0.5f) * generationSettings.RegionWidth_inGameUnits);
+				result += (new Vector3(0.5f, 0, 0.5f) * generationSettings.ChunkWidth_inGameUnits);
+				return result;
 			}
 		}
 		public Region() { }
