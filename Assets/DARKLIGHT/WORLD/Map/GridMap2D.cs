@@ -873,7 +873,7 @@ namespace Darklight.World.Map
     #region========= >>>> INHERITED DEFINITIONS
     public interface IGridMapData<T> where T : IGridMapData<T>, new()
     {
-        GridMap2D<T> ParentGridMap { get; set; }
+        GridMap2D<T> RegionGridMap2D { get; set; }
         GridMap2D.Coordinate CoordinateValue { get; set; }
         Vector2Int PositionKey { get; set; }
         Task Initialize(GridMap2D<T> parent, Vector2Int positionKey);

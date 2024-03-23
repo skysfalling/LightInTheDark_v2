@@ -25,10 +25,10 @@ namespace Darklight.World.Generation
 	{
 		public bool Initialized { get; private set; }
 		public static string Prefix => "[ REGION ]";
-		public GridMap2D<Region> ParentGridMap { get; set; }
+		public GridMap2D<Region> RegionGridMap2D { get; set; }
+		public GridMap2D<Chunk> ChunkGridMap2D { get; set; }
 		public Vector2Int PositionKey { get; set; }
 		public GridMap2D.Coordinate CoordinateValue { get; set; }
-		public GridMap2D<Chunk> ChunkGridMap { get; set; }
 		public Vector3 CenterPosition => CoordinateValue.GetPositionInScene();
 		public Vector3 OriginPosition
 		{
@@ -45,9 +45,9 @@ namespace Darklight.World.Generation
 		}
 		public Task Initialize(GridMap2D<Region> gridParent, Vector2Int positionKey)
 		{
-			this.ParentGridMap = gridParent;
+			this.RegionGridMap2D = gridParent;
 			this.PositionKey = positionKey;
-			this.CoordinateValue = ParentGridMap.GetCoordinateAt(positionKey);
+			this.CoordinateValue = RegionGridMap2D.GetCoordinateAt(positionKey);
 			Initialized = true;
 			return Task.CompletedTask;
 		}
@@ -55,8 +55,10 @@ namespace Darklight.World.Generation
 
 	}
 
-
 	// ======= MonoBehaviour Operator ======================================== //
+	/// <summary>
+	/// The Instanced Handler of the Region Class, treat this Object as temporary
+	/// </summary>
 	public class RegionMonoOperator : MonoBehaviour, IUnityEditorListener
 	{
 		public WorldGenSystem WorldGen => WorldGenSystem.Instance;
@@ -72,19 +74,18 @@ namespace Darklight.World.Generation
 		{
 			Region = region;
 
-			// Construct CHUNK GridMap2D  
-			Region.ChunkGridMap = new GridMap2D<Chunk>(transform, region.OriginPosition, generationSettings, UnitSpace.REGION, UnitSpace.CHUNK);
-			Region.ChunkGridMap.Initialize();
+			// Construct ChunkGridMap2D at Transform 
+			Region.ChunkGridMap2D = new GridMap2D<Chunk>(transform, region.OriginPosition, generationSettings, UnitSpace.REGION, UnitSpace.CHUNK);
+			Region.ChunkGridMap2D.Initialize();
 
-			// Create Chunk Builder Object as child 
+			// Create ChunkBuilderObject
 			GameObject chunkBuilderObject = await WorldGenSystem.Instance.CreateGameObjectAt($"ChunkBuilder_{region.PositionKey}", Region.CoordinateValue);
 			chunkBuilderObject.transform.parent = transform;
-
 			ChunkBuilder = chunkBuilderObject.AddComponent<ChunkBuilder>();
 			ChunkBuilder.Initialize(region);
 
 			// Create Temp Mesh
-			CreateTempMesh();
+			//CreateTempMesh();
 			await Task.CompletedTask;
 		}
 
@@ -99,7 +100,7 @@ namespace Darklight.World.Generation
 				GameObject tempMesh = GameObject.CreatePrimitive(PrimitiveType.Cube);
 				tempMesh.name = $"TempRegionMesh";
 				tempMesh.transform.parent = this.transform;
-				tempMesh.transform.position = Region.CenterPosition;
+				tempMesh.transform.position = Region.CenterPosition - (Vector3.up * chunkDepth * 0.5f);
 				tempMesh.transform.localScale = new Vector3(1, 0, 1) * regionWidth + (Vector3.up * chunkDepth);
 			}
 		}
@@ -122,19 +123,14 @@ namespace Darklight.World.Generation
 		{
 			RegionMonoOperator regionOperator = (RegionMonoOperator)target;
 			Region region = regionOperator.Region;
-			GridMap2D<Chunk> chunkMap = region.ChunkGridMap;
+			GridMap2D<Chunk> chunkMap = region.ChunkGridMap2D;
 			GridMap2DEditor.DrawGridMap2D_SceneGUI(chunkMap, view, (GridMap2D.Coordinate coordinate) => { });
 
 			// Draw World Outline
-			CustomGizmos.DrawWireSquare(region.ParentGridMap.CenterPosition, WorldGenSystem.Instance.Settings.WorldWidth_inGameUnits, Color.grey, Vector3.up);
+			CustomGizmos.DrawWireSquare(region.RegionGridMap2D.CenterPosition, WorldGenSystem.Instance.Settings.WorldWidth_inGameUnits, Color.grey, Vector3.up);
 		}
 	}
-
-
-
 #endif
-
-
 
 
 	/*

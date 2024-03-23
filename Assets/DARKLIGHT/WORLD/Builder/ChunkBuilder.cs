@@ -16,36 +16,30 @@ namespace Darklight.World.Builder
 
 	public class ChunkBuilder : TaskBotQueen, ITaskEntity
 	{
-		HashSet<Chunk> _chunks = new();
-		Dictionary<Vector2Int, Chunk> _chunkMap = new();
-
-		public bool GenerationFinished { get; private set; }
-		public bool CreateObjects { get; private set; } = false;
 		public Region RegionParent { get; private set; }
-		public HashSet<Chunk> AllChunks { get { return _chunks; } private set { } }
+		public GridMap2D<Chunk> ChunkMap => RegionParent.ChunkGridMap2D;
 
 		public async void Initialize(Region parentRegion)
 		{
 			await base.Initialize();
 			RegionParent = parentRegion;
+
+			List<TaskBot> generationBots = new List<TaskBot> {
+				new TaskBot(this, "CreateAllChunkData", CreateAllChunkData)
+			};
+
+			await EnqueueList(generationBots);
+
 		}
-		/*
+
 		async Task CreateAllChunkData()
 		{
-			ChunkBuilder self = this; // Capture the instance of ChunkGeneration
-									  //TaskBotConsole.Log(self, $"Creating {_coordinateMap.AllCoordinateValues.Count} Chunks");
-
-			foreach (Vector2Int position in _coordinateMap.AllCoordinateValues)
-			{
-				//TaskBotConsole.Log(self, $"\t>> Creating Chunk {position}");
-				Coordinate coordinate = _coordinateMap.GetCoordinateAt(position);
-				Chunk newChunk = new Chunk(self, coordinate); // Use the captured instance
-				_chunks.Add(newChunk);
-				_chunkMap[coordinate.ValueKey] = newChunk;
-			}
-			//TaskBotConsole.Log(self, $">> Here they are! {_chunkMap.ToString()}");
+			await ChunkMap.InitializeDataMap();
+			TaskBotConsole.Log($">> Here they are! {ChunkMap.DataValues.Count}");
 			await Task.CompletedTask;
 		}
+
+		/*
 		async Task CreateAllChunkMesh()
 		{
 			//TaskBotConsole.Log(this, $"Creating {_chunks.Count} Meshes");

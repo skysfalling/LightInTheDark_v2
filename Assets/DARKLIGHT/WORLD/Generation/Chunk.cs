@@ -55,13 +55,13 @@ namespace Darklight.World.Generation
 		public Color TypeColor { get; private set; } = Color.white;
 		public Vector2Int PositionKey { get; set; }
 		public Coordinate CoordinateValue { get; set; }
-		public GridMap2D<Chunk> ParentGridMap { get; set; }
+		public GridMap2D<Chunk> RegionGridMap2D { get; set; }
 
 		public Task Initialize(GridMap2D<Chunk> parent, Vector2Int positionKey)
 		{
-			this.ParentGridMap = parent;
+			this.RegionGridMap2D = parent;
 			this.PositionKey = positionKey;
-			this.CoordinateValue = ParentGridMap.GetCoordinateAt(positionKey);
+			this.CoordinateValue = RegionGridMap2D.GetCoordinateAt(positionKey);
 			Initialized = true;
 			return Task.CompletedTask;
 		}
