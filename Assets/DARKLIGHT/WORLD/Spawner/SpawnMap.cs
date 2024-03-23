@@ -1,16 +1,16 @@
 using UnityEngine;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Linq;
 namespace Darklight.World.Generation
 {
     using Darklight.Bot;
     using Builder;
     using Darklight.World.Map;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using System.Linq;
+
 
     public class SpawnMap : TaskBotQueen, ITaskEntity
     {
-        Builder.RegionBuilder _regionBuilder;
         public GameObject playerTravelerObject;
 
         public async void Start()

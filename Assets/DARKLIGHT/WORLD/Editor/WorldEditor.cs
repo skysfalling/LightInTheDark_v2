@@ -14,6 +14,7 @@ namespace Darklight.World
 	using Darklight.Bot;
 	using System.Linq;
 	using System.Collections.Generic;
+	using Darklight.World.Generation.Unit;
 
 	public class WorldEditor : MonoBehaviour
 	{

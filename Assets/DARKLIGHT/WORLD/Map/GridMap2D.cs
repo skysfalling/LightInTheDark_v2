@@ -6,6 +6,7 @@ using Darklight.World.Settings;
 using UnityEngine;
 using Darklight.Bot;
 using Darklight.World.Generation;
+using Darklight.World.Generation.Unit;
 
 
 
@@ -19,7 +20,9 @@ namespace Darklight.World.Map
     [System.Serializable]
     public class GridMap2D
     {
-        #region ============== STATIC FUNCTIONS ===================== ////
+        public static string Prefix = "[[ GridMap2D ]]";
+
+        #region ============== STATIC METHODS ===================== ////
         static Dictionary<Direction, Vector2Int> DirectionVectorMap =
                 new Dictionary<Direction, Vector2Int>()
                 {
@@ -347,7 +350,6 @@ namespace Darklight.World.Map
         #endregion
 
         #region << MAP DATA <<
-        string _prefix = "[[ GridMap2D ]] ";
         Transform _transform; // to use as position parent
         [SerializeField] GenerationSettings _settings;
         [SerializeField] UnitSpace _mapUnitSpace; // defines GridMap sizing
@@ -359,10 +361,6 @@ namespace Darklight.World.Map
         Dictionary<EdgeDirection, Border> _mapBorders = new();
         Dictionary<(EdgeDirection, EdgeDirection), Vector2Int> _mapCorners = new();
         Dictionary<(Vector2Int, Vector2Int), Path> _paths = new();
-        #endregion
-
-        #region << PRIVATE VARIABLES <<
-
         #endregion
 
         #region << PUBLIC ACCESSORS <<
@@ -414,9 +412,9 @@ namespace Darklight.World.Map
         /// <summary>
         /// Initializes the grid map by creating coordinate objects for each position in the map.
         /// </summary>
-        public virtual void Initialize()
+        public virtual async Task Initialize()
         {
-            Debug.Log($"{_prefix} Initializing GridMap2D. [ _mapWidth : {_mapWidth} , _coordinateSize : {_coordinateSize} ]");
+            Debug.Log($"{Prefix} Initialize() [ _mapWidth : {_mapWidth} , _coordinateSize : {_coordinateSize} ]");
 
             // Create Coordinate grid
             for (int x = 0; x < _mapWidth; x++)
@@ -469,6 +467,8 @@ namespace Darklight.World.Map
                     coordinate.SetFlag(Coordinate.Flag.NULL);
                 }
             }
+
+            await Task.CompletedTask;
         }
         #endregion
 
@@ -862,7 +862,7 @@ namespace Darklight.World.Map
 
         public virtual void Reset()
         {
-            Debug.Log($"{_prefix} Resetting GridMap2D");
+            Debug.Log($"{Prefix} Resetting GridMap2D");
             _map.Clear();
         }
     }
@@ -873,7 +873,7 @@ namespace Darklight.World.Map
     #region========= >>>> INHERITED DEFINITIONS
     public interface IGridMapData<T> where T : IGridMapData<T>, new()
     {
-        GridMap2D<T> RegionGridMap2D { get; set; }
+        GridMap2D<T> ParentGridMap2D { get; set; }
         GridMap2D.Coordinate CoordinateValue { get; set; }
         Vector2Int PositionKey { get; set; }
         Task Initialize(GridMap2D<T> parent, Vector2Int positionKey);
@@ -891,8 +891,11 @@ namespace Darklight.World.Map
         public List<T> DataValues { get { return DataMap.Values.ToList(); } }
         public GridMap2D() : base() { }
         public GridMap2D(Transform transform, Vector3 originPosition, GenerationSettings generationSettings, UnitSpace mapUnit, UnitSpace coordUnit) : base(transform, originPosition, generationSettings, mapUnit, coordUnit) { }
-        public virtual async Task InitializeDataMap()
+        public override async Task Initialize()
         {
+            await base.Initialize();
+
+            Debug.Log($"{Prefix} Create DataMap<{typeof(T).Name}>");
             DataMap = new Dictionary<Vector2Int, T>();
             foreach (Vector2Int position in PositionKeys)
             {

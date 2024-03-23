@@ -5,6 +5,7 @@ using UnityEngine;
 namespace Darklight.World.Entity
 {
 	using Generation;
+	using Generation.Unit;
 	using Builder;
 	using Map;
 

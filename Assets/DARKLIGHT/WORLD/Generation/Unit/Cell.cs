@@ -1,6 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+using Darklight.World.Generation;
+using Darklight.World.Generation.System;
+
 using UnityEngine;
+using UnityEngine.UIElements;
 
 /// <summary>
 /// SKYS_3DWORLDGEN : Created by skysfalling @ darklightinteractive 2024
@@ -10,9 +18,8 @@ using UnityEngine;
 /// for the larger world map, enabling detailed and scalable world design.
 /// </summary>
 
-namespace Darklight.World.Generation
+namespace Darklight.World.Generation.Unit
 {
-	using Builder;
 	public class Cell
 	{
 		public enum TYPE { EMPTY, EDGE, CORNER, OBSTACLE, SPAWN_POINT }

@@ -21,7 +21,7 @@ namespace Darklight.Bot
 		private Queue<TaskBot> _executionQueue = new Queue<TaskBot>();
 
 		#region -- ( StateMachine ) ------------------------------- >>  
-		public enum State { NULL, AWAKE, INITIALIZE, LOAD_DATA, WAIT, ENQUEUE_BOT, EXECUTE_BOT, CLEAN, ERROR }
+		public enum State { NULL, AWAKE, INITIALIZE, LOAD_DATA, WAIT, ADD_TO_QUEUE, EXECUTION, CLEAN, ERROR }
 		State _currentState = State.NULL;
 		public State CurrentState
 		{
@@ -71,35 +71,42 @@ namespace Darklight.Bot
 		/// Enqueues a task bot to the execution queue.
 		/// </summary>
 		/// <param name="taskBot">The task bot to enqueue.</param>
-		public Task Enqueue(TaskBot taskBot, bool log = false)
+		public Task Enqueue(TaskBot taskBot, bool log = true)
 		{
-			if (log)
-				TaskBotConsole.Log($"{LogPrefix} TaskBot {taskBot.Name}", 1);
+			CurrentState = State.ADD_TO_QUEUE;
 
-			CurrentState = State.LOAD_DATA;
+			if (log)
+				TaskBotConsole.Log($"{LogPrefix} EnqueueTaskBot {taskBot.Name}", 1);
+
 			_executionQueue.Enqueue(taskBot);
 			return Task.CompletedTask;
 		}
 
-		public async Task EnqueueList(IEnumerable<TaskBot> bots)
+		public async Task EnqueueList(IEnumerable<TaskBot> bots, bool log = true)
 		{
-			CurrentState = State.LOAD_DATA;
+			CurrentState = State.ADD_TO_QUEUE;
+
+			if (log)
+				TaskBotConsole.Log($"{LogPrefix} EnqueueList<TaskBot> Count:{bots.Count()}", 0);
 
 			foreach (TaskBot newBot in bots)
 			{
-				await Enqueue(newBot);
+				await Enqueue(newBot, log);
 			}
 		}
 
-		public async Task EnqueueClones<T>(string cloneName, IEnumerable<T> items, Func<T, TaskBot> CreateNewClone)
+		public async Task EnqueueClones<T>(string cloneName, IEnumerable<T> items, Func<T, TaskBot> CreateNewClone, bool log = true)
 		{
+			CurrentState = State.ADD_TO_QUEUE;
+
+			if (log)
+				TaskBotConsole.Log($"{LogPrefix} EnqueueClones {cloneName} x {items.ToList().Count} Clones", 0);
+
 			foreach (T item in items)
 			{
 				TaskBot newBot = CreateNewClone(item);
-				await Enqueue(newBot);
+				await Enqueue(newBot, log);
 			}
-
-			TaskBotConsole.Log($"{LogPrefix} Enqueue TaskBot {cloneName} x {items.ToList().Count} Clones", 1);
 		}
 
 		/// <summary>
@@ -109,7 +116,7 @@ namespace Darklight.Bot
 		/// <returns></returns>
 		public async Awaitable ExecuteBot(TaskBot taskBot)
 		{
-			CurrentState = State.EXECUTE_BOT;
+			CurrentState = State.EXECUTION;
 
 			// Assign the TaskBot to Execute on the background thread
 			if (taskBot.executeOnBackgroundThread)
@@ -146,7 +153,7 @@ namespace Darklight.Bot
 		/// </summary>
 		public virtual async Awaitable ExecuteAllTasks()
 		{
-			CurrentState = State.EXECUTE_BOT;
+			CurrentState = State.EXECUTION;
 
 			TaskBotConsole.Log($"{LogPrefix} START TaskBots [{ExecutionQueueCount}]");
 

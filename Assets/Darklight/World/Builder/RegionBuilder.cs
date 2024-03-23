@@ -12,6 +12,8 @@ namespace Darklight.World.Builder
 	using Generation;
 	using Map;
 	using Settings;
+	using Darklight.World.Generation.Unit;
+	using Darklight.World.Generation.System;
 
 	public class RegionBuilder : TaskBotQueen, ITaskEntity
 	{

@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Darklight.World.Data
 {
+	using Generation.System;
 	using Settings;
 	using Builder;
 

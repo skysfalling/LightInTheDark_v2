@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Darklight.World.Generation
 {
-	using Darklight.World.Builder;
+	using Unit;
 	public class EnvironmentObject
 	{
 		public GameObject prefab;

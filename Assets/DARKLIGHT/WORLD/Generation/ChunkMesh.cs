@@ -2,15 +2,18 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Linq;
 using UnityEngine;
 
 namespace Darklight.World.Generation
 {
-	using FaceDirection = Chunk.FaceDirection;
 	using Builder;
-	using System.Linq;
-	using Darklight.World.Settings;
+	using Darklight.World.Generation.System;
 	using Darklight.World.Map;
+	using Darklight.World.Settings;
+	using Unit;
+
+	using FaceDirection = Unit.Chunk.FaceDirection;
 
 	/// <summary>
 	/// This Quad manipulates and stores the chunk mesh values

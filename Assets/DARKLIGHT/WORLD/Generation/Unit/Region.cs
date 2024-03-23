@@ -9,15 +9,13 @@ using UnityEngine;
 using Darklight.World.Settings;
 using Darklight.World.Builder;
 using Darklight.UnityExt;
-
-
-
+using Darklight.World.Generation.System;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-namespace Darklight.World.Generation
+namespace Darklight.World.Generation.Unit
 {
 	using WorldGenSystem = WorldGenerationSystem;
 
@@ -25,7 +23,7 @@ namespace Darklight.World.Generation
 	{
 		public bool Initialized { get; private set; }
 		public static string Prefix => "[ REGION ]";
-		public GridMap2D<Region> RegionGridMap2D { get; set; }
+		public GridMap2D<Region> ParentGridMap2D { get; set; }
 		public GridMap2D<Chunk> ChunkGridMap2D { get; set; }
 		public Vector2Int PositionKey { get; set; }
 		public GridMap2D.Coordinate CoordinateValue { get; set; }
@@ -45,9 +43,9 @@ namespace Darklight.World.Generation
 		}
 		public Task Initialize(GridMap2D<Region> gridParent, Vector2Int positionKey)
 		{
-			this.RegionGridMap2D = gridParent;
+			this.ParentGridMap2D = gridParent;
 			this.PositionKey = positionKey;
-			this.CoordinateValue = RegionGridMap2D.GetCoordinateAt(positionKey);
+			this.CoordinateValue = ParentGridMap2D.GetCoordinateAt(positionKey);
 			Initialized = true;
 			return Task.CompletedTask;
 		}
@@ -63,7 +61,7 @@ namespace Darklight.World.Generation
 	{
 		public WorldGenSystem WorldGen => WorldGenSystem.Instance;
 		public Region Region { get; private set; }
-		public ChunkBuilder ChunkBuilder { get; set; }
+		public ChunkGenerationSystem ChunkBuilder { get; set; }
 
 		public void OnEditorReloaded()
 		{
@@ -76,12 +74,12 @@ namespace Darklight.World.Generation
 
 			// Construct ChunkGridMap2D at Transform 
 			Region.ChunkGridMap2D = new GridMap2D<Chunk>(transform, region.OriginPosition, generationSettings, UnitSpace.REGION, UnitSpace.CHUNK);
-			Region.ChunkGridMap2D.Initialize();
+			await Region.ChunkGridMap2D.Initialize();
 
 			// Create ChunkBuilderObject
 			GameObject chunkBuilderObject = await WorldGenSystem.Instance.CreateGameObjectAt($"ChunkBuilder_{region.PositionKey}", Region.CoordinateValue);
 			chunkBuilderObject.transform.parent = transform;
-			ChunkBuilder = chunkBuilderObject.AddComponent<ChunkBuilder>();
+			ChunkBuilder = chunkBuilderObject.AddComponent<ChunkGenerationSystem>();
 			ChunkBuilder.Initialize(region);
 
 			// Create Temp Mesh
@@ -127,11 +125,10 @@ namespace Darklight.World.Generation
 			GridMap2DEditor.DrawGridMap2D_SceneGUI(chunkMap, view, (GridMap2D.Coordinate coordinate) => { });
 
 			// Draw World Outline
-			CustomGizmos.DrawWireSquare(region.RegionGridMap2D.CenterPosition, WorldGenSystem.Instance.Settings.WorldWidth_inGameUnits, Color.grey, Vector3.up);
+			CustomGizmos.DrawWireSquare(region.ParentGridMap2D.CenterPosition, WorldGenSystem.Instance.Settings.WorldWidth_inGameUnits, Color.grey, Vector3.up);
 		}
 	}
 #endif
-
 
 	/*
 			/// <summary>

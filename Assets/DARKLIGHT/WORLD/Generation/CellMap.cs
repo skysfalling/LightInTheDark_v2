@@ -1,22 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Darklight.World.Generation.Unit;
 using UnityEngine;
 
 namespace Darklight.World.Generation
 {
-    using FaceDirection = Chunk.FaceDirection;
-
     public class CellMap
     {
         Chunk _chunk;
         ChunkMesh _chunkMesh;
         HashSet<Cell> _cells = new();
-        Dictionary<FaceDirection, HashSet<Cell>> _faceMap = new();
+        Dictionary<Chunk.FaceDirection, HashSet<Cell>> _faceMap = new();
 
         public Chunk ChunkParent { get; private set; }
         public List<Cell> AllCells => _cells.ToList();
-        public Dictionary<FaceDirection, HashSet<Cell>> ChunkFaceMap => _faceMap;
+        public Dictionary<Chunk.FaceDirection, HashSet<Cell>> ChunkFaceMap => _faceMap;
 
         public CellMap(Chunk chunk, ChunkMesh chunkMesh)
         {

@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,28 +7,14 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-namespace Darklight.World
+namespace Darklight.World.Generation.System
 {
     using Debug = UnityEngine.Debug;
     using Bot;
     using Settings;
     using Map;
-    using System.Threading.Tasks;
-    using Darklight.World.Generation;
+    using Unit;
     using Darklight.UnityExt;
-
-    #region (( GLOBAL SPATIAL ENUMS ))
-    /// <summary>
-    /// Represents the spatial scope for operations or elements within the world generation context.
-    /// </summary>
-    public enum UnitSpace { WORLD, REGION, CHUNK, CELL, GAME }
-    /// <summary>
-    /// Defines cardinal and intercardinal directions for world layout and neighbor identification.
-    /// </summary>
-    public enum Direction { NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST }
-    /// <summary> Specifies the directions for borders relative to a given region or chunk. </summary>
-    public enum EdgeDirection { WEST, NORTH, EAST, SOUTH }
-    #endregion
 
     public class WorldGenerationSystem : TaskBotQueen, ITaskEntity, IUnityEditorListener
     {
@@ -118,8 +105,10 @@ namespace Darklight.World
             this.Name = "WorldGenerationSystem";
             _settings.Initialize();
             await base.Initialize();
-            RegionGridMap = new GridMap2D<Region>(transform, transform.position, _settings, UnitSpace.WORLD, UnitSpace.REGION); // Assign GridMap to this Transform
-            RegionGridMap.Initialize();
+
+            // Assign GridMap to this Transform
+            RegionGridMap = new GridMap2D<Region>(transform, transform.position, _settings, UnitSpace.WORLD, UnitSpace.REGION);
+            await RegionGridMap.Initialize();
 
             TaskBotConsole.Log($"Initialized Region Grid Map");
             TaskBotConsole.Log($"Region Count: {RegionGridMap.PositionKeys.Count}", 1);
@@ -128,13 +117,13 @@ namespace Darklight.World
                 TaskBotConsole.Log($"Region Count is too high. Consider reducing the region width.", 0, Darklight.Console.LogEntry.Severity.Error);
                 return;
             }
-            await RegionGridMap.InitializeDataMap(); // Initialize Data
+            await RegionGridMap.Initialize(); // Initialize Data
 
             // [[ ADD BOT CLONES TO EXECUTION QUEUE ]]
             // Enqueue a TaskBot clone for each position
             await EnqueueClones("CreateRegionOperators", RegionGridMap.PositionKeys, position =>
             {
-                Generation.Region region = RegionGridMap.DataMap[position];
+                Region region = RegionGridMap.DataMap[position];
                 return new TaskBot(this, $"CreateRegionOperator {position}", async () =>
                 {
                     GameObject newObject = await CreateGameObjectAt("RegionOperator", region.CoordinateValue);
@@ -152,6 +141,8 @@ namespace Darklight.World
             base.Reset();
             TaskBotConsole.Reset(); // reset console
             RegionGridMap.Reset(); // reset data
+
+            DestroyAllGeneration();
         }
 
         public void OnEditorReloaded()

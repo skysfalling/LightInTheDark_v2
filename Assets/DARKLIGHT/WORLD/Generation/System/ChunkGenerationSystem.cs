@@ -1,20 +1,24 @@
+using System;
 using System.Collections;
-namespace Darklight.World.Builder
-{
-	using System.Collections;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Threading.Tasks;
-	using Darklight;
-	using UnityEngine;
-	using UnityEngine.UIElements;
-	using Darklight.Bot;
-	using Darklight.World.Generation;
-	using Darklight.World.Settings;
-	using Darklight.World.Map;
-	using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-	public class ChunkBuilder : TaskBotQueen, ITaskEntity
+using Darklight;
+using Darklight.Bot;
+using Darklight.World.Generation;
+using Darklight.World.Generation.Unit;
+using Darklight.World.Map;
+using Darklight.World.Settings;
+
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Darklight.World.Generation.System
+{
+
+
+	public class ChunkGenerationSystem : TaskBotQueen, ITaskEntity
 	{
 		public Region RegionParent { get; private set; }
 		public GridMap2D<Chunk> ChunkMap => RegionParent.ChunkGridMap2D;
@@ -34,7 +38,7 @@ namespace Darklight.World.Builder
 
 		async Task CreateAllChunkData()
 		{
-			await ChunkMap.InitializeDataMap();
+			await ChunkMap.Initialize();
 			TaskBotConsole.Log($">> Here they are! {ChunkMap.DataValues.Count}");
 			await Task.CompletedTask;
 		}
