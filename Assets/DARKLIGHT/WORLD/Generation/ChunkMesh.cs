@@ -65,7 +65,6 @@ namespace Darklight.World.Generation
 		Vector3Int _defaultDimensions;
 		Vector3Int _currentDimensions;
 		Chunk _chunk;
-		int _groundHeight;
 		Vector3 _positionInScene;
 		Mesh _mesh;
 		List<Vector3> _globalVertices = new(); // global vertices dictionary 
@@ -82,7 +81,6 @@ namespace Darklight.World.Generation
 		public ChunkMesh(Chunk chunkParent)
 		{
 			this._chunk = chunkParent;
-			this._groundHeight = chunkParent.GroundHeight;
 			this._positionInScene = chunkParent.GroundPosition;
 			GenerateMeshData();
 			this._mesh = CreateMeshFromGeneratedData();
@@ -177,7 +175,7 @@ namespace Darklight.World.Generation
 		void GenerateMeshData()
 		{
 			GenerationSettings settings = WorldGenerationSystem.Instance.Settings;
-			int groundHeight = _groundHeight;
+			int groundHeight = _chunk.GroundHeight;
 			List<FaceDirection> facesToGenerate = _visibleFaces;
 			int cellSize = settings.CellSize_inGameUnits;
 			int currentVertexIndex = 0;

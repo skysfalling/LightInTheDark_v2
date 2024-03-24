@@ -78,9 +78,7 @@ namespace Darklight.World.Generation.Unit
 			await Region.ChunkGridMap2D.Initialize();
 
 			// Create ChunkGenerationSystem Instance
-			GameObject chunkBuilderObject = WorldGenerationSystem.CreateGameObjectOnGrid($"ChunkGenerationSystem", Region.CoordinateValue);
-			chunkBuilderObject.transform.parent = transform;
-			ChunkGenerationSystem = chunkBuilderObject.AddComponent<ChunkGenerationSystem>();
+			ChunkGenerationSystem = this.gameObject.AddComponent<ChunkGenerationSystem>();
 			ChunkGenerationSystem.Initialize(region);
 
 			// Create Temp Mesh
@@ -123,10 +121,19 @@ namespace Darklight.World.Generation.Unit
 			RegionMonoOperator regionOperator = (RegionMonoOperator)target;
 			Region region = regionOperator.Region;
 			GridMap2D<Chunk> chunkMap = region.ChunkGridMap2D;
-			GridMap2DEditor.DrawGridMap2D_SceneGUI(chunkMap, view, (GridMap2D.Coordinate coordinate) => { });
+			//GridMap2DEditor.DrawGridMap2D_SceneGUI(chunkMap, view, (GridMap2D.Coordinate coordinate) => { });
 
 			// Draw World Outline
 			CustomGizmos.DrawWireSquare(region.GridMapParent.CenterPosition, WorldGenerationSystem.Instance.Settings.WorldWidth_inGameUnits, Color.grey, Vector3.up);
+		}
+
+		[DrawGizmo(GizmoType.Selected)]
+		public static void GridMap2DGizmos(RegionMonoOperator monoOperator, GizmoType gizmoType)
+		{
+			if (monoOperator == null) return;
+
+			GridMap2DEditor.View view = GridMap2DEditor.View.COORD_FLAG;
+			GridMap2DEditor.DrawGridMap2D_SceneGUI(monoOperator.Region.ChunkGridMap2D, view, (GridMap2D.Coordinate coordinate) => { });
 		}
 	}
 #endif

@@ -22,7 +22,7 @@ namespace Darklight.World.Generation.System
 		public Region RegionParent { get; private set; }
 		public GridMap2D<Chunk> GridMap => RegionParent.ChunkGridMap2D;
 
-		public async void Initialize(Region regionParent)
+		public async void Initialize(Region regionParent, bool startGeneration = false)
 		{
 			await base.Initialize();
 			RegionParent = regionParent;
@@ -33,8 +33,9 @@ namespace Darklight.World.Generation.System
 				new TaskBot(this, "CreateAllChunkMesh", CreateAllChunkMesh),
 				new TaskBot(this, "CreateAllChunkObjs", CreateAllsChunkObjs)
 			};
-
 			await EnqueueList(generationBots);
+
+			if (startGeneration) { await ExecuteAllTasks(); }
 		}
 
 		async Task CreateAllChunkMesh()
@@ -54,7 +55,7 @@ namespace Darklight.World.Generation.System
 			foreach (Chunk chunk in GridMap.DataValues)
 			{
 
-				chunk.ChunkObject = new GameObject($"Chunk {chunk.PositionKey}");
+				chunk.ChunkObject = new GameObject($"Chunk {chunk.PositionKey} :: Height {chunk.GroundHeight}");
 				chunk.ChunkObject.transform.position = Vector3.zero;
 				chunk.ChunkObject.transform.parent = transform;
 				chunk.ChunkObject.AddComponent<MeshRenderer>().material = WorldGenerationSystem.Instance.defaultMaterial;

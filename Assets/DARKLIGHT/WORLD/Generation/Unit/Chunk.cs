@@ -120,7 +120,9 @@ namespace Darklight.World.Generation.Unit
 		public void UpdateChunkHeight()
 		{
 			Coordinate.Flag type = CoordinateValue.CurrentFlag;
-			Vector2Int perlinOffset = new Vector2Int((int)PositionKey.x, (int)PositionKey.y);
+			Vector3 scenePosition = CoordinateValue.GetPositionInScene();
+
+			Vector2Int perlinOffset = new Vector2Int((int)scenePosition.x, (int)scenePosition.z);
 			this._groundHeight = Mathf.RoundToInt(PerlinNoise.CalculateHeightFromNoise(perlinOffset) * WorldGenSys.Settings.PerlinMultiplier);
 			this._groundHeight = Mathf.Clamp(this._groundHeight, 0, WorldGenSys.Settings.ChunkMaxHeight_inCellUnits);
 			this._groundHeight *= WorldGenSys.Settings.CellSize_inGameUnits; // Convert to game units

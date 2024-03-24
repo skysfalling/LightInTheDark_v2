@@ -42,6 +42,48 @@ namespace Darklight.World.Generation.System
             return newObject;
         }
 
+        /// <summary>
+        /// Creates a GameObject with the given name, mesh, and material.
+        /// </summary>
+        /// <param name="name">The name of the GameObject.</param>
+        /// <param name="mesh">The mesh for the GameObject.</param>
+        /// <param name="material">The material for the GameObject.</param>
+        /// <returns>The created GameObject.</returns>
+        public GameObject CreateMeshObject(string name, Mesh mesh, Material material = null)
+        {
+            if (material == null && defaultMaterial != null)
+            {
+                Debug.LogWarning($"{name} Material is null -> setMaterial to GenerationParent default");
+                defaultMaterial = material;
+            }
+            else if (material == null) { Debug.LogWarning($"{name} Material is null"); }
+            else if (mesh == null) { Debug.LogWarning($"{name} Mesh is null"); }
+
+            GameObject worldObject = new GameObject(name);
+            worldObject.transform.parent = transform;
+            worldObject.transform.localPosition = Vector3.zero;
+
+            MeshFilter meshFilter = worldObject.AddComponent<MeshFilter>();
+            meshFilter.sharedMesh = mesh;
+            meshFilter.sharedMesh.RecalculateBounds();
+            meshFilter.sharedMesh.RecalculateNormals();
+
+            if (material == null)
+            {
+                worldObject.AddComponent<MeshRenderer>().material = defaultMaterial;
+                worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
+            }
+            else
+            {
+                worldObject.AddComponent<MeshRenderer>().material = material;
+                worldObject.AddComponent<MeshCollider>().sharedMesh = mesh;
+            }
+
+            InstantiatedObjects.Add(worldObject);
+
+            return worldObject;
+        }
+
         public static void DestroyAllGeneration()
         {
             Debug.Log($"{Prefix} DestroyAllGeneration() -> Count {InstantiatedObjects.Count}");
@@ -153,6 +195,7 @@ namespace Darklight.World.Generation.System
 
     #region==== CUSTOM UNITY EDITOR ================== )) 
 #if UNITY_EDITOR
+
     [CustomEditor(typeof(WorldGenerationSystem))]
     public class WorldGenerationSystemEditor : TaskBotQueenEditor
     {
@@ -161,10 +204,21 @@ namespace Darklight.World.Generation.System
         private void OnSceneGUI()
         {
             WorldGenerationSystem worldGenSystem = (WorldGenerationSystem)target;
+            /*
             GridMap2DEditor.DrawGridMap2D_SceneGUI(worldGenSystem.RegionGridMap, GridMap2DEditor.View.COORD_FLAG, (coordinate) =>
             {
                 Debug.Log($"Selected Coordinate: {coordinate.PositionKey}");
             });
+            */
+        }
+
+        [DrawGizmo(GizmoType.Selected)]
+        public static void GridMap2DGizmos(WorldGenerationSystem worldGen, GizmoType gizmoType)
+        {
+            if (worldGen == null || gizmoType == GizmoType.NonSelected) return;
+
+            GridMap2DEditor.View view = GridMap2DEditor.View.COORD_FLAG;
+            GridMap2DEditor.DrawGridMap2D_SceneGUI(worldGen.RegionGridMap, view, (GridMap2D.Coordinate coordinate) => { });
         }
     }
 }
