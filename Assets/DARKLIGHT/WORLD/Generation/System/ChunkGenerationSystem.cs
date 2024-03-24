@@ -18,7 +18,10 @@ namespace Darklight.World.Generation.System
 {
 	public class ChunkGenerationSystem : TaskBotQueen, ITaskEntity
 	{
+		private GameObject tempMesh;
+
 		public static HashSet<GameObject> InstantiatedObjects { get; private set; } = new HashSet<GameObject>();
+		public WorldGenerationSystem WorldGen = WorldGenerationSystem.Instance;
 		public Region RegionParent { get; private set; }
 		public GridMap2D<Chunk> GridMap => RegionParent.ChunkGridMap2D;
 
@@ -51,10 +54,11 @@ namespace Darklight.World.Generation.System
 
 		async Task CreateAllsChunkObjs()
 		{
+			WorldGenerationSystem.Destroy(tempMesh);
+
 			//TaskBotConsole.Log(this, $"Creating {_chunks.Count} Meshes");
 			foreach (Chunk chunk in GridMap.DataValues)
 			{
-
 				chunk.ChunkObject = new GameObject($"Chunk {chunk.PositionKey} :: Height {chunk.GroundHeight}");
 				chunk.ChunkObject.transform.position = Vector3.zero;
 				chunk.ChunkObject.transform.parent = transform;
@@ -66,6 +70,57 @@ namespace Darklight.World.Generation.System
 			}
 			await Task.CompletedTask;
 		}
+
+		async Task SplitEdges()
+		{
+			foreach (Chunk chunk in GridMap.DataValues)
+			{
+				// #TODO update this to reference the child grid
+				Dictionary<EdgeDirection, Chunk> edgeData = chunk.GridMapParent.GetEdgeData(chunk.PositionKey);
+
+				foreach (EdgeDirection direction in edgeData.Keys)
+				{
+					if (edgeData[direction] != null)
+						chunk.ChunkMesh.SplitQuad(Chunk.FaceDirection.TOP, edgeData[direction].PositionKey, direction);
+				}
+
+				chunk.ChunkMesh.Recalculate();
+				//chunk.G.DestroyGameObject(_editorScript.selectedChunk.ChunkObject);
+				//chunk.ChunkBuilderParent.CreateChunkObject(_editorScript.selectedChunk);
+			}
+			await Task.CompletedTask;
+		}
+
+		public void CreateTempMesh()
+		{
+			int regionWidth = WorldGen.Settings.RegionWidth_inGameUnits;
+			int chunkWidth = WorldGen.Settings.ChunkWidth_inGameUnits;
+			int chunkDepth = WorldGen.Settings.ChunkDepth_inGameUnits;
+
+			tempMesh = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			tempMesh.name = $"TempRegionMesh";
+			tempMesh.transform.parent = this.transform;
+			tempMesh.transform.position = RegionParent.CenterPosition - (Vector3.up * chunkDepth * 0.5f);
+			tempMesh.transform.localScale = new Vector3(1, 0, 1) * regionWidth + (Vector3.up * chunkDepth);
+		}
+
+		/*
+		if (GUILayout.Button("Split Edge"))
+									{
+										//_editorScript.selectedChunk.ChunkMesh.ExtrudeQuad(Chunk.FaceDirection.TOP, Vector2Int.zero);
+										
+									}
+		*/
+
+
+
+
+
+
+
+
+
+
 
 		/*
 				public async Task GenerationSequence()

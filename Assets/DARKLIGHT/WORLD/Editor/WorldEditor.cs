@@ -7,14 +7,8 @@ using UnityEditor;
 
 namespace Darklight.World
 {
-	using Generation;
-	using Builder;
-	using Map;
-	using System;
-	using Darklight.Bot;
-	using System.Linq;
-	using System.Collections.Generic;
 	using Darklight.World.Generation.Unit;
+	using Darklight.UnityExt;
 
 	public class WorldEditor : MonoBehaviour
 	{
@@ -49,7 +43,7 @@ namespace Darklight.World
 			if (selectedRegion.CoordinateValue != null)
 			{
 				Debug.Log("Selected Region: " + selectedRegion.CoordinateValue);
-				Darklight.CustomInspectorGUI.FocusSceneView(region.CoordinateValue.GetPositionInScene());
+				CustomInspectorGUI.FocusSceneView(region.CoordinateValue.GetPositionInScene());
 			}
 			else { Debug.Log("Selected Region: " + region.PositionKey); }
 
@@ -79,7 +73,7 @@ namespace Darklight.World
 
 			Debug.Log("Selected Cell: " + cell.Position);
 
-			Darklight.CustomInspectorGUI.FocusSceneView(cell.Position);
+			CustomInspectorGUI.FocusSceneView(cell.Position);
 
 			editMode = EditMode.CELL;
 		}

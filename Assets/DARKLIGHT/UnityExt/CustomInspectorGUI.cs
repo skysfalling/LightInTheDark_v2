@@ -1,4 +1,4 @@
-namespace Darklight
+namespace Darklight.UnityExt
 {
 	using System;
 	using System.Collections;

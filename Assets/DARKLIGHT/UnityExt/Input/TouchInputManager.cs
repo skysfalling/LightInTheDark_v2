@@ -1,4 +1,4 @@
-namespace Darklight.UniversalInput
+namespace Darklight.UnityExt.Input
 {
 	using UnityEngine;
 	using UnityEngine.Events;

@@ -7,6 +7,7 @@ using UnityEngine;
 using Darklight.Bot;
 using Darklight.World.Generation;
 using Darklight.World.Generation.Unit;
+using Darklight.UnityExt;
 
 
 
@@ -1055,10 +1056,10 @@ namespace Darklight.World.Map
             Color coordinateColor = Color.white;
 
             // Draw Map Outline
-            Darklight.CustomGizmos.DrawWireSquare(gridMap2D.OriginPosition, gridMap2D.CoordinateSize, Color.red, Vector3.up);
+            CustomGizmos.DrawWireSquare(gridMap2D.OriginPosition, gridMap2D.CoordinateSize, Color.red, Vector3.up);
 
             // Draw Origin Coordinate
-            Darklight.CustomGizmos.DrawWireSquare(gridMap2D.CenterPosition, gridMap2D.MapWidth * gridMap2D.CoordinateSize, coordinateColor, Vector3.up);
+            CustomGizmos.DrawWireSquare(gridMap2D.CenterPosition, gridMap2D.MapWidth * gridMap2D.CoordinateSize, coordinateColor, Vector3.up);
 
             // << BORDER DIRECTIONS >>
             if (gridMap2DView == View.BORDER_DIRECTIONS)
@@ -1075,8 +1076,8 @@ namespace Darklight.World.Map
                         GridMap2D.Coordinate coordinate = gridMap2D.GetCoordinateAt(position);
                         if (coordinate == null) continue;
                         coordinateColor = coordinate.GetFlagColor(coordinate.CurrentFlag);
-                        Darklight.CustomGizmos.DrawLabel($"{selectedBorder.Direction}", coordinate.GetPositionInScene(), coordLabelStyle);
-                        Darklight.CustomGizmos.DrawButtonHandle(coordinate.GetPositionInScene(), Vector3.up, coordinate.Size * 0.45f, coordinateColor, () =>
+                        CustomGizmos.DrawLabel($"{selectedBorder.Direction}", coordinate.GetPositionInScene(), coordLabelStyle);
+                        CustomGizmos.DrawButtonHandle(coordinate.GetPositionInScene(), Vector3.up, coordinate.Size * 0.45f, coordinateColor, () =>
                         {
                             onCoordinateSelect?.Invoke(coordinate); // Invoke the action if the button is clicked
                         }, Handles.RectangleHandleCap);
@@ -1097,8 +1098,8 @@ namespace Darklight.World.Map
                     GridMap2D.Coordinate coordinate = gridMap2D.GetCoordinateAt(position);
                     if (coordinate == null) continue;
                     coordinateColor = coordinate.GetFlagColor(coordinate.CurrentFlag);
-                    Darklight.CustomGizmos.DrawLabel($"{directionTuple.Item1} - {directionTuple.Item2}", coordinate.GetPositionInScene(), coordLabelStyle);
-                    Darklight.CustomGizmos.DrawButtonHandle(coordinate.GetPositionInScene(), Vector3.up, coordinate.Size * 0.45f, coordinateColor, () =>
+                    CustomGizmos.DrawLabel($"{directionTuple.Item1} - {directionTuple.Item2}", coordinate.GetPositionInScene(), coordLabelStyle);
+                    CustomGizmos.DrawButtonHandle(coordinate.GetPositionInScene(), Vector3.up, coordinate.Size * 0.45f, coordinateColor, () =>
                     {
                         onCoordinateSelect?.Invoke(coordinate); // Invoke the action if the button is clicked
                     }, Handles.RectangleHandleCap);
@@ -1117,12 +1118,12 @@ namespace Darklight.World.Map
                         break;
                     case View.COORD_POSITION:
                         coordinateColor = Color.white;
-                        Darklight.CustomGizmos.DrawLabel($"{gridCoordinate.PositionKey}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
+                        CustomGizmos.DrawLabel($"{gridCoordinate.PositionKey}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
                         break;
                     case View.COORD_FLAG:
                         coordinateColor = gridCoordinate.GetFlagColor(gridCoordinate.CurrentFlag); // Get the color for the current flag (type of coordinate)
                         coordLabelStyle.normal.textColor = coordinateColor;
-                        Darklight.CustomGizmos.DrawLabel($"{gridCoordinate.CurrentFlag}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
+                        CustomGizmos.DrawLabel($"{gridCoordinate.CurrentFlag}", gridCoordinate.GetPositionInScene(), coordLabelStyle);
                         break;
                     case View.ZONE_ID:
                         coordinateColor = gridCoordinate.GetFlagColor(gridCoordinate.CurrentFlag); ;

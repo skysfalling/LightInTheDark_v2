@@ -2,7 +2,7 @@ namespace Darklight.Camera
 {
 	using UnityEngine;
 	using UnityEngine.InputSystem;
-	using Darklight.UniversalInput;
+	using Darklight.UnityExt.Input;
 	public class OrbitCamera : MonoBehaviour
 	{
 		string _prefix = "SKYS_ORBIT_CAMERA >> ";

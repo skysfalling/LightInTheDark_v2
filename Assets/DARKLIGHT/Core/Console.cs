@@ -80,7 +80,7 @@ namespace Darklight
 			// Dark gray background
 			GUIStyle backgroundStyle = new GUIStyle
 			{
-				normal = { background = CustomInspectorGUI.MakeTex(600, 1, new Color(0.1f, 0.1f, 0.1f, 1.0f)) }
+				normal = { background = UnityExt.CustomInspectorGUI.MakeTex(600, 1, new Color(0.1f, 0.1f, 0.1f, 1.0f)) }
 			};
 
 			// Creating a scroll view with a custom background
@@ -92,10 +92,10 @@ namespace Darklight
 				EditorGUILayout.BeginHorizontal(); // Start a horizontal group for inline elements
 
 				// Log Prefix
-				EditorGUILayout.LabelField($"[{log.Timestamp}] || {logCount}", CustomGUIStyles.SmallTextStyle, GUILayout.Width(100));
+				EditorGUILayout.LabelField($"[{log.Timestamp}] || {logCount}", UnityExt.CustomGUIStyles.SmallTextStyle, GUILayout.Width(100));
 
 				// Main Message
-				EditorGUILayout.LabelField(log.Message, CustomGUIStyles.NormalTextStyle, GUILayout.ExpandWidth(true));
+				EditorGUILayout.LabelField(log.Message, UnityExt.CustomGUIStyles.NormalTextStyle, GUILayout.ExpandWidth(true));
 				EditorGUILayout.EndHorizontal();
 
 				/*

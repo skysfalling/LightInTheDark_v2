@@ -3,7 +3,7 @@ namespace Darklight.Player.Movement
 	using System.Collections;
 	using System.Collections.Generic;
 	using UnityEngine;
-	using Darklight.UniversalInput;
+	using Darklight.UnityExt.Input;
 
 	public enum PlayerState
 	{
@@ -83,7 +83,7 @@ namespace Darklight.Player.Movement
 			rb = GetComponent<Rigidbody>();
 			//animator = GetComponent<PlayerAnimator>();
 			//inventory = GetComponent<PlayerInventory>();
-			inputManager = FindObjectOfType<UniversalInputManager>();
+			inputManager = FindFirstObjectByType<UniversalInputManager>();
 
 
 			moveTarget = transform.position;

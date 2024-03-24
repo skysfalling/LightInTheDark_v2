@@ -81,25 +81,12 @@ namespace Darklight.World.Generation.Unit
 			ChunkGenerationSystem = this.gameObject.AddComponent<ChunkGenerationSystem>();
 			ChunkGenerationSystem.Initialize(region);
 
-			// Create Temp Mesh
-			//CreateTempMesh();
 			await Task.CompletedTask;
 		}
 
-		public void CreateTempMesh()
+		public async Task UpdateSequence()
 		{
-			if (Region != null)
-			{
-				int regionWidth = WorldGen.Settings.RegionWidth_inGameUnits;
-				int chunkWidth = WorldGen.Settings.ChunkWidth_inGameUnits;
-				int chunkDepth = WorldGen.Settings.ChunkDepth_inGameUnits;
-
-				GameObject tempMesh = GameObject.CreatePrimitive(PrimitiveType.Cube);
-				tempMesh.name = $"TempRegionMesh";
-				tempMesh.transform.parent = this.transform;
-				tempMesh.transform.position = Region.CenterPosition - (Vector3.up * chunkDepth * 0.5f);
-				tempMesh.transform.localScale = new Vector3(1, 0, 1) * regionWidth + (Vector3.up * chunkDepth);
-			}
+			await Task.CompletedTask;
 		}
 	}
 

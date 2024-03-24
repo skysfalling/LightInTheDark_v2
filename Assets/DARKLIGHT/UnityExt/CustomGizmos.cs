@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-namespace Darklight
+namespace Darklight.UnityExt
 {
     public static class CustomGizmos
     {

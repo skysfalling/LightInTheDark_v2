@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using Darklight.UniversalInput;
+using Darklight.UnityExt.Input;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Darklight.World.Map;

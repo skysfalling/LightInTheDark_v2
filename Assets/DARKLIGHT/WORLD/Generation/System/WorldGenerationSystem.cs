@@ -159,7 +159,6 @@ namespace Darklight.World.Generation.System
                 TaskBotConsole.Log($"Region Count is too high. Consider reducing the region width.", 0, Darklight.Console.LogEntry.Severity.Error);
                 return;
             }
-            await RegionGridMap.Initialize(); // Initialize Data
 
             // [[ ADD BOT CLONES TO EXECUTION QUEUE ]]
             // Enqueue a TaskBot clone for each position
@@ -173,7 +172,6 @@ namespace Darklight.World.Generation.System
                     await regionMonoOperator.Initialize(region, _settings);
                 });
                 // i love my little bots <3 
-
             });
         }
         #endregion

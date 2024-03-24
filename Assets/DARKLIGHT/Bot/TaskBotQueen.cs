@@ -6,13 +6,14 @@ namespace Darklight.Bot
 	using System.Threading.Tasks;
 	using UnityEngine;
 	using Debug = UnityEngine.Debug;
-	using Darklight;
+	using Darklight.UnityExt.Input;
 
 #if UNITY_EDITOR
 	using UnityEditor;
 	using Editor = UnityEditor.Editor;
 	using CustomEditor = UnityEditor.CustomEditor;
 	using System.Linq;
+	using Darklight.UnityExt;
 #endif
 
 	public class TaskBotQueen : MonoBehaviour, ITaskEntity

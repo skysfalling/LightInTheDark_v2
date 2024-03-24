@@ -5,6 +5,7 @@ namespace Darklight.World.Settings
 #if UNITY_EDITOR
 	using UnityEditor;
 	using Darklight.World.Generation.System;
+	using Darklight.UnityExt;
 #endif
 
 	[System.Serializable]
@@ -164,7 +165,7 @@ namespace Darklight.World.Settings
 				foldoutHeader = $"Custom Generation Settings < {customSettingsProp.objectReferenceValue.name} >";
 
 			// << FOLDOUT >>
-			Darklight.CustomInspectorGUI.CreateFoldout(ref showSettingsFoldout, foldoutHeader, () =>
+			CustomInspectorGUI.CreateFoldout(ref showSettingsFoldout, foldoutHeader, () =>
 			{
 				EditorGUI.indentLevel++;
 
